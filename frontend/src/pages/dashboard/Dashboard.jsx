@@ -365,7 +365,7 @@ const Dashboard = () => {
 
 
                             <li>
-                                <Link to="/dashboard/Shop" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                <Link to="/dashboard/Shop" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
                                     {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
                                     <span className="ml-3">Shop</span>
                                 </Link>
