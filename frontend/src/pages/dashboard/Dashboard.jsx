@@ -3,7 +3,7 @@ import { Moon, Sun, Settings } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Dropdown } from "flowbite-react";
 import { HiCog, HiCurrencyDollar, HiLogout, HiViewGrid } from "react-icons/hi";
-// import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FaStore } from "react-icons/fa";
 import { MdAddBusiness } from "react-icons/md";
 import { FaOpencart } from "react-icons/fa6";
@@ -43,8 +43,8 @@ const Dashboard = () => {
 
 
 
-    // const { user, isError, isSuccess, isLoading, message } = useSelector((state) => state.auth);
-
+    const { user, isError, isSuccess, isLoading, message } = useSelector((state) => state.auth);
+    console.log('user', user);
 
     // useEffect(() => {
     //     if (!user) {
@@ -65,9 +65,9 @@ const Dashboard = () => {
     //     }
     // }
 
-    let user = {
-        name: "bilal Ali"
-    };
+    // let user = {
+    //     name: "bilal Ali"
+    // };
 
     const toggleMenu = () => {
         setMenuOpen((prev) => !prev);
@@ -181,7 +181,7 @@ const Dashboard = () => {
                                         onClick={toggleMenu}
                                         ref={menuButtonRef}
                                     >
-                                        {user?.name[0]}
+                                        {user?.user?.name[0]}
                                     </button>
                                 </div>
                                 <div
@@ -364,13 +364,14 @@ const Dashboard = () => {
                             </li>
 
 
-                            <li>
-                                <Link to="/dashboard/Shop" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
-                                    {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
-                                    <span className="ml-3">Shop</span>
-                                </Link>
-                            </li>
-
+                            {/* SHOP FOR SUPERADMIN */}
+                            {user?.user?.role === "superadmin" ? (
+                                <li>
+                                    <Link to="/dashboard/Shop" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                        {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
+                                        <span className="ml-3">Shop</span>
+                                    </Link>
+                                </li>) : null}
                         </ul>
 
                     </div>
