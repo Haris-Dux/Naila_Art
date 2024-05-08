@@ -72,6 +72,14 @@ const Bag = () => {
 
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
 
+
+                <div className="flex justify-end items-center">
+                <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                        <IoAdd size={22} className='text-white' />
+                    </button>
+                    
+                      </div>
+
                 {/* -------------- TABLE -------------- */}
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

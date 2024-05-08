@@ -1,6 +1,37 @@
-import React from 'react';
+import React,{useState} from 'react';
+import { createAsseceriesAsync } from '../../../features/PurchaseBillsSlice';
+import { useDispatch,useSelector } from "react-redux";
 
 const AccessoriesModal = ({ isOpen, closeModal }) => {
+const dispatch = useDispatch()
+    const [formData, setFormData] = useState({
+        serial_No: '',
+        name: '',
+        quantity: '',
+        r_Date: ''
+    });
+
+    // Function to handle changes in form inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    // Function to handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+       
+
+        dispatch(createAsseceriesAsync(formData)).then(()=>{
+            closeModal();
+
+        }).catch((error)=>{
+
+        })
+    };
     return (
         <>
             {isOpen && (
@@ -40,26 +71,16 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="">
-
+                        <form onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-                                    {/* BILL NO # */}
+                                    {/* SERIAL NO */}
                                     <div>
                                         <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Bill No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* DATE */}
-                                    <div>
-                                        <input
-                                            id="color"
-                                            name="color"
-                                            type="date"
+                                            name="serial_No"
+                                            type="number"
+                                            placeholder="Serial No"
+                                            value={formData.serial_No}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -68,9 +89,11 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
                                     {/* NAME */}
                                     <div>
                                         <input
-                                            name="color"
+                                            name="name"
                                             type="text"
                                             placeholder="Name"
+                                            value={formData.name}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -80,47 +103,28 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
                                     <div>
                                         <input
                                             name="quantity"
-                                            type="text"
+                                            type="number"
                                             placeholder="Quantity"
+                                            value={formData.quantity}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* CATEGORY */}
+                                    {/* DATE */}
                                     <div>
                                         <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Category"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* RATE */}
-                                    <div>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Rate"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* TOTAL */}
-                                    <div className='col-span-2'>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Total"
+                                            name="r_Date"
+                                            type="date"
+                                            placeholder="Date"
+                                            value={formData.r_Date}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
                                 </div>
-
 
                                 <div className="flex justify-center mt-6">
                                     <button
