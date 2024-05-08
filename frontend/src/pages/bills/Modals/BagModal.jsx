@@ -1,6 +1,41 @@
-import React from 'react';
+import React,{useState} from 'react';
+import { createBagAsync } from '../../../features/PurchaseBillsSlice';
+import { useDispatch,useSelector } from "react-redux";
 
 const BagModal = ({ isOpen, closeModal }) => {
+
+
+    const dispatch = useDispatch();
+
+    // State variables to hold form data
+    const [formData, setFormData] = useState({
+        bill_no: '',
+        name: '',
+        quantity: '',
+        r_Date: ''
+    });
+
+    // Function to handle changes in form inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    // Function to handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Dispatch action with form data
+        dispatch(createBagAsync(formData)).then(()=>{
+            closeModal();
+
+        }).catch((error)=>{
+
+        })
+        // Close modal after form submission
+    };
     return (
         <>
             {isOpen && (
@@ -40,48 +75,29 @@ const BagModal = ({ isOpen, closeModal }) => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="">
-
+                        <form onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-                                    {/* BILL NO # */}
+                                    {/* BILL NO */}
                                     <div>
                                         <input
-                                            name="category"
-                                            type="text"
+                                            name="bill_no"
+                                            type="number"
                                             placeholder="Bill No"
+                                            value={formData.bill_no}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* DATE */}
+                                    {/* NAME */}
                                     <div>
                                         <input
-                                            id="color"
-                                            name="color"
-                                            type="date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* PARTY NAME */}
-                                    <div className='col-span-2'>
-                                        <input
-                                            name="color"
+                                            name="name"
                                             type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* CATEGORY */}
-                                    <div>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Category"
+                                            placeholder="Name"
+                                            value={formData.name}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -91,36 +107,28 @@ const BagModal = ({ isOpen, closeModal }) => {
                                     <div>
                                         <input
                                             name="quantity"
-                                            type="text"
+                                            type="number"
                                             placeholder="Quantity"
+                                            value={formData.quantity}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* RATE */}
+                                    {/* DATE */}
                                     <div>
                                         <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Rate"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* TOTAL */}
-                                    <div>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Total"
+                                            name="r_Date"
+                                            type="date"
+                                            placeholder="Date"
+                                            value={formData.r_Date}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
                                 </div>
-
 
                                 <div className="flex justify-center mt-6">
                                     <button

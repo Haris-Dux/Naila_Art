@@ -8,6 +8,8 @@ import { FaStore } from "react-icons/fa";
 import { MdAddBusiness } from "react-icons/md";
 import { FaOpencart } from "react-icons/fa6";
 import { IoLogOutOutline } from "react-icons/io5";
+import { logoutUserAsync } from "../../features/authSlice";
+import toast from "react-hot-toast";
 
 
 const Dashboard = () => {
@@ -15,7 +17,7 @@ const Dashboard = () => {
     const location = useLocation();
     const menuRef = useRef(null);
     const menuButtonRef = useRef(null);
-
+const dispatch = useDispatch()
     // STATES
     const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -68,6 +70,17 @@ const Dashboard = () => {
     // let user = {
     //     name: "bilal Ali"
     // };
+
+
+    const LogoutUser = async (e) => {
+   e.preventDefault()
+          dispatch(logoutUserAsync()).then(() => {
+          toast.success("user Logout ");
+
+          });
+        
+       
+      };
 
     const toggleMenu = () => {
         setMenuOpen((prev) => !prev);
@@ -215,10 +228,9 @@ const Dashboard = () => {
                                                 <span className="flex text-md gap-2"><Sun size={20} />Light Mode</span>
                                             )}
                                         </button>
-                                        <form action="#" method="POST" role="none">
+                                        <form onSubmit={LogoutUser} >
                                             <button
-                                                // onClick={handleLogout}
-                                                to="/"
+                                               
                                                 className="text-red-700 block w-full px-4 py-2 text-left"
                                                 id="menu-item-3"
                                                 role="menuitem"
