@@ -1,9 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
+import {  GetAllBase } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import data from './BaseData';
 
 const Base = () => {
     const [isOpen, setIsOpen] = useState(false);
+
+
+
+    const dispatch = useDispatch()
+    const { loading,Base } = useSelector((state) => state.InStock);
+
+
+
+
+
+    useEffect(() => {
+        dispatch(GetAllBase())
+         }, [])
+
+
+console.log(' Base data',Base)
 
     const openModal = () => {
         setIsOpen(true);
@@ -103,7 +121,7 @@ const Base = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Base?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
 
                                     <td className="px-6 py-4">
