@@ -1,8 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
-
+import { GetAllBags } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 const Bag = () => {
     const [isOpen, setIsOpen] = useState(false);
+
+    const dispatch = useDispatch()
+    const { loading,Bags } = useSelector((state) => state.InStock);
+
+
+
+    useEffect(() => {
+        dispatch(GetAllBags())
+         }, [])
+
+
+console.log('data',Bags)
+
 
     const openModal = () => {
         setIsOpen(true);
@@ -14,22 +28,7 @@ const Bag = () => {
         document.body.style.overflow = 'auto';
     };
 
-    const data = [
-        {
-            name: 'Bag',
-            bill_no: '809',
-            recently: '1500',
-            date: '11-22-2024',
-            totalQuantity: '1700',
-        },
-        {
-            name: 'Bag',
-            bill_no: '809',
-            recently: '1500',
-            date: '11-22-2024',
-            totalQuantity: '1700',
-        },
-    ]
+
 
 
 
@@ -118,7 +117,7 @@ const Bag = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Bags?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <td className="px-6 py-4"
                                         scope="row"

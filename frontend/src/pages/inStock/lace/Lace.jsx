@@ -1,42 +1,26 @@
-import React, { useState } from 'react'
-
+import React, { useState,useEffect } from 'react'
+import {   GetAllLace } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 const Lace = () => {
     const [isOpen, setIsOpen] = useState(false);
 
-    const data = [
-        {
-            bill_no: '1',
-            name: 'Lace',
-            category: 'Karachi Border',
-            totalQuantity: '500',
-            date: '10-12-2021',
-            recently: '150',
-        },
-        {
-            bill_no: '2',
-            name: 'Lace',
-            category: 'Karachi Border',
-            totalQuantity: '500',
-            date: '10-12-2021',
-            recently: '150',
-        },
-        {
-            bill_no: '3',
-            name: 'Lace',
-            category: 'Karachi Border',
-            totalQuantity: '500',
-            date: '10-12-2021',
-            recently: '150',
-        },
-        {
-            bill_no: '4',
-            name: 'Lace',
-            category: 'Karachi Border',
-            totalQuantity: '500',
-            date: '10-12-2021',
-            recently: '150',
-        },
-    ]
+
+
+    const dispatch = useDispatch()
+    const { loading,Lace } = useSelector((state) => state.InStock);
+
+
+
+
+
+    useEffect(() => {
+        dispatch(GetAllLace())
+         }, [])
+
+
+console.log(' Lace data',Lace)
+
+
 
 
 
@@ -124,7 +108,7 @@ const Lace = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Lace?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -141,7 +125,7 @@ const Lace = () => {
                                         {data.totalQuantity} m
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.date}
+                                        {data.r_Date}
                                     </td>
                                     <td className="px-6 py-4">
                                         {data.recently} m
