@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // AUTH IMPORTS
@@ -21,13 +22,20 @@ import Calendar from "./pages/process/calendar/Calendar";
 import Cutting from "./pages/process/cutting/Cutting";
 import Stitching from "./pages/process/stitching/Stitching";
 import Stones from "./pages/process/stones/Stones";
-import './App.css'
 import ForgetPassword from "./auth/ForgetPassword";
 import ResetPassword from "./auth/ResetPassword";
 import OtpChecker from "./auth/OtpChecker";
 import Shop from "./pages/Shop/Shop";
+import { useDispatch } from "react-redux";
+import { userSessionAsync } from "./features/authSlice";
+import './App.css'
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(userSessionAsync());
+  });
 
   return (
     <>
@@ -65,9 +73,9 @@ function App() {
             <Route path="stitching" element={<Stitching />} />
             <Route path="stones" element={<Stones />} />
 
-             {/* Shop Crud */}
+            {/* Shop Crud */}
 
-             <Route path="Shop" element={<Shop />} />
+            <Route path="Shop" element={<Shop />} />
 
 
           </Route>

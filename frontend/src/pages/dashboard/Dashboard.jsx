@@ -1,18 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Moon, Sun, Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Dropdown } from "flowbite-react";
-import { HiCog, HiCurrencyDollar, HiLogout, HiViewGrid } from "react-icons/hi";
+// import { Dropdown } from "flowbite-react";
+// import { HiCog, HiCurrencyDollar, HiLogout, HiViewGrid } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
-import { FaStore } from "react-icons/fa";
-import { MdAddBusiness } from "react-icons/md";
-import { FaOpencart } from "react-icons/fa6";
+// import { FaStore } from "react-icons/fa";
+// import { MdAddBusiness } from "react-icons/md";
+// import { FaOpencart } from "react-icons/fa6";
 import { IoLogOutOutline } from "react-icons/io5";
+import { logoutUserAsync } from "../../features/authSlice";
 
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const dispatch = useDispatch();
     const menuRef = useRef(null);
     const menuButtonRef = useRef(null);
 
@@ -41,33 +43,15 @@ const Dashboard = () => {
         setIsBillsDropdownOpen(false);
     };
 
+    const { user } = useSelector((state) => state.auth);
 
+    useEffect(() => {
+        if (!user) {
+            navigate('/')
+        }
 
-    const { user, isError, isSuccess, isLoading, message } = useSelector((state) => state.auth);
-    console.log('user', user);
+    }, [user, dispatch, navigate])
 
-    // useEffect(() => {
-    //     if (!user) {
-    //         navigate('/login')
-    //     }
-
-    //     dispatch(getProductAsync());
-    // }, [user, dispatch, navigate])
-
-
-    // const handleLogout = async () => {
-    //     if (user && user.token) {
-    //         dispatch(logoutUserAsync())
-    //         dispatch(reset())
-    //         navigate('/login')
-    //     } else {
-    //         navigate('/login')
-    //     }
-    // }
-
-    // let user = {
-    //     name: "bilal Ali"
-    // };
 
     const toggleMenu = () => {
         setMenuOpen((prev) => !prev);
@@ -103,9 +87,16 @@ const Dashboard = () => {
         localStorage.setItem("theme", theme);
     }, [theme]);
 
+    // HANDLE THEME CHANGE
     const handleThemeChange = () => {
         setTheme(theme === "dark" ? "light" : "dark");
+        toggleMenu();
     };
+
+    // HANDLE LOGOUT
+    const handleLogout = () => {
+        dispatch(logoutUserAsync());
+    }
 
     return (
         <>
@@ -157,18 +148,15 @@ const Dashboard = () => {
                         </div>
 
                         {/* ---------------- NAVBAR - RIGHT ---------------- */}
-                        <div className="flex items-center lg:order-2">
-                            <button className="inline-block rounded border border-gray-800 bg-white px-8 py-3 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500">
+                        <div className="flex items-center gap-2 lg:order-2">
+                            <button className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500">
                                 Generate Bill
                             </button>
 
-                            <button className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-8 py-3 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100">
+                            <button className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-4 py-2.5 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100">
                                 Return
                             </button>
-                            <p className="text-xl capitalize mx-5 text-gray-900 dark:text-gray-100">{user?.name}</p>
-                            {/* <button onClick={handleThemeChange} className=" text-gray-800 dark:text-white px-3 py-2.5 rounded-lg" >
-                                {theme === "light" ? <Moon /> : <Sun />}
-                            </button> */}
+                            {/* <p className="text-xl capitalize mx-5 text-gray-900 dark:text-gray-100">{user?.name}</p> */}
 
                             <div className="relative inline-block text-left">
                                 <div>
@@ -188,23 +176,15 @@ const Dashboard = () => {
                                     aria-labelledby="menu-button"
                                     aria-orientation="vertical"
                                     className={`${isMenuOpen ? "" : "hidden"
-                                        } absolute right-0 z-10 mt-3 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}
+                                        } absolute right-0 z-10 mt-5 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}
                                     role="menu"
                                     tabIndex="-1"
                                     ref={menuRef}
                                 >
                                     <div className="py-1" role="none">
                                         <button
-                                            className="text-gray-700 block px-4 py-2 text-sm"
-                                            id="menu-item-0"
-                                            role="menuitem"
-                                            tabIndex="-1"
-                                        >
-                                            Account settings
-                                        </button>
-                                        <button
                                             onClick={handleThemeChange}
-                                            className="text-gray-700 block px-4 py-2"
+                                            className="text-gray-700 block px-4 w-full py-2 hover:bg-gray-200"
                                             id="menu-item-1"
                                             role="menuitem"
                                             tabIndex="-1"
@@ -215,19 +195,16 @@ const Dashboard = () => {
                                                 <span className="flex text-md gap-2"><Sun size={20} />Light Mode</span>
                                             )}
                                         </button>
-                                        <form action="#" method="POST" role="none">
-                                            <button
-                                                // onClick={handleLogout}
-                                                to="/"
-                                                className="text-red-700 block w-full px-4 py-2 text-left"
-                                                id="menu-item-3"
-                                                role="menuitem"
-                                                tabIndex="-1"
-                                                type="submit"
-                                            >
-                                                <span className="flex text-md font-normal gap-2"><IoLogOutOutline size={20} /> Sign out</span>
-                                            </button>
-                                        </form>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="text-red-700 block w-full px-4 py-2 text-left hover:bg-gray-200"
+                                            id="menu-item-3"
+                                            role="menuitem"
+                                            tabIndex="-1"
+                                            type="submit"
+                                        >
+                                            <span className="flex text-md font-normal gap-2"><IoLogOutOutline size={20} /> Sign out</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
