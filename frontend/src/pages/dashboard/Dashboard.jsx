@@ -371,7 +371,7 @@ const Dashboard = () => {
                     </div> */}
                 </aside>
                 {/* ---------------- DASHBOARD ---------------- */}
-                <main className="lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900">
+                <main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900">
                     <Outlet />
                 </main>
             </div>
