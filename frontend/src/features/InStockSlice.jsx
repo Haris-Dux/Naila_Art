@@ -12,14 +12,86 @@ const getExpense = 'http://localhost:8000/api/stock/expense/getAllExpenses'
 
 
 
-
 export const GetAllaccessories = createAsyncThunk(
   "accessories/Get",
   async () => {
     try {
       const response = await axios.post(getaccessories);
       toast.success(response.data.message);
-    
+
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const GetAllBags = createAsyncThunk(
+  "Bags/Get",
+  async () => {
+    try {
+      const response = await axios.post(getBags);
+      // toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const GetAllBase = createAsyncThunk(
+  "Base/Get",
+  async () => {
+    try {
+      const response = await axios.post(getBase);
+      // toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const GetAllLace = createAsyncThunk(
+  "Lace/Get",
+  async () => {
+    try {
+      const response = await axios.post(getLace);
+      toast.success(response.data.message);
+
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const GetAllSuit = createAsyncThunk(
+  "Suit/Get",
+  async () => {
+    try {
+      const response = await axios.post(getSuits);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const GetAllExpense = createAsyncThunk(
+  "Expense/Get",
+  async () => {
+    try {
+      const response = await axios.post(getExpense);
+      toast.success(response.data.message);
+
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
@@ -29,101 +101,14 @@ export const GetAllaccessories = createAsyncThunk(
 );
 
 
-
-export const GetAllBags = createAsyncThunk(
-    "Bags/Get",
-    async () => {
-      try {
-        const response = await axios.post(getBags);
-        toast.success(response.data.message);
-      
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
-    }
-  );
-  
-
-
-
-  export const GetAllBase = createAsyncThunk(
-    "Base/Get",
-    async () => {
-      try {
-        const response = await axios.post(getBase);
-        toast.success(response.data.message);
-      
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
-    }
-  );
-
-
-  
-  export const GetAllLace = createAsyncThunk(
-    "Lace/Get",
-    async () => {
-      try {
-        const response = await axios.post(getLace);
-        toast.success(response.data.message);
-      
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
-    }
-  );
-
-
-
-
-  export const GetAllSuit = createAsyncThunk(
-    "Suit/Get",
-    async () => {
-      try {
-        const response = await axios.post(getSuits);
-        toast.success(response.data.message);
-      
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
-    }
-  );
-
-
-
-  export const GetAllExpense = createAsyncThunk(
-    "Expense/Get",
-    async () => {
-      try {
-        const response = await axios.post(getExpense);
-        toast.success(response.data.message);
-      
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
-    }
-  );
-
-
 // INITIAL STATE
 const initialState = {
-    Suit:[],
-    Base:[],
-    Lace:[],
-    Bags:[],
-accessories: [],
-Expense:[],
+  Suit: [],
+  Base: [],
+  Lace: [],
+  Bags: [],
+  accessories: [],
+  Expense: [],
   loading: false,
 };
 
@@ -136,9 +121,6 @@ const InStockSlic = createSlice({
   extraReducers: (builder) => {
     builder
 
-    
-
-      
       .addCase(GetAllaccessories.pending, (state, action) => {
         state.loading = true;
       })
@@ -169,7 +151,7 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.Lace = action.payload;
       })
-      
+
       .addCase(GetAllSuit.pending, (state, action) => {
         state.loading = true;
       })
@@ -177,7 +159,6 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.Suit = action.payload;
       })
-
 
       .addCase(GetAllExpense.pending, (state, action) => {
         state.loading = true;
