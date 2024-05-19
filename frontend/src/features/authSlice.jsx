@@ -5,10 +5,13 @@ import toast from "react-hot-toast";
 //API URL
 const signupUrl = "http://localhost:8000/api/users/signup";
 const loginUrl = "http://localhost:8000/api/users/login";
+const userSessionUrl = "http://localhost:8000/api/users/persistUserSession";
+const logoutUrl = "http://localhost:8000/api/users/logout";
 const forgetPassUrl = "http://localhost:8000/api/users/sendResetPasswordOTP";
 const verifyOtpPassUrl = "http://localhost:8000/api/users/verifyOtp";
 const resetPassUrl = "http://localhost:8000/api/users/updatePassword";
-const getUsersForBranch  = "http://localhost:8000/api/users/getUsersForBranch";
+const getUsersForBranch = "http://localhost:8000/api/users/getUsersForBranch";
+
 //CREATE ASYNC THUNK
 export const createuserAsync = createAsyncThunk(
   "user/create",
@@ -39,6 +42,29 @@ export const loginuserAsync = createAsyncThunk(
     }
   }
 );
+
+
+export const userSessionAsync = createAsyncThunk("user/session", async () => {
+  try {
+    const response = await axios.get(userSessionUrl);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+  }
+});
+
+
+// Logout Function
+export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
+  try {
+    const response = await axios.delete(logoutUrl);
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
 
 
 // FORGET ASYNC THUNK
@@ -155,7 +181,7 @@ const initialState = {
   forgetPasswordEmail: null,
   resetPassword: null,
   validateToken: null,
-  getUsersForBranch:[]
+  getUsersForBranch: []
 };
 
 const authSlice = createSlice({
@@ -168,7 +194,7 @@ const authSlice = createSlice({
     builder
 
       // SIGN UP ADD CASE
-      .addCase(createuserAsync.pending, (state, action) => {
+      .addCase(createuserAsync.pending, (state) => {
         state.loading = true;
       })
       .addCase(createuserAsync.fulfilled, (state, action) => {
@@ -177,7 +203,7 @@ const authSlice = createSlice({
       })
 
       // LOGIN ADD CASE
-      .addCase(loginuserAsync.pending, (state, action) => {
+      .addCase(loginuserAsync.pending, (state) => {
         state.loading = true;
       })
       .addCase(loginuserAsync.fulfilled, (state, action) => {
@@ -185,8 +211,17 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
 
+      // Session ADD CASE
+      .addCase(userSessionAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(userSessionAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+
       // FORGET PASSWORD ADD CASE
-      .addCase(forgetuserAsync.pending, (state, action) => {
+      .addCase(forgetuserAsync.pending, (state) => {
         state.loading = true;
       })
       .addCase(forgetuserAsync.fulfilled, (state, action) => {
@@ -195,12 +230,21 @@ const authSlice = createSlice({
       })
 
 
-      .addCase(GetUserBYBranch.pending, (state, action) => {
+      .addCase(GetUserBYBranch.pending, (state) => {
         state.loading = true;
       })
       .addCase(GetUserBYBranch.fulfilled, (state, action) => {
         state.loading = false;
         state.getUsersForBranch = action.payload;
+      })
+
+      // logout
+      .addCase(logoutUserAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutUserAsync.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
       })
 
     //       // RESET PASSWORD ADD CASE

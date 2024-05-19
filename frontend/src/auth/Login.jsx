@@ -15,19 +15,19 @@ const Login = () => {
     password: "",
   });
 
-  // const handleHomePage = () => {
-  //   navigate("/dashboard");
-  // };
 
+  // HANDLE SUBMIT
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(loginuserAsync(formData))
-      .then(() => {
-        navigate('/dashboard')
-        setFormData({
-          email: "",
-          password: "",
-        });
+      .then((res) => {
+        if (res.payload.login) {
+          navigate('/dashboard')
+          setFormData({
+            email: "",
+            password: "",
+          });
+        }
       })
   };
 
