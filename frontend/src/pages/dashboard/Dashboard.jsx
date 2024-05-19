@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 // import { FaOpencart } from "react-icons/fa6";
 import { IoLogOutOutline } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
+import toast from "react-hot-toast";
 
 
 const Dashboard = () => {
@@ -17,7 +18,6 @@ const Dashboard = () => {
     const dispatch = useDispatch();
     const menuRef = useRef(null);
     const menuButtonRef = useRef(null);
-
     // STATES
     const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -51,7 +51,6 @@ const Dashboard = () => {
         }
 
     }, [user, dispatch, navigate])
-
 
     const toggleMenu = () => {
         setMenuOpen((prev) => !prev);
@@ -95,7 +94,9 @@ const Dashboard = () => {
 
     // HANDLE LOGOUT
     const handleLogout = () => {
-        dispatch(logoutUserAsync());
+        dispatch(logoutUserAsync()).then(() => {
+            toast.success("user Logout ");
+        });
     }
 
     return (
