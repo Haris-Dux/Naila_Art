@@ -1,8 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
+import { GetAllaccessories } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Accessories = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const dispatch = useDispatch()
+    const { loading,accessories } = useSelector((state) => state.InStock);
+
+
+
+
+useEffect(() => {
+    dispatch(GetAllaccessories())
+     }, [])
+
+
+
+
+
+     console.log('data accesseries',accessories)
+
+
 
     const openModal = () => {
         setIsOpen(true);
@@ -124,12 +143,12 @@ const Accessories = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {accessories?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
                                     >
-                                        {data.serial_no}
+                                        {data.serial_No}
                                     </th>
                                     <td className="px-6 py-4">
                                         {data.name}
@@ -138,7 +157,7 @@ const Accessories = () => {
                                         {data.totalQuantity}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.date}
+                                        {data.r_Date}
                                     </td>
                                     <td className="px-6 py-4">
                                         {data.recently}

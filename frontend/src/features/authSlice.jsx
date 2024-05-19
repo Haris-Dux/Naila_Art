@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 //API URL
 const signupUrl = "http://localhost:8000/api/users/signup";
 const loginUrl = "http://localhost:8000/api/users/login";
+const logoutUrl = "http://localhost:8000/api/users/logout";
+const authUserSessionUrl = "http://localhost:8000/api/users/persistUserSession"
 const forgetPassUrl = "http://localhost:8000/api/users/sendResetPasswordOTP";
 const verifyOtpPassUrl = "http://localhost:8000/api/users/verifyOtp";
 const resetPassUrl = "http://localhost:8000/api/users/updatePassword";
@@ -108,6 +110,22 @@ export const GetUserBYBranch = createAsyncThunk(
 );
 
 
+export const logoutUserAsync = createAsyncThunk("users/logout", async () => {
+  await axios.delete(logoutUrl);
+});
+
+
+
+export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async () => {
+  try {
+    const response = await axios.get(authUserSessionUrl);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.message);
+    toast.error(error.response.data.message);
+
+  }
+});
 
 
 
@@ -162,7 +180,12 @@ const authSlice = createSlice({
   name: "authSlice",
   initialState,
   reducers: {
-    reset: (state) => initialState,
+    RemoveUserData: (state) => {
+      state.user = null;
+    },
+    addUserData: (state, action) => {
+      state.user = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -202,6 +225,25 @@ const authSlice = createSlice({
         state.loading = false;
         state.getUsersForBranch = action.payload;
       })
+
+      .addCase(authUserAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(authUserAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+
+      .addCase(logoutUserAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutUserAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = null;
+      });
+
+
+      
 
     //       // RESET PASSWORD ADD CASE
     //       .addCase(resetpasswordAsync.pending, (state, action) => {

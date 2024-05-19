@@ -1,13 +1,13 @@
+// App.js
+import React, { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// AUTH IMPORTS
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
-// OTHER IMPORTS
 import Dashboard from "./pages/dashboard/Dashboard";
+import DashboardStats from "./pages/dashboard/DashboardStats";
 import SuitsStock from "./pages/inStock/suits/SuitsStock";
 import Base from "./pages/inStock/base/Base";
-import DashboardStats from "./pages/dashboard/DashboardStats";
 import Lace from "./pages/inStock/lace/Lace";
 import Accessories from "./pages/inStock/accessories/Accessories";
 import Bag from "./pages/inStock/bag/Bag";
@@ -21,29 +21,36 @@ import Calendar from "./pages/process/calendar/Calendar";
 import Cutting from "./pages/process/cutting/Cutting";
 import Stitching from "./pages/process/stitching/Stitching";
 import Stones from "./pages/process/stones/Stones";
-import './App.css'
 import ForgetPassword from "./auth/ForgetPassword";
 import ResetPassword from "./auth/ResetPassword";
 import OtpChecker from "./auth/OtpChecker";
 import Shop from "./pages/Shop/Shop";
+import { useDispatch } from "react-redux";
+import { authUserAsync } from "./features/authSlice";
+import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
+
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(authUserAsync());
+  }, [dispatch]);
 
   return (
     <>
       <BrowserRouter>
         <Routes>
           {/* AUTH ROUTE */}
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={  <LoginProtected> < Login />   </LoginProtected>   } />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forget" element={<ForgetPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/otp" element={<OtpChecker />} />
 
           {/* DASHBOARD ROUTE */}
-          <Route path="/dashboard" element={<Dashboard />}>
-            <Route index element={<DashboardStats />} />
-
+          <Route path="/dashboard" element={<UserProtected>  <Dashboard />  </UserProtected>}>
+          <Route index element={<DashboardStats />} />
             {/* INSTOCK ROUTES */}
             <Route path="suits" element={<SuitsStock />} />
             <Route path="base" element={<Base />} />
@@ -65,18 +72,14 @@ function App() {
             <Route path="stitching" element={<Stitching />} />
             <Route path="stones" element={<Stones />} />
 
-             {/* Shop Crud */}
-
-             <Route path="Shop" element={<Shop />} />
-
-
+            {/* Shop Crud */}
+            <Route path="Shop" element={<Shop />} />
           </Route>
-
         </Routes>
         <Toaster />
       </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

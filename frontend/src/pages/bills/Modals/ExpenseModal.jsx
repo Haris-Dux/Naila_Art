@@ -1,6 +1,39 @@
-import React from 'react';
+import React,{useState} from 'react';
 
+import { CeateExpenseAsync } from '../../../features/PurchaseBillsSlice';
+import { useDispatch,useSelector } from "react-redux";
 const ExpenseModal = ({ isOpen, closeModal }) => {
+
+    const dispatch = useDispatch();
+
+    // State variables to hold form data
+    const [formData, setFormData] = useState({
+        branchId: '6636f206ca1fae84a080e609',
+        name: '',
+        rate: '',
+        Date: '',
+        reason: '',
+        serial_no: ''
+    });
+
+    // Function to handle changes in form inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    // Function to handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Dispatch action with form data
+        dispatch(CeateExpenseAsync(formData));
+        // Close modal after form submission
+        closeModal();
+    };
+
     return (
         <>
             {isOpen && (
@@ -40,15 +73,29 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="">
-
+                        <form onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-                                    {/* BILL NO # */}
+                                    {/* NAME */}
                                     <div>
                                         <input
-                                            name="category"
+                                            name="name"
                                             type="text"
-                                            placeholder="Bill No"
+                                            placeholder="Name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* RATE */}
+                                    <div>
+                                        <input
+                                            name="rate"
+                                            type="number"
+                                            placeholder="Rate"
+                                            value={formData.rate}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -57,20 +104,11 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                                     {/* DATE */}
                                     <div>
                                         <input
-                                            id="color"
-                                            name="color"
+                                            name="Date"
                                             type="date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* NAME */}
-                                    <div>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Name"
+                                            placeholder="Date"
+                                            value={formData.Date}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -82,6 +120,21 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                                             name="reason"
                                             type="text"
                                             placeholder="Reason"
+                                            value={formData.reason}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* SERIAL NO */}
+                                    <div>
+                                        <input
+                                            name="serial_no"
+                                            type="text"
+                                            placeholder="Serial No"
+                                            value={formData.serial_no}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -90,26 +143,16 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                                     {/* CATEGORY */}
                                     <div>
                                         <input
-                                            name="quantity"
+                                            name="category"
                                             type="text"
                                             placeholder="Category"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* RATE */}
-                                    <div>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Rate"
+                                            value={formData.category}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
                                 </div>
-
 
                                 <div className="flex justify-center mt-6">
                                     <button
