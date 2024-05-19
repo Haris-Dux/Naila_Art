@@ -1,4 +1,5 @@
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
+import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addBagsAndBoxInStock = async (req, res, next) => {
@@ -37,6 +38,8 @@ export const addBagsAndBoxInStock = async (req, res, next) => {
 export const getAllBagsAndBox = async (req, res, next) => {
   try {
     const data = await BaseModel.find({}).sort({ createdAt: -1 });
+
+    
     setMongoose()
     return res.status(500).json(data);
   } catch (error) {

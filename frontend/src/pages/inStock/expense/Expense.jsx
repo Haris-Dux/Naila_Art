@@ -1,9 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
-
+import {  GetAllExpense } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 const Expense = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messageId, setMessageId] = useState();
+    const dispatch = useDispatch()
+    const { loading,Expense } = useSelector((state) => state.InStock);
+
+
+
+    useEffect(() => {
+        dispatch(GetAllExpense())
+         }, [])
+
+
+console.log('data',Expense)
 
     const openModal = (msgId) => {
         setMessageId(msgId);

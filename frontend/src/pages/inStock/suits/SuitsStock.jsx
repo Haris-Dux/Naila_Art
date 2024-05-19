@@ -1,41 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 // import data from './SuitsStockData';
 import { IoAdd } from "react-icons/io5";
+import {  GetAllSuit } from '../../../features/InStockSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const SuitsStock = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const dispatch = useDispatch()
+    const { loading,Suit } = useSelector((state) => state.InStock);
 
-    const data = [
-        {
-            design_no: '1',
-            colors: 'Green',
-            quantity: '1322',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
-        {
-            design_no: '2',
-            colors: 'Green',
-            quantity: '323',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
-        {
-            design_no: '3',
-            colors: 'Green',
-            quantity: '23231',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
-        {
-            design_no: '4',
-            colors: 'Green',
-            quantity: '3531',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
 
-    ]
+
+    useEffect(() => {
+        dispatch(GetAllSuit())
+         }, [])
+
+
+console.log('data',Suit)
+ 
 
     const openModal = () => {
         setIsOpen(true);
@@ -142,7 +124,7 @@ const SuitsStock = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Suit?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
