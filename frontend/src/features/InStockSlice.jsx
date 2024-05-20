@@ -10,6 +10,7 @@ const getLace = 'http://localhost:8000/api/stock/lace/getAllLaceStock'
 const getSuits = 'http://localhost:8000/api/stock/suits/getAllSuits'
 const getExpense = 'http://localhost:8000/api/stock/expense/getAllExpenses'
 
+const AddSuits = 'http://localhost:8000/api/stock/suits/addBaseInStock'
 
 
 export const GetAllaccessories = createAsyncThunk(
@@ -77,6 +78,22 @@ export const GetAllSuit = createAsyncThunk(
       const response = await axios.post(getSuits);
       toast.success(response.data.message);
       console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+export const AddSuit = createAsyncThunk(
+  "Suit/Create",
+  async (formData) => {
+    try {
+      const response = await axios.post(AddSuits, formData);
+      toast.success(response.data.message);
+      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
@@ -166,6 +183,13 @@ const InStockSlic = createSlice({
       .addCase(GetAllExpense.fulfilled, (state, action) => {
         state.loading = false;
         state.Expense = action.payload;
+      })
+
+      .addCase(AddSuit.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(AddSuit.fulfilled, (state, action) => {
+        state.loading = false;
       })
   },
 });
