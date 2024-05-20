@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import data from './PurchaseBillsData';
 import { IoAdd } from "react-icons/io5";
 import CategoryTable from './CategoryTable';
@@ -7,12 +7,24 @@ import LaceModal from './Modals/LaceModal';
 import BagModal from './Modals/BagModal';
 import AccessoriesModal from './Modals/AccessoriesModal';
 import ExpenseModal from './Modals/ExpenseModal';
+import { useDispatch } from 'react-redux';
+import { GetAllBags, GetAllBase, GetAllExpense, GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
 
 const PurchaseBills = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const dispatch = useDispatch()
 
     const [selectedCategory, setSelectedCategory] = useState('Base');
-    const filteredData = data.filter(item => item.category === selectedCategory);
+    // const filteredData = data.filter(item => item.category === selectedCategory);
+
+    useEffect(() => {
+        dispatch(GetAllBase())
+        dispatch(GetAllLace())
+        dispatch(GetAllBags())
+        dispatch(GetAllaccessories())
+        dispatch(GetAllExpense())
+    }, [])
+
 
     const handleTabClick = (category) => {
         setSelectedCategory(category);
@@ -88,33 +100,7 @@ const PurchaseBills = () => {
                     </button>
                 </div>
 
-                <CategoryTable category={selectedCategory} data={data} />
-
-                {/* -------------- TABLE -------------- */}
-                {/* <div className="relative overflow-x-auto mt-5">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                            <tr>
-                                <th className="px-6 py-3">Design # No</th>
-                                <th className="px-6 py-3">Colors</th>
-                                <th className="px-6 py-3">Quantity</th>
-                                <th className="px-6 py-3">Cost Price</th>
-                                <th className="px-6 py-3">Sales Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredData.map((item, index) => (
-                                <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.design_no}</td>
-                                    <td className="px-6 py-4">{item.colors}</td>
-                                    <td className="px-6 py-4">{item.quantity}</td>
-                                    <td className="px-6 py-4">{item.cost_pirce}</td>
-                                    <td className="px-6 py-4">{item.sale_pirce}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div> */}
+                <CategoryTable category={selectedCategory} />
             </section >
 
 
