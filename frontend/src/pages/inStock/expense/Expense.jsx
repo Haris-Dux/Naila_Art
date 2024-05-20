@@ -1,26 +1,29 @@
-import React, { useState,useEffect } from 'react'
-import { IoAdd } from "react-icons/io5";
-import {  GetAllExpense } from '../../../features/InStockSlice';
+import { useState, useEffect } from 'react'
+import { GetAllExpense } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 const Expense = () => {
+    const dispatch = useDispatch()
+
     const [isOpen, setIsOpen] = useState(false);
     const [messageId, setMessageId] = useState();
-    const dispatch = useDispatch()
-    const { loading,Expense } = useSelector((state) => state.InStock);
 
 
+    const { loading, Expense } = useSelector((state) => state.InStock);
+
+    const allExpenses = Expense.reduce((acc, branch) => {
+        return acc.concat(branch.brannchExpenses);
+    }, []);
 
     useEffect(() => {
         dispatch(GetAllExpense())
-         }, [])
+    }, [])
 
-
-console.log('data',Expense)
+    console.log('Expense', Expense)
+    console.log('allExpenses', allExpenses)
 
     const openModal = (msgId) => {
         setMessageId(msgId);
         setIsOpen(true);
-        document.body.style.overflow = 'hidden';
     };
 
     const closeModal = () => {
@@ -28,38 +31,7 @@ console.log('data',Expense)
         document.body.style.overflow = 'auto';
     };
 
-    const data = [
-        {
-            serial_no: 'X0001',
-            name: 'Umer',
-            reason: 'This is the first express ',
-            rate: '200',
-            date: '22-12-24',
-        },
-        {
-            serial_no: 'X0002',
-            name: 'Umer',
-            reason: 'This is the second express ',
-            rate: '200',
-            date: '22-12-24',
-        },
-        {
-            serial_no: 'X0003',
-            name: 'Umer',
-            reason: 'This is the third express ',
-            rate: '200',
-            date: '22-12-24',
-        },
-        {
-            serial_no: 'X0004',
-            name: 'Umer',
-            reason: 'This is the forth express ',
-            rate: '200',
-            date: '22-12-24',
-        },
-    ]
-
-    const filteredMsgData = data.find((data) => data?.serial_no === messageId);
+    const filteredMsgData = allExpenses.find((data) => data?.id === messageId);
 
     return (
         <>
@@ -113,67 +85,81 @@ console.log('data',Expense)
 
 
                 {/* -------------- TABLE -------------- */}
-                <div className="relative overflow-x-auto mt-5 ">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                            <tr>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Serial No
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Name
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Reason
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Rate
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Date
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((data, index) => (
-                                <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                                        scope="row"
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative overflow-x-auto mt-5 ">
+                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                <tr>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
                                     >
-                                        {data?.serial_no}
+                                        Serial No
                                     </th>
-                                    <td className="px-6 py-4">
-                                        {data?.name}
-                                    </td>
-                                    <td onClick={() => openModal(data.serial_no)} className="px-6 py-4 cursor-pointer">
-                                        {data?.reason}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data?.rate}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data?.date}
-                                    </td>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Name
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Reason
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Rate
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Date
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {allExpenses.length > 0 ? (
+                                    allExpenses.map((expense, index) => (
+                                        <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                                {expense.serial_no}
+                                            </th>
+                                            <td className="px-6 py-4">
+                                                {expense.name}
+                                            </td>
+                                            <td onClick={() => openModal(expense.id)} className="px-6 py-4 cursor-pointer">
+                                                {expense.reason}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {expense.rate}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {new Date(expense.Date).toLocaleDateString()}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-4 text-center">
+                                            No Data available
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </section >
 
 
@@ -214,7 +200,7 @@ console.log('data',Expense)
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <p>{filteredMsgData?.reason}</p>
+                            <p className='text-gray-900 dark:text-white'>{filteredMsgData?.reason}</p>
                         </div>
                     </div>
                 </div>

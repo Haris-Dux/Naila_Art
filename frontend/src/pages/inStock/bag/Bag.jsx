@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
 import { GetAllBags } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,16 +6,13 @@ const Bag = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const dispatch = useDispatch()
-    const { loading,Bags } = useSelector((state) => state.InStock);
-
-
+    const { loading, Bags } = useSelector((state) => state.InStock);
 
     useEffect(() => {
         dispatch(GetAllBags())
-         }, [])
+    }, [])
 
-
-console.log('data',Bags)
+    console.log('data', Bags)
 
 
     const openModal = () => {
@@ -28,10 +25,6 @@ console.log('data',Bags)
         document.body.style.overflow = 'auto';
     };
 
-
-
-
-
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
@@ -40,7 +33,11 @@ console.log('data',Bags)
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Bag / Box</h1>
 
                     {/* <!-- search bar --> */}
-                    <div className="search_bar mr-2">
+                    <div className="search_bar flex items-center gap-3 mr-2">
+                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                            <IoAdd size={22} className='text-white' />
+                        </button>
+
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                 <svg
@@ -71,76 +68,82 @@ console.log('data',Bags)
 
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
 
-
-                <div className="flex justify-end items-center">
-                <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button>
-                    
-                      </div>
-
                 {/* -------------- TABLE -------------- */}
-                <div className="relative overflow-x-auto mt-5 ">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                            <tr>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Name
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Bill No
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Recently
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    R. Date
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Total Quantity
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Bags?.map((data, index) => (
-                                <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                    <td className="px-6 py-4"
-                                        scope="row"
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative overflow-x-auto mt-7">
+                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                <tr>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
                                     >
-                                        {data.name}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.bill_no}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.recently}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.date}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.totalQuantity}
-                                    </td>
+                                        Name
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Bill No
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Recently
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        R. Date
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Total Quantity
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {Bags && Bags.length > 0 ? (
+                                    Bags?.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <td className="px-6 py-4"
+                                                scope="row"
+                                            >
+                                                {data.name}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.bill_no}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.recently}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.date}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.totalQuantity}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="w-full flex justify-center items-center">
+                                        <td className='text-xl mt-3'>No Data Available</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </section >
 
 

@@ -1,5 +1,4 @@
-// App.js
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./auth/Login";
@@ -28,6 +27,7 @@ import Shop from "./pages/Shop/Shop";
 import { useDispatch } from "react-redux";
 import { authUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
+import './App.css'
 
 
 function App() {
@@ -42,7 +42,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* AUTH ROUTE */}
-          <Route path="/" element={  <LoginProtected> < Login />   </LoginProtected>   } />
+          <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forget" element={<ForgetPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
@@ -50,7 +50,7 @@ function App() {
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected>  <Dashboard />  </UserProtected>}>
-          <Route index element={<DashboardStats />} />
+            <Route index element={<DashboardStats />} />
             {/* INSTOCK ROUTES */}
             <Route path="suits" element={<SuitsStock />} />
             <Route path="base" element={<Base />} />
@@ -74,10 +74,10 @@ function App() {
 
             {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />
-          </Route>
-        </Routes>
+          </Route >
+        </Routes >
         <Toaster />
-      </BrowserRouter>
+      </BrowserRouter >
     </>
   );
 }

@@ -1,23 +1,22 @@
-import React, { useState,useEffect } from 'react'
-// import data from './SuitsStockData';
+import { useState, useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
-import {  GetAllSuit } from '../../../features/InStockSlice';
+import { GetAllSuit } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const SuitsStock = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const dispatch = useDispatch()
-    const { loading,Suit } = useSelector((state) => state.InStock);
+    const dispatch = useDispatch();
 
+    const [isOpen, setIsOpen] = useState(false);
+    const { loading, Suit } = useSelector((state) => state.InStock);
 
 
     useEffect(() => {
         dispatch(GetAllSuit())
-         }, [])
+    }, [])
 
 
-console.log('data',Suit)
- 
+    console.log('data', Suit)
+
 
     const openModal = () => {
         setIsOpen(true);
@@ -87,67 +86,81 @@ console.log('data',Suit)
 
 
                 {/* -------------- TABLE -------------- */}
-                <div className="relative overflow-x-auto mt-5 ">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                            <tr>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    D# No
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Colors
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Quantity
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Cost Prices
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Sales Prices
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Suit?.map((data, index) => (
-                                <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                                        scope="row"
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative overflow-x-auto mt-5 ">
+                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                <tr>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
                                     >
-                                        {data.design_no}
+                                        D# No
                                     </th>
-                                    <td className="px-6 py-4">
-                                        {data.colors}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.quantity}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        Rs {data.cost_pirce}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.sale_pirce}
-                                    </td>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Colors
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Quantity
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Cost Prices
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Sales Prices
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {Suit && Suit.length > 0 ? (
+                                    Suit?.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                                scope="row"
+                                            >
+                                                {data.design_no}
+                                            </th>
+                                            <td className="px-6 py-4">
+                                                {data.colors}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.quantity}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                Rs {data.cost_pirce}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.sale_pirce}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="w-full flex justify-center items-center">
+                                        <td className='text-xl mt-3'>No Data Available</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div >
+                )}
             </section >
 
 
@@ -160,7 +173,7 @@ console.log('data',Suit)
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Add New Base
+                                Add New Suit
                             </h3>
                             <button
                                 onClick={closeModal}

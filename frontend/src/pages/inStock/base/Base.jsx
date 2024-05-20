@@ -1,27 +1,20 @@
-import React, { useState,useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
-import {  GetAllBase } from '../../../features/InStockSlice';
+import { GetAllBase } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import data from './BaseData';
 
 const Base = () => {
     const [isOpen, setIsOpen] = useState(false);
 
-
-
     const dispatch = useDispatch()
-    const { loading,Base } = useSelector((state) => state.InStock);
-
-
-
-
+    const { loading, Base } = useSelector((state) => state.InStock);
 
     useEffect(() => {
         dispatch(GetAllBase())
-         }, [])
+    }, [])
 
 
-console.log(' Base data',Base)
+    console.log(' Base data', Base)
 
     const openModal = () => {
         setIsOpen(true);
@@ -90,57 +83,71 @@ console.log(' Base data',Base)
 
 
                 {/* -------------- TABLE -------------- */}
-                <div className="relative overflow-x-auto mt-5 ">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                            <tr>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Colors
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    T. m
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    R. Date
-                                </th>
-                                <th
-                                    className="px-6 py-3"
-                                    scope="col"
-                                >
-                                    Recently
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Base?.map((data, index) => (
-                                <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-
-                                    <td className="px-6 py-4">
-                                        {data.colors}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.quantity} m
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.received_date}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {data.recently} m
-                                    </td>
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative overflow-x-auto mt-5 ">
+                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                <tr>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Colors
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        T. m
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        R. Date
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Recently
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {Base && Base.length > 0 ? (
+                                    Base?.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+
+                                            <td className="px-6 py-4">
+                                                {data.colors}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.quantity} m
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.received_date}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.recently} m
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="w-full flex justify-center items-center">
+                                        <td className='text-xl mt-3'>No Data Available</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </section >
 
 
