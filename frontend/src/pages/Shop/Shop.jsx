@@ -31,12 +31,19 @@ const Shop = () => {
     };
 
     const handleDelete = (shopId) => {
+       
+       console.log('id',shopId)
         setDeleteId(shopId); // Set the ID of the shop to be deleted
         setDeleteModal(true); // Open confirmation modal
     };
     const confirmDelete = () => {
         if (deleteId) {
-            dispatch(DeleteShop(deleteId))
+
+const data = {
+    branchId:deleteId
+}
+
+            dispatch(DeleteShop(data))
                 .then(() => {
                     dispatch(GetAllShop());
                     setDeleteModal(false); // Close modal after deletion
@@ -51,7 +58,7 @@ const Shop = () => {
         e.preventDefault();
         const data = { ...formData};
         if (editShop) {
-            data._id = editShop._id; 
+            data.branchId = editShop.id; 
 
             console.log('delete icon',data)
             dispatch(UpdateShopAsync(data))
@@ -147,7 +154,7 @@ const Shop = () => {
 
 
         <IoPencilOutline size={22} className='text-white' onClick={() => handleEdit(data)} />
-        <IoTrash size={22} className='text-white' onClick={() => handleDelete(data._id)} />
+        <IoTrash size={22} className='text-white' onClick={() => handleDelete(data.id)} />
 
     </button>
 ))}
