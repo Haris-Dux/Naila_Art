@@ -117,7 +117,6 @@ const authSlice = createSlice({
       })
       .addCase(UpdateShopAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.Shop = action.payload;
       })
 
       
@@ -126,7 +125,6 @@ const authSlice = createSlice({
       })
       .addCase(DeleteShop.fulfilled, (state, action) => {
         state.loading = false;
-        state.Shop = action.payload;
       })
    
   },
