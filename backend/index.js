@@ -14,6 +14,7 @@ import laceRouter from "./routes/Stock/LaceRoutes.js";
 import bagsAndBoxRouter from "./routes/Stock/BagsAndBoxRoutes.js";
 import accessoriesRouter from "./routes/Stock/AccesssoriesRoutes.js";
 import expenseRouter from "./routes/Stock/ExpenseRoutes.js";
+import embrioderyRouter from "./routes/Process/EmbroideryRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -51,6 +52,7 @@ app.use(session({
   app.use("/api/stock/bags",bagsAndBoxRouter);
   app.use("/api/stock/accessories",accessoriesRouter);
   app.use("/api/stock/expense",expenseRouter);
+  app.use("/api/process/embriodery",embrioderyRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));
