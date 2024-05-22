@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { IoAdd } from "react-icons/io5";
-import { GetAllSuit } from '../../../features/InStockSlice';
+import { AddSuit, GetAllSuit } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const SuitsStock = () => {
@@ -9,14 +9,40 @@ const SuitsStock = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { loading, Suit } = useSelector((state) => state.InStock);
 
+    // State variables to hold form data
+    const [formData, setFormData] = useState({
+        category: "",
+        color: "",
+        quantity: "",
+        cost_price: "",
+        sale_price: "",
+        d_no: ""
+    });
 
     useEffect(() => {
-        dispatch(GetAllSuit())
-    }, [])
+        dispatch(GetAllSuit());
+    }, [dispatch]);
 
+    // Function to handle changes in form inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
 
-    console.log('data', Suit)
-
+    // Function to handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Dispatch action with form data
+        dispatch(AddSuit(formData)).then(() => {
+            dispatch(GetAllSuit())
+            closeModal();
+        }).catch((error) => {
+            console.error("Error adding suit:", error);
+        });
+    };
 
     const openModal = () => {
         setIsOpen(true);
@@ -27,7 +53,6 @@ const SuitsStock = () => {
         setIsOpen(false);
         document.body.style.overflow = 'auto';
     };
-
 
     return (
         <>
@@ -84,7 +109,6 @@ const SuitsStock = () => {
                     </button>
                 </div>
 
-
                 {/* -------------- TABLE -------------- */}
                 {loading ? (
                     <div className="pt-16 flex justify-center mt-12 items-center">
@@ -136,19 +160,19 @@ const SuitsStock = () => {
                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
                                             >
-                                                {data.design_no}
+                                                {data.d_no}
                                             </th>
                                             <td className="px-6 py-4">
-                                                {data.colors}
+                                                {data.color}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.quantity}
                                             </td>
                                             <td className="px-6 py-4">
-                                                Rs {data.cost_pirce}
+                                                Rs {data.cost_price}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.sale_pirce}
+                                                {data.sale_price}
                                             </td>
                                         </tr>
                                     ))
@@ -162,7 +186,6 @@ const SuitsStock = () => {
                     </div >
                 )}
             </section >
-
 
             {isOpen && (
                 <div
@@ -201,12 +224,14 @@ const SuitsStock = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form action="#" className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <input
                                         name="category"
                                         type="text"
                                         placeholder="Enter Category"
+                                        value={formData.category}
+                                        onChange={handleChange}
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                         required
                                     />
@@ -216,21 +241,8 @@ const SuitsStock = () => {
                                         name="color"
                                         type="text"
                                         placeholder="Enter Color"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-normal text-gray-900 dark:text-white"
-                                        htmlFor="color"
-                                    >
-                                        Start Date
-                                    </label>
-                                    <input
-                                        id="color"
-                                        name="color"
-                                        type="date"
+                                        value={formData.color}
+                                        onChange={handleChange}
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                         required
                                     />
@@ -240,6 +252,41 @@ const SuitsStock = () => {
                                         name="quantity"
                                         type="text"
                                         placeholder="Enter Quantity"
+                                        value={formData.quantity}
+                                        onChange={handleChange}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        name="cost_price"
+                                        type="text"
+                                        placeholder="Enter Cost Price"
+                                        value={formData.cost_price}
+                                        onChange={handleChange}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        name="sale_price"
+                                        type="text"
+                                        placeholder="Enter Sale Price"
+                                        value={formData.sale_price}
+                                        onChange={handleChange}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        name="d_no"
+                                        type="text"
+                                        placeholder="Enter Design Number"
+                                        value={formData.d_no}
+                                        onChange={handleChange}
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                         required
                                     />
@@ -248,7 +295,7 @@ const SuitsStock = () => {
                                 <div className="flex justify-center pt-2">
                                     <button
                                         type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
                                     >
                                         Submit
                                     </button>
@@ -259,7 +306,7 @@ const SuitsStock = () => {
                 </div>
             )}
         </>
-    )
+    );
 }
 
-export default SuitsStock
+export default SuitsStock;
