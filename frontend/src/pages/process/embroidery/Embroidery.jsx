@@ -5,6 +5,85 @@ import { IoAdd } from "react-icons/io5";
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
 
+
+    const [formData, setFormData] = useState({
+        partyName: "ABC Party",
+        serial_No: "12345",
+        date: "2023-05-01",
+        per_suit: 10,
+        project_status: "Pending",
+        design_no: "D001",
+        shirt: {
+          category: "Cotton",
+          color: "Blue",
+          quantity_in_no: 5,
+          quantity_in_m: 10,
+          received: 5
+        },
+        duppata: {
+          category: "Silk",
+          color: "Red",
+          quantity_in_no: 3,
+          quantity_in_m: 6,
+          received: 3
+        },
+        trouser: {
+          category: "Linen",
+          color: "Black",
+          quantity_in_no: 4,
+          quantity_in_m: 8,
+          received: 4
+        },
+        received_suit: 15,
+        T_Quantity_In_m: 50,
+        T_Quantity: 100,
+        Front_Stitch: {
+          value: 5,
+          head: 2
+        },
+        Bazo_Stitch: {
+          value: 4,
+          head: 2
+        },
+        Gala_Stitch: {
+          value: 3,
+          head: 1
+        },
+        Back_Stitch: {
+          value: 6,
+          head: 3
+        },
+        Pallu_Stitch: {
+          value: 5,
+          head: 2
+        },
+        Trouser_Stitch: {
+          value: 4,
+          head: 2
+        },
+        D_Patch_Stitch: {
+          value: 2,
+          head: 1
+        },
+        F_Patch_Stitch: {
+          value: 1,
+          head: 1
+        },
+        tissue: {
+          category: "Paper",
+          color: "White",
+          QuantityInM: 20
+        }
+      });
+    
+      const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({
+          ...formData,
+          [name]: value
+        });
+      };
+
     const data = [
         {
             design_no: '1',
