@@ -4,89 +4,122 @@ import { FiPlus } from "react-icons/fi";
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import Select from 'react-select'
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [dropdown1, setdropdown1] = useState(false);
+
+
+
+    const options = [
+        { value: 'chocolate', label: 'Chocolate' },
+        { value: 'strawberry', label: 'Strawberry' },
+        { value: 'vanilla', label: 'Vanilla' }
+      ]
+
+
+
+
+    const toggleDropdown = () => {
+      setdropdown1(!dropdown1);
+    };
+
+
 
 
     const [formData, setFormData] = useState({
-        partyName: "ABC Party",
-        serial_No: "12345",
-        date: "2023-05-01",
-        per_suit: 10,
-        project_status: "Pending",
-        design_no: "D001",
+        partyName: "",
+        serial_No: "",
+        date: "",
+        per_suit: '',
+        rATE_per_stitching: '',
+
+        project_status: "",
+        design_no: "",
         shirt: {
-          category: "Cotton",
-          color: "Blue",
-          quantity_in_no: 5,
-          quantity_in_m: 10,
-          received: 5
+          category: "",
+          color: "",
+          quantity_in_no: 0,
+          quantity_in_m: 0,
+          received: 0
         },
         duppata: {
-          category: "Silk",
-          color: "Red",
-          quantity_in_no: 3,
-          quantity_in_m: 6,
-          received: 3
+          category: "",
+          color: "",
+          quantity_in_no: 0,
+          quantity_in_m: 0,
+          received: 0
         },
         trouser: {
-          category: "Linen",
-          color: "Black",
-          quantity_in_no: 4,
-          quantity_in_m: 8,
-          received: 4
+          category: "",
+          color: "",
+          quantity_in_no: 0,
+          quantity_in_m: 0,
+          received: 0
         },
-        received_suit: 15,
-        T_Quantity_In_m: 50,
-        T_Quantity: 100,
+        received_suit:0,
+        T_Quantity_In_m:0,
+        T_Quantity: 0,
         Front_Stitch: {
-          value: 5,
-          head: 2
+          value: 0,
+          head: 0
         },
         Bazo_Stitch: {
-          value: 4,
-          head: 2
+          value: 0,
+          head: 0
         },
         Gala_Stitch: {
-          value: 3,
-          head: 1
+          value: 0,
+          head: 0
         },
         Back_Stitch: {
-          value: 6,
-          head: 3
+          value: 0,
+          head: 0
         },
         Pallu_Stitch: {
-          value: 5,
-          head: 2
+          value: 0,
+          head: 0
         },
         Trouser_Stitch: {
-          value: 4,
-          head: 2
+          value: 0,
+          head: 0
         },
         D_Patch_Stitch: {
-          value: 2,
-          head: 1
+          value: 0,
+          head: 0
         },
         F_Patch_Stitch: {
-          value: 1,
-          head: 1
+          value: 0,
+          head: 0
         },
         tissue: {
-          category: "Paper",
-          color: "White",
+          category: "",
+          color: "",
           QuantityInM: 20
         }
       });
     
-      const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-          ...formData,
-          [name]: value
-        });
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        const [field, subField] = name.split('.');
+      
+        if (subField) {
+          setFormData(prevState => ({
+            ...prevState,
+            [field]: {
+              ...prevState[field],
+              [subField]: value
+            }
+          }));
+        } else {
+          setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+          }));
+        }
       };
-
+      
+    
     const data = [
         {
             id: 2,
@@ -116,6 +149,71 @@ const Embroidery = () => {
         document.body.style.overflow = 'auto';
     };
 
+
+
+   
+    const calculateTotal = (formData) => {
+        const rate = parseFloat(formData.rATE_per_stitching) || 450; // Use formData rate if available
+    
+        const stitches = [
+            { value: formData.Front_Stitch, head: formData.Front_StitchHead },
+            { value: formData.Bazo_Stitch, head: formData.Bazo_StitchHead },
+            { value: formData.Gala_Stitch, head: formData.Gala_StitchHead },
+            { value: formData.Back_Stitch, head: formData.Back_StitchHead },
+            { value: formData.Pallu_Stitch, head: formData.Pallu_StitchHead },
+            { value: formData.Trouser_Stitch, head: formData.Trouser_StitchHead },
+            { value: formData.D_Patch_Stitch, head: formData.D_Patch_StitchHead },
+            { value: formData.F_Patch_Stitch, head: formData.FF_Patch_StitchHead }
+        ];
+    
+        const total = stitches.reduce((sum, stitch) => {
+            const value = parseFloat(stitch.value) || 0;
+            const head = parseFloat(stitch.head) || 0;
+            const stitchTotal = (value / 1000) * rate * head;
+            console.log(`Stitch Value: ${value}, Head: ${head}, Stitch Total: ${stitchTotal}`);
+            return sum + stitchTotal;
+        }, 0);
+    
+        console.log(`Total: ${total}`);
+        setFormData(prevState => ({
+            ...prevState,
+            per_suit: total.toFixed(2) // Assuming you want to keep two decimal places
+        }));
+        return total;
+    };
+    
+
+
+    const handleshirtCategorey = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            shirt: {
+                ...prevState.shirt,
+                category: newValue
+            }
+        }));
+    };
+    
+
+    const handleshirtColor = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            shirt: {
+                ...prevState.shirt,
+                color: newValue
+            }
+        }));
+    };
+
+      
+    const handleSubmit = () => {
+
+        event.preventDefault();
+        console.log('formdata',formData)
+        const total = calculateTotal(formData);
+        console.log(`Total: ${total}`);
+    };
+    
 
     return (
         <>
@@ -280,45 +378,53 @@ const Embroidery = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="space-y-4">
+                            <div className="space-y-4">
 
                                 {/* INPUT FIELDS DETAILS */}
                                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                                     {/* FIRST ROW */}
                                     <div>
                                         <input
-                                            name="category"
+                                            name="partyName"
                                             type="text"
                                             placeholder="Party Name"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.partyName}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div>
                                         <input
-                                            name="color"
+                                            name="serial_No"
                                             type="text"
                                             placeholder="Serial No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.serial_No}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div>
                                         <input
-                                            name="color"
+                                            name="date"
                                             type="date"
                                             placeholder="Date"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.date}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div>
                                         <input
-                                            name="color"
+                                            name="design_no"
                                             type="text"
                                             placeholder="Design No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.design_no}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
 
@@ -326,66 +432,82 @@ const Embroidery = () => {
                                     {/* SECOND ROW */}
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Front_Stitch"
                                             type="text"
                                             placeholder="Front Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Front_Stitch.value} // This is an object
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Front_Stitchvalue"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Front_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Back_Stitch"
                                             type="text"
                                             placeholder="Back Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Back_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Back_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Back_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Bazo_Stitch"
                                             type="text"
                                             placeholder="Bazu Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Bazo_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Bazo_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Bazo_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Gala_Stitch"
                                             type="text"
                                             placeholder="Gala Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Gala_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Gala_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Gala_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
 
@@ -397,6 +519,7 @@ const Embroidery = () => {
                                             placeholder="Dupatta Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                         
                                         />
                                         <input
                                             name="category"
@@ -404,47 +527,58 @@ const Embroidery = () => {
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                         
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Pallu_Stitch"
                                             type="text"
                                             placeholder="Pallu Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Pallu_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Pallu_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Pallu_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="F_Patch_Stitch"
                                             type="text"
                                             placeholder="Front Patch Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.F_Patch_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="FF_Patch_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.F_Patch_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="D_Patch_Stitch"
                                             type="text"
                                             placeholder="Dupatta Patch Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.D_Patch_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
                                             name="category"
@@ -452,34 +586,44 @@ const Embroidery = () => {
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.D_Patch_Stitch.head}
+                                            onChange={handleInputChange}
+                                       
                                         />
                                     </div>
 
                                     {/* FORTH ROW */}
                                     <div className='grid items-start grid-cols-3 gap-2'>
                                         <input
-                                            name="category"
+                                            name="Trouser_Stitch"
                                             type="text"
                                             placeholder="Trouser Stitch"
                                             className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Trouser_Stitch.value}
+                                            onChange={handleInputChange}
                                         />
                                         <input
-                                            name="category"
+                                            name="Trouser_StitchHead"
                                             type="text"
                                             placeholder="Head"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Trouser_Stitch.head}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
 
                                     <div>
                                         <input
-                                            name="category"
+                                            name="rATE_per_stitching"
                                             type="text"
                                             placeholder="Rate Per Stitch"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.rATE_per_stitching}
+                                            onChange={handleInputChange}
+                                        
                                         />
                                     </div>
 
@@ -490,6 +634,8 @@ const Embroidery = () => {
                                             placeholder="Rate Per Suit"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.per_suit}
+                                           readOnly
                                         />
                                     </div>
                                 </div>
@@ -501,55 +647,184 @@ const Embroidery = () => {
                                         <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
                                     </div>
                                     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+
+
+
+                                        
                                         <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Party Name"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
+                                        <Select options={options} onChange={handleshirtCategorey}    />
                                         </div>
+
+
+
+
                                         <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Party Name"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
+                                        <Select options={options}  onChange={handleshirtColor}  />
+
                                         </div>
+
                                         <div>
                                             <input
-                                                name="category"
+                                                name="T_Quantity"
                                                 type="text"
                                                 placeholder="Enter Quantity In No"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
+                                                value={formData.shirt.quantity_in_no}
+                                                onChange={handleInputChange}
                                             />
                                         </div>
                                         <div>
                                             <input
-                                                name="category"
+                                                name="T_Quantity_In_m"
                                                 type="text"
                                                 placeholder="Enter Quantity In M"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
+                                                value={formData.shirt.quantity_in_no}
+
+                                                onChange={handleInputChange}
                                             />
                                         </div>
+
+
+
+                                             
+                                        <div>
+                                        <Select options={options} value={formData.shirt.category}   />
+                                        </div>
+
+
+
+
+                                        <div>
+                                        <Select options={options} value={formData.shirt.color}  />
+
+                                        </div>
+
+                                        <div>
+                                            <input
+                                                name="T_Quantity"
+                                                type="text"
+                                                placeholder="Enter Quantity In No"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                name="T_Quantity_In_m"
+                                                type="text"
+                                                placeholder="Enter Quantity In M"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+
+
+
+                                              
+                                        <div>
+                                        <Select options={options} value={formData.shirt.category}   />
+                                        </div>
+
+
+
+
+                                        <div>
+                                        <Select options={options} value={formData.shirt.color}  />
+
+                                        </div>
+
+                                        <div>
+                                            <input
+                                                name="T_Quantity"
+                                                type="text"
+                                                placeholder="Enter Quantity In No"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                name="T_Quantity_In_m"
+                                                type="text"
+                                                placeholder="Enter Quantity In M"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+
+
+
+
+
+         
+                                        <div>
+                                        <Select options={options} value={formData.shirt.category}   />
+                                        </div>
+
+
+
+
+                                        <div>
+                                        <Select options={options} value={formData.shirt.color}  />
+
+                                        </div>
+
+                                        <div>
+                                            <input
+                                                name="T_Quantity"
+                                                type="text"
+                                                placeholder="Enter Quantity In No"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                name="T_Quantity_In_m"
+                                                type="text"
+                                                placeholder="Enter Quantity In M"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                                value={formData.shirt.quantity_in_no}
+
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+
+
+
+
+
+
                                     </div>
                                 </div>
 
 
                                 <div className="flex justify-center pt-2">
                                     <button
-                                        type="submit"
+                                       onClick={handleSubmit}
                                         className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                                     >
                                         Submit
                                     </button>
                                 </div>
-                            </form>
+
+                </div>
                         </div>
                     </div>
                 </div >
