@@ -5,6 +5,7 @@ import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Select from 'react-select'
+import { CreateEmbroidery } from '../../../features/EmbroiderySlice';
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdown1, setdropdown1] = useState(false);
@@ -18,7 +19,24 @@ const Embroidery = () => {
       ]
 
 
-
+      const colorItems = [
+        { label: 'Red', value: 'Red' },
+        { label: 'Green', value: 'Green' },
+        { label: 'Blue', value: 'Blue' },
+        { label: 'Yellow', value: 'Yellow' },
+        { label: 'Cyan', value: 'Cyan' },
+        { label: 'Magenta', value: 'Magenta' },
+        { label: 'Orange', value: 'Orange' },
+        { label: 'Purple', value: 'Purple' },
+        { label: 'Pink', value: 'Pink' },
+        { label: 'Brown', value: 'Brown' },
+        { label: 'Black', value: 'Black' },
+        { label: 'White', value: 'White' },
+        { label: 'Gray', value: 'Gray' },
+        { label: 'Lime', value: 'Lime' },
+        { label: 'Navy', value: 'Navy' }
+    ];
+    
 
     const toggleDropdown = () => {
       setdropdown1(!dropdown1);
@@ -26,99 +44,53 @@ const Embroidery = () => {
 
 
 
-
+    const initialShirtRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
+    const initialDupattaRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
+    const initialTrouserRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
+    const initialTissueRow = { category: "", color: "", QuantityInM: 0, QuantityInN: 0 };
     const [formData, setFormData] = useState({
         partyName: "",
         serial_No: "",
         date: "",
         per_suit: '',
         rATE_per_stitching: '',
-
         project_status: "",
         design_no: "",
-        shirt: {
-          category: "",
-          color: "",
-          quantity_in_no: 0,
-          quantity_in_m: 0,
-          received: 0
-        },
-        duppata: {
-          category: "",
-          color: "",
-          quantity_in_no: 0,
-          quantity_in_m: 0,
-          received: 0
-        },
-        trouser: {
-          category: "",
-          color: "",
-          quantity_in_no: 0,
-          quantity_in_m: 0,
-          received: 0
-        },
-        received_suit:0,
-        T_Quantity_In_m:0,
+        shirt: [initialShirtRow],
+        duppata: [initialDupattaRow],
+        trouser: [initialTrouserRow],
+        tissue: [initialTissueRow],
+        received_suit: 0,
+        T_Quantity_In_m: 0,
         T_Quantity: 0,
-        Front_Stitch: {
-          value: 0,
-          head: 0
-        },
-        Bazo_Stitch: {
-          value: 0,
-          head: 0
-        },
-        Gala_Stitch: {
-          value: 0,
-          head: 0
-        },
-        Back_Stitch: {
-          value: 0,
-          head: 0
-        },
-        Pallu_Stitch: {
-          value: 0,
-          head: 0
-        },
-        Trouser_Stitch: {
-          value: 0,
-          head: 0
-        },
-        D_Patch_Stitch: {
-          value: 0,
-          head: 0
-        },
-        F_Patch_Stitch: {
-          value: 0,
-          head: 0
-        },
-        tissue: {
-          category: "",
-          color: "",
-          QuantityInM: 20
-        }
+        Front_Stitch: { value: 0, head: 0 },
+        Bazo_Stitch: { value: 0, head: 0 },
+        Gala_Stitch: { value: 0, head: 0 },
+        Back_Stitch: { value: 0, head: 0 },
+        Pallu_Stitch: { value: 0, head: 0 },
+        Trouser_Stitch: { value: 0, head: 0 },
+        D_Patch_Stitch: { value: 0, head: 0 },
+        F_Patch_Stitch: { value: 0, head: 0 }
       });
+      
     
-      const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        const [field, subField] = name.split('.');
-      
-        if (subField) {
-          setFormData(prevState => ({
-            ...prevState,
-            [field]: {
-              ...prevState[field],
-              [subField]: value
-            }
-          }));
-        } else {
-          setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-          }));
-        }
+      const addNewRow = (field) => {
+        setFormData(prevState => ({
+          ...prevState,
+          [field]: [...prevState[field], field === 'shirt' ? initialShirtRow : (field === 'duppata' ? initialDupattaRow : (field === 'trouser' ? initialTrouserRow : initialTissueRow))]
+        }));
       };
-      
+    
+      const handleInputChange = (e, index, type) => {
+        const { name, value } = e.target;
+        setFormData(prevState => {
+          const updatedArray = prevState[type].map((item, idx) =>
+            idx === index ? { ...item, [name]: value } : item
+          );
+          return { ...prevState, [type]: updatedArray };
+        });
+      };
+    
     
     const data = [
         {
@@ -148,6 +120,13 @@ const Embroidery = () => {
         setIsOpen(false);
         document.body.style.overflow = 'auto';
     };
+
+
+
+
+
+   
+      
 
 
 
@@ -205,13 +184,98 @@ const Embroidery = () => {
         }));
     };
 
+
+
+
+
+    const handleTrouserCategorey = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            trouser: {
+                ...prevState.trouser,
+                category: newValue
+            }
+        }));
+    };
+    
+
+    const handleTrouserColor = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            trouser: {
+                ...prevState.trouser,
+                color: newValue
+            }
+        }));
+    };
+
+
+
+
+    const handleduppataCategorey = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            duppata: {
+                ...prevState.duppata,
+                category: newValue
+            }
+        }));
+    };
+    
+
+    const handleduppataColor = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            duppata: {
+                ...prevState.duppata,
+                color: newValue
+            }
+        }));
+    };
+
+
+
+
+    const handletissueCategorey = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            tissue: {
+                ...prevState.tissue,
+                category: newValue
+            }
+        }));
+    };
+    
+
+    const handletissueColor = (newValue) => {
+        setFormData(prevState => ({
+            ...prevState,
+            tissue: {
+                ...prevState.tissue,
+                color: newValue
+            }
+        }));
+    };
+
+ 
+
       
-    const handleSubmit = () => {
+    const handleSubmit = (event) => {
 
         event.preventDefault();
         console.log('formdata',formData)
         const total = calculateTotal(formData);
         console.log(`Total: ${total}`);
+
+        dispatch(UpdateShopAsync(data))
+        .then(() => {
+         
+            closeModal();
+            dispatch(CreateEmbroidery(formData));
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
     };
     
 
@@ -643,9 +707,12 @@ const Embroidery = () => {
                                 {/* SUIT DESCRIPION */}
                                 <div className="box">
                                     <div className="header flex justify-between items-center">
-                                        <h3>Enter Suit Colors And Quantity:</h3>
-                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
+                                        <p className="mt-3 text-gray-700  dark:text-white">Enter Suit Colors And Quantity:</p>
+                                        <p onClick={() => addNewRow('shirt')}><FiPlus size={24} className=' cursor-pointer' /></p>
                                     </div>
+
+                                    {formData.shirt.map((shirt, index) => (
+
                                     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
 
 
@@ -659,7 +726,7 @@ const Embroidery = () => {
 
 
                                         <div>
-                                        <Select options={options}  onChange={handleshirtColor}  />
+                                        <Select options={colorItems}  onChange={handleshirtColor}  />
 
                                         </div>
 
@@ -686,121 +753,164 @@ const Embroidery = () => {
                                                 onChange={handleInputChange}
                                             />
                                         </div>
+</div>
 
 
+                                    ))}
 
-                                             
+<div className="header flex justify-between items-center">
+
+                                        <p className="mt-3 text-gray-700  dark:text-white">Enter Duppta Colors And Quantity :</p>
+                                        <p onClick={() => addNewRow('duppata')}><FiPlus size={24} className=' cursor-pointer' /></p>
+
+                                             </div>
+
+
+                                             {formData.duppata.map((duppata, index) => (
+                                    <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+
                                         <div>
-                                        <Select options={options} value={formData.shirt.category}   />
+                                        <Select options={options} onChange={handleduppataCategorey}    />
+
                                         </div>
 
 
 
 
                                         <div>
-                                        <Select options={options} value={formData.shirt.color}  />
+                                        <Select options={colorItems} onChange={handleduppataColor}    />
+
 
                                         </div>
 
                                         <div>
                                             <input
-                                                name="T_Quantity"
+                                                name="duppataquantity_in_no"
                                                 type="text"
                                                 placeholder="Enter Quantity In No"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.duppata.quantity_in_no}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
                                         <div>
                                             <input
-                                                name="T_Quantity_In_m"
+                                                name="duppataquantity_in_m"
                                                 type="text"
                                                 placeholder="Enter Quantity In M"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.duppata.quantity_in_m}
 
                                                 onChange={handleInputChange}
                                             />
                                         </div>
 
+                                        </div>
+
+                                             ))}
+
+                                    <div className="header flex justify-between items-center">
+
+                                        <p className="mt-3 text-gray-700  dark:text-white"> Enter Trousers Colors And Quantity :</p>
+                                        <p onClick={() => addNewRow('trouser')}><FiPlus size={24} className=' cursor-pointer' /></p>
+</div>
 
 
+                               {formData.trouser.map((trouser, index) => (         
+                                    <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                                               
                                         <div>
-                                        <Select options={options} value={formData.shirt.category}   />
+                                        <Select options={options} onChange={handleTrouserCategorey}    />
+
                                         </div>
 
 
 
 
                                         <div>
-                                        <Select options={options} value={formData.shirt.color}  />
+                                        <Select options={colorItems} onChange={handleTrouserColor}    />
+
 
                                         </div>
 
                                         <div>
                                             <input
-                                                name="T_Quantity"
+                                                name="trouserquantity_in_no"
                                                 type="text"
                                                 placeholder="Enter Quantity In No"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.trouser.quantity_in_no}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
                                         <div>
                                             <input
-                                                name="T_Quantity_In_m"
+                                                name="trouserquantity_in_m"
                                                 type="text"
                                                 placeholder="Enter Quantity In M"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.trouser.quantity_in_m}
 
                                                 onChange={handleInputChange}
                                             />
                                         </div>
 
 
+</div>
+
+                               ))}
+
+<div className="header flex justify-between items-center">
+
+                                        <p className="mt-3 text-gray-700  dark:text-white">   Enter Tissue Colors And Quantity :</p>
 
 
+                                        <p onClick={() => addNewRow('tissue')}><FiPlus size={24} className=' cursor-pointer' /></p>
+</div>
 
+
+{formData.tissue.map((tissue, index) => (
+
+                                        <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
          
                                         <div>
-                                        <Select options={options} value={formData.shirt.category}   />
+                                        <Select options={options} onChange={handletissueCategorey}    />
+
                                         </div>
 
 
 
 
                                         <div>
-                                        <Select options={options} value={formData.shirt.color}  />
+                                        <Select options={colorItems} onChange={handletissueColor}    />
+
 
                                         </div>
 
                                         <div>
                                             <input
-                                                name="T_Quantity"
+                                                name="QuantityInN"
                                                 type="text"
                                                 placeholder="Enter Quantity In No"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.tissue.QuantityInN}
                                                 onChange={handleInputChange}
                                             />
                                         </div>
                                         <div>
                                             <input
-                                                name="T_Quantity_In_m"
+                                                name="QuantityInM"
                                                 type="text"
                                                 placeholder="Enter Quantity In M"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
-                                                value={formData.shirt.quantity_in_no}
+                                                value={formData.tissue.QuantityInM}
+
 
                                                 onChange={handleInputChange}
                                             />
@@ -812,6 +922,8 @@ const Embroidery = () => {
 
 
                                     </div>
+
+))}
                                 </div>
 
 
