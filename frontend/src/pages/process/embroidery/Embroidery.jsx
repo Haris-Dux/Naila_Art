@@ -13,7 +13,7 @@ const Embroidery = () => {
         partyName: "",
         serial_No: "",
         date: "",
-        per_suit: 430,
+        per_suit: 0,
         rATE_per_stitching: '',
         project_status: "",
         design_no: "",
