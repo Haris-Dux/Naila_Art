@@ -40,37 +40,36 @@ useEffect(() => {
 
     const calculateTotal = (formData1) => {
         const rate = parseFloat(formData1.rATE_per_stitching) || 450; // Use formData1 rate if available
-    
+console.log('rate',rate)
         const stitches = [
-            { value: formData1.Front_Stitch, head: formData1.Front_StitchHead },
-            { value: formData1.Bazo_Stitch, head: formData1.Bazo_StitchHead },
-            { value: formData1.Gala_Stitch, head: formData1.Gala_StitchHead },
-            { value: formData1.Back_Stitch, head: formData1.Back_StitchHead },
-            { value: formData1.Pallu_Stitch, head: formData1.Pallu_StitchHead },
-            { value: formData1.Trouser_Stitch, head: formData1.Trouser_StitchHead },
-            { value: formData1.D_Patch_Stitch, head: formData1.D_Patch_StitchHead },
-            { value: formData1.F_Patch_Stitch, head: formData1.FF_Patch_StitchHead }
+            { value: formData1.Front_Stitch.value, head: formData1.Front_Stitch.head },
+            { value: formData1.Bazo_Stitch.value, head: formData1.Bazo_Stitch.head },
+            { value: formData1.Gala_Stitch.value, head: formData1.Gala_Stitch.head },
+            { value: formData1.Back_Stitch.value, head: formData1.Back_Stitch.head },
+            { value: formData1.Pallu_Stitch.value, head: formData1.Pallu_Stitch.head },
+            { value: formData1.Trouser_Stitch.value, head: formData1.Trouser_Stitch.head },
+            { value: formData1.D_Patch_Stitch.value, head: formData1.D_Patch_Stitch.head },
+            { value: formData1.F_Patch_Stitch.value, head: formData1.F_Patch_Stitch.head }
         ];
     
         const total = stitches.reduce((sum, stitch) => {
             const value = parseFloat(stitch.value) || 0;
+            console.log('statiych valye',value)
             const head = parseFloat(stitch.head) || 0;
+            console.log('statiych head',head)
+
             const stitchTotal = (value / 1000) * rate * head;
-            console.log(`Stitch Value: ${value}, Head: ${head}, Stitch Total: ${stitchTotal}`);
+        
             return sum + stitchTotal;
         }, 0);
     
-        console.log(`Total: ${total}`);
-        setFormData1(prevState => ({
-            ...prevState,
-            per_suit: total.toFixed(2) // Assuming you want to keep two decimal places
-        }));
+     
         return total;
     };
 
-    const initialShirtRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
-    const initialDupattaRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
-    const initialTrouserRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0, received: 0 };
+    const initialShirtRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
+    const initialDupattaRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
+    const initialTrouserRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
     const initialTissueRow = { category: "", color: "", QuantityInM: 0, QuantityInN: 0 };
     const [formData, setFormData] = useState({
         shirt: [initialShirtRow],
@@ -91,18 +90,19 @@ useEffect(() => {
         const { name, value } = e.target;
         setFormData(prevState => {
             const updatedArray = prevState[type].map((item, idx) =>
-                idx === index ? { ...item, [name.split('.')[1]]: value } : item
+                idx === index ? { ...item, [name.split('.')[1]]: parseFloat(value) } : item
             );
             return { ...prevState, [type]: updatedArray };
         });
     };
+    
 
 
     const handleshirtCategory = (newValue, index) => {
         setFormData(prevState => ({
             ...prevState,
             shirt: prevState.shirt.map((item, idx) =>
-                idx === index ? { ...item, category: newValue } : item
+                idx === index ? { ...item, category: newValue.value } : item
             )
         }));
         console.log('selected value:', newValue);
@@ -126,9 +126,13 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             shirt: prevState.shirt.map((item, idx) => 
-                idx === index ? { ...item, color: newValue } : item
+                idx === index ? { ...item, color: newValue.value } : item
             )
         }));
+
+       
+
+
     };
     
 
@@ -137,7 +141,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             duppata: prevState.duppata.map((item, idx) => 
-                idx === index ? { ...item, category: newValue } : item
+                idx === index ? { ...item, category: newValue.value } : item
             )
         }));
         const selectedCategory = Base.filter(item =>
@@ -157,7 +161,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             duppata: prevState.duppata.map((item, idx) => 
-                idx === index ? { ...item, color: newValue } : item
+                idx === index ? { ...item, color: newValue.value } : item
             )
         }));
     };
@@ -166,7 +170,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             trouser: prevState.trouser.map((item, idx) => 
-                idx === index ? { ...item, category: newValue } : item
+                idx === index ? { ...item, category: newValue.value } : item
             )
         }));
         const selectedCategory = Base.filter(item =>
@@ -186,7 +190,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             trouser: prevState.trouser.map((item, idx) => 
-                idx === index ? { ...item, color: newValue } : item
+                idx === index ? { ...item, color: newValue.value } : item
             )
         }));
     };
@@ -195,7 +199,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             tissue: prevState.tissue.map((item, idx) => 
-                idx === index ? { ...item, category: newValue } : item
+                idx === index ? { ...item, category: newValue.value } : item
             )
         }));
         const selectedCategory = Base.filter(item =>
@@ -215,7 +219,7 @@ useEffect(() => {
         setFormData(prevState => ({
             ...prevState,
             tissue: prevState.tissue.map((item, idx) => 
-                idx === index ? { ...item, color: newValue } : item
+                idx === index ? { ...item, color: newValue.value } : item
             )
         }));
     };
@@ -224,20 +228,32 @@ useEffect(() => {
 
     const handleSubmit = (event) => {
 
-event.preventDefault()
-        calculateTotal(formData1)
-        const meregdata   = {
-            ...formData1,...formData
-        }
- console.log('final result',meregdata)
-        dispatch(CreateEmbroidery(meregdata)).then(() => {
-         dispatch(GetAllBase())
-            // closeModal();
-        
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-        });
+
+
+event.preventDefault();
+
+const total = calculateTotal(formData1);
+
+// Update formData1 with the new per_suit value
+const updatedFormData1 = {
+    ...formData1,
+    per_suit:parseFloat(total.toFixed(2))  // Assuming you want to keep two decimal places
+};
+
+// Merge updatedFormData1 with formData
+const meregdata = {
+    ...updatedFormData1,
+    ...formData
+};
+
+console.log('final result', meregdata);
+
+dispatch(CreateEmbroidery(meregdata)).then(() => {
+    dispatch(GetAllBase());
+    // closeModal(); // Uncomment if you want to close the modal after submission
+}).catch((error) => {
+    console.error("Error:", error);
+});
     };
 
   return (
@@ -259,7 +275,8 @@ event.preventDefault()
         <div>
             <input
                 name="shirt.quantity_in_no"
-                type="text"
+                type='number'
+
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -270,7 +287,8 @@ event.preventDefault()
         <div>
             <input
                 name="shirt.quantity_in_m"
-                type="text"
+                type='number'
+
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -302,7 +320,8 @@ event.preventDefault()
             <input
                           name="duppata.quantity_in_no"
 
-                type="text"
+                          type='number'
+
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -314,7 +333,8 @@ event.preventDefault()
             <input
                                 name="duppata.quantity_in_m"
 
-                type="text"
+                                type='number'
+
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -345,7 +365,8 @@ event.preventDefault()
             <input
                                           name="trouser.quantity_in_no"
 
-                type="text"
+            type='number'
+               
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -357,7 +378,8 @@ event.preventDefault()
             <input
                                               name="trouser.quantity_in_m"
 
-                type="text"
+                           type='number'
+
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
@@ -390,7 +412,7 @@ event.preventDefault()
             <input
             name="tissue.QuantityInN"
 
-                type="text"
+                type='number'
                 placeholder="Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 value={tissue.QuantityInN}
@@ -400,7 +422,7 @@ event.preventDefault()
         <div>
             <input
             name="tissue.QuantityInM"
-                type="text"
+            type='number'
                 placeholder="Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 value={tissue.QuantityInM}
