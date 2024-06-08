@@ -12,6 +12,7 @@ const Embroidery = () => {
     const [dropdown1, setdropdown1] = useState(false);
 
     const [formData, setFormData] = useState({
+
         partyName: "",
         serial_No: "",
         date: "",
@@ -37,6 +38,16 @@ const Embroidery = () => {
       });
       
 
+
+
+      
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
 
 
 
