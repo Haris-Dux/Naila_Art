@@ -5,9 +5,9 @@ export const addBaseInStock = async (req, res, next) => {
     const { category, colors, r_Date, quantity } = req.body;
     if (!category || !colors || !quantity || !r_Date)
       throw new Error("All Fields Required");
-    const checkExistingStock = await SuitsModel.findOne({
-      category: category,
-      colors: colors,
+    const checkExistingStock = await BaseModel.findOne({
+      category: { $regex: new RegExp(category, 'i') },
+      colors: { $regex: new RegExp(colors, 'i') },
     });
     if (checkExistingStock) {
       const updatedTYm = checkExistingStock.TYm + quantity;
