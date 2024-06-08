@@ -5,37 +5,37 @@ import { Link } from "react-router-dom";
 import { CreateEmbroidery } from '../../features/EmbroiderySlice';
 import { FiPlus } from 'react-icons/fi';
 import { useDispatch,useSelector } from "react-redux";
-
+import { GetAllBase } from '../../features/InStockSlice';
 const Box = ({formData1,setFormData1}) => {
+    const { loading,Base } = useSelector((state) => state.InStock);
 
 const dispatch = useDispatch()
+const [categoryOptions, setCategoryOptions] = useState([]);
+const [colorOptions, setColorOptions] = useState([]);
+
+useEffect(() => {
+    if (!loading && Base) {
+        // Extract unique categories
+        const categories = [...new Set(Base.map(item => item.category))];
+        const categoryOptions = categories.map(category => ({
+            value: category,
+            label: category
+        }));
+        setCategoryOptions(categoryOptions);
+    }
+}, [loading, Base]);
 
 
-    const options = [
-        { value: 'chocolate', label: 'Chocolate' },
-        { value: 'strawberry', label: 'Strawberry' },
-        { value: 'vanilla', label: 'Vanilla' }
-      ]
+console.log(Base)
+
+useEffect(() => {
+    dispatch(GetAllBase())
+     }, [])
 
 
-      const colorItems = [
-        { label: 'Red', value: 'Red' },
-        { label: 'Green', value: 'Green' },
-        { label: 'Blue', value: 'Blue' },
-        { label: 'Yellow', value: 'Yellow' },
-        { label: 'Cyan', value: 'Cyan' },
-        { label: 'Magenta', value: 'Magenta' },
-        { label: 'Orange', value: 'Orange' },
-        { label: 'Purple', value: 'Purple' },
-        { label: 'Pink', value: 'Pink' },
-        { label: 'Brown', value: 'Brown' },
-        { label: 'Black', value: 'Black' },
-        { label: 'White', value: 'White' },
-        { label: 'Gray', value: 'Gray' },
-        { label: 'Lime', value: 'Lime' },
-        { label: 'Navy', value: 'Navy' }
-    ];
-    
+
+
+
 
 
     const calculateTotal = (formData1) => {
@@ -101,11 +101,26 @@ const dispatch = useDispatch()
     const handleshirtCategory = (newValue, index) => {
         setFormData(prevState => ({
             ...prevState,
-            shirt: prevState.shirt.map((item, idx) => 
+            shirt: prevState.shirt.map((item, idx) =>
                 idx === index ? { ...item, category: newValue } : item
             )
         }));
+        console.log('selected value:', newValue);
+    
+        // Perform a case-insensitive comparison
+        const selectedCategory = Base.filter(item =>
+            item.category.toLowerCase() === newValue.value.toLowerCase()
+        );
+    
+        const selectedCategoryColors = selectedCategory.map(item => ({
+            value: item.colors,
+            label: item.colors
+        }));
+    
+    
+        setColorOptions(selectedCategoryColors);
     };
+    
     
     const handleshirtColor = (newValue, index) => {
         setFormData(prevState => ({
@@ -125,6 +140,17 @@ const dispatch = useDispatch()
                 idx === index ? { ...item, category: newValue } : item
             )
         }));
+        const selectedCategory = Base.filter(item =>
+            item.category.toLowerCase() === newValue.value.toLowerCase()
+        );
+    
+        const selectedCategoryColors = selectedCategory.map(item => ({
+            value: item.colors,
+            label: item.colors
+        }));
+    
+    
+        setColorOptions(selectedCategoryColors);
     };
     
     const handleduppataColor = (newValue, index) => {
@@ -143,6 +169,17 @@ const dispatch = useDispatch()
                 idx === index ? { ...item, category: newValue } : item
             )
         }));
+        const selectedCategory = Base.filter(item =>
+            item.category.toLowerCase() === newValue.value.toLowerCase()
+        );
+    
+        const selectedCategoryColors = selectedCategory.map(item => ({
+            value: item.colors,
+            label: item.colors
+        }));
+    
+    
+        setColorOptions(selectedCategoryColors);
     };
     
     const handleTrouserColor = (newValue, index) => {
@@ -161,6 +198,17 @@ const dispatch = useDispatch()
                 idx === index ? { ...item, category: newValue } : item
             )
         }));
+        const selectedCategory = Base.filter(item =>
+            item.category.toLowerCase() === newValue.value.toLowerCase()
+        );
+    
+        const selectedCategoryColors = selectedCategory.map(item => ({
+            value: item.colors,
+            label: item.colors
+        }));
+    
+    
+        setColorOptions(selectedCategoryColors);
     };
     
     const handletissueColor = (newValue, index) => {
@@ -183,9 +231,9 @@ event.preventDefault()
         }
  console.log('final result',meregdata)
         dispatch(CreateEmbroidery(meregdata)).then(() => {
-         
+         dispatch(GetAllBase())
             // closeModal();
-           
+        
         })
         .catch((error) => {
             console.error("Error:", error);
@@ -203,10 +251,10 @@ event.preventDefault()
                                     {formData.shirt.map((shirt, index) => (
     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5" key={index}>
         <div>
-            <Select options={options} onChange={(newValue) => handleshirtCategory(newValue, index)} />
+            <Select options={categoryOptions} onChange={(newValue) => handleshirtCategory(newValue, index)} />
         </div>
         <div>
-            <Select options={colorItems} onChange={(newValue) => handleshirtColor(newValue, index)} />
+            <Select options={colorOptions} onChange={(newValue) => handleshirtColor(newValue, index)} />
         </div>
         <div>
             <input
@@ -245,10 +293,10 @@ event.preventDefault()
                                              {formData.duppata.map((duppata, index) => (
     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
         <div>
-            <Select options={options} onChange={(newValue) => handleduppataCategorey(newValue, index)} />
+            <Select options={categoryOptions} onChange={(newValue) => handleduppataCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorItems} onChange={(newValue) => handleduppataColor(newValue, index)} />
+            <Select options={colorOptions} onChange={(newValue) => handleduppataColor(newValue, index)} />
         </div>
         <div>
             <input
@@ -288,10 +336,10 @@ event.preventDefault()
 {formData.trouser.map((trouser, index) => (
     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
         <div>
-            <Select options={options} onChange={(newValue) => handleTrouserCategorey(newValue, index)} />
+            <Select options={categoryOptions} onChange={(newValue) => handleTrouserCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorItems} onChange={(newValue) => handleTrouserColor(newValue, index)} />
+            <Select options={colorOptions} onChange={(newValue) => handleTrouserColor(newValue, index)} />
         </div>
         <div>
             <input
@@ -333,10 +381,10 @@ event.preventDefault()
 {formData.tissue.map((tissue, index) => (
     <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
         <div>
-            <Select options={options} onChange={(newValue) => handletissueCategorey(newValue, index)} />
+            <Select options={categoryOptions} onChange={(newValue) => handletissueCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorItems} onChange={(newValue) => handletissueColor(newValue, index)} />
+            <Select options={colorOptions} onChange={(newValue) => handletissueColor(newValue, index)} />
         </div>
         <div>
             <input

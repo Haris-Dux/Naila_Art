@@ -1,14 +1,18 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 // import data from './SuitsStockData';
 import { FiPlus } from "react-icons/fi";
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { CreateEmbroidery } from '../../../features/EmbroiderySlice';
+
 import Box from '../../../Component/Embodiary/Box';
+import { GetAllBase } from '../../../features/InStockSlice';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdown1, setdropdown1] = useState(false);
+
     const [formData, setFormData] = useState({
         partyName: "",
         serial_No: "",
@@ -33,9 +37,16 @@ const Embroidery = () => {
         T_Quantity_In_m:200,
         T_Quantity:499
       });
+      
 
 
-   
+
+
+
+
+
+
+  
 
     const toggleDropdown = () => {
       setdropdown1(!dropdown1);
@@ -158,6 +169,15 @@ const Embroidery = () => {
                 </div>
 
                 {/* -------------- TABLE -------------- */}
+
+
+                {/* {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : ( */}
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -239,6 +259,10 @@ const Embroidery = () => {
                         </tbody>
                     </table>
                 </div>
+
+                          {/* )} */}
+
+
             </section >
 
 
