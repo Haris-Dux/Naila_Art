@@ -28,6 +28,10 @@ import { useDispatch } from "react-redux";
 import { authUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
 import './App.css'
+import CalendarDetails from "./pages/process/calendar/CalendarDetails";
+import CuttingDetails from "./pages/process/cutting/CuttingDetails";
+import StonesDetails from "./pages/process/stones/StonesDetails";
+import StitchingDetails from "./pages/process/stitching/StitchingDetails";
 
 
 function App() {
@@ -68,9 +72,13 @@ function App() {
             <Route path="embroidery" element={<Embroidery />} />
             <Route path="embroidery-details/:id" element={<EmbroideryDetails />} />
             <Route path="calendar" element={<Calendar />} />
+            <Route path="calendar-details/:id" element={<CalendarDetails />} />
             <Route path="cutting" element={<Cutting />} />
+            <Route path="cutting-details/:id" element={<CuttingDetails />} />
             <Route path="stitching" element={<Stitching />} />
+            <Route path="stitching-details/:id" element={<StitchingDetails />} />
             <Route path="stones" element={<Stones />} />
+            <Route path="stones-details/:id" element={<StonesDetails />} />
 
             {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />

@@ -225,6 +225,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
       })
+      .addCase(loginuserAsync.rejected, (state) => {
+        state.loading = false;
+      })
 
       // Session ADD CASE
       .addCase(userSessionAsync.pending, (state) => {
@@ -242,6 +245,23 @@ const authSlice = createSlice({
       .addCase(forgetuserAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.userId = action.payload.userId;
+      })
+
+
+      // VERIFY OTP ADD CASE
+      .addCase(verifyOtpAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(verifyOtpAsync.fulfilled, (state) => {
+        state.loading = false;
+      })
+
+      // VERIFY OTP ADD CASE
+      .addCase(resetPassAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(resetPassAsync.fulfilled, (state) => {
+        state.loading = false;
       })
 
 
