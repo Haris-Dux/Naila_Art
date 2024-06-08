@@ -109,20 +109,19 @@ const embroiderySchema = new mongoose.Schema(
       required: [true, "Design no value required"],
     },
     shirt: {
-      type: shirtSchema,
+      type: [shirtSchema],
       required: [true, "Shirt details required"],
     },
     duppata: {
-      type: duppataSchema,
+      type: [duppataSchema],
       required: [true, "Duppata details required"],
     },
     trouser: {
-      type: trouserSchema,
+      type: [trouserSchema],
       required: [true, "Trouser details required"],
     },
     recieved_suit: {
       type: Number,
-      required: [true, "recieved suit value required"],
     },
     T_Quantity_In_m: {
       type: Number,
