@@ -1,6 +1,5 @@
 import { useState,useEffect } from 'react'
-// import data from './SuitsStockData';
-import { FiPlus } from "react-icons/fi";
+
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -9,7 +8,7 @@ import Box from '../../../Component/Embodiary/Box';
 
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [dropdown1, setdropdown1] = useState(false);
+ 
 
     const [formData, setFormData] = useState({
         partyName: "",
@@ -19,9 +18,6 @@ const Embroidery = () => {
         rATE_per_stitching: '',
         project_status: "",
         design_no: "",
-        received_suit: 0,
-        T_Quantity_In_m: 0,
-        T_Quantity: 0,
         Front_Stitch: { value: 0, head: 0 },
         Bazo_Stitch: { value: 0, head: 0 },
         Gala_Stitch: { value: 0, head: 0 },
@@ -30,7 +26,7 @@ const Embroidery = () => {
         Trouser_Stitch: { value: 0, head: 0 },
         D_Patch_Stitch: { value: 0, head: 0 },
         F_Patch_Stitch: { value: 0, head: 0 },
-        project_status:'pending',
+     project_status: "Pending",
         recieved_suit:200,
         T_Quantity_In_m:200,
         T_Quantity:499
@@ -38,17 +34,6 @@ const Embroidery = () => {
       
 
 
-
-
-
-
-
-
-  
-
-    const toggleDropdown = () => {
-      setdropdown1(!dropdown1);
-    };
 
 
 
@@ -548,7 +533,7 @@ const Embroidery = () => {
                           
 
 
-                            <Box formData1={formData} setFormData1={setFormData} />
+                            <Box formData1={formData} setFormData1={setFormData}   closeModal={closeModal}  />
 
                 </div>
                         </div>
