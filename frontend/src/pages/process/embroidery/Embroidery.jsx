@@ -9,8 +9,10 @@ import { GETEmbroidery } from '../../../features/EmbroiderySlice';
 import { useDispatch } from 'react-redux';
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const dispatch = useDispatch()
+    const { loading,embroidery } = useSelector((state) => state.Embroidery);
  
-const dispatch = useDispatch()
+
     const [formData, setFormData] = useState({
 
         partyName: "",
@@ -35,30 +37,20 @@ const dispatch = useDispatch()
       });
       
 
+      console.log('emroidary',embroidery)
 
-
-      
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    };
-
-
-
-      const { loading,Embroidery } = useSelector((state) => state.Embroidery);
-
-  
-   console.log('emroidary',Embroidery)
-    
 
       useEffect(() => {
         dispatch(GETEmbroidery())
          }, [])
 
 
+
+
+  
+    
+
+      
 
 
     const handleInputChange = (e) => {
@@ -82,25 +74,7 @@ const dispatch = useDispatch()
     };
     
     
-    const data = [
-        {
-            id: 2,
-            partyName: 'Lahore Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'Fsd Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Complete',
-        },
-    ]
-
+  
     const openModal = () => {
         setIsOpen(true);
         document.body.style.overflow = 'hidden';
@@ -175,13 +149,13 @@ const dispatch = useDispatch()
                 {/* -------------- TABLE -------------- */}
 
 
-                {/* {loading ? (
+                {loading ? (
                     <div className="pt-16 flex justify-center mt-12 items-center">
                         <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
                             <span className="sr-only">Loading...</span>
                         </div>
                     </div>
-                ) : ( */}
+                ) : (
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -231,7 +205,7 @@ const dispatch = useDispatch()
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {embroidery?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -261,10 +235,42 @@ const dispatch = useDispatch()
                                 </tr>
                             ))}
                         </tbody>
+
+
+
                     </table>
+
+
+                    
+                    <nav class="flex items-center  flex-wrap md:flex-row justify-between pt-4" aria-label="Table navigation">
+        <span class="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">Showing <span class="font-semibold text-gray-900 dark:text-white">1-10</span> of <span class="font-semibold text-gray-900 dark:text-white">1000</span></span>
+        <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+            <li>
+                <a href="#" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
+            </li>
+            <li>
+                <a href="#" aria-current="page" class="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
+            </li>
+            <li>
+        <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+            </li>
+        </ul>
+    </nav>
                 </div>
 
-                          {/* )} */}
+                         )} 
 
 
             </section >
