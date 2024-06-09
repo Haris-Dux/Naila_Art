@@ -1,40 +1,30 @@
-import React, { useState } from 'react'
-// import data from './SuitsStockData';
+import { useState } from 'react'
 import { IoAdd } from "react-icons/io5";
+import { FaEye } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Cutting = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const data = [
         {
-            design_no: '1',
-            colors: 'Green',
+            id: 2,
+            partyName: 'M Amir',
+            design_no: '293',
+            date: '21/03/23',
             quantity: '1322',
-            cost_pirce: '200',
-            sale_pirce: '2200',
+            r_quantity: '108',
+            status: 'Pending',
         },
         {
-            design_no: '2',
-            colors: 'Green',
-            quantity: '323',
-            cost_pirce: '200',
-            sale_pirce: '2200',
+            id: 3,
+            partyName: 'M Amir',
+            design_no: '293',
+            date: '21/03/23',
+            quantity: '1322',
+            r_quantity: '108',
+            status: 'Complete',
         },
-        {
-            design_no: '3',
-            colors: 'Green',
-            quantity: '23231',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
-        {
-            design_no: '4',
-            colors: 'Green',
-            quantity: '3531',
-            cost_pirce: '200',
-            sale_pirce: '2200',
-        },
-
     ]
 
     const openModal = () => {
@@ -47,16 +37,19 @@ const Cutting = () => {
         document.body.style.overflow = 'auto';
     };
 
-
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
-                    <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Suits</h1>
+                    <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Cutting</h1>
 
                     {/* <!-- search bar --> */}
-                    <div className="search_bar mr-2">
+                    <div className="flex items-center gap-2 mr-2">
+                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                            <IoAdd size={22} className='text-white' />
+                        </button>
+
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                 <svg
@@ -87,22 +80,6 @@ const Cutting = () => {
 
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
 
-                {/* -------------- TABS -------------- */}
-                <div className="tabs flex justify-between items-center my-5">
-                    <div className="tabs_button">
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>All</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lawn</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lilan</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Dhanak</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Organza</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Reshmi</button>
-                    </div>
-
-                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button>
-                </div>
-
 
                 {/* -------------- TABLE -------------- */}
                 <div className="relative overflow-x-auto mt-5 ">
@@ -110,34 +87,52 @@ const Cutting = () => {
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                             <tr>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    D# No
+                                    Sr # No
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Colors
+                                    Party Name
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Design No
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Date
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
                                     Quantity
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Cost Prices
+                                    R Quantity
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Sales Prices
+                                    Status
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Details
                                 </th>
                             </tr>
                         </thead>
@@ -147,19 +142,30 @@ const Cutting = () => {
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
                                     >
-                                        {data.design_no}
+                                        {index + 1}
                                     </th>
                                     <td className="px-6 py-4">
-                                        {data.colors}
+                                        {data.partyName}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.quantity}
+                                        {data.design_no}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.cost_pirce}
+                                        {data.date}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.sale_pirce}
+                                        {data.quantity} y
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.r_quantity} y
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.status}
+                                    </td>
+                                    <td className="pl-10 py-4">
+                                        <Link to={`/dashboard/cutting-details/${data.id}`}>
+                                            <FaEye size={20} className='cursor-pointer' />
+                                        </Link>
                                     </td>
                                 </tr>
                             ))}
@@ -172,13 +178,13 @@ const Cutting = () => {
             {isOpen && (
                 <div
                     aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Add New Base
+                                Cutting Details
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -206,54 +212,77 @@ const Cutting = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form action="#" className="space-y-4">
-                                <div>
-                                    <input
-                                        name="category"
-                                        type="text"
-                                        placeholder="Enter Category"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="color"
-                                        type="text"
-                                        placeholder="Enter Color"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-normal text-gray-900 dark:text-white"
-                                        htmlFor="color"
-                                    >
-                                        Start Date
-                                    </label>
-                                    <input
-                                        id="color"
-                                        name="color"
-                                        type="date"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="quantity"
-                                        type="text"
-                                        placeholder="Enter Quantity"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
+                            <form className="space-y-4">
+
+                                {/* INPUT FIELDS DETAILS */}
+                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+                                    {/* PARTY NAME */}
+                                    <div>
+                                        <input
+                                            name="category"
+                                            type="text"
+                                            placeholder="Party Name"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* SERIAL NO */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Serial No"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* DESIGN NO */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Design No"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* DATE */}
+                                    <div>
+                                        <input
+                                            type="date"
+                                            placeholder="Date"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* QUANTITY */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Quantity"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* ENTER RATE */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Enter Rate"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-center pt-2">
                                     <button
                                         type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                                     >
                                         Submit
                                     </button>
@@ -261,10 +290,10 @@ const Cutting = () => {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
         </>
     )
 }
 
-export default Cutting
+export default Cutting;

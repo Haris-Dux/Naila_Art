@@ -1,6 +1,7 @@
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import mongoose from "mongoose";
+import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -155,4 +156,51 @@ export const addEmbriodery = async (req, res, next) => {
   }
 };
 
+export const getAllEmbroidery = async (req,res,next) => {
+  try {
+    const page = req.query.page || 1;
+    const search = req.query.search || "";
+    const limit = 20;
+    let query = {
+      partyName : {$regex:search,$options:"i"}
+    };
+    const data = await EmbroideryModel.find(query)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({createdAt : -1});
+    const total = await EmbroideryModel.countDocuments(query);
+    const response = {
+      totalPages: Math.ceil(total/limit),
+      data,
+      page
+    };
+    setMongoose();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({error:error.message});
+  }
+};
 
+export const getEmbroideryById = async (req,res,next) => {
+  try {
+    const {id} = req.body;
+    if(!id) throw new Error("Id Required");
+    const data = await EmbroideryModel.findById(id);
+    setMongoose();
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({error:error.message})
+  }
+}
+
+export const updateEmbroidery = async (req,res,next) => {
+  try {
+    const {id,project_status,shirt,duppata,trouser} = req.body;
+    if(!id) throw new Error("Emroidery Id Not Found");
+    const embroideryData = await EmbroideryModel.findById(id);
+    if(!embroideryData) throw new Error("Emroidery Data Not Found");
+
+  } catch (error) {
+    return res.status(500).json({error:error.message})
+  }
+}

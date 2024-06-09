@@ -99,6 +99,14 @@ const Dashboard = () => {
         });
     }
 
+
+    const handleMoveTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        })
+    }
+
     return (
         <>
             <div className="antialiased bg-gray-50 dark:bg-gray-900">
@@ -221,7 +229,7 @@ const Dashboard = () => {
 
                             {/* DASHBOARD */}
                             <li>
-                                <Link to="/dashboard" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                <Link to="/dashboard" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
                                     {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
                                     <span className="ml-3">Dashboard</span>
                                 </Link>
@@ -247,23 +255,23 @@ const Dashboard = () => {
                                     <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
 
                                         <li>
-                                            <Link to="/dashboard/suits" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/suits" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Suits</Link>
+                                            <Link to="/dashboard/suits" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/suits" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Suits</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/base" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/base" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Base</Link>
+                                            <Link to="/dashboard/base" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/base" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Base</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/lace" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/lace" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Lace</Link>
+                                            <Link to="/dashboard/lace" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/lace" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Lace</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/bag" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/bag" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Bag</Link>
+                                            <Link to="/dashboard/bag" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/bag" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Bag</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/accessories" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/accessories" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Accessories</Link>
+                                            <Link to="/dashboard/accessories" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/accessories" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Accessories</Link>
                                         </li>
 
                                         <li>
-                                            <Link to="/dashboard/expense" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/expense" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Expense</Link>
+                                            <Link to="/dashboard/expense" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/expense" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Expense</Link>
                                         </li>
 
                                     </ul>
@@ -290,19 +298,19 @@ const Dashboard = () => {
                                     <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
 
                                         <li>
-                                            <Link to="/dashboard/embroidery" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/embroidery" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Embroidery</Link>
+                                            <Link to="/dashboard/embroidery" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/embroidery" || location.pathname.includes("embroidery-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Embroidery</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/calendar" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/calendar" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Calendar</Link>
+                                            <Link to="/dashboard/calendar" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/calendar" || location.pathname.includes("calendar-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Calendar</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/cutting" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/cutting" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Cutting</Link>
+                                            <Link to="/dashboard/cutting" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/cutting" || location.pathname.includes("cutting-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Cutting</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/stitching" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stitching" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stitching</Link>
+                                            <Link to="/dashboard/stitching" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stitching" || location.pathname.includes("stitching-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stitching</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/stones" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stones" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stones</Link>
+                                            <Link to="/dashboard/stones" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stones" || location.pathname.includes("stones-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stones</Link>
                                         </li>
                                     </ul>
                                 )}
@@ -329,13 +337,13 @@ const Dashboard = () => {
                                     <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
 
                                         <li>
-                                            <Link to="/dashboard/naila-arts-buyer" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/naila-arts-buyer" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Naila Arts Buyer</Link>
+                                            <Link to="/dashboard/naila-arts-buyer" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/naila-arts-buyer" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Naila Arts Buyer</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/processbills" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/processbills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Process Bills</Link>
+                                            <Link to="/dashboard/processbills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/processbills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Process Bills</Link>
                                         </li>
                                         <li>
-                                            <Link to="/dashboard/purchasebills" className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/purchasebills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Purchase Bills</Link>
+                                            <Link to="/dashboard/purchasebills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/purchasebills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Purchase Bills</Link>
                                         </li>
                                     </ul>
                                 )}
@@ -345,7 +353,7 @@ const Dashboard = () => {
                             {/* SHOP FOR SUPERADMIN */}
                             {user?.user?.role === "superadmin" ? (
                                 <li>
-                                    <Link to="/dashboard/Shop" className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                    <Link to="/dashboard/Shop" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/Shop" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
                                         {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
                                         <span className="ml-3">Shop</span>
                                     </Link>
@@ -369,12 +377,12 @@ const Dashboard = () => {
                             </svg>
                         </a>
                     </div> */}
-                </aside>
+                </aside >
                 {/* ---------------- DASHBOARD ---------------- */}
-                <main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900">
+                < main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900" >
                     <Outlet />
-                </main>
-            </div>
+                </ main>
+            </div >
         </>
     );
 };
