@@ -1,15 +1,16 @@
-import { useState,useEffect } from 'react'
+import React,{useState,useEffect} from 'react'
 
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import { useSelector } from 'react-redux';
 import Box from '../../../Component/Embodiary/Box';
-
+import { GETEmbroidery } from '../../../features/EmbroiderySlice';
+import { useDispatch } from 'react-redux';
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
  
-
+const dispatch = useDispatch()
     const [formData, setFormData] = useState({
         partyName: "",
         serial_No: "",
@@ -36,10 +37,19 @@ const Embroidery = () => {
 
 
 
+      const { loading,Embroidery } = useSelector((state) => state.Embroidery);
 
   
-   
+   console.log('emroidary',Embroidery)
     
+
+      useEffect(() => {
+        dispatch(GETEmbroidery())
+         }, [])
+
+
+
+
     const handleInputChange = (e) => {
       const { name, value } = e.target;
       const [field, subField] = name.split('.');
