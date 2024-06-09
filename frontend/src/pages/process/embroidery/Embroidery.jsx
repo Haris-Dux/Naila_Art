@@ -12,6 +12,7 @@ const Embroidery = () => {
  
 const dispatch = useDispatch()
     const [formData, setFormData] = useState({
+
         partyName: "",
         serial_No: "",
         date: "",
@@ -34,6 +35,16 @@ const dispatch = useDispatch()
       });
       
 
+
+
+      
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
 
 
 
