@@ -1,30 +1,48 @@
 import { useParams } from "react-router-dom";
-
-
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
+import { useSelector } from "react-redux";
 const EmbroideryDetails = () => {
     const { id } = useParams();
+const dispatch = useDispatch()
 
-    const data = [
-        {
-            id: 2,
-            partyName: 'Lahore Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'Fsd Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Complete',
-        },
-    ]
+const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
-    const selectedDetails = data?.find((data) => data?.id == id);
-    console.log('selectedDetails', selectedDetails);
+
+    useEffect(() => {
+        const data = {
+            id:id
+        }
+        dispatch(GETEmbroiderySIngle(data))
+         }, [id,dispatch])
+
+
+
+         if (loading) {
+            return (    
+                <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+
+            <div className="pt-16 flex justify-center mt-12 items-center">
+            <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                <span className="sr-only">Loading...</span>
+            </div>
+        </div>
+       </section>
+        );
+        
+        }
+    
+        if (!SingleEmbroidery) {
+            return <div>No data found.</div>;
+        }
+    
+        const { partyName, serial_No, date, per_suit, project_status, design_no, shirt, duppata, trouser, T_Quantity_In_m, T_Quantity, Front_Stitch, Bazo_Stitch, Gala_Stitch, Back_Stitch, Pallu_Stitch, Trouser_Stitch, D_Patch_Stitch, F_Patch_Stitch, tissue } = SingleEmbroidery;
+
+
+
+
+
 
 
     return (
@@ -41,41 +59,50 @@ const EmbroideryDetails = () => {
                         {/* FIRST ROW */}
                         <div className="box">
                             <span className="font-medium">Party Name:</span>
-                            <span> M Umer</span>
+                            <span> {partyName}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Serial No:</span>
-                            <span> A 0001</span>
+                            <span> {serial_No}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Date:</span>
-                            <span> 02-12-24</span>
+                            <span>{date}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Per Suit:</span>
-                            <span> 130</span>
+                            <span> {per_suit}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Project Status:</span>
-                            <span className="text-green-600"> Complete</span>
+                            <span className="text-green-600"> {project_status}</span>
                         </div>
                         {/* SECOND ROW */}
                         <div className="box">
                             <span className="font-medium">Design No:</span>
-                            <span> 794</span>
+                            <span> {design_no}</span>
                         </div>
-                        <div className="box">
-                            <span className="font-medium">Shirt M:</span>
-                            <span> 100 m</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Dupatta M:</span>
-                            <span> 100 m</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Trouser M:</span>
-                            <span> 100 m</span>
-                        </div>
+                        {shirt?.map((item, index) => (
+                            <div key={index} className="box">
+                                <span className="font-medium">Shirt M: {index + 1}:</span>
+                                <span>  {item.quantity_in_m} m</span>
+                            </div>
+                        ))}
+                     
+                     {duppata?.map((item, index) => (
+                            <div key={index} className="box">
+                                <span className="font-medium">Dupatta M: {index + 1}:</span>
+                                <span>  {item.quantity_in_m} m</span>
+                            </div>
+                        ))}
+                       {trouser?.map((item, index) => (
+                            <div key={index} className="box">
+                                <span className="font-medium">Trouser M {index + 1}:</span>
+                                <span>  {item.quantity_in_m} m</span>
+                            </div>
+                        ))}
+                     
+                      
                         <div className="box">
                             <span className="font-medium">Received Suit:</span>
                             <span> ---</span>
@@ -83,51 +110,54 @@ const EmbroideryDetails = () => {
                         {/* THIRD ROW */}
                         <div className="box">
                             <span className="font-medium">T Quantity In M:</span>
-                            <span> 100 m</span>
+                            <span> {T_Quantity_In_m} m</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">T Quantity:</span>
-                            <span> 89 Suit</span>
+                            <span> {T_Quantity} Suit</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Front Stitch:</span>
-                            <span> 39827, 2</span>
+                            <span> {Front_Stitch?.head}, {Front_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Bazo Stitch:</span>
-                            <span> 23277, 2</span>
+                            <span> {Bazo_Stitch?.head}, {Bazo_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Gala Stitch:</span>
-                            <span> 46253, 2</span>
+                            <span> {Gala_Stitch?.head}, {Gala_Stitch?.value}</span>
                         </div>
                         {/* FORTH ROW */}
                         <div className="box">
                             <span className="font-medium">Back Stitch:</span>
-                            <span> 46253, 2</span>
+                             <span> {Back_Stitch?.head}, {Back_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Pallu Stitch:</span>
-                            <span> 46253, 2</span>
+                             <span> {Pallu_Stitch?.head}, {Pallu_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Trouser Stitch:</span>
-                            <span> 39827, 2</span>
+                            <span> {Trouser_Stitch?.head}, {Trouser_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">D Patch Stitch:</span>
-                            <span> 23277, 2</span>
+                            <span> {D_Patch_Stitch?.head}, {D_Patch_Stitch?.value}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">F Patch Stitch:</span>
-                            <span> 46253, 2</span>
+                             <span> {F_Patch_Stitch?.head}, {F_Patch_Stitch?.value}</span>
                         </div>
 
                         {/* FIFTH ROW */}
+                      
+                        
                         <div className="box">
                             <span className="font-medium">Tissue:</span>
-                            <span> 100 m</span>
+                            <span> {tissue} m</span>
                         </div>
+                        
                     </div>
                 </div>
 

@@ -40,7 +40,7 @@ export const GETEmbroidery = createAsyncThunk(
       const response = await axios.post(getEmbroidery);
       toast.success(response.data.message);
       console.log(response.data);
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.log(error.response.data.error);
       toast.error(error.response.data.error);
@@ -53,9 +53,9 @@ export const GETEmbroidery = createAsyncThunk(
 
 export const GETEmbroiderySIngle = createAsyncThunk(
   "EmbroideryDetails/GET",
-  async () => {
+  async (id) => {
     try {
-      const response = await axios.post(getEmbroiderydetails,);
+      const response = await axios.post(getEmbroiderydetails,id);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -89,7 +89,7 @@ export const UpdateEmbroidery = createAsyncThunk(
 // INITIAL STATE
 const initialState = {
   
-  Embroidery: [],
+  embroidery: [],
   SingleEmbroidery:{
 
   },
@@ -120,7 +120,7 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(GETEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
-        state.Embroidery = action.payload
+        state.embroidery = action.payload
     
       })
 
