@@ -19,6 +19,8 @@ export const CreateEmbroidery = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+
     }
   }
 );
