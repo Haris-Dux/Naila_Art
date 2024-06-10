@@ -100,7 +100,6 @@ const embroiderySchema = new mongoose.Schema(
     },
     project_status: {
       type: String,
-      required: [true, "Project status value required"],
       enum: ["Pending", "Completed"],
       default: "Pending",
     },
@@ -122,14 +121,13 @@ const embroiderySchema = new mongoose.Schema(
     },
     recieved_suit: {
       type: Number,
+      default:null
     },
     T_Quantity_In_m: {
       type: Number,
-      required: [true, "T_Quantity_In_m value required"],
     },
     T_Quantity: {
       type: Number,
-      required: [true, "T_Quantity value required"],
     },
     Front_Stitch: {
       type: stitchSchema,
