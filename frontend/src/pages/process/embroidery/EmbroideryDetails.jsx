@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
 import { useDispatch } from "react-redux";
-import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
+import { GETEmbroiderySIngle, UpdateEmbroidery } from "../../../features/EmbroiderySlice";
 import { useSelector } from "react-redux";
 const EmbroideryDetails = () => {
     const { id } = useParams();
@@ -9,6 +9,30 @@ const dispatch = useDispatch()
 
 const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
+
+const initialShirtRow = { category: "", color: "",  received:0 ,   };
+const initialDupattaRow = { category: "", color: "",  received:0 ,   };
+const initialTrouserRow = { category: "", color: "",  received:0 ,   };
+
+const [formData, setFormData] = useState({
+    shirt: [initialShirtRow],
+    duppata: [initialDupattaRow],
+    trouser: [initialTrouserRow],
+project_status: "Completed",
+id:id
+
+  });
+
+
+
+  const handleInputChange = (category, color, received, index, section) => {
+    setFormData((prevState) => ({
+        ...prevState,
+        [section]: prevState[section].map((item, idx) =>
+            idx === index ? { ...item, category, color, received } : item
+        ),
+    }));
+};
 
     useEffect(() => {
         const data = {
@@ -41,7 +65,26 @@ const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
 
 
+        const handleSubmit = (event) => {
 
+
+
+            event.preventDefault();
+            
+           
+            
+            dispatch(UpdateEmbroidery(formData))
+            .then(() => {
+                dispatch(GETEmbroiderySIngle());
+                closeModal();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+
+
+
+                };
 
 
 
@@ -168,30 +211,18 @@ const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
                             <h3 className="mb-4 font-semibold text-lg">Received Shirts Colors</h3>
 
                             <div className="details space-y-2">
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
+                            {shirt?.map((item) => (
+                        <div key={item.id} className="details_box flex items-center gap-x-3">
+                            <p>{item.category} - {item.color}</p>
+                            <input 
+                    type="text" 
+                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+
+                    value={item.received} 
+                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'shirt')} 
+                />
+                        </div>
+                    ))}
                             </div>
                         </div>
 
@@ -199,30 +230,17 @@ const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
                             <h3 className="mb-4 font-semibold text-lg">Received Dupatta Colors</h3>
 
                             <div className="details space-y-2">
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
+                            {duppata?.map((item) => (
+                        <div key={item.id} className="details_box flex items-center gap-x-3">
+                            <p>{item.category} - {item.color}</p>
+                            <input 
+                    type="text" 
+                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+                    value={item.received} 
+                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'duppata')} 
+                />
+                        </div>
+                    ))}
                             </div>
                         </div>
 
@@ -230,30 +248,18 @@ const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
                             <h3 className="mb-4 font-semibold text-lg">Received Trousers Colors</h3>
 
                             <div className="details space-y-2">
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
-                                <div className="details_box flex items-center gap-x-3">
-                                    <p>Brown color (24) (118m)</p>
-                                    <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                </div>
+                            {trouser?.map((item) => (
+                        <div key={item.id} className="details_box flex items-center gap-x-3">
+                            <p>{item.category} - {item.color}</p>
+                            <input 
+                    type="text" 
+                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+ 
+                    value={item.received} 
+                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'trouser')} 
+                />
+                        </div>
+                    ))}
                             </div>
                         </div>
                     </div>
@@ -262,7 +268,7 @@ const { loading,SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
                 {/* -------------- BUTTONS BAR -------------- */}
                 <div className="mt-10 flex justify-center items-center gap-x-5">
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Completed</button>
+                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={handleSubmit}>Completed</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Bill</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Gate Pass</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Next Step</button>

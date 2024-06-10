@@ -11,7 +11,10 @@ const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dispatch = useDispatch()
     const { loading,embroidery } = useSelector((state) => state.Embroidery);
- 
+    const totalPages = embroidery.totalPages
+    const page = embroidery.page
+
+    const [currentPage, setCurrentPage] = useState(page || 1);
 
     const [formData, setFormData] = useState({
 
@@ -41,13 +44,22 @@ const Embroidery = () => {
 
 
       useEffect(() => {
-        dispatch(GETEmbroidery())
-         }, [])
+        dispatch(GETEmbroidery(currentPage));
+    }, [dispatch, currentPage]);
+
+    const handlePreviousPage = () => {
+      setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
+  };
+
+  const handleNextPage = () => {
+      setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
+
+  }
 
 
 
-
-  
+  const startIndex = (currentPage - 1) * 10;
+  const endIndex = Math.min(startIndex + 10, embroidery?.data?.length);
     
 
       
@@ -205,7 +217,7 @@ const Embroidery = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {embroidery?.map((data, index) => (
+                            {embroidery?.data?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -241,33 +253,46 @@ const Embroidery = () => {
                     </table>
 
 
-                    
-                    <nav class="flex items-center  flex-wrap md:flex-row justify-between pt-4" aria-label="Table navigation">
-        <span class="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">Showing <span class="font-semibold text-gray-900 dark:text-white">1-10</span> of <span class="font-semibold text-gray-900 dark:text-white">1000</span></span>
-        <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-            <li>
-                <a href="#" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
-            </li>
-            <li>
-                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
-            </li>
-            <li>
-                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
-            </li>
-            <li>
-                <a href="#" aria-current="page" class="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
-            </li>
-            <li>
-                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
-            </li>
-            <li>
-                <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
-            </li>
-            <li>
-        <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
-            </li>
-        </ul>
-    </nav>
+                    <nav className="flex items-center justify-between pt-4" aria-label="Table navigation">
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">
+                    Showing <span className="font-semibold text-gray-900 dark:text-white">{startIndex + 1}-{endIndex}</span> of <span className="font-semibold text-gray-900 dark:text-white">{embroidery?.data?.length}</span>
+                </span>
+                <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+                    <li>
+                        <button
+                            onClick={handlePreviousPage}
+                            className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                    </li>
+                    {/* Render pagination numbers */}
+                    {/* For simplicity, you can generate these dynamically based on totalPages */}
+                    {/* Here I'm hardcoding them for brevity */}
+               {/* Render pagination numbers */}
+{[...Array(totalPages)].map((_, page) => (
+    <li key={page}>
+        <button
+            onClick={() => setCurrentPage(page + 1)}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white ${currentPage === page + 1 ? 'bg-blue-50 text-blue-600' : ''}`}
+        >
+            {page + 1}
+        </button>
+    </li>
+))}
+
+                    <li>
+                        <button
+                            onClick={handleNextPage}
+                            className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
                 </div>
 
                          )} 
