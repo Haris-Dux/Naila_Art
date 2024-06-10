@@ -5,7 +5,7 @@ import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
-  
+
   try {
     await session.withTransaction(async () => {
       const {
@@ -148,7 +148,9 @@ export const addEmbriodery = async (req, res, next) => {
       );
     });
 
-    return res.status(200).json({ success: true, message: "Added Successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Added Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -156,51 +158,112 @@ export const addEmbriodery = async (req, res, next) => {
   }
 };
 
-export const getAllEmbroidery = async (req,res,next) => {
+export const getAllEmbroidery = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
     const search = req.query.search || "";
     const limit = 20;
     let query = {
-      partyName : {$regex:search,$options:"i"}
+      partyName: { $regex: search, $options: "i" },
     };
     const data = await EmbroideryModel.find(query)
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({createdAt : -1});
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
     const total = await EmbroideryModel.countDocuments(query);
     const response = {
-      totalPages: Math.ceil(total/limit),
+      totalPages: Math.ceil(total / limit),
       data,
-      page
+      page,
     };
     setMongoose();
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({error:error.message});
+    return res.status(500).json({ error: error.message });
   }
 };
 
-export const getEmbroideryById = async (req,res,next) => {
+export const getEmbroideryById = async (req, res, next) => {
   try {
-    const {id} = req.body;
-    if(!id) throw new Error("Id Required");
+    const { id } = req.body;
+    if (!id) throw new Error("Id Required");
     const data = await EmbroideryModel.findById(id);
     setMongoose();
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message });
   }
-}
+};
 
-export const updateEmbroidery = async (req,res,next) => {
+export const updateEmbroidery = async (req, res, next) => {
   try {
-    const {id,project_status,shirt,duppata,trouser} = req.body;
-    if(!id) throw new Error("Emroidery Id Not Found");
+    const { id, project_status, shirt, duppata, trouser } = req.body;
+    if (!id) throw new Error("Emroidery Id Not Found");
     const embroideryData = await EmbroideryModel.findById(id);
-    if(!embroideryData) throw new Error("Emroidery Data Not Found");
-
+    if (!embroideryData) throw new Error("Emroidery Data Not Found");
+    if (project_status) {
+      embroideryData.project_status = project_status;
+    }
+    if (shirt) {
+      shirt.forEach((item) => {
+        const { category, color, received } = item;
+        const shirtItem = embroideryData.shirt.find(
+          (s) => s.category === category && s.color === color
+        );
+        if (shirtItem) {
+          shirtItem.received = received;
+        }
+      });
+    };
+    if (duppata) {
+      duppata.forEach((item) => {
+        const { category, color, received } = item;
+        const dupattaItem = embroideryData.duppata.find(
+          (s) => s.category === category && s.color === color
+        );
+        if (dupattaItem) {
+          dupattaItem.received = received;
+        }
+      });
+    };
+    if (trouser) {
+      trouser.forEach((item) => {
+        const { category, color, received } = item;
+        const trouserItem = embroideryData.trouser.find(
+          (s) => s.category === category && s.color === color
+        );
+        if (trouserItem) {
+          trouserItem.received = received;
+        }
+      });
+    };
+    let received_suit = 0;
+    const colors = new Set([
+      ...shirt?.map(item=>item.color) || [],
+      ...trouser?.map(item=>item.color) || [],
+      ...duppata?.map(item=>item.color) || [],
+    ]);
+    colors.forEach((color)=>{
+      const shirtItem = shirt.find(item => item.color === color);
+      const duppataItem = duppata.find(item => item.color === color);
+      const trouserItem = trouser.find(item => item.color === color);
+      if (
+        shirtItem && duppataItem && trouserItem &&
+        shirtItem.received === duppataItem.received &&
+        shirtItem.received === trouserItem.received
+      ) {
+        received_suit += shirtItem.received;
+      }
+    });
+    if(!isNaN(received_suit)){
+      embroideryData.recieved_suit = received_suit;
+    }
+    await embroideryData.save();
+    return res.status(200).json({
+      success: true,
+      message: "Updated Successfully",
+    });
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message });
   }
-}
+};
