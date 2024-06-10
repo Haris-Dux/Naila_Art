@@ -35,16 +35,17 @@ export const CreateEmbroidery = createAsyncThunk(
 
 export const GETEmbroidery = createAsyncThunk(
   "Embroidery/GET",
-  async () => {
+  async (currentPage) => {
     try {
-      const response = await axios.post(getEmbroidery);
+      const response = await axios.post(`${getEmbroidery}?page=${currentPage}`);
       toast.success(response.data.message);
       console.log(response.data);
-      return response.data.data;
+      return response.data;
     } catch (error) {
       console.log(error.response.data.error);
       toast.error(error.response.data.error);
-
+      // Assuming you want to re-throw the error to handle it elsewhere
+      throw error;
     }
   }
 );
