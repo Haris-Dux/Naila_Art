@@ -1,92 +1,92 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 // import data from './SuitsStockData';
 import { FiPlus } from "react-icons/fi";
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
+import Box from '../../../Component/Embodiary/Box';
+
 const Embroidery = () => {
     const [isOpen, setIsOpen] = useState(false);
-
+    const [dropdown1, setdropdown1] = useState(false);
 
     const [formData, setFormData] = useState({
-        partyName: "ABC Party",
-        serial_No: "12345",
-        date: "2023-05-01",
-        per_suit: 10,
-        project_status: "Pending",
-        design_no: "D001",
-        shirt: {
-          category: "Cotton",
-          color: "Blue",
-          quantity_in_no: 5,
-          quantity_in_m: 10,
-          received: 5
-        },
-        duppata: {
-          category: "Silk",
-          color: "Red",
-          quantity_in_no: 3,
-          quantity_in_m: 6,
-          received: 3
-        },
-        trouser: {
-          category: "Linen",
-          color: "Black",
-          quantity_in_no: 4,
-          quantity_in_m: 8,
-          received: 4
-        },
-        received_suit: 15,
-        T_Quantity_In_m: 50,
-        T_Quantity: 100,
-        Front_Stitch: {
-          value: 5,
-          head: 2
-        },
-        Bazo_Stitch: {
-          value: 4,
-          head: 2
-        },
-        Gala_Stitch: {
-          value: 3,
-          head: 1
-        },
-        Back_Stitch: {
-          value: 6,
-          head: 3
-        },
-        Pallu_Stitch: {
-          value: 5,
-          head: 2
-        },
-        Trouser_Stitch: {
-          value: 4,
-          head: 2
-        },
-        D_Patch_Stitch: {
-          value: 2,
-          head: 1
-        },
-        F_Patch_Stitch: {
-          value: 1,
-          head: 1
-        },
-        tissue: {
-          category: "Paper",
-          color: "White",
-          QuantityInM: 20
-        }
+
+        partyName: "",
+        serial_No: "",
+        date: "",
+        per_suit: 0,
+        rATE_per_stitching: '',
+        project_status: "",
+        design_no: "",
+        received_suit: 0,
+        T_Quantity_In_m: 0,
+        T_Quantity: 0,
+        Front_Stitch: { value: 0, head: 0 },
+        Bazo_Stitch: { value: 0, head: 0 },
+        Gala_Stitch: { value: 0, head: 0 },
+        Back_Stitch: { value: 0, head: 0 },
+        Pallu_Stitch: { value: 0, head: 0 },
+        Trouser_Stitch: { value: 0, head: 0 },
+        D_Patch_Stitch: { value: 0, head: 0 },
+        F_Patch_Stitch: { value: 0, head: 0 },
+        project_status:'pending',
+        recieved_suit:200,
+        T_Quantity_In_m:200,
+        T_Quantity:499
       });
-    
-      const handleInputChange = (event) => {
+      
+
+
+
+      
+    const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData({
-          ...formData,
-          [name]: value
+            ...formData,
+            [name]: value
         });
-      };
+    };
 
+
+
+
+
+
+
+  
+
+    const toggleDropdown = () => {
+      setdropdown1(!dropdown1);
+    };
+
+
+
+  
+   
+    
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      const [field, subField] = name.split('.');
+    
+      if (subField) {
+        setFormData((prevState) => ({
+          ...prevState,
+          [field]: {
+            ...prevState[field],
+            [subField]: parseFloat(value), // Convert string to float
+          },
+        }));
+      } else {
+        setFormData((prevState) => ({
+          ...prevState,
+          [name]: value, // Convert string to float
+        }));
+      }
+    };
+    
+    
     const data = [
         {
             id: 2,
@@ -116,6 +116,25 @@ const Embroidery = () => {
         document.body.style.overflow = 'auto';
     };
 
+
+
+
+
+   
+      
+
+
+
+   
+  
+    
+
+
+ 
+
+      
+   
+    
 
     return (
         <>
@@ -159,6 +178,15 @@ const Embroidery = () => {
                 </div>
 
                 {/* -------------- TABLE -------------- */}
+
+
+                {/* {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : ( */}
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -240,6 +268,10 @@ const Embroidery = () => {
                         </tbody>
                     </table>
                 </div>
+
+                          {/* )} */}
+
+
             </section >
 
 
@@ -280,276 +312,256 @@ const Embroidery = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="space-y-4">
+                            <div className="space-y-4">
 
                                 {/* INPUT FIELDS DETAILS */}
                                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
-                                    {/* FIRST ROW */}
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Serial No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            name="color"
-                                            type="date"
-                                            placeholder="Date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Design No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
+      {/* FIRST ROW */}
+      <div>
+        <input
+          name="partyName"
+          type="text"
+          placeholder="Party Name"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.partyName}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div>
+        <input
+          name="serial_No"
+          type="text"
+          placeholder="Serial No"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.serial_No}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div>
+        <input
+          name="date"
+          type="date"
+          placeholder="Date"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.date}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div>
+        <input
+          name="design_no"
+          type="text"
+          placeholder="Design No"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.design_no}
+          onChange={handleInputChange}
+        />
+      </div>
 
+      {/* SECOND ROW */}
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+     name="Front_Stitch.value"
+          type='number'
+          placeholder="Front Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Front_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+     name="Front_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Front_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="Back_Stitch.value"
+          type='number'
+          placeholder="Back Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Back_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="Back_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Back_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="Bazo_Stitch.value"
+          type='number'
+          placeholder="Bazu Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Bazo_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="Bazo_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Bazo_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="Gala_Stitch.value"
+          type='number'
+          placeholder="Gala Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Gala_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="Gala_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Gala_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
 
-                                    {/* SECOND ROW */}
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Front Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Back Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Bazu Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Gala Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
+      {/* THIRD ROW */}
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="D_Patch_Stitch.value"
+          type='number'
+          placeholder="Dupatta Patch Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.D_Patch_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="D_Patch_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.D_Patch_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="Pallu_Stitch.value"
+          type='number'
+          placeholder="Pallu Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Pallu_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="Pallu_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Pallu_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="F_Patch_Stitch.value"
+          type='number'
+          placeholder="Front Patch Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.F_Patch_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="F_Patch_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.F_Patch_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
 
-                                    {/* THIRD ROW */}
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Dupatta Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Pallu Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Front Patch Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Dupatta Patch Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
+      {/* FORTH ROW */}
+      <div className='grid items-start grid-cols-3 gap-2'>
+        <input
+          name="Trouser_Stitch.value"
+          type='number'
+          placeholder="Trouser Stitch"
+          className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Trouser_Stitch.value}
+          onChange={handleInputChange}
+        />
+        <input
+          name="Trouser_Stitch.head"
+          type='number'
+          placeholder="Head"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.Trouser_Stitch.head}
+          onChange={handleInputChange}
+        />
+      </div>
 
-                                    {/* FORTH ROW */}
-                                    <div className='grid items-start grid-cols-3 gap-2'>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Trouser Stitch"
-                                            className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Head"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
+      <div>
+        <input
+          name="rATE_per_stitching"
+          type='number'
+          placeholder="Rate Per Stitch"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.rATE_per_stitching}
+          onChange={handleInputChange}
+        />
+      </div>
 
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Rate Per Stitch"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
+      <div>
+        <input
+          name="per_suit"
+          type='number'
+          placeholder="Rate Per Suit"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          required
+          value={formData.per_suit}
+          onChange={handleInputChange}
 
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Rate Per Suit"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+          readOnly
+        />
+      </div>
+    </div>
 
                                 {/* SUIT DESCRIPION */}
-                                <div className="box">
-                                    <div className="header flex justify-between items-center">
-                                        <h3>Enter Suit Colors And Quantity:</h3>
-                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
-                                    </div>
-                                    <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
-                                        <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Party Name"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Party Name"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Enter Quantity In No"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <input
-                                                name="category"
-                                                type="text"
-                                                placeholder="Enter Quantity In M"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                          
 
 
-                                <div className="flex justify-center pt-2">
-                                    <button
-                                        type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
+                            <Box formData1={formData} setFormData1={setFormData} />
+
+                </div>
                         </div>
                     </div>
                 </div >
