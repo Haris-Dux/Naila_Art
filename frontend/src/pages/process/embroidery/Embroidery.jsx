@@ -237,7 +237,7 @@ const Embroidery = () => {
                                         {data.quantity} Suit
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.status}
+                                        {data.project_status}
                                     </td>
                                     <td className="pl-10 py-4">
                                         <Link to={`/dashboard/embroidery-details/${data.id}`}>

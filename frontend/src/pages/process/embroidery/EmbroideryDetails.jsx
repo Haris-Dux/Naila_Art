@@ -34,6 +34,8 @@ id:id
     }));
 };
 
+
+
     useEffect(() => {
         const data = {
             id:id
@@ -75,8 +77,7 @@ id:id
             
             dispatch(UpdateEmbroidery(formData))
             .then(() => {
-                dispatch(GETEmbroiderySIngle());
-                closeModal();
+                dispatch(GETEmbroiderySIngle({id:id}));
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -205,24 +206,28 @@ id:id
                 </div>
 
                 {/* -------------- RECEIVED STOCK SECTION -------------- */}
+
+        
                 <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
                     <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
                         <div className="box_1">
                             <h3 className="mb-4 font-semibold text-lg">Received Shirts Colors</h3>
 
                             <div className="details space-y-2">
-                            {shirt?.map((item) => (
-                        <div key={item.id} className="details_box flex items-center gap-x-3">
-                            <p>{item.category} - {item.color}</p>
-                            <input 
-                    type="text" 
-                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+                            {shirt?.map((item, index) => (
+    <div key={index} className="details_box flex items-center gap-x-3">
+        <p>{item.category} - {item.color}</p>
+        <input 
+            type="text" 
+            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+            value={item.received} 
+            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'shirt')} 
+            readOnly={project_status === 'Completed'}
+        />
+    </div>
+))}
 
-                    value={item.received} 
-                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'shirt')} 
-                />
-                        </div>
-                    ))}
+
                             </div>
                         </div>
 
@@ -230,17 +235,19 @@ id:id
                             <h3 className="mb-4 font-semibold text-lg">Received Dupatta Colors</h3>
 
                             <div className="details space-y-2">
-                            {duppata?.map((item) => (
-                        <div key={item.id} className="details_box flex items-center gap-x-3">
-                            <p>{item.category} - {item.color}</p>
-                            <input 
-                    type="text" 
-                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
-                    value={item.received} 
-                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'duppata')} 
-                />
-                        </div>
-                    ))}
+                            {duppata?.map((item, index) => (
+    <div key={index} className="details_box flex items-center gap-x-3">
+        <p>{item.category} - {item.color}</p>
+        <input 
+            type="text" 
+            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+            value={item.received} 
+            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'duppata')} 
+            readOnly={project_status === 'Completed'}
+        />
+    </div>
+))}
+
                             </div>
                         </div>
 
@@ -248,18 +255,18 @@ id:id
                             <h3 className="mb-4 font-semibold text-lg">Received Trousers Colors</h3>
 
                             <div className="details space-y-2">
-                            {trouser?.map((item) => (
-                        <div key={item.id} className="details_box flex items-center gap-x-3">
-                            <p>{item.category} - {item.color}</p>
-                            <input 
-                    type="text" 
-                    className=" py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
- 
-                    value={item.received} 
-                    onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'trouser')} 
-                />
-                        </div>
-                    ))}
+                            {trouser?.map((item, index) => (
+    <div key={index} className="details_box flex items-center gap-x-3">
+        <p>{item.category} - {item.color}</p>
+        <input 
+            type="text" 
+            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black" 
+            value={item.received} 
+            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'trouser')} 
+            readOnly={project_status === 'Completed'}
+        />
+    </div>
+))}
                             </div>
                         </div>
                     </div>
