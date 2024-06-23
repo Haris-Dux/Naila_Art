@@ -18,7 +18,7 @@ const [formData, setFormData] = useState({
     shirt: [initialShirtRow],
     duppata: [initialDupattaRow],
     trouser: [initialTrouserRow],
-    // project_status: "Completed",
+    project_status: "Completed",
     id: id
 });
 

@@ -13,7 +13,7 @@ const Embroidery = () => {
     const { loading,embroidery } = useSelector((state) => state.Embroidery);
     const totalPages = embroidery.totalPages
     const page = embroidery.page
-
+    const [searchText, setSearchText] = useState('');
     const [currentPage, setCurrentPage] = useState(page || 1);
 
     const [formData, setFormData] = useState({
@@ -117,7 +117,11 @@ const Embroidery = () => {
   
     
 
-
+    const filteredData = searchText
+    ? embroidery.data.filter((item) =>
+        item.partyName.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : embroidery.data;
  
 
       
@@ -155,12 +159,12 @@ const Embroidery = () => {
                             </span>
 
                             <input
-                                type="text"
-                                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                                placeholder="Search by Party Name"
-                            // value={searchText}
-                            // onChange={handleSearch}
-                            />
+                type="text"
+                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                placeholder="Search by Party Name"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
                         </div>
                     </div>
                 </div>
@@ -224,7 +228,7 @@ const Embroidery = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {embroidery?.data?.map((data, index) => (
+                        {filteredData.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
