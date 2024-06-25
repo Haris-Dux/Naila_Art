@@ -76,7 +76,7 @@ export const addEmbriodery = async (req, res, next) => {
 
       if (missingFields.length > 0) {
         throw new Error(`Missing fields ${missingFields}`);
-      }
+      };
 
       // INVENTORY DEDUCTION THROUGH TRANSACTIONS
       const handleInventory = async (items) => {

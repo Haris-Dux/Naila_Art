@@ -15,6 +15,10 @@ import bagsAndBoxRouter from "./routes/Stock/BagsAndBoxRoutes.js";
 import accessoriesRouter from "./routes/Stock/AccesssoriesRoutes.js";
 import expenseRouter from "./routes/Stock/ExpenseRoutes.js";
 import embrioderyRouter from "./routes/Process/EmbroideryRoutes.js";
+import calenderRouter from "./routes/Process/CalenderRoutes.js";
+import cuttingRouter from "./routes/Process/CuttingRoutes.js";
+import stoneRouter from "./routes/Process/StoneRoutes.js";
+import stitchingRouter from "./routes/Process/StitchingRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -53,6 +57,10 @@ app.use(session({
   app.use("/api/stock/accessories",accessoriesRouter);
   app.use("/api/stock/expense",expenseRouter);
   app.use("/api/process/embriodery",embrioderyRouter);
+  app.use("/api/process/calender",calenderRouter);
+  app.use("/api/process/cutting",cuttingRouter);
+  app.use("/api/process/stone",stoneRouter);
+  app.use("/api/process/stitching",stitchingRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));
@@ -61,7 +69,7 @@ app.use(session({
 //   res.sendFile(path.join(root, 'dist/index.html'));
 // });
 
-
+  
 mongoose
 .connect(process.env.MONGODB_URI)
 .then(()=>{
