@@ -1,21 +1,35 @@
 import React, { useState } from 'react'
-import data from '../inStock/suits/SuitsStockData';
-import { IoAdd } from "react-icons/io5";
+import { FaEye } from "react-icons/fa";
+import { Link } from 'react-router-dom';
+
+const data = [
+    {
+        serial_no: 455,
+        name: 'M Amir',
+        design_no: '1322',
+        date: '2-2-2024',
+        quantity: 98,
+        status: 'Paid',
+    },
+    {
+        serial_no: 405,
+        name: 'Umer Javaid',
+        design_no: '1365',
+        date: '2-2-2022',
+        quantity: 115,
+        status: 'Pending',
+    },
+    {
+        serial_no: 588,
+        name: 'M Amir',
+        design_no: '1322',
+        date: '2-2-2024',
+        quantity: 98,
+        status: 'Paid',
+    },
+]
 
 const ProcessBills = () => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const openModal = () => {
-        setIsOpen(true);
-        document.body.style.overflow = 'hidden';
-    };
-
-    const closeModal = () => {
-        setIsOpen(false);
-        document.body.style.overflow = 'auto';
-    };
-
-
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
@@ -64,10 +78,6 @@ const ProcessBills = () => {
                         <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Stitching</button>
                         <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Pictures</button>
                     </div>
-
-                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button>
                 </div>
 
 
@@ -77,34 +87,46 @@ const ProcessBills = () => {
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                             <tr>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    D# No
+                                    S # No
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Colors
+                                    Party Name
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Design No
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Date
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
                                     Quantity
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Cost Prices
+                                    Status
                                 </th>
                                 <th
-                                    className="px-6 py-3"
+                                    className="px-6 py-3 font-medium"
                                     scope="col"
                                 >
-                                    Sales Prices
+                                    Details
                                 </th>
                             </tr>
                         </thead>
@@ -114,19 +136,27 @@ const ProcessBills = () => {
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
                                     >
-                                        {data.design_no}
+                                        {data.serial_no}
                                     </th>
                                     <td className="px-6 py-4">
-                                        {data.colors}
+                                        {data.name}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.quantity}
+                                        {data.design_no}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.cost_pirce}
+                                        {data.date}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.sale_pirce}
+                                        {data.quantity} Suits
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.status}
+                                    </td>
+                                    <td className="pl-10 py-4">
+                                        <Link to={`/dashboard/stones-details/${data.id}`}>
+                                            <FaEye size={20} className='cursor-pointer' />
+                                        </Link>
                                     </td>
                                 </tr>
                             ))}
@@ -134,102 +164,6 @@ const ProcessBills = () => {
                     </table>
                 </div>
             </section >
-
-
-            {isOpen && (
-                <div
-                    aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
-                >
-                    <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
-                        {/* ------------- HEADER ------------- */}
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Add New Base
-                            </h3>
-                            <button
-                                onClick={closeModal}
-                                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                                type="button"
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    viewBox="0 0 14 14"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                    />
-                                </svg>
-                                <span className="sr-only">Close modal</span>
-                            </button>
-                        </div>
-
-                        {/* ------------- BODY ------------- */}
-                        <div className="p-4 md:p-5">
-                            <form action="#" className="space-y-4">
-                                <div>
-                                    <input
-                                        name="category"
-                                        type="text"
-                                        placeholder="Enter Category"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="color"
-                                        type="text"
-                                        placeholder="Enter Color"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-normal text-gray-900 dark:text-white"
-                                        htmlFor="color"
-                                    >
-                                        Start Date
-                                    </label>
-                                    <input
-                                        id="color"
-                                        name="color"
-                                        type="date"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="quantity"
-                                        type="text"
-                                        placeholder="Enter Quantity"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="flex justify-center pt-2">
-                                    <button
-                                        type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     )
 }
