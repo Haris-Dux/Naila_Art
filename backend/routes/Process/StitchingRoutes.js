@@ -1,15 +1,35 @@
-
 import express from "express";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
-import { addStone, getAllStone, getStoneByEmbroideryId, getStoneById, updateStone } from "../../controllers/Process/StoneController.js";
+import {
+  addStitching,
+  getAllStitching,
+  getStitchingByEmbroideryId,
+  getStitchingById,
+  updateStitching,
+} from "../../controllers/Process/StitchingController.js";
 
 const stitchingRouter = express.Router();
 
-stitchingRouter.post("/addStone", superAdminAndAdminOnly , addStone);
-stitchingRouter.post("/getAllStone", superAdminAndAdminOnly , getAllStone);
-stitchingRouter.post("/getStoneById", superAdminAndAdminOnly , getStoneById);
-stitchingRouter.post("/getStoneByEmbroideryId", superAdminAndAdminOnly , getStoneByEmbroideryId);
-stitchingRouter.post("/updateStone", superAdminAndAdminOnly , updateStone);
-
+stitchingRouter.post("/addStitching", superAdminAndAdminOnly, addStitching);
+stitchingRouter.post(
+  "/getAllStitching",
+  superAdminAndAdminOnly,
+  getAllStitching
+);
+stitchingRouter.post(
+  "/getStitchingById",
+  superAdminAndAdminOnly,
+  getStitchingById
+);
+stitchingRouter.post(
+  "/getStitchingByEmbroideryId",
+  superAdminAndAdminOnly,
+  getStitchingByEmbroideryId
+);
+stitchingRouter.post(
+  "/updateStitching",
+  superAdminAndAdminOnly,
+  updateStitching
+);
 
 export default stitchingRouter;
