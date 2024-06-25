@@ -1,70 +1,44 @@
 import mongoose from "mongoose";
 
-const category_schema = new mongoose.Schema({
+const suit_schema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, "Category Name Required"],
-    enum: [
-      "Front",
-      "Back",
-      "Bazo",
-      "Duppata",
-      "Gala",
-      "Front Patch",
-      "Trouser",
-    ],
   },
   color: {
     type: String,
     required: [true, "Color Value Required"],
   },
-  quantity: {
+  quantity_in_no: {
     type: Number,
     required: [true, "Qunatity Vlaue Required"],
   },
-  recieved_Data: {
-    first: {
-      quantity: {
-        type: Number,
-        default: null,
-      },
-      date: {
-        type: String,
-        default: null,
-      },
-    },
-    second: {
-        quantity: {
-          type: Number,
-          default: null,
-        },
-        date: {
-          type: String,
-          default: null,
-        },
-      },
-    third: {
-        quantity: {
-          type: Number,
-          default: null,
-        },
-        date: {
-          type: String,
-          default: null,
-        },
-      },
-    r_total: {
-      type: Number,
-      default: null,
-    },
-    r_date: {
-        type: String,
-        default: null,
-      },
+  recieved: {
+   type:Number,
+   default:0
   },
 },{ timestamps: true });
 
-const stoneSchema = new mongoose.Schema(
+const dupatta_schema = new mongoose.Schema({
+    category: {
+      type: String,
+      required: [true, "Category Name Required"],
+    },
+    color: {
+      type: String,
+      required: [true, "Color Value Required"],
+    },
+    quantity_in_no: {
+      type: Number,
+      required: [true, "Qunatity Vlaue Required"],
+    },
+    recieved: {
+     type:Number,
+     default:0
+    },
+  },{ timestamps: true });
+
+const stitchingSchema = new mongoose.Schema(
   {
     embroidery_Id: {
       type: mongoose.Types.ObjectId,
@@ -76,6 +50,7 @@ const stoneSchema = new mongoose.Schema(
     },
     Quantity: {
       type: Number,
+      required: [true, "Quantity value required"],
     },
     design_no: {
       type: String,
@@ -93,21 +68,33 @@ const stoneSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Rate value required"],
     },
+    lace_quantity:{
+        type:Number,
+        required: [true, "Lace Quantity required"],
+    },
+    lace_category:{
+        type:String,
+        required: [true, "Lace Category required"],
+    },
     r_quantity: {
       type: Number,
-      default: null,
+      default: 0,
     },
     project_status: {
       type: String,
       enum: ["Pending", "Completed"],
       default: "Pending",
     },
-    category_quantity: {
-      type: [category_schema],
-      required: [true, "Quantity required"],
+    suits_category: {
+      type: [suit_schema],
+      required: [true, "Suits Data required"],
     },
+    dupatta_category: {
+        type: [dupatta_schema],
+        required: [true, "Dupatta Data required"],
+      },
   },
   { timestamps: true }
 );
 
-export const StoneModel = mongoose.model("Stone", stoneSchema);
+export const StitchingModel = mongoose.model("Stitchings", stitchingSchema);
