@@ -26,19 +26,32 @@ const Dashboard = () => {
     const [isInStockDropdownOpen, setIsInStockDropdownOpen] = useState(false);
     const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
     const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
+    const [isAccountsDropdownOpen, setIsAccountsDropdownOpen] = useState(false);
 
     const toggleInStockDropdown = () => {
         setIsInStockDropdownOpen((prevState) => !prevState);
-        setIsBillsDropdownOpen(false); // Close Bills dropdown when opening In Stock dropdown
+        setIsBillsDropdownOpen(false);
+        setIsProcessDropdownOpen(false);
+        setIsAccountsDropdownOpen(false);
     };
 
     const toggleBillsDropdown = () => {
         setIsBillsDropdownOpen((prevState) => !prevState);
-        setIsInStockDropdownOpen(false); // Close In Stock dropdown when opening Bills dropdown
+        setIsInStockDropdownOpen(false);
+        setIsProcessDropdownOpen(false);
+        setIsAccountsDropdownOpen(false);
     };
 
     const toggleProcessDropdown = () => {
         setIsProcessDropdownOpen((prevState) => !prevState);
+        setIsInStockDropdownOpen(false);
+        setIsBillsDropdownOpen(false);
+        setIsAccountsDropdownOpen(false);
+    };
+
+    const toggleAccountsDropdown = () => {
+        setIsAccountsDropdownOpen((prevState) => !prevState);
+        setIsProcessDropdownOpen(false);
         setIsInStockDropdownOpen(false);
         setIsBillsDropdownOpen(false);
     };
@@ -224,7 +237,6 @@ const Dashboard = () => {
                 <aside aria-label="Sidenav" className={`fixed top-0 left-0 z-40 w-56 xl:w-64 h-screen pt-14 transition-transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700`}>
 
                     <div className="overflow-y-auto py-5 h-full bg-[#FAFAFA] dark:bg-gray-800">
-
                         <ul className="pt-10">
 
                             {/* DASHBOARD */}
@@ -238,7 +250,7 @@ const Dashboard = () => {
                             {/* INSTOCK DROPDOWN */}
                             <li className="relative">
                                 <button
-                                    className="h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100 group"
+                                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium group ${location.pathname.includes("suits") || location.pathname.includes("base") || location.pathname.includes("lace") || location.pathname.includes("bag") || location.pathname.includes("accessories") || location.pathname.includes("expense") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"}`}
                                     onClick={toggleInStockDropdown}
                                 >
                                     <span className="ml-3">In Stock</span>
@@ -281,7 +293,7 @@ const Dashboard = () => {
                             {/* PROCESS DROPDOWN */}
                             <li className="relative">
                                 <button
-                                    className="h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100 group"
+                                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium ${location.pathname.includes("embroidery") || location.pathname.includes("calendar") || location.pathname.includes("cutting") || location.pathname.includes("stitching") || location.pathname.includes("stones") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}
                                     onClick={toggleProcessDropdown}
                                 >
                                     <span className="ml-3">Process</span>
@@ -316,10 +328,52 @@ const Dashboard = () => {
                                 )}
                             </li>
 
+                            {/* ACCOUNTS DROPDOWN */}
+                            <li className="relative">
+                                <button
+                                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium group
+                                        ${location.pathname.includes("buyers") || location.pathname.includes("sellers") || location.pathname.includes("employee") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"}`}
+                                    onClick={toggleAccountsDropdown}
+                                >
+                                    <span className="ml-3">Accounts</span>
+                                    <svg
+                                        className={`ml-auto w-4 h-4 transform ${isAccountsDropdownOpen ? 'rotate-180' : ''} transition-transform`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {isAccountsDropdownOpen && (
+                                    <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                                        <li>
+                                            <Link to="/dashboard/buyers" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/buyers" || location.pathname.includes("buyers-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Buyers</Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/dashboard/sellers" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/sellers" || location.pathname.includes("sellers-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Sellers</Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/dashboard/employee" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/employee" || location.pathname.includes("employee-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Employee</Link>
+                                        </li>
+                                    </ul>
+                                )}
+                            </li>
+
+                            {/* CASH IN/OUT */}
+                            <li>
+                                <Link to="/dashboard/cash" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/cash" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                    {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
+                                    <span className="ml-3">Cash</span>
+                                </Link>
+                            </li>
+
                             {/* BILLS DROPDOWN */}
                             <li className="relative">
                                 <button
-                                    className="h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100 group"
+                                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium group
+                                         ${location.pathname.includes("naila-arts-buyer") || location.pathname.includes("processbills") || location.pathname.includes("purchasebills") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"}
+                                         `}
                                     onClick={toggleBillsDropdown}
                                 >
                                     <span className="ml-3">Bills</span>
@@ -349,7 +403,6 @@ const Dashboard = () => {
                                 )}
                             </li>
 
-
                             {/* SHOP FOR SUPERADMIN */}
                             {user?.user?.role === "superadmin" ? (
                                 <li>
@@ -359,24 +412,7 @@ const Dashboard = () => {
                                     </Link>
                                 </li>) : null}
                         </ul>
-
                     </div>
-                    {/* <div className="hidden absolute bottom-0 left-0 justify-center p-4 space-x-4 w-full lg:flex bg-white dark:bg-gray-800 z-20">
-                        <a
-                            className="inline-flex justify-center p-2 text-gray-500 rounded cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                            href="#"
-                        >
-                            <svg
-                                aria-hidden="true"
-                                className="w-6 h-6"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
-                            </svg>
-                        </a>
-                    </div> */}
                 </aside >
                 {/* ---------------- DASHBOARD ---------------- */}
                 < main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900" >
