@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { GetSingleCalender } from "../../../features/CalenderSlice";
+import { GetSingleCalender, UpdateCalenderAsync } from "../../../features/CalenderSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState,useEffect } from "react";
@@ -18,9 +18,24 @@ const CalendarDetails = () => {
     design_no: '',
     date: '',  // Ensure this is initialized correctly
     T_Quantity: '',
-    rate: 0,
-    embroidery_Id: SingleCalender?.embroidery_Id || "",
+    rate: '',
+    embroidery_Id:  "",
   });
+
+
+
+  const [CalenderData, setCalenderData] = useState({
+    id,
+    r_quantity: '',
+    project_status: 'Completed',
+  
+  });
+
+
+
+
+
+
 
 
     useEffect(() => {
@@ -38,8 +53,8 @@ const CalendarDetails = () => {
              design_no: SingleCalender?.design_no || '',
              date: SingleCalender?.date || '',
              partyName:SingleCalender?.partyName || '',
-           
              embroidery_Id: SingleCalender?.id || "",
+           
             })
            }, [SingleCalender])
 
@@ -47,12 +62,22 @@ const CalendarDetails = () => {
 
            const handleInputChangeCutting = (e) => {
             const { name, value } = e.target;
-            setCalenderData((prevData) => ({
+            setCuttingData((prevData) => ({
               ...prevData,
               [name]: value,
             }));
           };
           
+
+          const handleInputChangeCalender = (e) => {
+            const { name, value } = e.target;
+            setCalenderData((prevData) => ({
+              ...prevData,
+              [name]: value,
+            }));
+          };
+
+
           const handleSubmitCutting = (e) => {
             e.preventDefault();
           
@@ -60,7 +85,7 @@ const CalendarDetails = () => {
             .then(() => {
               
                 closeModal(); 
-            navigate('/dashboard/calendar')
+            navigate('/dashboard/cutting')
 
 
             })
@@ -72,6 +97,39 @@ const CalendarDetails = () => {
 
             
           };
+
+
+
+          const handleCompleteCalender = (e) => {
+            e.preventDefault();
+
+             const data = {
+            id:id
+        }
+        
+          
+            dispatch(UpdateCalenderAsync(CalenderData))
+            .then(() => {
+              
+                closeModal(); 
+                
+                dispatch(GetSingleCalender(data))
+                setCalenderData({
+                    id: id,
+                    r_quantity: '',
+                    project_status: 'Completed',
+                  });
+
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+
+
+
+            
+          };
+
 
 
           const openModal = () => {
@@ -103,20 +161,20 @@ const CalendarDetails = () => {
                         {/* FIRST ROW */}
                         <div className="box">
                             <span className="font-medium">Party Name:</span>
-                            <span> M Umer</span>
+                            <span> {SingleCalender?.partyName}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Serial No:</span>
-                            <span> A 0001</span>
+                            <span> {SingleCalender?.serial_No}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Design No:</span>
-                            <span> 794</span>
+                            <span> {SingleCalender?.design_no}</span>
                         </div>
 
                         <div className="box">
                             <span className="font-medium">Rate:</span>
-                            <span> 130</span>
+                            <span> {SingleCalender?.rate}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Project Status:</span>
@@ -124,15 +182,15 @@ const CalendarDetails = () => {
                         </div>
                         <div className="box">
                             <span className="font-medium">Date:</span>
-                            <span> 02-12-24</span>
+                            <span> {SingleCalender?.date}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Quantity:</span>
-                            <span> 100 m</span>
+                            <span>    {SingleCalender?.T_Quantity}  </span>
                         </div>
                         <div className="box">
                             <span className="font-medium">R. Quantity:</span>
-                            <span> 100 m</span>
+                            <span>  {SingleCalender?.r_quantity}</span>
                         </div>
                     </div>
                 </div>
@@ -141,18 +199,21 @@ const CalendarDetails = () => {
                 <div className="my-10 px-3 text-gray-800 dark:text-gray-200">
                     <label htmlFor="received_quantity" className="font-semibold">Enter Received Quantity</label>
                     <input
-                        id="received_quantity"
-                        name="category"
+                        id="r_quantity"
+                        name="r_quantity"
                         type="text"
                         placeholder="Quantity"
                         className="bg-gray-50 mt-2 border max-w-xs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
+                        value={CalenderData.r_quantity}
+                        onChange={handleInputChangeCalender}
+                        disabled={SingleCalender?.project_status ===  'Completed'}
                     />
                 </div>
 
                 {/* -------------- BUTTONS BAR -------------- */}
                 <div className="mt-10 flex justify-center items-center gap-x-5">
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Completed</button>
+                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={handleCompleteCalender}>Completed</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Bill</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Gate Pass</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={openModal}>Next Step</button>
@@ -253,11 +314,12 @@ const CalendarDetails = () => {
                   <div>
                     <input
                       name='rate'
-                      type='number'
+                    
                       placeholder='rate'
                       className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
                       value={CuttingData.rate}
-                      onChange={handleInputChangeCalender}
+                      onChange={handleInputChangeCutting}
+
 
                       required
                     />
