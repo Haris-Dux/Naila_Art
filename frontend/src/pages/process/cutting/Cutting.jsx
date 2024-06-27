@@ -13,7 +13,7 @@ const Cutting = () => {
     
     useEffect(() => {
       dispatch(GetAllCutting())
-       }, [Cutting])
+       }, [])
   
   
   
@@ -32,9 +32,7 @@ const Cutting = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="flex items-center gap-2 mr-2">
-                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                            <IoAdd size={22} className='text-white' />
-                        </button>
+                     
 
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -68,6 +66,14 @@ const Cutting = () => {
 
 
                 {/* -------------- TABLE -------------- */}
+
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -123,7 +129,7 @@ const Cutting = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Cutting?.data?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -158,6 +164,8 @@ const Cutting = () => {
                         </tbody>
                     </table>
                 </div>
+   )}
+                
             </section >
 
 

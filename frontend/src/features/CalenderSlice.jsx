@@ -4,8 +4,8 @@ import toast from "react-hot-toast";
 
 //API URL
 const addCalender = "http://localhost:8000/api/process/calender/addCalender";
-const DeletCalender = "http://localhost:8000/api/branches/deleteBranch";
-const UpdateCalender = "http://localhost:8000/api/branches/updateBranch";
+
+const UpdateCalender = "http://localhost:8000/api/process/calender/updateCalender";
 const getAllCalender = "http://localhost:8000/api/process/calender/getAllCalender";
 const getSingleCalender = "http://localhost:8000/api/process/calender/getCalenderById";
 
@@ -27,11 +27,11 @@ export const createCalender = createAsyncThunk(
 );
 
 // lOGIN ASYNC THUNK
-export const UpdateShopAsync = createAsyncThunk(
-  "Shop/Update",
+export const UpdateCalenderAsync = createAsyncThunk(
+  "Calender/Update",
   async (formData) => {
     try {
-      const response = await axios.post(UpdateShop, formData);
+      const response = await axios.post(UpdateCalender, formData);
       toast.success(response.data.message);
       console.log(response);
       return response.data;
@@ -43,21 +43,7 @@ export const UpdateShopAsync = createAsyncThunk(
 );
 
 
-// FORGET ASYNC THUNK
-export const DeleteShop = createAsyncThunk(
-  "Shop/Delete",
-  async (formData) => {
-    try {
-      const response = await axios.post(DeletShop, formData);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
-  }
-);
+
 
 
 // VERIFY ASYNC THUNK
@@ -132,20 +118,13 @@ const CalenderSlice = createSlice({
       })
 
       // FORGET PASSWORD ADD CASE
-      .addCase(UpdateShopAsync.pending, (state, action) => {
+      .addCase(UpdateCalenderAsync.pending, (state, action) => {
         state.loading = true;
       })
-      .addCase(UpdateShopAsync.fulfilled, (state, action) => {
+      .addCase(UpdateCalenderAsync.fulfilled, (state, action) => {
         state.loading = false;
       })
 
-      
-      .addCase(DeleteShop.pending, (state, action) => {
-        state.loading = true;
-      })
-      .addCase(DeleteShop.fulfilled, (state, action) => {
-        state.loading = false;
-      })
 
       .addCase(GetSingleCalender.pending, (state, action) => {
         state.loading = true;
