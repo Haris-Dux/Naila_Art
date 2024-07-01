@@ -1,32 +1,102 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-
+import { useNavigate, useParams } from "react-router-dom";
+import { GetSingleCalender, UpdateCalenderAsync } from "../../../features/CalenderSlice";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { useState,useEffect } from "react";
+import { GetSingleCutting } from "../../../features/CuttingSlice";
 const CuttingDetails = () => {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
 
-    const data = [
-        {
-            id: 2,
-            partyName: 'Lahore Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'Fsd Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Complete',
-        },
-    ]
+    const dispatch = useDispatch()
 
-    const selectedDetails = data?.find((data) => data?.id == id);
-    console.log('selectedDetails', selectedDetails);
+    const [cuttingData, setcuttingData] = useState({
+        id,
+        r_quantity: '',
+        project_status: 'Completed',
+      
+      });
+    
 
+      useEffect(() => {
+        const data = {
+            id:id
+        }
+        dispatch(GetSingleCutting(data))
+         }, [id,dispatch])
+
+
+
+
+
+           const handleInputChangeCutting = (e) => {
+            const { name, value } = e.target;
+            setCuttingData((prevData) => ({
+              ...prevData,
+              [name]: value,
+            }));
+          };
+          
+
+       
+
+
+        //   const handleSubmitCutting = (e) => {
+        //     e.preventDefault();
+          
+        //     dispatch(createCutting(CuttingData))
+        //     .then(() => {
+              
+        //         closeModal(); 
+        //     navigate('/dashboard/cutting')
+
+
+        //     })
+        //     .catch((error) => {
+        //         console.error("Error:", error);
+        //     });
+
+
+
+            
+        //   };
+
+
+
+          const handleCompleteCutting = (e) => {
+            e.preventDefault();
+
+             const data = {
+            id:id
+        }
+        
+          
+            dispatch(UpdateCalenderAsync(CalenderData))
+            .then(() => {
+              
+                closeModal(); 
+                
+                dispatch(GetSingleCalender(data))
+                setCalenderData({
+                    id: id,
+                    r_quantity: '',
+                    project_status: 'Completed',
+                  });
+
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+
+
+
+            
+          };
+
+
+
+     
+        
 
     const openModal = () => {
         setIsOpen(true);
@@ -187,16 +257,17 @@ const CuttingDetails = () => {
                 </div>
 
 
+   
                 {isOpen && (
                 <div
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Cutting Details
+                                Stitching Details
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -227,18 +298,7 @@ const CuttingDetails = () => {
                             <form className="space-y-4">
 
                                 {/* INPUT FIELDS DETAILS */}
-                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                                    {/* PARTY NAME */}
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
+                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                                     {/* SERIAL NO */}
                                     <div>
                                         <input
@@ -259,16 +319,6 @@ const CuttingDetails = () => {
                                         />
                                     </div>
 
-                                    {/* DATE */}
-                                    <div>
-                                        <input
-                                            type="date"
-                                            placeholder="Date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
                                     {/* QUANTITY */}
                                     <div>
                                         <input
@@ -279,6 +329,28 @@ const CuttingDetails = () => {
                                         />
                                     </div>
 
+                                    {/* DATE */}
+                                    <div>
+                                        <input
+                                            type="date"
+                                            placeholder="Date"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PARTY NAME */}
+                                    <div>
+                                        <input
+                                            name="category"
+                                            type="text"
+                                            placeholder="Party Name"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+
                                     {/* ENTER RATE */}
                                     <div>
                                         <input
@@ -288,6 +360,79 @@ const CuttingDetails = () => {
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
+                                    </div>
+
+                                    {/* LACE QUANTITY */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Lace Quantity"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* LACE CATEGORY */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Lace Category"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+
+                                <div className="box">
+                                    <div className="header flex justify-between items-center">
+                                        <h3>Enter Suit Colors And Quantity:</h3>
+                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
+                                    </div>
+
+                                    <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+                                        {/* SELECT CATEGORY */}
+                                        <div>
+                                            <select
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            >
+                                                <option selected>
+                                                    Select Category
+                                                </option>
+                                                <option value="US">
+                                                    United States
+                                                </option>
+                                                <option value="CA">
+                                                    Canada
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        {/* SELECTED COLORS */}
+                                        <div>
+                                            <select
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            >
+                                                <option selected>
+                                                    Select Colors
+                                                </option>
+                                                <option value="US">
+                                                    United States
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        {/* ENTER QUANITY */}
+                                        <div className='col-span-2'>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter Quantity In No"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

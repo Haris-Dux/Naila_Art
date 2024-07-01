@@ -12,15 +12,24 @@ const CalendarDetails = () => {
   const navigate = useNavigate();
   
 
+
   const [CuttingData, setCuttingData] = useState({
     serial_No: '',
     partyName: '',
     design_no: '',
-    date: '',  // Ensure this is initialized correctly
+    date: '',
     T_Quantity: '',
     rate: '',
-    embroidery_Id:  "",
+    embroidery_Id: "",
   });
+  
+  const handleInputChangeCutting = (e) => {
+    const { name, value } = e.target;
+    setCuttingData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
 
 
@@ -60,13 +69,6 @@ const CalendarDetails = () => {
 
 
 
-           const handleInputChangeCutting = (e) => {
-            const { name, value } = e.target;
-            setCuttingData((prevData) => ({
-              ...prevData,
-              [name]: value,
-            }));
-          };
           
 
           const handleInputChangeCalender = (e) => {
@@ -80,6 +82,9 @@ const CalendarDetails = () => {
 
           const handleSubmitCutting = (e) => {
             e.preventDefault();
+
+
+      console.log('cutting',CuttingData)
           
             dispatch(createCutting(CuttingData))
             .then(() => {
@@ -219,130 +224,114 @@ const CalendarDetails = () => {
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={openModal}>Next Step</button>
                 </div>
 
-
                 {isOpen && (
-        <div aria-hidden='true' className='fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50'>
-          <div className='relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700'>
-            <div className='flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600'>
-              <h3 className='text-xl font-semibold text-gray-900 dark:text-white'>Cutting Details</h3>
-              <button
-                onClick={closeModal}
-                className='end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white'
-                type='button'>
-                <svg
-                  aria-hidden='true'
-                  className='w-3 h-3'
-                  fill='none'
-                  viewBox='0 0 14 14'
-                  xmlns='http://www.w3.org/2000/svg'>
-                  <path d='m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' />
-                </svg>
-                <span className='sr-only'>Close modal</span>
-              </button>
+  <div aria-hidden='true' className='fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50'>
+    <div className='relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700'>
+      <div className='flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600'>
+        <h3 className='text-xl font-semibold text-gray-900 dark:text-white'>Cutting Details</h3>
+        <button
+          onClick={closeModal}
+          className='end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white'
+          type='button'>
+          <svg
+            aria-hidden='true'
+            className='w-3 h-3'
+            fill='none'
+            viewBox='0 0 14 14'
+            xmlns='http://www.w3.org/2000/svg'>
+            <path d='m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' />
+          </svg>
+          <span className='sr-only'>Close modal</span>
+        </button>
+      </div>
+
+      <div className='p-4 md:p-5'>
+        <form className='space-y-4' onSubmit={handleSubmitCutting}>
+          <div className='mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5'>
+            <div>
+              <input
+                name='serial_No'
+                type='text'
+                placeholder='serial No'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.serial_No}
+                onChange={handleInputChangeCutting}
+                required
+              />
+            </div>
+            <div>
+              <input
+                name='partyName'
+                type='text'
+                placeholder='Party Name'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.partyName}
+                onChange={handleInputChangeCutting}
+                required
+              />
             </div>
 
-            <div className='p-4 md:p-5'>
-              <form className='space-y-4' onSubmit={handleSubmitCutting}>
-                <div className='mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5'>
+            <div>
+              <input
+                name='design_no'
+                type='text'
+                placeholder='Design No'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.design_no}
+                onChange={handleInputChangeCutting}
+                required
+              />
+            </div>
 
-                <div>
-                    <input
-                      name='serialNo'
-                      type='text'
-                      placeholder='serial No'
-                      className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                      value={CuttingData.serial_No}
-                      onChange={handleInputChangeCutting}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <input
-                      name='partyName'
-                      type='text'
-                      placeholder='Party Name'
-                      className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                      value={CuttingData.partyName}
-                      onChange={handleInputChangeCutting}
+            <div>
+              <input
+                name='date'
+                type='date'
+                placeholder='Date'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.date}
+                onChange={handleInputChangeCutting}
+                required
+              />
+            </div>
 
-                      required
-                    />
-                  </div>
+            <div>
+              <input
+                name='T_Quantity'
+                type='text'
+                placeholder='Quantity'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.T_Quantity}
+                onChange={handleInputChangeCutting}
+                required
+              />
+            </div>
 
-                  <div>
-                    <input
-                      name='design_no'
-                      type='text'
-                      placeholder='Design No'
-                      className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                      value={CuttingData.design_no}
-                      onChange={handleInputChangeCutting}
-
-
-                      required
-                    />
-                  </div>
-
-                  <div>
-                  <input
-  name='date'
-  type='date'
-  placeholder='Date'
-  className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-  value={CuttingData.date}
-  onChange={handleInputChangeCutting}
-
-  required
-/>
-
-                  </div>
-
-                  <div>
-                    <input
-                      name='quantity'
-                      type='text'
-                      placeholder='Quantity'
-                      className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                      value={CuttingData.T_Quantity}
-                      onChange={handleInputChangeCutting}
-
-
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <input
-                      name='rate'
-                    
-                      placeholder='rate'
-                      className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                      value={CuttingData.rate}
-                      onChange={handleInputChangeCutting}
-
-
-                      required
-                    />
-                  </div>
-
-                
-
-                  {/* New input fields */}
-               
-                </div>
-
-                <div className='flex justify-center pt-2'>
-                  <button
-                    type='submit'
-                    className='inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500'>
-                    Submit
-                  </button>
-                </div>
-              </form>
+            <div>
+              <input
+                name='rate'
+                type='number'
+                placeholder='rate'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+                value={CuttingData.rate}
+                onChange={handleInputChangeCutting}
+                required
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          <div className='flex justify-center pt-2'>
+            <button
+              type='submit'
+              className='inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500'>
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
             </section >
         </>
     )

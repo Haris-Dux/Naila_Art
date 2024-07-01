@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 //API URL
 const addCutting = "http://localhost:8000/api/process/cutting/addCutting";
 const DeletCutting = "http://localhost:8000/api/branches/deleteBranch";
-const UpdateCutting = "http://localhost:8000/api/branches/updateBranch";
+const UpdateCutting = "http://localhost:8000/api/process/cutting/updateCutting";
 const getAllCutting = "http://localhost:8000/api/process/cutting/getAllCutting";
 const getSingleCutting = "http://localhost:8000/api/process/cutting/getCuttingById";
 
@@ -27,11 +27,11 @@ export const createCutting = createAsyncThunk(
 );
 
 // lOGIN ASYNC THUNK
-export const UpdateShopAsync = createAsyncThunk(
-  "Shop/Update",
+export const Updatecuttingasync = createAsyncThunk(
+  "cutting/Update",
   async (formData) => {
     try {
-      const response = await axios.post(UpdateShop, formData);
+      const response = await axios.post(UpdateCutting, formData);
       toast.success(response.data.message);
       console.log(response);
       return response.data;
@@ -132,10 +132,10 @@ const CuttingSlice = createSlice({
       })
 
       // FORGET PASSWORD ADD CASE
-      .addCase(UpdateShopAsync.pending, (state, action) => {
+      .addCase(Updatecuttingasync.pending, (state, action) => {
         state.loading = true;
       })
-      .addCase(UpdateShopAsync.fulfilled, (state, action) => {
+      .addCase(Updatecuttingasync.fulfilled, (state, action) => {
         state.loading = false;
       })
 
