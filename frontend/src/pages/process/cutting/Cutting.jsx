@@ -1,5 +1,4 @@
-import React ,{ useState,useEffect}  from 'react'
-import { IoAdd, IoPencilOutline, IoTrash } from "react-icons/io5";
+import React ,{ useEffect}  from 'react'
 import { useDispatch,useSelector } from "react-redux";
 import { FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -9,7 +8,7 @@ const Cutting = () => {
     const dispatch = useDispatch()
     const { loading,Cutting } = useSelector((state) => state.Cutting);
   
-  console.log('Cutting',Cutting)
+
     
     useEffect(() => {
       dispatch(GetAllCutting())
@@ -152,7 +151,7 @@ const Cutting = () => {
                                         {data.r_quantity} y
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.status}
+                                        {data.project_status}
                                     </td>
                                     <td className="pl-10 py-4">
                                         <Link to={`/dashboard/cutting-details/${data.id}`}>

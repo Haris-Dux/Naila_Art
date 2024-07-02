@@ -23,6 +23,10 @@ const StonesDetails = () => {
         },
     ]
 
+
+
+    
+
     const selectedDetails = data?.find((data) => data?.id == id);
     console.log('selectedDetails', selectedDetails);
 
@@ -202,6 +206,199 @@ const StonesDetails = () => {
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Next Step</button>
                 </div>
             </section >
+
+
+            {isOpen && (
+                <div
+                    aria-hidden="true"
+                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+                >
+                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                        {/* ------------- HEADER ------------- */}
+                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Stitching Details
+                            </h3>
+                            <button
+                                onClick={closeModal}
+                                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                type="button"
+                            >
+                                <svg
+                                    aria-hidden="true"
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    viewBox="0 0 14 14"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                    />
+                                </svg>
+                                <span className="sr-only">Close modal</span>
+                            </button>
+                        </div>
+
+                        {/* ------------- BODY ------------- */}
+                        <div className="p-4 md:p-5">
+                            <form className="space-y-4">
+
+                                {/* INPUT FIELDS DETAILS */}
+                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+                                    {/* SERIAL NO */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Serial No"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* DESIGN NO */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Design No"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* QUANTITY */}
+                                    <div>
+                                        <input
+                                            type="text"
+                                            placeholder="Quantity"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* DATE */}
+                                    <div>
+                                        <input
+                                            type="date"
+                                            placeholder="Date"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PARTY NAME */}
+                                    <div>
+                                        <input
+                                            name="category"
+                                            type="text"
+                                            placeholder="Party Name"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+
+                                    {/* ENTER RATE */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Enter Rate"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* LACE QUANTITY */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Lace Quantity"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* LACE CATEGORY */}
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Lace Category"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+
+                                <div className="box">
+                                    <div className="header flex justify-between items-center">
+                                        <h3>Enter Suit Colors And Quantity:</h3>
+                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
+                                    </div>
+
+                                    <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+                                        {/* SELECT CATEGORY */}
+                                        <div>
+                                            <select
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            >
+                                                <option selected>
+                                                    Select Category
+                                                </option>
+                                                <option value="US">
+                                                    United States
+                                                </option>
+                                                <option value="CA">
+                                                    Canada
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        {/* SELECTED COLORS */}
+                                        <div>
+                                            <select
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            >
+                                                <option selected>
+                                                    Select Colors
+                                                </option>
+                                                <option value="US">
+                                                    United States
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        {/* ENTER QUANITY */}
+                                        <div className='col-span-2'>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter Quantity In No"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center pt-2">
+                                    <button
+                                        type="submit"
+                                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                                    >
+                                        Submit
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div >
+            )}
         </>
     )
 }

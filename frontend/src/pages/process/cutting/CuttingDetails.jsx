@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { GetSingleCalender, UpdateCalenderAsync } from "../../../features/CalenderSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState,useEffect } from "react";
-import { GetSingleCutting } from "../../../features/CuttingSlice";
+import { GetSingleCutting, Updatecuttingasync } from "../../../features/CuttingSlice";
 const CuttingDetails = () => {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
+    const { loading,SingleCutting } = useSelector((state) => state.Cutting);
 
     const dispatch = useDispatch()
 
@@ -16,6 +16,47 @@ const CuttingDetails = () => {
         project_status: 'Completed',
       
       });
+
+      const initialRow = { category: "", color: "", quantity: 0,   };
+
+      const [formData, setFormData] = useState({
+        PartyName: '',
+        SerialNo: '',
+        DesignNo: '',
+        Date : '',
+        rate: '',
+        category_quantity:[initialRow]
+       
+      });
+
+      useEffect(() => {
+        setFormData({
+         serial_No: SingleCutting?.serial_No || '',
+         design_no: SingleCutting?.design_no || '',
+         date: SingleCutting?.date || '',
+         partyName:SingleCutting?.partyName || '',
+         embroidery_Id: SingleCutting?.id || "",
+         
+       
+        })
+       }, [SingleCutting])
+
+
+    
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+          ...formData,
+          [name]: value
+        });
+      };
+    
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        // Handle form submission logic here
+        console.log('Form Data:', formData);
+      };
+
     
 
       useEffect(() => {
@@ -31,7 +72,7 @@ const CuttingDetails = () => {
 
            const handleInputChangeCutting = (e) => {
             const { name, value } = e.target;
-            setCuttingData((prevData) => ({
+            setcuttingData((prevData) => ({
               ...prevData,
               [name]: value,
             }));
@@ -71,13 +112,14 @@ const CuttingDetails = () => {
         }
         
           
-            dispatch(UpdateCalenderAsync(CalenderData))
+            dispatch(Updatecuttingasync(cuttingData))
             .then(() => {
               
                 closeModal(); 
                 
-                dispatch(GetSingleCalender(data))
-                setCalenderData({
+         
+                dispatch(GetSingleCutting(data))
+                setcuttingData({
                     id: id,
                     r_quantity: '',
                     project_status: 'Completed',
@@ -122,20 +164,20 @@ const CuttingDetails = () => {
                         {/* FIRST ROW */}
                         <div className="box">
                             <span className="font-medium">Party Name:</span>
-                            <span> M Umer</span>
+                            <span> {SingleCutting?.partyName}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Serial No:</span>
-                            <span> A 0001</span>
+                            <span> {SingleCutting?.serial_No}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Design No:</span>
-                            <span> 794</span>
+                            <span> {SingleCutting?.design_no}</span>
                         </div>
 
                         <div className="box">
                             <span className="font-medium">Rate:</span>
-                            <span> 130</span>
+                            <span> {SingleCutting?.rate}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Project Status:</span>
@@ -143,131 +185,53 @@ const CuttingDetails = () => {
                         </div>
                         <div className="box">
                             <span className="font-medium">Date:</span>
-                            <span> 02-12-24</span>
+                            <span> {SingleCutting?.date}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Quantity:</span>
-                            <span> 100 m</span>
+                            <span>    {SingleCutting?.T_Quantity}  </span>
                         </div>
                         <div className="box">
                             <span className="font-medium">R. Quantity:</span>
-                            <span> 100 m</span>
+                            <span>  {SingleCutting?.r_quantity}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* RECEIVED SUITS COLORS */}
                 <div className="my-10 px-3 text-gray-800 dark:text-gray-200">
-                    <h2 className="text-lg font-semibold">Received Suits Colors</h2>
-
-                    <div className="flex justify-between items-start flex-wrap gap-x-20">
-                        {/* DETAILS */}
-                        <div className="details">
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Front</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Back</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Bazu</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Dupatta</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Gala</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Front Patch</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">Trouser</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                        </div>
-
-                        {/* RECENT DETAILS */}
-                        <div className="recent_details">
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                        </div>
-                    </div>
+                    <label htmlFor="received_quantity" className="font-semibold">Enter Received Quantity</label>
+                    <input
+                        id="r_quantity"
+                        name="r_quantity"
+                        type="text"
+                        placeholder="Quantity"
+                        className="bg-gray-50 mt-2 border max-w-xs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                        value={cuttingData.r_quantity}
+                        onChange={handleInputChangeCutting}
+                        disabled={SingleCutting?.project_status ===  'Completed'}
+                    />
                 </div>
 
                 {/* -------------- BUTTONS BAR -------------- */}
                 <div className="mt-10 flex justify-center items-center gap-x-5">
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Completed</button>
+                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={handleCompleteCutting}>Completed</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Bill</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Gate Pass</button>
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Next Step</button>
+                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={openModal}>Next Step</button>
                 </div>
 
-
-   
                 {isOpen && (
                 <div
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Stitching Details
+                                Stone Details
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -298,143 +262,124 @@ const CuttingDetails = () => {
                             <form className="space-y-4">
 
                                 {/* INPUT FIELDS DETAILS */}
-                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+                                <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+                                    {/* PARTY NAME */}
+                                    <div>
+                                        <input
+                                            name="PartyName"
+                                            type="text"
+                                            placeholder="Party Name"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                            value={formData.PartyName}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
                                     {/* SERIAL NO */}
                                     <div>
                                         <input
+                                        name="SerialNo"
                                             type="text"
                                             placeholder="Serial No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.SerialNo}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* DESIGN NO */}
                                     <div>
                                         <input
+                                        name="DesignNo"
                                             type="text"
                                             placeholder="Design No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.DesignNo}
+                                            onChange={handleChange}
                                         />
                                     </div>
+                                </div>
 
-                                    {/* QUANTITY */}
-                                    <div>
-                                        <input
-                                            type="text"
-                                            placeholder="Quantity"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
 
+                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-2 gap-5">
                                     {/* DATE */}
                                     <div>
                                         <input
+                                        name="date"
                                             type="date"
                                             placeholder="Date"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Date}
+                                            onChange={handleChange}
                                         />
                                     </div>
-
-                                    {/* PARTY NAME */}
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
 
                                     {/* ENTER RATE */}
                                     <div>
                                         <input
-                                            name="color"
+                                        name="rate"
                                             type="text"
                                             placeholder="Enter Rate"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.rate}
+                                            onChange={handleChange}
+
                                         />
                                     </div>
+                                </div>
 
-                                    {/* LACE QUANTITY */}
+                                <h2 className="block mb-0 text-sm font-medium text-gray-900 dark:text-white">
+                                    Select an option
+                                </h2>
+
+                                <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+                                    {/* SELECT CATEGORY */}
                                     <div>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Lace Quantity"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
+                                        <select
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        >
+                                            <option selected>
+                                                Select Category
+                                            </option>
+                                            <option value="US">
+                                                United States
+                                            </option>
+                                            <option value="CA">
+                                                Canada
+                                            </option>
+                                        </select>
                                     </div>
 
-                                    {/* LACE CATEGORY */}
+                                    {/* SELECTED COLORS */}
+                                    <div>
+                                        <select
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        >
+                                            <option selected>
+                                                Select Colors
+                                            </option>
+                                            <option value="US">
+                                                United States
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    {/* ENTER QUANITY */}
                                     <div>
                                         <input
-                                            name="color"
                                             type="text"
-                                            placeholder="Lace Category"
+                                            placeholder="Enter Quantity"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
                                 </div>
 
-
-                                <div className="box">
-                                    <div className="header flex justify-between items-center">
-                                        <h3>Enter Suit Colors And Quantity:</h3>
-                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
-                                    </div>
-
-                                    <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
-                                        {/* SELECT CATEGORY */}
-                                        <div>
-                                            <select
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            >
-                                                <option selected>
-                                                    Select Category
-                                                </option>
-                                                <option value="US">
-                                                    United States
-                                                </option>
-                                                <option value="CA">
-                                                    Canada
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        {/* SELECTED COLORS */}
-                                        <div>
-                                            <select
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            >
-                                                <option selected>
-                                                    Select Colors
-                                                </option>
-                                                <option value="US">
-                                                    United States
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        {/* ENTER QUANITY */}
-                                        <div className='col-span-2'>
-                                            <input
-                                                type="text"
-                                                placeholder="Enter Quantity In No"
-                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <div className="flex justify-center pt-2">
                                     <button
@@ -449,6 +394,8 @@ const CuttingDetails = () => {
                     </div>
                 </div >
             )}
+   
+          
             </section >
         </>
     )

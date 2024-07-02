@@ -6,6 +6,8 @@ import InStockSlice from "../features/InStockSlice";
 import EmbroiderySlice from "../features/EmbroiderySlice";
 import CalenderSlice from "../features/CalenderSlice";
 import CuttingSlice from "../features/CuttingSlice";
+import stoneslice from "../features/stoneslice";
+import stitching from "../features/stitching";
 export const store = configureStore({
   reducer: {
     auth: authSlice,
@@ -15,6 +17,9 @@ InStock:InStockSlice,
 Embroidery:EmbroiderySlice,
 Calender:CalenderSlice,
 Cutting:CuttingSlice,
+stone:stoneslice,
+
+
 
   },
 });
