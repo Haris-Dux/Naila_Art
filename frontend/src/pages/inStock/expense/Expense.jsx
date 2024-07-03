@@ -7,7 +7,6 @@ const Expense = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messageId, setMessageId] = useState();
 
-
     const { loading, Expense } = useSelector((state) => state.InStock);
 
     const allExpenses = Expense.reduce((acc, branch) => {
@@ -77,9 +76,7 @@ const Expense = () => {
                     <div className="tabs_button">
                         <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>All</button>
                         <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Head Office</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Shop 1</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Shop 2</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Other</button>
+                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Azam Market</button>
                     </div>
                 </div>
 
@@ -132,20 +129,20 @@ const Expense = () => {
                                 {allExpenses.length > 0 ? (
                                     allExpenses.map((expense, index) => (
                                         <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                                {expense.serial_no}
+                                            <th className="px-6 py-4 font-medium">
+                                                {expense?.serial_no}
                                             </th>
                                             <td className="px-6 py-4">
-                                                {expense.name}
+                                                {expense?.name}
                                             </td>
                                             <td onClick={() => openModal(expense.id)} className="px-6 py-4 cursor-pointer">
-                                                {expense.reason}
+                                                {expense?.reason}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {expense.rate}
+                                                {expense?.rate}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {new Date(expense.Date).toLocaleDateString()}
+                                                {new Date(expense?.Date).toLocaleDateString()}
                                             </td>
                                         </tr>
                                     ))
