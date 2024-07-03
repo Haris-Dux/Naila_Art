@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-
+import { useState } from "react";
 
 const StonesDetails = () => {
     const { id } = useParams();
-
+    const [isOpen, setIsOpen] = useState(false);
     const data = [
         {
             id: 2,

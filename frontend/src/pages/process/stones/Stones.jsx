@@ -136,7 +136,7 @@ const Stones = () => {
                                         {data.r_quantity} y
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.status}
+                                        {data.project_status}
                                     </td>
                                     <td className="pl-10 py-4">
                                         <Link to={`/dashboard/stones-details/${data.id}`}>
