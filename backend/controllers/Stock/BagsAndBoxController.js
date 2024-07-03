@@ -37,9 +37,7 @@ export const addBagsAndBoxInStock = async (req, res, next) => {
 
 export const getAllBagsAndBox = async (req, res, next) => {
   try {
-    const data = await BaseModel.find({}).sort({ createdAt: -1 });
-
-
+    const data = await BagsAndBoxModel.find({}).sort({ createdAt: -1 });
     setMongoose()
     return res.status(200).json(data);
   } catch (error) {

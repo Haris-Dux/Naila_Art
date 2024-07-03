@@ -38,7 +38,7 @@ export const addLaceInStock = async (req, res, next) => {
 
 export const getAllLaceStock = async (req,res,next) => {
     try {
-        const data =  await LaceModel.find({}).sort({createdAt : -1});
+        const data = await LaceModel.find({}).sort({createdAt : -1});
         setMongoose();
         return res.status(200).json(data);
     } catch (error) {
