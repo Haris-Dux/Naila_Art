@@ -1,77 +1,92 @@
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
+import { LaceModel } from "../../models/Stock/Lace.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import mongoose from "mongoose";
 
 export const addStitching = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const {
-      embroidery_Id,
-      Quantity,
-      partyName,
-      serial_No,
-      design_no,
-      date,
-      rate,
-      lace_quantity,
-      lace_category,
-      suits_category,
-      dupatta_category,
-    } = req.body;
-    const requiredFields = [
-      "embroidery_Id",
-      "partyName",
-      "rate",
-      "design_no",
-      "serial_No",
-      "date",
-      "lace_category",
-      "lace_quantity",
-      "Quantity",
-    ];
-    const missingFields = [];
-    requiredFields.forEach((field) => {
-      if (!req.body[field]) {
-        missingFields.push(field);
-      }
-      if (suits_category) {
-        for (let item of suits_category) {
-          if (!item.category || !item.color || !item.quantity_in_no) {
-            throw new Error(
-              "Each suits category item must have category, color, and quantity"
-            );
+    await session.withTransaction(async () => {
+      const {
+        embroidery_Id,
+        Quantity,
+        partyName,
+        serial_No,
+        design_no,
+        date,
+        rate,
+        lace_quantity,
+        lace_category,
+        suits_category,
+        dupatta_category,
+      } = req.body;
+      const requiredFields = [
+        "embroidery_Id",
+        "partyName",
+        "rate",
+        "design_no",
+        "serial_No",
+        "date",
+        "lace_category",
+        "lace_quantity",
+        "Quantity",
+      ];
+      const missingFields = [];
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          missingFields.push(field);
+        };
+        if (suits_category) {
+          for (let item of suits_category) {
+            if (!item.category || !item.color || !item.quantity_in_no) {
+              throw new Error(
+                "Each suits category item must have category, color, and quantity"
+              );
+            }
           }
-        }
-      }
-      if (dupatta_category) {
-        for (let item of dupatta_category) {
-          if (!item.category || !item.color || !item.quantity_in_no) {
-            throw new Error(
-              "Each dupatta category item must have category, color, and quantity"
-            );
+        };
+        if (dupatta_category) {
+          for (let item of dupatta_category) {
+            if (!item.category || !item.color || !item.quantity_in_no) {
+              throw new Error(
+                "Each dupatta category item must have category, color, and quantity"
+              );
+            }
           }
+        };
+        if (missingFields.length > 0) {
+          throw new Error(`Missing Fields ${field}`);
         }
-      }
-      if (missingFields.length > 0) {
-        throw new Error(`Missing Fields ${field}`);
-      }
+      });
+      const lace = await LaceModel.findOne({ category: lace_category });
+      if(!lace) throw new Error("Lace Not found");
+      if (parseInt(lace_quantity) > lace.totalQuantity)
+        throw new Error("Not Enough Lace In Stock");
+        const newLaceTotalQuantity = parseInt(lace.totalQuantity) - parseInt(lace_quantity);
+        await LaceModel.updateOne({category:lace_category},{totalQuantity:newLaceTotalQuantity})
+  
+      await StitchingModel.create({
+        embroidery_Id,
+        Quantity,
+        partyName,
+        serial_No,
+        design_no,
+        date,
+        rate,
+        lace_quantity,
+        lace_category,
+        suits_category,
+        dupatta_category,
+      });
     });
-    await StitchingModel.create({
-      embroidery_Id,
-      Quantity,
-      partyName,
-      serial_No,
-      design_no,
-      date,
-      rate,
-      lace_quantity,
-      lace_category,
-      suits_category,
-      dupatta_category,
-    });
+
     return res
       .status(200)
       .json({ success: true, message: "Added Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
