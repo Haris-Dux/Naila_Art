@@ -32,6 +32,13 @@ import CalendarDetails from "./pages/process/calendar/CalendarDetails";
 import CuttingDetails from "./pages/process/cutting/CuttingDetails";
 import StonesDetails from "./pages/process/stones/StonesDetails";
 import StitchingDetails from "./pages/process/stitching/StitchingDetails";
+import Buyers from "./pages/accounts/Buyers";
+import Sellers from "./pages/accounts/Sellers";
+import Employee from "./pages/accounts/Employee";
+import BuyersDetails from "./pages/accounts/BuyersDetails";
+import SellersDetails from "./pages/accounts/SellersDetails";
+import EmployeeDetails from "./pages/accounts/EmployeeDetails";
+import CashInOut from "./pages/cash/CashInOut";
 
 
 function App() {
@@ -67,6 +74,17 @@ function App() {
             <Route path="purchasebills" element={<PurchaseBills />} />
             <Route path="processbills" element={<ProcessBills />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
+
+            {/* ACCOUNTS ROUTES */}
+            <Route path="buyers" element={<Buyers />} />
+            <Route path="buyers-details/:id" element={<BuyersDetails />} />
+            <Route path="sellers" element={<Sellers />} />
+            <Route path="sellers-details/:id" element={<SellersDetails />} />
+            <Route path="employee" element={<Employee />} />
+            <Route path="employee-details/:id" element={<EmployeeDetails />} />
+
+            {/* CASH IN/OUT */}
+            <Route path="cash" element={<CashInOut />} />
 
             {/* PROCESS ROUTES */}
             <Route path="embroidery" element={<Embroidery />} />
