@@ -1,106 +1,89 @@
-import { useState, useEffect } from 'react'
+import { useState,useEffect } from 'react'
 // import data from './SuitsStockData';
 import { FiPlus } from "react-icons/fi";
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import { useSelector } from 'react-redux';
 import Box from '../../../Component/Embodiary/Box';
-
+import { GETEmbroidery } from '../../../features/EmbroiderySlice';
+import { useDispatch } from 'react-redux';
 const Embroidery = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [dropdown1, setdropdown1] = useState(false);
-
+    const [isOpen, setIsOpen] = useState(false);
+    const [dropdown1, setdropdown1] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const { loading,embroidery } = useSelector((state) => state.Embroidery);
+    const [currentPage, setCurrentPage] = useState(1);
+    const dispatch = useDispatch()
   const [formData, setFormData] = useState({
 
-    partyName: "",
-    serial_No: "",
-    date: "",
-    per_suit: 0,
-    rATE_per_stitching: '',
-    project_status: "",
-    design_no: "",
-    received_suit: 0,
-    T_Quantity_In_m: 0,
-    T_Quantity: 0,
-    Front_Stitch: { value: 0, head: 0 },
-    Bazo_Stitch: { value: 0, head: 0 },
-    Gala_Stitch: { value: 0, head: 0 },
-    Back_Stitch: { value: 0, head: 0 },
-    Pallu_Stitch: { value: 0, head: 0 },
-    Trouser_Stitch: { value: 0, head: 0 },
-    D_Patch_Stitch: { value: 0, head: 0 },
-    F_Patch_Stitch: { value: 0, head: 0 },
-    project_status: 'pending',
-    recieved_suit: 200,
-    T_Quantity_In_m: 200,
-    T_Quantity: 499
-  });
+        partyName: "",
+        serial_No: "",
+        date: "",
+        per_suit: 0,
+        rATE_per_stitching: '',
+        project_status: "",
+        design_no: "",
+        received_suit: 0,
+        T_Quantity_In_m: 0,
+        T_Quantity: 0,
+        Front_Stitch: { value: 0, head: 0 },
+        Bazo_Stitch: { value: 0, head: 0 },
+        Gala_Stitch: { value: 0, head: 0 },
+        Back_Stitch: { value: 0, head: 0 },
+        Pallu_Stitch: { value: 0, head: 0 },
+        Trouser_Stitch: { value: 0, head: 0 },
+        D_Patch_Stitch: { value: 0, head: 0 },
+        F_Patch_Stitch: { value: 0, head: 0 },
+        project_status:'pending',
+        recieved_suit:200,
+        T_Quantity_In_m:200,
+        T_Quantity:499
+      });
 
 
+      useEffect(() => {
+        dispatch(GETEmbroidery())
+         }, [])
+
+      
 
 
+      const handleSearch = (e) => {
+        setSearchText(e.target.value);
+    };
 
+  
 
+    const toggleDropdown = () => {
+      setdropdown1(!dropdown1);
+    };
+    
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      const [field, subField] = name.split('.');
+    
+      if (subField) {
+        setFormData((prevState) => ({
+          ...prevState,
+          [field]: {
+            ...prevState[field],
+            [subField]: parseFloat(value), // Convert string to float
+          },
+        }));
+      } else {
+        setFormData((prevState) => ({
+          ...prevState,
+          [name]: value, // Convert string to float
+        }));
+      }
+    };
+    
 
-
-
-
-
-
-  const toggleDropdown = () => {
-    setdropdown1(!dropdown1);
-  };
-
-
-
-
-
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    const [field, subField] = name.split('.');
-
-    if (subField) {
-      setFormData((prevState) => ({
-        ...prevState,
-        [field]: {
-          ...prevState[field],
-          [subField]: parseFloat(value), // Convert string to float
-        },
-      }));
-    } else {
-      setFormData((prevState) => ({
-        ...prevState,
-        [name]: value, // Convert string to float
-      }));
-    }
-  };
-
-
-  const data = [
-    {
-      id: 2,
-      partyName: 'Lahore Party',
-      design_no: '293',
-      date: '21/03/23',
-      quantity: '1322',
-      status: 'Pending',
-    },
-    {
-      id: 3,
-      partyName: 'Fsd Party',
-      design_no: '293',
-      date: '21/03/23',
-      quantity: '1322',
-      status: 'Complete',
-    },
-  ]
-
-  const openModal = () => {
-    setIsOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
+    const openModal = () => {
+        setIsOpen(true);
+        document.body.style.overflow = 'hidden';
+    };
 
   const closeModal = () => {
     setIsOpen(false);
@@ -109,19 +92,28 @@ const Embroidery = () => {
 
 
 
+ 
+  const filteredData = searchText
+  ? embroidery?.data?.filter((item) =>
+      item.partyName.toLowerCase().includes(searchText.toLowerCase())
+  )
+  : embroidery?.data;
 
 
 
+  const totalPages = embroidery?.totalPages || 1;
 
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
 
-
-
-
-
-
-
-
-
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
 
 
 
@@ -157,110 +149,149 @@ const Embroidery = () => {
                 </svg>
               </span>
 
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by Party Name"
-              // value={searchText}
-              // onChange={handleSearch}
-              />
-            </div>
-          </div>
-        </div>
+                            <input
+                                type="text"
+                                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                                placeholder="Search by Party Name"
+                            value={searchText}
+                            onChange={handleSearch}
+                            />
+                        </div>
+                    </div>
+                </div>
 
         {/* -------------- TABLE -------------- */}
 
 
-        {/* {loading ? (
+                {loading ? (
                     <div className="pt-16 flex justify-center mt-12 items-center">
                         <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
                             <span className="sr-only">Loading...</span>
                         </div>
                     </div>
-                ) : ( */}
-        <div className="relative overflow-x-auto mt-5 ">
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-              <tr>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  S # No
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Party Name
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Design No
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Date
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Quantity
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Status
-                </th>
-                <th
-                  className="px-6 py-3 font-medium"
-                  scope="col"
-                >
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((data, index) => (
-                <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                  <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                    scope="row"
-                  >
-                    {index + 1}
-                  </th>
-                  <td className="px-6 py-4">
-                    {data.partyName}
-                  </td>
-                  <td className="px-6 py-4">
-                    {data.design_no}
-                  </td>
-                  <td className="px-6 py-4">
-                    {data.date}
-                  </td>
-                  <td className="px-6 py-4">
-                    {data.quantity} Suit
-                  </td>
-                  <td className="px-6 py-4">
-                    {data.status}
-                  </td>
-                  <td className="pl-10 py-4">
-                    <Link to={`/dashboard/embroidery-details/${data.id}`}>
-                      <FaEye size={20} className='cursor-pointer' />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ) : (
 
-        {/* )} */}
+                  <>   
+                <div className="relative overflow-x-auto mt-5 ">
+                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                        <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                            <tr>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    S # No
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Party Name
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Design No
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Date
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Quantity
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Status
+                                </th>
+                                <th
+                                    className="px-6 py-3 font-medium"
+                                    scope="col"
+                                >
+                                    Details
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredData?.map((data, index) => (
+                                <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                        scope="row"
+                                    >
+                                        {index + 1}
+                                    </th>
+                                    <td className="px-6 py-4">
+                                        {data.partyName}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.design_no}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.date}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.quantity} Suit
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {data.project_status}
+                                    </td>
+                                    <td className="pl-10 py-4">
+                                        <Link to={`/dashboard/embroidery-details/${data.id}`}>
+                                            <FaEye size={20} className='cursor-pointer' />
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+
+
+                <nav className="flex items-center flex-column flex-wrap md:flex-row justify-end pt-4" aria-label="Table navigation">
+                      
+                        <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+                            <li>
+                                <button
+                                    onClick={handlePreviousPage}
+                                    disabled={currentPage === 1}
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    Previous
+                                </button>
+                            </li>
+                            {[...Array(embroidery.totalPages)].map((_, pageIndex) => (
+                                <li key={pageIndex}>
+                                    <button
+                                        onClick={() => setCurrentPage(pageIndex + 1)}
+                                        className={`flex items-center justify-center px-3 h-8 leading-tight ${currentPage === pageIndex + 1 ? 'text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white' : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'}`}
+                                    >
+                                        {pageIndex + 1}
+                                    </button>
+                                </li>
+                            ))}
+                            <li>
+                                <button
+                                    onClick={handleNextPage}
+                                    disabled={currentPage === embroidery.totalPages}
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    Next
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+
+</>
+                          ) }
 
 
       </section >
@@ -550,7 +581,7 @@ const Embroidery = () => {
 
 
 
-                <Box formData1={formData} setFormData1={setFormData} />
+                            <Box formData1={formData} setFormData1={setFormData} />
 
               </div>
             </div>

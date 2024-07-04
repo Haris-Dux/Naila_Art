@@ -1,41 +1,26 @@
-import { useState } from 'react'
-import { IoAdd } from "react-icons/io5";
-import { FaEye } from "react-icons/fa";
-import { Link } from "react-router-dom";
-
+import React ,{ useEffect}  from 'react'
+import { useDispatch,useSelector } from "react-redux";
+import { FaEye } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { GetAllCutting } from '../../../features/CuttingSlice';
 const Cutting = () => {
-    const [isOpen, setIsOpen] = useState(false);
 
-    const data = [
-        {
-            id: 2,
-            partyName: 'M Amir',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            r_quantity: '108',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'M Amir',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            r_quantity: '108',
-            status: 'Complete',
-        },
-    ]
+    const dispatch = useDispatch()
+    const { loading,Cutting } = useSelector((state) => state.Cutting);
+  
 
-    const openModal = () => {
-        setIsOpen(true);
-        document.body.style.overflow = 'hidden';
-    };
+    
+    useEffect(() => {
+      dispatch(GetAllCutting())
+       }, [])
+  
+  
+  
+     
 
-    const closeModal = () => {
-        setIsOpen(false);
-        document.body.style.overflow = 'auto';
-    };
+
+
+   
 
     return (
         <>
@@ -46,9 +31,7 @@ const Cutting = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="flex items-center gap-2 mr-2">
-                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                            <IoAdd size={22} className='text-white' />
-                        </button>
+                     
 
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -82,6 +65,14 @@ const Cutting = () => {
 
 
                 {/* -------------- TABLE -------------- */}
+
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -137,7 +128,7 @@ const Cutting = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {Cutting?.data?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -160,7 +151,7 @@ const Cutting = () => {
                                         {data.r_quantity} y
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.status}
+                                        {data.project_status}
                                     </td>
                                     <td className="pl-10 py-4">
                                         <Link to={`/dashboard/cutting-details/${data.id}`}>
@@ -172,126 +163,12 @@ const Cutting = () => {
                         </tbody>
                     </table>
                 </div>
+   )}
+                
             </section >
 
 
-            {isOpen && (
-                <div
-                    aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
-                >
-                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
-                        {/* ------------- HEADER ------------- */}
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Cutting Details
-                            </h3>
-                            <button
-                                onClick={closeModal}
-                                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                                type="button"
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    viewBox="0 0 14 14"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                    />
-                                </svg>
-                                <span className="sr-only">Close modal</span>
-                            </button>
-                        </div>
-
-                        {/* ------------- BODY ------------- */}
-                        <div className="p-4 md:p-5">
-                            <form className="space-y-4">
-
-                                {/* INPUT FIELDS DETAILS */}
-                                <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                                    {/* PARTY NAME */}
-                                    <div>
-                                        <input
-                                            name="category"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* SERIAL NO */}
-                                    <div>
-                                        <input
-                                            type="text"
-                                            placeholder="Serial No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* DESIGN NO */}
-                                    <div>
-                                        <input
-                                            type="text"
-                                            placeholder="Design No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* DATE */}
-                                    <div>
-                                        <input
-                                            type="date"
-                                            placeholder="Date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* QUANTITY */}
-                                    <div>
-                                        <input
-                                            type="text"
-                                            placeholder="Quantity"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* ENTER RATE */}
-                                    <div>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Enter Rate"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-center pt-2">
-                                    <button
-                                        type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div >
-            )}
+          
         </>
     )
 }
