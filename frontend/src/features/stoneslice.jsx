@@ -1,0 +1,146 @@
+import axios from "axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import toast from "react-hot-toast";
+
+//API URL
+const addStone = "http://localhost:8000/api/process/stone/addStone";
+
+const UpdateStone = "http://localhost:8000/api/process/stone/updateStone";
+const getAllStone = "http://localhost:8000/api/process/stone/getAllStone";
+const getSingleStone = "http://localhost:8000/api/process/stone/getStoneById";
+
+
+
+//CREATE ASYNC THUNK
+export const createStone = createAsyncThunk(
+  "Stone/create",
+  async (formData) => {
+    try {
+      const response = await axios.post(addStone, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+// lOGIN ASYNC THUNK
+export const UpdateStoneAsync = createAsyncThunk(
+  "Stone/Update",
+  async (formData) => {
+    try {
+      const response = await axios.post(UpdateStone, formData);
+      toast.success(response.data.message);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
+
+
+// VERIFY ASYNC THUNK
+export const GetAllStone = createAsyncThunk(
+  "Stone/Get",
+  async (formData) => {
+    try {
+      const response = await axios.post(getAllStone, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
+export const GetSingleStone = createAsyncThunk(
+"Stone/GetSingle",
+  async (id) => {
+    try {
+      const response = await axios.post(getSingleStone, id);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
+
+// INITIAL STATE
+const initialState = {
+  
+  Stone: [],
+  SingleStone:{},
+  loading: false,
+};
+
+const StoneSlice = createSlice({
+  name: "StoneSlice",
+  initialState,
+  reducers: {
+    reset: (state) => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+
+      // Shop Add ADD CASE
+      .addCase(createStone.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(createStone.fulfilled, (state, action) => {
+        state.loading = false;
+    
+      })
+
+      // LOGIN ADD CASE
+      .addCase(GetAllStone.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllStone.fulfilled, (state, action) => {
+        state.loading = false;
+        state.Stone = action.payload;
+      })
+
+      // FORGET PASSWORD ADD CASE
+      .addCase(UpdateStoneAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(UpdateStoneAsync.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+
+
+      .addCase(GetSingleStone.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetSingleStone.fulfilled, (state, action) => {
+        state.loading = false;
+        state.SingleStone = action.payload
+      })
+
+
+
+      
+   
+  },
+});
+
+export const { reset } = StoneSlice.actions;
+
+export default StoneSlice.reducer;

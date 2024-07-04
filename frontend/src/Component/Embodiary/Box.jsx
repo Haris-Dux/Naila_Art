@@ -1,17 +1,20 @@
 import React,{useState,useEffect} from 'react'
 import Select from 'react-select'
-
 import { Link } from "react-router-dom";
 import { CreateEmbroidery } from '../../features/EmbroiderySlice';
 import { FiPlus } from 'react-icons/fi';
 import { useDispatch,useSelector } from "react-redux";
 import { GetAllBase } from '../../features/InStockSlice';
-const Box = ({formData1,setFormData1}) => {
+const Box = ({formData1,setFormData1,closeModal}) => {
     const { loading,Base } = useSelector((state) => state.InStock);
 
 const dispatch = useDispatch()
 const [categoryOptions, setCategoryOptions] = useState([]);
 const [colorOptions, setColorOptions] = useState([]);
+const [colorOptions2, setColorOptions2] = useState([]);
+const [colorOptions3, setColorOptions3] = useState([]);
+const [colorOptions4, setColorOptions4] = useState([]);
+
 
 useEffect(() => {
     if (!loading && Base) {
@@ -63,6 +66,7 @@ console.log('rate',rate)
             return sum + stitchTotal;
         }, 0);
     
+        
      
         return total;
     };
@@ -70,7 +74,7 @@ console.log('rate',rate)
     const initialShirtRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
     const initialDupattaRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
     const initialTrouserRow = { category: "", color: "", quantity_in_no: 0, quantity_in_m: 0,  };
-    const initialTissueRow = { category: "", color: "", QuantityInM: 0, QuantityInN: 0 };
+    const initialTissueRow = { category: "", color: "", quantity_in_m: 0,  };
     const [formData, setFormData] = useState({
         shirt: [initialShirtRow],
         duppata: [initialDupattaRow],
@@ -154,7 +158,7 @@ console.log('rate',rate)
         }));
     
     
-        setColorOptions(selectedCategoryColors);
+        setColorOptions2(selectedCategoryColors);
     };
     
     const handleduppataColor = (newValue, index) => {
@@ -183,7 +187,7 @@ console.log('rate',rate)
         }));
     
     
-        setColorOptions(selectedCategoryColors);
+        setColorOptions3(selectedCategoryColors);
     };
     
     const handleTrouserColor = (newValue, index) => {
@@ -212,7 +216,7 @@ console.log('rate',rate)
         }));
     
     
-        setColorOptions(selectedCategoryColors);
+        setColorOptions4(selectedCategoryColors);
     };
     
     const handletissueColor = (newValue, index) => {
@@ -234,23 +238,28 @@ event.preventDefault();
 
 const total = calculateTotal(formData1);
 
-// Update formData1 with the new per_suit value
-const updatedFormData1 = {
-    ...formData1,
-    per_suit:parseFloat(total.toFixed(2))  // Assuming you want to keep two decimal places
+
+setFormData1(prevState => ({
+    ...prevState,
+    per_suit: parseFloat(total.toFixed(2))
+}));
+
+// Merge updated formData1 (without per_suit) with formData
+const { per_suit, ...restFormData1 } = formData1;
+const meregdata = {
+    ...restFormData1,
+    ...formData,
+    per_suit:parseFloat(total.toFixed(2))
 };
 
-// Merge updatedFormData1 with formData
-const meregdata = {
-    ...updatedFormData1,
-    ...formData
-};
+
+
 
 console.log('final result', meregdata);
 
 dispatch(CreateEmbroidery(meregdata)).then(() => {
     dispatch(GetAllBase());
-    // closeModal(); // Uncomment if you want to close the modal after submission
+    closeModal(); 
 }).catch((error) => {
     console.error("Error:", error);
 });
@@ -314,7 +323,7 @@ dispatch(CreateEmbroidery(meregdata)).then(() => {
             <Select options={categoryOptions} onChange={(newValue) => handleduppataCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorOptions} onChange={(newValue) => handleduppataColor(newValue, index)} />
+            <Select options={colorOptions2} onChange={(newValue) => handleduppataColor(newValue, index)} />
         </div>
         <div>
             <input
@@ -359,7 +368,7 @@ dispatch(CreateEmbroidery(meregdata)).then(() => {
             <Select options={categoryOptions} onChange={(newValue) => handleTrouserCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorOptions} onChange={(newValue) => handleTrouserColor(newValue, index)} />
+            <Select options={colorOptions3} onChange={(newValue) => handleTrouserColor(newValue, index)} />
         </div>
         <div>
             <input
@@ -406,26 +415,16 @@ dispatch(CreateEmbroidery(meregdata)).then(() => {
             <Select options={categoryOptions} onChange={(newValue) => handletissueCategorey(newValue, index)} />
         </div>
         <div>
-            <Select options={colorOptions} onChange={(newValue) => handletissueColor(newValue, index)} />
+            <Select options={colorOptions4} onChange={(newValue) => handletissueColor(newValue, index)} />
         </div>
+    
         <div>
             <input
-            name="tissue.QuantityInN"
-
-                type='number'
-                placeholder="Quantity In No"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                value={tissue.QuantityInN}
-                onChange={(e) => handleInputChange(e, index, 'tissue')}
-            />
-        </div>
-        <div>
-            <input
-            name="tissue.QuantityInM"
+            name="tissue.quantity_in_m"
             type='number'
                 placeholder="Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                value={tissue.QuantityInM}
+                value={tissue.quantity_in_m}
                 onChange={(e) => handleInputChange(e, index, 'tissue')}
             />
         </div>
