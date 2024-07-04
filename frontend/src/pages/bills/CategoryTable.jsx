@@ -246,7 +246,7 @@ const CategoryTable = ({ category }) => {
                                                 {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.TYm} m
+                                                {data.totalQuantity} m
                                             </td>
                                         </tr>
                                     ))

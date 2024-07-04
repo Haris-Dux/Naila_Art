@@ -15,6 +15,7 @@ export const addBagsAndBoxInStock = async (req, res, next) => {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
       checkExistingStock.recently = quantity,
         checkExistingStock.r_Date = r_Date,
+        checkExistingStock.bill_no = bill_no,
         checkExistingStock.totalQuantity = updatedTotalQuantity;
       checkExistingStock.all_Records.push(recordData);
       await checkExistingStock.save();
