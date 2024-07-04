@@ -6,10 +6,15 @@ const CategoryTable = ({ category }) => {
     // ALL USE SELECTORRS
     const { loading } = useSelector((state) => state.InStock);
     const { Base } = useSelector((state) => state.InStock);
+    console.log('Base', Base);
     const { Lace } = useSelector((state) => state.InStock);
+    console.log('Lace', Lace);
     const { Bags } = useSelector((state) => state.InStock);
+    console.log('Bags', Bags);
     const { accessories } = useSelector((state) => state.InStock);
+    console.log('accessories', accessories);
     const { Expense } = useSelector((state) => state.InStock);
+    console.log('Expense', Expense);
 
     const allExpenses = Expense.reduce((acc, branch) => {
         return acc.concat(branch.brannchExpenses);
@@ -60,19 +65,19 @@ const CategoryTable = ({ category }) => {
                             <tbody>
                                 {Base && Base.length > 0 ? (
                                     Base?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
 
                                             <td className="px-6 py-4">
-                                                {data.colors}
+                                                {data?.colors}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.quantity} m
+                                                {data?.TYm} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.received_date}
+                                                {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently} m
+                                                {data?.recently} m
                                             </td>
                                         </tr>
                                     ))
@@ -225,7 +230,7 @@ const CategoryTable = ({ category }) => {
                             <tbody>
                                 {Bags && Bags.length > 0 ? (
                                     Bags?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <td className="px-6 py-4"
                                                 scope="row"
                                             >
@@ -235,13 +240,13 @@ const CategoryTable = ({ category }) => {
                                                 {data.bill_no}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently}
+                                                {data.recently} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.date}
+                                                {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.totalQuantity}
+                                                {data.TYm} m
                                             </td>
                                         </tr>
                                     ))
@@ -305,8 +310,8 @@ const CategoryTable = ({ category }) => {
                             <tbody>
                                 {accessories && accessories.length > 0 ? (
                                     accessories?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                        <tr key={index} className="bg-white border-b font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium"
                                                 scope="row"
                                             >
                                                 {data.serial_No}
@@ -385,8 +390,10 @@ const CategoryTable = ({ category }) => {
                             <tbody>
                                 {allExpenses.length > 0 ? (
                                     allExpenses.map((expense, index) => (
-                                        <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                        <tr key={index} className="bg-white border-b font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium"
+                                                scope="row"
+                                            >
                                                 {expense.serial_no}
                                             </th>
                                             <td className="px-6 py-4">
@@ -412,7 +419,7 @@ const CategoryTable = ({ category }) => {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </div >
                 )}
             </>
         );
