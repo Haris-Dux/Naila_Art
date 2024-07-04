@@ -25,7 +25,6 @@ const Calendar = () => {
         },
     ]
 
-
     const openModal = () => {
         setIsOpen(true);
         document.body.style.overflow = 'hidden';

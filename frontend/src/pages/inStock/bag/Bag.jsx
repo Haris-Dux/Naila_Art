@@ -115,7 +115,7 @@ const Bag = () => {
                             <tbody>
                                 {Bags && Bags.length > 0 ? (
                                     Bags?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <td className="px-6 py-4"
                                                 scope="row"
                                             >
@@ -125,13 +125,13 @@ const Bag = () => {
                                                 {data.bill_no}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently}
+                                                {data.recently} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.date}
+                                                {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.totalQuantity}
+                                                {data.TYm} m
                                             </td>
                                         </tr>
                                     ))

@@ -9,6 +9,20 @@ const SuitsStock = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { loading, Suit } = useSelector((state) => state.InStock);
 
+    const [filteredData, setFilteredData] = useState(Suit);
+    const [selectedCategory, setSelectedCategory] = useState('All');
+
+    useEffect(() => {
+        if (selectedCategory === 'All') {
+            setFilteredData(Suit);
+        } else {
+            const filtered = Suit.filter(data => data.category === selectedCategory);
+            setFilteredData(filtered);
+        }
+    }, [selectedCategory, Suit]);
+
+    const categories = ['All', 'Lawn', 'Lilan', 'Dhanak', 'Organza', 'Reshmi'];
+
     // State variables to hold form data
     const [formData, setFormData] = useState({
         category: "",
@@ -35,9 +49,18 @@ const SuitsStock = () => {
     // Function to handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Dispatch action with form data
-        dispatch(AddSuit(formData)).then(() => {
-            dispatch(GetAllSuit())
+        dispatch(AddSuit(formData)).then((res) => {
+            if (res.payload.message === "Successfully Added") {
+                dispatch(GetAllSuit())
+                setFormData({
+                    category: "",
+                    color: "",
+                    quantity: "",
+                    cost_price: "",
+                    sale_price: "",
+                    d_no: ""
+                });
+            }
             closeModal();
         }).catch((error) => {
             console.error("Error adding suit:", error);
@@ -96,12 +119,15 @@ const SuitsStock = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>All</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lawn</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lilan</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Dhanak</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Organza</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Reshmi</button>
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
+                                onClick={() => setSelectedCategory(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
                     </div>
 
                     <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
@@ -154,8 +180,8 @@ const SuitsStock = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {Suit && Suit.length > 0 ? (
-                                    Suit?.map((data, index) => (
+                                {filteredData && filteredData.length > 0 ? (
+                                    filteredData.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
