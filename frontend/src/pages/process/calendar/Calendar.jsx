@@ -11,11 +11,17 @@ const Calendar = () => {
   const { loading,Calender } = useSelector((state) => state.Calender);
 
 
+
   
   useEffect(() => {
     dispatch(GetAllCalender())
      }, [])
 
+
+    const openModal = () => {
+        setIsOpen(true);
+        document.body.style.overflow = 'hidden';
+    };
 
 
    
