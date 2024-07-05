@@ -12,8 +12,10 @@ export const addBagsAndBoxInStock = async (req, res, next) => {
     });
     let recordData = { bill_no, name, quantity, date: r_Date };
     if (checkExistingStock) {
-      const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
-      checkExistingStock.recently = quantity,
+      console.log(checkExistingStock.totalQuantity);
+      console.log(quantity);
+      const updatedTotalQuantity = checkExistingStock.totalQuantity + parseInt(quantity);
+      checkExistingStock.recently = parseInt(quantity),
         checkExistingStock.r_Date = r_Date,
         checkExistingStock.bill_no = bill_no,
         checkExistingStock.totalQuantity = updatedTotalQuantity;
@@ -23,7 +25,7 @@ export const addBagsAndBoxInStock = async (req, res, next) => {
       await BagsAndBoxModel.create({
         name,
         bill_no,
-        recently: quantity,
+        recently: parseInt(quantity),
         totalQuantity: quantity,
         r_Date,
         all_Records: [recordData],
