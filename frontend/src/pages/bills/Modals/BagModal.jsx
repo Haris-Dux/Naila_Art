@@ -23,6 +23,14 @@ const BagModal = ({ isOpen, closeModal }) => {
     }));
   };
 
+  // Function to handle branch selection
+  const handleBranchChange = (e) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      name: e.target.value,
+    }));
+  };
+
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -96,15 +104,16 @@ const BagModal = ({ isOpen, closeModal }) => {
 
                   {/* NAME */}
                   <div>
-                    <input
-                      name="name"
-                      type="text"
-                      placeholder="Name"
+                    <select
+                      id="name"
                       value={formData.name}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
+                      onChange={handleBranchChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    >
+                      <option>Choose Bags & Box</option>
+                      <option value="Box">Box</option>
+                      <option value="Bags">Bags</option>
+                    </select>
                   </div>
 
                   {/* QUANTITY */}
