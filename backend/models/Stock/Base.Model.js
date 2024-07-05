@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
 const previousDataSchema = new mongoose.Schema({
-  color: {
+  colors: {
     type: String,
     required: [true,"color required"],
   },
   category: {
     type: String,
     required: [true,"Category required"]  },
-  date: {
+  Date: {
     type: Date,
     required: [true,"date required"],
   },
@@ -40,7 +40,7 @@ const baseSchema = new mongoose.Schema({
     type: Number,
     required: [true,"TYm required"],
   },
-  previousData: [previousDataSchema]
+  all_Records: [previousDataSchema]
 }, { timestamps: true });
 
 export const BaseModel = mongoose.model('Base', baseSchema);
