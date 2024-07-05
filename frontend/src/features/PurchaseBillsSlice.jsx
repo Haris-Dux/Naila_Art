@@ -6,10 +6,9 @@ import toast from "react-hot-toast";
 const createBag = "http://localhost:8000/api/stock/bags/addBagsAndBoxInStock";
 const createLace = "http://localhost:8000/api/stock/lace/addLaceInStock";
 
-const createAccesseries = "http://localhost:8000/api/stock/accessories/addAccesoriesInStock";
+const createAccesseries =
+  "http://localhost:8000/api/stock/accessories/addAccesoriesInStock";
 const createExpense = "http://localhost:8000/api/stock/expense/addExpense";
-
-
 
 //CREATE ASYNC THUNK
 export const createBagAsync = createAsyncThunk(
@@ -21,7 +20,8 @@ export const createBagAsync = createAsyncThunk(
       console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+      console.log(error?.response?.data?.error);
     }
   }
 );
@@ -41,8 +41,6 @@ export const createLaceAsync = createAsyncThunk(
     }
   }
 );
-
-
 
 export const createAsseceriesAsync = createAsyncThunk(
   "Asseceries/Create",
@@ -74,13 +72,8 @@ export const CeateExpenseAsync = createAsyncThunk(
   }
 );
 
-
-
-
-
 // INITIAL STATE
 const initialState = {
-  
   Shop: [],
   loading: false,
 };
@@ -100,16 +93,13 @@ const PurchaseSlice = createSlice({
       })
       .addCase(createBagAsync.fulfilled, (state, action) => {
         state.loading = false;
-    
       })
-
 
       .addCase(createLaceAsync.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(createLaceAsync.fulfilled, (state, action) => {
         state.loading = false;
-    
       })
 
       .addCase(createAsseceriesAsync.pending, (state, action) => {
@@ -117,19 +107,14 @@ const PurchaseSlice = createSlice({
       })
       .addCase(createAsseceriesAsync.fulfilled, (state, action) => {
         state.loading = false;
-    
       })
-
 
       .addCase(CeateExpenseAsync.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(CeateExpenseAsync.fulfilled, (state, action) => {
         state.loading = false;
-    
-      })
-    
-   
+      });
   },
 });
 
