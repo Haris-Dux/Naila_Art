@@ -26,6 +26,7 @@ export const addBaseInStock = async (req, res, next) => {
         recently: quantity,
         r_Date,
         TYm: quantity,
+        all_Records:[recordData]
       });
     }
 
