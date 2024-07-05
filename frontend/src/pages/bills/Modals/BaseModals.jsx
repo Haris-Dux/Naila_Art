@@ -41,7 +41,6 @@ const BaseModals = ({ isOpen, closeModal }) => {
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
                             <form className="">
-
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
                                     {/* BILL NO # */}
                                     <div>

@@ -3,36 +3,82 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const getaccessories = "http://localhost:8000/api/stock/accessories/getAllAccesoriesInStock";
-const getBags = 'http://localhost:8000/api/stock/bags/getAllBagsAndBox'
-const getBase = 'http://localhost:8000/api/stock/base/getAllBases'
-const getLace = 'http://localhost:8000/api/stock/lace/getAllLaceStock'
-const getSuits = 'http://localhost:8000/api/stock/suits/getAllSuits'
-const getExpense = 'http://localhost:8000/api/stock/expense/getAllExpenses'
+const getaccessories =
+  "http://localhost:8000/api/stock/accessories/getAllAccesoriesInStock";
+const getBags = "http://localhost:8000/api/stock/bags/getAllBagsAndBox";
+const getBase = "http://localhost:8000/api/stock/base/getAllBases";
+const getLace = "http://localhost:8000/api/stock/lace/getAllLaceStock";
+const getSuits = "http://localhost:8000/api/stock/suits/getAllSuits";
+const getExpense = "http://localhost:8000/api/stock/expense/getAllExpenses";
 
-const AddSuits = 'http://localhost:8000/api/stock/suits/addBaseInStock'
+const AddSuits = "http://localhost:8000/api/stock/suits/addBaseInStock";
 
+// GET ALL BRANCHES API
+const getAllBranches = "http://localhost:8000/api/branches/getAllBranches";
+
+export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
+  try {
+    const response = await axios.post(AddSuits, formData);
+    toast.success(response.data.message);
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllSuit = createAsyncThunk("Suit/Get", async () => {
+  try {
+    const response = await axios.post(getSuits);
+    // toast.success(response.data.message);
+    // console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllBase = createAsyncThunk("Base/Get", async () => {
+  try {
+    const response = await axios.post(getBase);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllLace = createAsyncThunk("Lace/Get", async () => {
+  try {
+    const response = await axios.post(getLace);
+    // toast.success(response.data.message);
+
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
+  try {
+    const response = await axios.post(getBags);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
 
 export const GetAllaccessories = createAsyncThunk(
   "accessories/Get",
   async () => {
     try {
       const response = await axios.post(getaccessories);
-      toast.success(response.data.message);
-
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
-  }
-);
-
-export const GetAllBags = createAsyncThunk(
-  "Bags/Get",
-  async () => {
-    try {
-      const response = await axios.post(getBags);
       // toast.success(response.data.message);
       return response.data;
     } catch (error) {
@@ -42,81 +88,29 @@ export const GetAllBags = createAsyncThunk(
   }
 );
 
-export const GetAllBase = createAsyncThunk(
-  "Base/Get",
-  async () => {
-    try {
-      const response = await axios.post(getBase);
-      // toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetAllExpense = createAsyncThunk("Expense/Get", async () => {
+  try {
+    const response = await axios.post(getExpense);
+    // toast.success(response.data.message);
+
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
-);
+});
 
-export const GetAllLace = createAsyncThunk(
-  "Lace/Get",
-  async () => {
-    try {
-      const response = await axios.post(getLace);
-      toast.success(response.data.message);
-
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetAllBranches = createAsyncThunk("Branches/GetAll", async () => {
+  try {
+    const response = await axios.post(getAllBranches);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
-);
-
-export const GetAllSuit = createAsyncThunk(
-  "Suit/Get",
-  async () => {
-    try {
-      const response = await axios.post(getSuits);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
-  }
-);
-
-
-export const AddSuit = createAsyncThunk(
-  "Suit/Create",
-  async (formData) => {
-    try {
-      const response = await axios.post(AddSuits, formData);
-      toast.success(response.data.message);
-      console.log(response);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
-  }
-);
-
-export const GetAllExpense = createAsyncThunk(
-  "Expense/Get",
-  async () => {
-    try {
-      const response = await axios.post(getExpense);
-      toast.success(response.data.message);
-
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
-  }
-);
-
+});
 
 // INITIAL STATE
 const initialState = {
@@ -127,6 +121,7 @@ const initialState = {
   accessories: [],
   Expense: [],
   loading: false,
+  Branches: [],
 };
 
 const InStockSlic = createSlice({
@@ -145,6 +140,7 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.accessories = action.payload;
       })
+
       .addCase(GetAllBags.pending, (state, action) => {
         state.loading = true;
       })
@@ -191,6 +187,14 @@ const InStockSlic = createSlice({
       .addCase(AddSuit.fulfilled, (state, action) => {
         state.loading = false;
       })
+
+      .addCase(GetAllBranches.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllBranches.fulfilled, (state, action) => {
+        state.loading = false;
+        state.Branches = action.payload;
+      });
   },
 });
 
