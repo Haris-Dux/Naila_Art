@@ -88,7 +88,7 @@ const PurchaseBills = () => {
                         {['Base', 'Lace', 'Bag', 'Accessories', 'Expense'].map((category) => (
                             <button
                                 key={category}
-                                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-gray-900 text-white dark:bg-gray-600  dark:text-white' : ''}`}
+                                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-gray-800 text-white dark:bg-gray-600  dark:text-white' : ''}`}
                                 onClick={() => handleTabClick(category)}
                             >
                                 {category}

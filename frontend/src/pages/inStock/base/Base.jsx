@@ -2,22 +2,37 @@ import { useState, useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
 import { GetAllBase } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { FaEye } from "react-icons/fa";
 
 const Base = () => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const { loading, Base } = useSelector((state) => state.InStock);
+
+    const [isOpen, setIsOpen] = useState(false);
+    const [baseId, setBaseId] = useState();
+    const [filteredData, setFilteredData] = useState(Base);
+    const [selectedCategory, setSelectedCategory] = useState('All');
+
+    useEffect(() => {
+        if (selectedCategory === 'All') {
+            setFilteredData(Base);
+        } else {
+            const filtered = Base.filter(data => data.category === selectedCategory);
+            setFilteredData(filtered);
+        }
+    }, [selectedCategory, Base]);
+
+    const categories = ['All', 'Lawn', 'Lilan', 'Dhanak', 'Organza', 'Reshmi'];
 
     useEffect(() => {
         dispatch(GetAllBase())
+        console.log('Base', Base)
     }, [])
 
 
-    console.log(' Base data', Base)
-
-    const openModal = () => {
+    const openModal = (id) => {
         setIsOpen(true);
+        setBaseId(id);
         document.body.style.overflow = 'hidden';
     };
 
@@ -25,6 +40,8 @@ const Base = () => {
         setIsOpen(false);
         document.body.style.overflow = 'auto';
     };
+
+    const filteredBaseData = Base?.filter((data) => data.id === baseId);
 
     return (
         <>
@@ -68,12 +85,15 @@ const Base = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>All</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lawn</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Lilan</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Dhanak</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Organza</button>
-                        <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Reshmi</button>
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
+                                onClick={() => setSelectedCategory(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
                     </div>
 
                     <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
@@ -118,24 +138,34 @@ const Base = () => {
                                     >
                                         Recently
                                     </th>
+                                    <th
+                                        className="px-6 py-4 text-md"
+                                        scope="col"
+                                    >
+                                        History
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {Base && Base.length > 0 ? (
-                                    Base?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-
+                                {filteredData && filteredData.length > 0 ? (
+                                    filteredData.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <td className="px-6 py-4">
                                                 {data.colors}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.quantity} m
+                                                {data.TYm} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.received_date}
+                                                {new Date(data.r_Date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.recently} m
+                                            </td>
+                                            <td className="pl-10 py-4">
+                                                <span onClick={() => openModal(data?.id)}>
+                                                    <FaEye size={20} className='cursor-pointer' />
+                                                </span>
                                             </td>
                                         </tr>
                                     ))
@@ -151,17 +181,16 @@ const Base = () => {
             </section >
 
 
-
             {isOpen && (
                 <div
                     aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Add New Base
+                                Base History
                             </h3>
                             <button
                                 onClick={closeModal}
@@ -189,62 +218,66 @@ const Base = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form action="#" className="space-y-4">
-                                <div>
-                                    <input
-                                        name="category"
-                                        type="text"
-                                        placeholder="Enter Category"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="color"
-                                        type="text"
-                                        placeholder="Enter Color"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-normal text-gray-900 dark:text-white"
-                                        htmlFor="color"
-                                    >
-                                        Start Date
-                                    </label>
-                                    <input
-                                        id="color"
-                                        name="color"
-                                        type="date"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="quantity"
-                                        type="text"
-                                        placeholder="Enter Quantity"
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
+                            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                    <tr>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Serial No
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Date
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Name
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Quantity
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredData && filteredData.length > 0 ? (
+                                        filteredData.map((item, index) => (
+                                            item?.all_Records?.map((data, subIndex) => (
+                                                <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                                        {data.serial_No}
+                                                    </th>
+                                                    <td className="px-6 py-4">
+                                                        {new Date(data?.date).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {data.name}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {data.quantity} m
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ))
+                                    ) : (
+                                        <tr className="w-full flex justify-center items-center">
+                                            <td className='text-xl mt-3'>No Data Available</td>
+                                        </tr>
+                                    )}
 
-                                <div className="flex justify-center pt-2">
-                                    <button
-                                        type="submit"
-                                        className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
         </>
     )

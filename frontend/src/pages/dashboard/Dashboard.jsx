@@ -281,11 +281,9 @@ const Dashboard = () => {
                                         <li>
                                             <Link to="/dashboard/accessories" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/accessories" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Accessories</Link>
                                         </li>
-
                                         <li>
                                             <Link to="/dashboard/expense" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/expense" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Expense</Link>
                                         </li>
-
                                     </ul>
                                 )}
                             </li>
@@ -415,7 +413,7 @@ const Dashboard = () => {
                     </div>
                 </aside >
                 {/* ---------------- DASHBOARD ---------------- */}
-                < main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 bg-white dark:bg-gray-900" >
+                < main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 pb-10 bg-white dark:bg-gray-900" >
                     <Outlet />
                 </ main>
             </div >
