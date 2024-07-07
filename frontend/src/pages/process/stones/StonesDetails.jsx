@@ -1,34 +1,147 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
-
+import { useState,useEffect } from "react";
+import { GetSingleStone } from "../../../features/stoneslice";
+import { useSelector,useDispatch } from "react-redux";
+import { FiPlus } from "react-icons/fi";
+import { createStitching } from "../../../features/stitching";
 const StonesDetails = () => {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
-    const data = [
-        {
-            id: 2,
-            partyName: 'Lahore Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'Fsd Party',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            status: 'Complete',
-        },
-    ]
+    const { loading,SingleStone } = useSelector((state) => state.stone);
 
+const dispatch = useDispatch()
+
+
+
+const initialRow = { category: "", color: "", quantity: 0,   };
+
+const [formData, setFormData] = useState({
+partyName: '',
+  serial_No: '',
+  design_no: '',
+  date : '',
+  rate: '',
+  embroidery_Id:"",
+  category_quantity:[initialRow],
+  Quantity:"",
+  lace_quantity:"",
+  lace_category:""
+ 
+});
+
+
+
+useEffect(() => {
+    setFormData({
+      serial_No: SingleStone?.serial_No || '',
+      design_no: SingleStone?.design_no || '',
+      date: SingleStone?.date || '',
+      Quantity:SingleStone?.quantity,
+      embroidery_Id: SingleStone?.id || "",
+      category_quantity: [initialRow] // You are setting category_quantity with initialRow
+    });
+  }, [SingleStone]);
+  
+
+
+
+    useEffect(() => {
+
+
+        const data = {
+            id:id
+        }
+        dispatch(GetSingleStone(data))
+         }, [id,dispatch])
+
+
+         const handleChange = (e) => {
+            const { name, value } = e.target;
+            setFormData({
+              ...formData,
+              [name]: value
+            });
+          };
+        
+          const addNewRow = () => {
+            setFormData(prevState => ({
+              ...prevState,
+              category_quantity: [...prevState.category_quantity, initialRow]
+            }));
+          };
+          
+          const handleCategoryChange = (e, index) => {
+            const { value } = e.target;
+            setFormData(prevState => ({
+              ...prevState,
+              category_quantity: prevState.category_quantity.map((row, i) =>
+                i === index ? { ...row, category: value } : row
+              )
+            }));
+          };
+          
+          const handleColorChange = (e, index) => {
+            const { value } = e.target;
+            setFormData(prevState => ({
+              ...prevState,
+              category_quantity: prevState.category_quantity.map((row, i) =>
+                i === index ? { ...row, color: value } : row
+              )
+            }));
+          };
+          
+          const handleQuantityChange = (e, index) => {
+            const { value } = e.target;
+            setFormData(prevState => ({
+              ...prevState,
+              category_quantity: prevState.category_quantity.map((row, i) =>
+                i === index ? { ...row, quantity: value } : row
+              )
+            }));
+          };
+          
+        
+         
+          const handleSubmitstome = (e) => {
+            e.preventDefault();
+
+          
+          
+            dispatch(createStitching(formData))
+            .then(() => {
+              
+                closeModal(); 
+            navigate('/dashboard/stones')
+
+
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+
+
+
+            
+          };    
+
+
+
+
+         const openModal = () => {
+            setIsOpen(true);
+            document.body.style.overflow = 'hidden';
+        };
+    
+        const closeModal = () => {
+            setIsOpen(false);
+            document.body.style.overflow = 'auto';
+        };
 
 
     
 
-    const selectedDetails = data?.find((data) => data?.id == id);
-    console.log('selectedDetails', selectedDetails);
+    
+    console.log('selectedDetails', SingleStone);
 
     return (
         <>
@@ -44,65 +157,34 @@ const StonesDetails = () => {
                         {/* FIRST ROW */}
                         <div className="box">
                             <span className="font-medium">Party Name:</span>
-                            <span> M Umer</span>
+                            <span> {SingleStone?.partyName}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Serial No:</span>
-                            <span> A 0001</span>
+                            <span>{SingleStone?.serial_No}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Design No:</span>
-                            <span> 794</span>
+                            <span>{SingleStone?.design_no}</span>
                         </div>
 
                         <div className="box">
                             <span className="font-medium">Per Suit:</span>
-                            <span> 130</span>
+                            <span>{SingleStone?.rate}</span>
                         </div>
                         <div className="box">
                             <span className="font-medium">Project Status:</span>
-                            <span className="text-green-600 dark:text-green-300"> Complete</span>
+                            <span className="text-green-600 dark:text-green-300"> {SingleStone?.project_status}</span>
                         </div>
-                        <div className="box">
-                            <span className="font-medium">Design No:</span>
-                            <span> 706</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">T Quantity:</span>
-                            <span> 12 Suits</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Front:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Back:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Bazu:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Dupatta:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Gala:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Front Patch:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">Trouser:</span>
-                            <span> 12</span>
-                        </div>
-                        <div className="box">
-                            <span className="font-medium">R Quantity:</span>
-                            <span> ---</span>
-                        </div>
+                     
+                    
+                        {SingleStone?.category_quantity?.map((item, index) => (
+                <div className="box" key={index}>
+                    <span className="font-medium">{item.category}:</span>
+                    <span> {item.quantity}</span>
+                </div>
+            ))}
+
                     </div>
                 </div>
 
@@ -113,87 +195,30 @@ const StonesDetails = () => {
                     <div className="flex justify-between items-start flex-wrap gap-x-20">
                         {/* DETAILS */}
                         <div className="details">
+                                
+                        {SingleStone?.category_quantity?.map((item, index) => (
                             <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Front</span>
+                                <span className="w-32 font-semibold">{item.category}</span>
                                 <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
                                 <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
                                 <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
                                 <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
                             </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Back</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Bazu</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Dupatta</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Gala</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">R Front Patch</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-6">
-                                <span className="w-32 font-semibold">Trouser</span>
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm" />
-                                <input type="text" className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm" />
-                            </div>
+                       ) )}
+                        
+                      
+                           
                         </div>
 
                         {/* RECENT DETAILS */}
                         <div className="recent_details">
+                        {SingleStone?.category_quantity?.map((item, index) => (
+
                             <div className="line my-3 flex justify-between items-center gap-x-4">
                                 <span className="w-28 font-semibold">Recent Date</span>
                                 <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
                             </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
-                            <div className="line my-3 flex justify-between items-center gap-x-4">
-                                <span className="w-28 font-semibold">Recent Date</span>
-                                <input type="date" className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm" />
-                            </div>
+                        ))}
                         </div>
                     </div>
                 </div>
@@ -203,7 +228,7 @@ const StonesDetails = () => {
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Completed</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Bill</button>
                     <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Gate Pass</button>
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Next Step</button>
+                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={openModal}>Next Step</button>
                 </div>
             </section >
 
@@ -245,58 +270,72 @@ const StonesDetails = () => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="space-y-4">
+                            <form className="space-y-4" onSubmit={handleSubmitstome}>
 
                                 {/* INPUT FIELDS DETAILS */}
                                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                                     {/* SERIAL NO */}
                                     <div>
                                         <input
+                                        name="serial_No"
                                             type="text"
                                             placeholder="Serial No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.serial_No}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* DESIGN NO */}
                                     <div>
                                         <input
+                                        name="design_no"
                                             type="text"
                                             placeholder="Design No"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.design_no}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* QUANTITY */}
                                     <div>
                                         <input
+                                        name="Quantity"
                                             type="text"
                                             placeholder="Quantity"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.Quantity}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* DATE */}
                                     <div>
                                         <input
+                                        name="date"
                                             type="date"
                                             placeholder="Date"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.date}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* PARTY NAME */}
                                     <div>
                                         <input
-                                            name="category"
+                                            name="partyName"
                                             type="text"
                                             placeholder="Party Name"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.partyName}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
@@ -304,59 +343,77 @@ const StonesDetails = () => {
                                     {/* ENTER RATE */}
                                     <div>
                                         <input
-                                            name="color"
+                                            name="rate"
                                             type="text"
                                             placeholder="Enter Rate"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.rate}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* LACE QUANTITY */}
                                     <div>
                                         <input
-                                            name="color"
-                                            type="text"
+                                            name="lace_quantity"
+                                            type="number"
                                             placeholder="Lace Quantity"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.lace_quantity}
+                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     {/* LACE CATEGORY */}
                                     <div>
                                         <input
-                                            name="color"
+                                            name="lace_category"
                                             type="text"
                                             placeholder="Lace Category"
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
+                                            value={formData.lace_category}
+                                            onChange={handleChange}
                                         />
                                     </div>
                                 </div>
 
 
                                 <div className="box">
-                                    <div className="header flex justify-between items-center">
-                                        <h3>Enter Suit Colors And Quantity:</h3>
-                                        <p><FiPlus size={24} className='text-gray-700 cursor-pointer' /></p>
-                                    </div>
+                                <div className="flex justify-between items-center "> 
+                                <h2 className="block mb-0 text-sm font-medium text-gray-900 dark:text-white">
+                                Enter Suit Colors And Quantity :
+                                </h2>
+                                <p onClick={addNewRow} className="cursor-pointer"><FiPlus size={24} className=' dark:text-white' /></p>
+                                </div>
+
+
+
+                                {formData.category_quantity && formData.category_quantity.map((row, index) => (
 
                                     <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                                         {/* SELECT CATEGORY */}
                                         <div>
                                             <select
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            >
-                                                <option selected>
-                                                    Select Category
-                                                </option>
-                                                <option value="US">
-                                                    United States
-                                                </option>
-                                                <option value="CA">
-                                                    Canada
-                                                </option>
+                                                value={row.category}
+                                                onChange={(e) => handleCategoryChange(e, index)}
+                                          >
+
+                        {SingleStone?.category_quantity?.map((item, index) => (
+                                                
+
+
+        <option value={item?.category}>{item?.category}</option>
+       
+
+                                         
+                                                ))}
+
+
+
                                             </select>
                                         </div>
 
@@ -364,13 +421,19 @@ const StonesDetails = () => {
                                         <div>
                                             <select
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            >
-                                                <option selected>
-                                                    Select Colors
-                                                </option>
-                                                <option value="US">
-                                                    United States
-                                                </option>
+                                                value={row.color}
+                                                onChange={(e) => handleColorChange(e, index)}
+                                         >
+                                                   {SingleStone?.category_quantity?.map((item, index) => (
+                                                
+
+
+                                                <option value={item?.color}>{item?.color}</option>
+                                               
+                                        
+                                                                                 
+                                                                                        ))}
+                                        
                                             </select>
                                         </div>
 
@@ -381,9 +444,13 @@ const StonesDetails = () => {
                                                 placeholder="Enter Quantity In No"
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 required
+                                                value={row.quantity}
+                                                onChange={(e) => handleQuantityChange(e, index)}
                                             />
                                         </div>
                                     </div>
+
+                                                                                    ))}
                                 </div>
 
                                 <div className="flex justify-center pt-2">
