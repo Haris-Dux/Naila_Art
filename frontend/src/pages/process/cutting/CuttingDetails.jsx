@@ -93,11 +93,7 @@ const CuttingDetails = () => {
       };
       
     
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle form submission logic here
-        console.log('Form Data:', formData);
-      };
+     
 
     
 
@@ -341,7 +337,7 @@ const CuttingDetails = () => {
                   placeholder="Design No"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   required
-                  value={formData.design_no}
+                  value={formData.DesignNo}
                   onChange={handleChange}
                 />
               </div>
@@ -384,6 +380,9 @@ const CuttingDetails = () => {
                                 </h2>
                                 <p onClick={ addNewRow}><FiPlus size={24} className=' cursor-pointer dark:text-white' /></p>
                                 </div>
+
+
+                                
 
                              
                                 {formData.category_quantity && formData.category_quantity.map((row, index) => (
