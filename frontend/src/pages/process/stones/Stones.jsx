@@ -8,12 +8,29 @@ import { GetAllStone } from '../../../features/stoneslice';
 const Stones = () => {
     const dispatch = useDispatch()
     const { loading,Stone } = useSelector((state) => state.stone);
+    const [currentPage, setCurrentPage] = useState(1);
   
   console.log('Stone',Stone)
     
     useEffect(() => {
       dispatch(GetAllStone())
        }, [])
+
+
+       const totalPages = Stone?.totalPages || 1;
+
+       const handleNextPage = () => {
+         if (currentPage < totalPages) {
+           setCurrentPage(currentPage + 1);
+         }
+       };
+     
+       const handlePreviousPage = () => {
+         if (currentPage > 1) {
+           setCurrentPage(currentPage - 1);
+         }
+       };
+
 
     return (
         <>
@@ -58,6 +75,18 @@ const Stones = () => {
 
 
                 {/* -------------- TABLE -------------- */}
+
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+
+<>   
+
+
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -148,6 +177,54 @@ const Stones = () => {
                         </tbody>
                     </table>
                 </div>
+                
+
+
+<nav
+className="flex items-center flex-column flex-wrap md:flex-row justify-end pt-4"
+aria-label="Table navigation"
+>
+<ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+  <li>
+    <button
+      onClick={handlePreviousPage}
+      disabled={currentPage === 1}
+      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+      Previous
+    </button>
+  </li>
+  {[...Array(Stone.totalPages)].map((_, pageIndex) => (
+    <li key={pageIndex}>
+      <button
+        onClick={() => setCurrentPage(pageIndex + 1)}
+        className={`flex items-center justify-center px-3 h-8 leading-tight ${
+          currentPage === pageIndex + 1
+            ? "text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+            : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        }`}
+      >
+        {pageIndex + 1}
+      </button>
+    </li>
+  ))}
+  <li>
+    <button
+      onClick={handleNextPage}
+      disabled={currentPage === Stone.totalPages}
+      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+      Next
+    </button>
+  </li>
+</ul>
+</nav>
+
+
+</>
+
+
+                        )}
             </section >
 
 
