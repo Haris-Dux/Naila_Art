@@ -4,12 +4,11 @@ import toast from "react-hot-toast";
 
 //API URL
 const addStitching = "http://localhost:8000/api/process/Stitching/addStitching";
-
 const UpdateStitching = "http://localhost:8000/api/process/Stitching/updateStitching";
 const getAllStitching = "http://localhost:8000/api/process/Stitching/getAllStitching";
 const getSingleStitching = "http://localhost:8000/api/process/Stitching/getStitchingById";
-
-
+const getStitchingByEmbroideryId = 'http://localhost:8000/api/process/stitching/getStitchingByEmbroideryId'
+ 
 
 //CREATE ASYNC THUNK
 export const createStitching = createAsyncThunk(
@@ -21,6 +20,7 @@ export const createStitching = createAsyncThunk(
       console.log(response.data);
       return response.data;
     } catch (error) {
+      toast.error(error.response.data.error);
       console.log(error.response.data.error);
     }
   }
@@ -82,11 +82,29 @@ export const GetSingleStitching = createAsyncThunk(
 
 
 
+export const getStitchingByEmbroidery = createAsyncThunk(
+  "getStitchingByEmbroidery/getStitchingByEmbroideryGetSingle",
+    async (id) => {
+      try {
+        const response = await axios.post(getStitchingByEmbroideryId, id);
+        toast.success(response.data.message);
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        console.log(error.response.data.error);
+        toast.error(error.response.data.error);
+      }
+    }
+  );
+
+
+
 // INITIAL STATE
 const initialState = {
   
   Stitching: [],
   SingleStitching:{},
+  stitchingEmbroidery:{},
   loading: false,
 };
 
@@ -134,7 +152,13 @@ const StitchingSlice = createSlice({
         state.SingleStitching = action.payload
       })
 
-
+      .addCase(getStitchingByEmbroidery.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(getStitchingByEmbroidery.fulfilled, (state, action) => {
+        state.loading = false;
+        state.stitchingEmbroidery = action.payload
+      })
 
       
    
