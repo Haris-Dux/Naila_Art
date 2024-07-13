@@ -18,6 +18,8 @@ Embroidery:EmbroiderySlice,
 Calender:CalenderSlice,
 Cutting:CuttingSlice,
 stone:stoneslice,
+stitching:stitching,
+
 
 
 
