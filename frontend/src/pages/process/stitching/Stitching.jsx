@@ -1,42 +1,45 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
-
+import { GetAllStitching } from '../../../features/stitching';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 const Stitching = () => {
-    const [isOpen, setIsOpen] = useState(false);
+   
+    const dispatch = useDispatch();
+    const { Stitching, loading } = useSelector((state) => state.stitching);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchText, setSearchText] = useState('');
 
-    const data = [
-        {
-            id: 2,
-            partyName: 'M Amir',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            r_quantity: '108',
-            status: 'Pending',
-        },
-        {
-            id: 3,
-            partyName: 'M Amir',
-            design_no: '293',
-            date: '21/03/23',
-            quantity: '1322',
-            r_quantity: '108',
-            status: 'Complete',
-        },
-    ]
+    useEffect(() => {
+        dispatch(GetAllStitching());
+    }, [dispatch]);
 
-    const openModal = () => {
-        setIsOpen(true);
-        document.body.style.overflow = 'hidden';
+    const totalPages = Stitching?.totalPages || 1;
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
     };
 
-    const closeModal = () => {
-        setIsOpen(false);
-        document.body.style.overflow = 'auto';
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
     };
+
+    const handleSearch = (e) => {
+        setSearchText(e.target.value);
+    };
+
+    const filteredData = Stitching?.data?.filter((data) =>
+        data.partyName.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+  
 
     return (
         <>
@@ -47,7 +50,7 @@ const Stitching = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="flex items-center gap-2 mr-2">
-                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                        <button  className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                             <IoAdd size={22} className='text-white' />
                         </button>
 
@@ -72,8 +75,8 @@ const Stitching = () => {
                                 type="text"
                                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                                 placeholder="Search by Design Number"
-                            // value={searchText}
-                            // onChange={handleSearch}
+                            value={searchText}
+                            onChange={handleSearch}
                             />
                         </div>
                     </div>
@@ -83,6 +86,22 @@ const Stitching = () => {
 
 
                 {/* -------------- TABLE -------------- */}
+
+
+
+
+                
+                {loading ? (
+                    <div className="pt-16 flex justify-center mt-12 items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                ) : (
+
+
+<>    
+
                 <div className="relative overflow-x-auto mt-5 ">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                         <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -138,7 +157,7 @@ const Stitching = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((data, index) => (
+                            {filteredData?.map((data, index) => (
                                 <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                     <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                         scope="row"
@@ -161,7 +180,7 @@ const Stitching = () => {
                                         {data.r_quantity} y
                                     </td>
                                     <td className="px-6 py-4">
-                                        {data.status}
+                                        {data.project_status}
                                     </td>
                                     <td className="pl-10 py-4">
                                         <Link to={`/dashboard/stitching-details/${data.id}`}>
@@ -173,7 +192,57 @@ const Stitching = () => {
                         </tbody>
                     </table>
                 </div>
+
+
+
+
+<nav
+className="flex items-center flex-column flex-wrap md:flex-row justify-end pt-4"
+aria-label="Table navigation"
+>
+<ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+  <li>
+    <button
+      onClick={handlePreviousPage}
+      disabled={currentPage === 1}
+      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+      Previous
+    </button>
+  </li>
+  {[...Array(Stitching.totalPages)].map((_, pageIndex) => (
+    <li key={pageIndex}>
+      <button
+        onClick={() => setCurrentPage(pageIndex + 1)}
+        className={`flex items-center justify-center px-3 h-8 leading-tight ${
+          currentPage === pageIndex + 1
+            ? "text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+            : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        }`}
+      >
+        {pageIndex + 1}
+      </button>
+    </li>
+  ))}
+  <li>
+    <button
+      onClick={handleNextPage}
+      disabled={currentPage === Stitching.totalPages}
+      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+    >
+      Next
+    </button>
+  </li>
+</ul>
+</nav>
+
+
+</>
+                        )}
             </section >
+
+
+
 
 
         </>
