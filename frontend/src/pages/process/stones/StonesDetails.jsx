@@ -66,7 +66,7 @@ const navigate = useNavigate()
   const [StoneData, setStoneData] = useState({
     id: SingleStone.id,
     project_status: "Completed",
-    category_quantity: SingleStone.category_quantity || [
+    category_quantity: SingleStone?.category_quantity || [
       {
         id: "",
         first: 0,
@@ -82,7 +82,7 @@ const navigate = useNavigate()
         id: SingleStone.id,
         project_status: "Completed",
 
-        category_quantity: SingleStone.category_quantity || [
+        category_quantity: SingleStone?.category_quantity || [
           {
             id: "",
             first:SingleStone?.category_quantity?.first || 0,
@@ -173,9 +173,9 @@ const navigate = useNavigate()
   const handleUpdateStone = (e) => {
     e.preventDefault();
 
-    const updatedCategoryQuantity = SingleStone.category_quantity.map(
+    const updatedCategoryQuantity = SingleStone?.category_quantity?.map(
       (item, index) => ({
-        ...StoneData.category_quantity[index],
+        ...StoneData?.category_quantity[index],
         id: item.id,
       })
     );
@@ -198,7 +198,7 @@ const navigate = useNavigate()
   };
 
   const handlstoneChange = (index, field, value) => {
-    const updatedCategoryQuantity = StoneData.category_quantity.map(
+    const updatedCategoryQuantity = StoneData?.category_quantity?.map(
       (item, i) => {
         if (i === index) {
           return {
@@ -224,6 +224,21 @@ const navigate = useNavigate()
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };
+
+
+  if (loading) {
+    return (    
+        <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+
+    <div className="pt-16 flex justify-center mt-12 items-center">
+    <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+        <span className="sr-only">Loading...</span>
+    </div>
+</div>
+</section>
+);
+
+}
 
   console.log("selectedDetails", SingleStone);
 
@@ -538,7 +553,7 @@ const navigate = useNavigate()
                     </p>
                   </div>
 
-                  {formData.suits_category.map((row, index) => (
+                  {formData?.suits_category?.map((row, index) => (
                     <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                       {/* SELECT CATEGORY */}
                       <div>
@@ -606,7 +621,7 @@ const navigate = useNavigate()
                     </p>
                   </div>
 
-                  {formData.dupatta_category.map((row, index) => (
+                  {formData?.dupatta_category?.map((row, index) => (
                     <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                       {/* SELECT CATEGORY */}
                       <div>
