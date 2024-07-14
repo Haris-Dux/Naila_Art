@@ -3,7 +3,8 @@ import { IoAdd } from "react-icons/io5";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FaEye } from "react-icons/fa";
-
+import { CreateEmployee } from '../../features/AccountSlice';
+import { useDispatch } from 'react-redux';
 const data = [
   {
     id: 1,
@@ -40,39 +41,40 @@ const PhoneComponent = ({ phone }) => {
 const Employee = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { loading } = useSelector((state) => state.InStock);
+const dispatch = useDispatch()
 
 
-  // State variables to hold form data
-  const [formData, setFormData] = useState({
-    category: "",
-    color: "",
-    quantity: "",
-    cost_price: "",
-    sale_price: "",
-    d_no: ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  father_Name: "",
+  CNIC: "",
+  phone_number: "",
+  address: "",
+  father_phone_number: "",
+  last_work_place: "",
+  designation: "",
+  salary: "",
+  joininig_date: "",
+});
 
-  // Function to handle changes in form inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
+// Function to handle changes in form inputs
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prevState => ({
+    ...prevState,
+    [name]: value
+  }));
+};
 
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Dispatch action with form data
-    // dispatch(AddSuit(formData)).then(() => {
-    //   dispatch(GetAllSuit())
-    //   closeModal();
-    // }).catch((error) => {
-    //   console.error("Error adding suit:", error);
-    // });
+    dispatch(CreateEmployee(formData)).then(() => {
+      closeModal();
+    }).catch((error) => {
+      console.error("Error adding employee:", error);
+    });
   };
-
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = 'hidden';
@@ -243,7 +245,7 @@ const Employee = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
 
                 {/* FIRST ROW */}
                 <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
@@ -252,7 +254,12 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Name"
+                      name="name"
+                      id="name"
+                      value={formData.name}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                     
                       required
                     />
                   </div>
@@ -262,6 +269,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Father Name"
+                      name="father_Name"
+                      id="father_Name"
+                      value={formData.father_Name}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -272,6 +283,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="CNIC"
+                      name="CNIC"
+                      id="CNIC"
+                      value={formData.CNIC}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -285,6 +300,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Phone Number"
+                      name="phone_number"
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -294,6 +313,10 @@ const Employee = () => {
                   <div>
                     <input
                       type="text"
+                      name="address"
+                      id="address"
+                      value={formData.address}
+                      onChange={handleChange}
                       placeholder="Address"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
@@ -305,6 +328,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Father CNIC"
+                      name="father_phone_number"
+                      id="father_phone_number"
+                      value={formData.father_phone_number}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -315,6 +342,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Last Work Place"
+                      name="last_work_place"
+                      id="last_work_place"
+                      value={formData.last_work_place}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -328,6 +359,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Designation"
+                      name="designation"
+                      id="designation"
+                      value={formData.designation}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -338,6 +373,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Salary"
+                      name="salary"
+                      id="salary"
+                      value={formData.salary}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -348,6 +387,10 @@ const Employee = () => {
                     <input
                       type="date"
                       placeholder="Joining Date"
+                      name="joininig_date"
+                      id="joininig_date"
+                      value={formData.joininig_date}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
