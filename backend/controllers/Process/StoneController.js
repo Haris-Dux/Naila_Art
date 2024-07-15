@@ -125,21 +125,21 @@ export const updateStone = async (req, res, next) => {
             toUpdate.recieved_Data.first.quantity = first;
             toUpdate.recieved_Data.first.date = date;
             toUpdate.recieved_Data.r_total = first + total;
-          }
+          };
 
           if (second) {
             let total = toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.second.quantity;
             toUpdate.recieved_Data.second.quantity = second;
             toUpdate.recieved_Data.second.date = date;
             toUpdate.recieved_Data.r_total = second + total;
-          }
+          };
 
           if (third) {
             let total = toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.third.quantity;
             toUpdate.recieved_Data.third.quantity = third;
             toUpdate.recieved_Data.third.date = date;
             toUpdate.recieved_Data.r_total = third + total;
-          }
+          };
         }
         toUpdate.recieved_Data.r_date = date;
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;

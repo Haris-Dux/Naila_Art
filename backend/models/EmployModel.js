@@ -34,7 +34,7 @@ const employeSchema = new  mongoose.Schema({
     required: [true,"Father Name required"],
   },
   CNIC: {
-    type: Number,
+    type: String,
     required: [true,"CNIC required"],
   },
   phone_number: {
@@ -65,9 +65,12 @@ const employeSchema = new  mongoose.Schema({
     type:Date,
     required:[true,"joining date required"]
   },
+  pastEmploye:{
+    type:Boolean,
+    default:false
+  },
   financeData:[financeSchema]
 
 }, { timestamps: true });
 
 export const EmployeModel = mongoose.model('Employ', employeSchema);
-
