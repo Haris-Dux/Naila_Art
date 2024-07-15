@@ -3,6 +3,9 @@ import { IoAdd } from "react-icons/io5";
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FaEye } from "react-icons/fa";
+import { CreateEmployee } from '../../features/AccountSlice';
+import { useDispatch } from 'react-redux';
+import {  FaEdit, FaTrashAlt } from "react-icons/fa";
 
 const data = [
   {
@@ -23,6 +26,9 @@ const data = [
   },
 ]
 
+const categories = ['Active Employee', 'Past Employee'];
+
+
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
     if (phone.length > 3) {
@@ -38,39 +44,73 @@ const PhoneComponent = ({ phone }) => {
 };
 
 const Employee = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { loading } = useSelector((state) => state.InStock);
+
+const [isOpen, setIsOpen] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
+const [selectedEmployee, setSelectedEmployee] = useState(null);
+const { loading } = useSelector((state) => state.InStock);
+const dispatch = useDispatch();
+const [selectedCategory, setSelectedCategory] = useState('ActiveEmployee');
 
 
-  // State variables to hold form data
-  const [formData, setFormData] = useState({
-    category: "",
-    color: "",
-    quantity: "",
-    cost_price: "",
-    sale_price: "",
-    d_no: ""
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  father_Name: "",
+  CNIC: "",
+  phone_number: "",
+  address: "",
+  father_phone_number: "",
+  last_work_place: "",
+  designation: "",
+  salary: "",
+  joininig_date: "",
+});
 
-  // Function to handle changes in form inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
+// Function to handle changes in form inputs
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prevState => ({
+    ...prevState,
+    [name]: value
+  }));
+};
 
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Dispatch action with form data
-    // dispatch(AddSuit(formData)).then(() => {
-    //   dispatch(GetAllSuit())
-    //   closeModal();
-    // }).catch((error) => {
-    //   console.error("Error adding suit:", error);
-    // });
+    if (isEditing) {
+      dispatch(UpdateEmployee({ id: selectedEmployee.id, ...formData }))
+        .then(() => {
+          closeModal();
+        })
+        .catch((error) => {
+          console.error("Error updating employee:", error);
+        });
+    } else {
+      dispatch(CreateEmployee(formData))
+        .then(() => {
+          closeModal();
+        })
+        .catch((error) => {
+          console.error("Error adding employee:", error);
+        });
+    }
+  };
+  const handleEdit = (employee) => {
+    setFormData(employee);
+    setSelectedEmployee(employee);
+    setIsEditing(true);
+    openModal();
+  };
+
+  const handleDelete = (id) => {
+    dispatch(DeleteEmployee(id))
+      .then(() => {
+        console.log("Employee deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting employee:", error);
+      });
   };
 
   const openModal = () => {
@@ -93,9 +133,7 @@ const Employee = () => {
 
           {/* <!-- search bar --> */}
           <div className="search_bar flex items-center gap-3 mr-2">
-            <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-              <IoAdd size={22} className='text-white' />
-            </button>
+        
 
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -124,6 +162,27 @@ const Employee = () => {
             </div>
           </div>
         </div>
+
+
+
+        <div className="tabs flex justify-between items-center my-5">
+                    <div className="tabs_button">
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                className={`border border-gray-500 dark:bg-gray-700 text-gray-900  dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900   ' : ''}`}
+                                onClick={() => setSelectedCategory(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+              <IoAdd size={22} className='text-white' />
+            </button>
+                </div>
+
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
@@ -167,6 +226,7 @@ const Employee = () => {
                   >
                     Details
                   </th>
+                  <th className="px-6 py-4 text-md font-medium" scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -193,6 +253,13 @@ const Employee = () => {
                           <FaEye size={20} className='cursor-pointer' />
                         </Link>
                       </td>
+
+                      <td className="pl-10 py-4 flex gap-2 mt-2">
+                      
+                        <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(data)} />
+                        <FaTrashAlt size={20} className='cursor-pointer' onClick={() => handleDelete(data.id)} />
+                      </td>
+                    
                     </tr>
                   ))
                 ) : (
@@ -243,7 +310,7 @@ const Employee = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
 
                 {/* FIRST ROW */}
                 <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
@@ -252,7 +319,12 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Name"
+                      name="name"
+                      id="name"
+                      value={formData.name}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                     
                       required
                     />
                   </div>
@@ -262,6 +334,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Father Name"
+                      name="father_Name"
+                      id="father_Name"
+                      value={formData.father_Name}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -272,6 +348,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="CNIC"
+                      name="CNIC"
+                      id="CNIC"
+                      value={formData.CNIC}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -285,6 +365,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Phone Number"
+                      name="phone_number"
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -294,6 +378,10 @@ const Employee = () => {
                   <div>
                     <input
                       type="text"
+                      name="address"
+                      id="address"
+                      value={formData.address}
+                      onChange={handleChange}
                       placeholder="Address"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
@@ -305,6 +393,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Father CNIC"
+                      name="father_phone_number"
+                      id="father_phone_number"
+                      value={formData.father_phone_number}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -315,6 +407,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Last Work Place"
+                      name="last_work_place"
+                      id="last_work_place"
+                      value={formData.last_work_place}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -328,6 +424,10 @@ const Employee = () => {
                     <input
                       type="text"
                       placeholder="Designation"
+                      name="designation"
+                      id="designation"
+                      value={formData.designation}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -338,6 +438,10 @@ const Employee = () => {
                     <input
                       type="number"
                       placeholder="Salary"
+                      name="salary"
+                      id="salary"
+                      value={formData.salary}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -348,6 +452,10 @@ const Employee = () => {
                     <input
                       type="date"
                       placeholder="Joining Date"
+                      name="joininig_date"
+                      id="joininig_date"
+                      value={formData.joininig_date}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -359,7 +467,7 @@ const Employee = () => {
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-                    Submit
+                  {isEditing ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
