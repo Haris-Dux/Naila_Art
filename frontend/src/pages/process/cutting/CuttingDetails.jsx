@@ -93,11 +93,7 @@ const CuttingDetails = () => {
       };
       
     
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle form submission logic here
-        console.log('Form Data:', formData);
-      };
+     
 
     
 
@@ -195,6 +191,22 @@ const CuttingDetails = () => {
         setIsOpen(false);
         document.body.style.overflow = 'auto';
     };
+
+
+
+    if (loading) {
+      return (    
+          <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+  
+      <div className="pt-16 flex justify-center mt-12 items-center">
+      <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+          <span className="sr-only">Loading...</span>
+      </div>
+  </div>
+  </section>
+  );
+  
+  }
 
     return (
         <>
@@ -341,7 +353,7 @@ const CuttingDetails = () => {
                   placeholder="Design No"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   required
-                  value={formData.design_no}
+                  value={formData.DesignNo}
                   onChange={handleChange}
                 />
               </div>
@@ -384,6 +396,9 @@ const CuttingDetails = () => {
                                 </h2>
                                 <p onClick={ addNewRow}><FiPlus size={24} className=' cursor-pointer dark:text-white' /></p>
                                 </div>
+
+
+                                
 
                              
                                 {formData.category_quantity && formData.category_quantity.map((row, index) => (
