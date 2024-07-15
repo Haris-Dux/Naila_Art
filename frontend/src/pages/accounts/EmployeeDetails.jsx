@@ -1,5 +1,7 @@
-import { useSelector } from 'react-redux';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useState,useEffect } from 'react';
+import { GetEmployeeById } from '../../features/AccountSlice';
 const data = [
     {
         id: 1,
@@ -20,7 +22,24 @@ const data = [
 ]
 
 const EmployeeDetails = () => {
-    const { loading } = useSelector((state) => state.InStock);
+
+
+
+    const { id } = useParams();
+    const { loading,Employee } = useSelector((state) => state.Account);
+    const dispatch = useDispatch()
+    const navigate = useNavigate();
+
+    console.log('id',id)
+console.log('data',Employee)
+
+    useEffect(() => {
+        const data = {
+            id:id
+        }
+        dispatch(GetEmployeeById(data))
+         }, [id])
+
 
     return (
         <>
@@ -29,35 +48,33 @@ const EmployeeDetails = () => {
                 <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-3 text-gray-900 dark:text-gray-100">
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Employee Name</h3>
-                        <h3>M Amir</h3>
+                        <h3>{Employee?.name}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Phone Number</h3>
-                        <h3>0332 4700802</h3>
+                        <h3>{Employee?.phone_number}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>CNIC</h3>
-                        <h3>35202-6206522-9</h3>
+                        <h3>{Employee?.CNIC}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Address</h3>
-                        <h3 className=''>531 G Block Karim Block Lahore</h3>
+                        <h3 className=''>{Employee?.address}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Last Work Place</h3>
-                        <h3>Brandth Road</h3>
+                        <h3>{Employee?.last_work_place}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Designation</h3>
-                        <h3>Sales Man</h3>
+                        <h3>{Employee?.designation}</h3>
                     </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Father CNIC</h3>
-                        <h3>35202-6206522-9</h3>
-                    </div>
+                 
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Joining Date</h3>
-                        <h3>02-02-2024</h3>
+                        <h3>{Employee?.joininig_date ? new Date(Employee.joininig_date).toLocaleDateString() : 'No joining date available'}</h3>
+
                     </div>
                 </div>
 
@@ -108,13 +125,13 @@ const EmployeeDetails = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data && data.length > 0 ? (
-                                    data?.map((data, index) => (
+                                {Employee && Employee?.financeData?.length > 0 ? (
+                                    Employee?.financeData?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
                                             >
-                                                <p>{data.date}</p>
+                                                <p>{new Date(data.date).toLocaleDateString()}</p>
                                             </th>
                                             <td className="px-6 py-4 font-medium">
                                                 {data.particular}
