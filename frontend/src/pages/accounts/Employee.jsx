@@ -28,6 +28,8 @@ const Employee = () => {
   const [selectedCategory, setSelectedCategory] = useState('Active Employee');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+
 
 console.log('selected categorey',selectedCategory)
 
@@ -115,9 +117,14 @@ console.log('selected categorey',selectedCategory)
   };
 
   const handleDelete = (id) => {
-    dispatch(DeleteEmployee(id))
+    const data = {
+      id:id,
+      pastEmploye:true
+    }
+    dispatch(UpdateEmployee(data))
       .then(() => {
-        console.log("Employee deleted successfully");
+        closeConfirmationModal()
+       dispatch(GetEmployeeActive())
       })
       .catch((error) => {
         console.error("Error deleting employee:", error);
@@ -131,6 +138,18 @@ console.log('selected categorey',selectedCategory)
 
   const closeModal = () => {
     setIsOpen(false);
+    document.body.style.overflow = 'auto';
+  };
+
+  const openConfirmationModal = (employee) => {
+    setIsConfirmationOpen(true);
+    setSelectedEmployee(employee);
+
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeConfirmationModal = () => {
+    setIsConfirmationOpen(false);
     document.body.style.overflow = 'auto';
   };
 
@@ -227,7 +246,7 @@ console.log('selected categorey',selectedCategory)
                       {selectedCategory === 'Active Employee' && (
                       <td className="pl-10 py-4 flex gap-2 mt-2">
                         <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(employee)} />
-                        <FaTrashAlt size={20} className='cursor-pointer' onClick={() => handleDelete(employee.id)} />
+                        <FaTrashAlt size={20} className='cursor-pointer'  onClick={() => openConfirmationModal(employee)} />
                       </td>
                       )}
                     </tr>
@@ -495,6 +514,38 @@ console.log('selected categorey',selectedCategory)
           </div>
         </div >
       )}
+
+
+
+{isConfirmationOpen && (
+          <div aria-hidden="true" className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50">
+            <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Confirm Credit Salary
+                </h3>
+                <button onClick={closeConfirmationModal} className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" type="button">
+                  <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+
+              <div className="p-4 md:p-5">
+                <p className="text-center text-gray-700 dark:text-gray-300">Are you sure you want to Delete the Employee?</p>
+                <div className="flex justify-center pt-5 gap-3">
+                  <button onClick={() => handleDelete(selectedEmployee.id)} className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500">
+                    Yes
+                  </button>
+                  <button onClick={closeConfirmationModal} className="inline-block rounded border border-gray-300 bg-gray-300 dark:bg-gray-400 px-10 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-400 focus:outline-none focus:ring">
+                    No
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </>
   );
 };

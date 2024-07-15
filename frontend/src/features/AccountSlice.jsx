@@ -8,7 +8,8 @@ const ActiveEmployee = "http://localhost:8000/api/employ/getAllActiveEmploye";
 const PastEmployee = "http://localhost:8000/api/employ/getAllPastEmploye";
 const EmployeeByID = "http://localhost:8000/api/employ/getEmployeDataById";
 const Update = "http://localhost:8000/api/employ/updateEmploye";
-const Delete = "http://localhost:8000/api/employe/addEmploye";
+const Debitcredit = "http://localhost:8000/api/employ/creditDebitBalance";
+const creditEmployeeeSalary = 'http://localhost:8000/api/employ/creditSalaryForSingleEmploye'
 
 
 
@@ -87,6 +88,40 @@ export const UpdateEmployee = createAsyncThunk(
 );
 
 
+export const AddCreditDebit = createAsyncThunk(
+  "Employee/Debitcredit",
+  async (formData) => {
+    try {
+      const response = await axios.post(Debitcredit, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+
+
+export const CreditSalary = createAsyncThunk(
+  "Employee/CreaditEmployeeSalary",
+  async (formData) => {
+    try {
+      const response = await axios.post(creditEmployeeeSalary, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+
+
+
+
 
 
 
@@ -157,10 +192,31 @@ const AccountSlice = createSlice({
     
       })
 
+
+      .addCase(AddCreditDebit.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(AddCreditDebit.fulfilled, (state, action) => {
+        state.loading = false;
+   
+
+    
+      })
+
+    
+      .addCase(CreditSalary.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(CreditSalary.fulfilled, (state, action) => {
+        state.loading = false;
+   
+
+    
+      })
+
     
 
-
-
+      
       
    
   },
