@@ -1,4 +1,5 @@
 import { EmployeModel } from "../models/EmployModel.js";
+import { setMongoose } from "../utils/Mongoose.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -54,7 +55,7 @@ export const addEmploye = async (req, res, next) => {
 
 export const creditDebitBalance = async (req, res, next) => {
   try {
-    const { id, credit, debit, date } = req.body;
+    const { id, credit, debit, date , particular } = req.body;
     if (!id) throw new Error("Employ Id Fequired");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -108,10 +109,10 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
     newBalance += employe.salary;
     employe.financeData.push({
       credit: employe.salary,
-      debit: 0,
+      debit:  employe.financeData[employe.financeData.length - 1].balance < 0 ? employe.salary - newBalance : 0 ,
       balance: newBalance,
-      particular: particular || "Credit Transaction",
-      date: date,
+      particular: "Salary Credit Transaction",
+      date: Date.now(),
     });
 
     await employe.save();
@@ -143,34 +144,34 @@ export const updateEmploye = async (req, res, next) => {
     let updateQuery = {};
     if (name) {
       updateQuery.name = name;
-    }
+    };
     if (father_Name) {
       updateQuery.father_Name = father_Name;
-    }
+    };
     if (CNIC) {
       updateQuery.CNIC = CNIC;
-    }
+    };
     if (phone_number) {
       updateQuery.phone_number = phone_number;
-    }
+    };
     if (address) {
       updateQuery.address = address;
-    }
+    };
     if (father_phone_number) {
       updateQuery.father_phone_number = father_phone_number;
-    }
+    };
     if (last_work_place) {
       updateQuery.last_work_place = last_work_place;
-    }
+    };
     if (designation) {
       updateQuery.designation = designation;
-    }
+    };
     if (salary) {
       updateQuery.salary = salary;
-    }
+    };
     if (joininig_date) {
       updateQuery.joininig_date = joininig_date;
-    }
+    };
     if (pastEmploye !== undefined) {
       updateQuery.pastEmploye = pastEmploye;
     };
@@ -182,12 +183,15 @@ export const updateEmploye = async (req, res, next) => {
   }
 };
 
-export const getEmployeById = async (req,res,next) => {
+export const getEmployeDataById = async (req,res,next) => {
+  console.log("endpointhit");
   try {
     const {id} = req.body;
+    console.log(id);
     if(!id) throw new Error("Employe Not Found");
     const employe = await EmployeModel.findById(id);
     if(!employe) throw new Error("Employe Not Found");
+    setMongoose();
     return res.status(200).json(employe);
   } catch (error) {
     return res.status(500).json({error:error.message})
@@ -205,7 +209,7 @@ export const getAllActiveEmploye = async (req,res,next) => {
       pastEmploye:false
     };
 
-    const productData = await EmployeModel.find(query)
+    const employData = await EmployeModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -216,7 +220,7 @@ export const getAllActiveEmploye = async (req,res,next) => {
       totalPages: Math.ceil(total / limit),
       page,
       totalEmploys:total,
-      productData
+      employData
     };
     setMongoose();
    return res.status(200).json(response);
@@ -236,7 +240,7 @@ export const getAllPastEmploye = async (req,res,next) => {
      pastEmploye:true
    };
 
-   const productData = await EmployeModel.find(query)
+   const employData = await EmployeModel.find(query)
      .skip((page - 1) * limit)
      .limit(limit)
      .sort({ createdAt: -1 });
@@ -247,7 +251,7 @@ export const getAllPastEmploye = async (req,res,next) => {
      totalPages: Math.ceil(total / limit),
      page,
      totalEmploys:total,
-     productData
+     employData
    };
    setMongoose();
   return res.status(200).json(response);
