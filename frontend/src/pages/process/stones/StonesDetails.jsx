@@ -82,17 +82,22 @@ const navigate = useNavigate()
         id: SingleStone.id,
         project_status: "Completed",
 
-        category_quantity: SingleStone?.category_quantity || [
-          {
-            id: "",
-            first:SingleStone?.category_quantity?.first || 0,
-            second: SingleStone?.category_quantity?.second || 0,
-            third:SingleStone?.category_quantity?.third || 0,
-          },
-        ],
+        category_quantity: SingleStone.category_quantity.map((item) => ({
+          id: item.id,
+          first: item.recieved_Data?.first?.quantity || 0,
+          second: item.recieved_Data?.second?.quantity || 0,
+          third: item.recieved_Data?.third?.quantity || 0,
+          category:item.category
+        }))
+
       });
     }
   }, [SingleStone]);
+
+
+
+
+
 
   useEffect(() => {
     setFormData({
