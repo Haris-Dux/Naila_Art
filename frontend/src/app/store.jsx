@@ -8,6 +8,7 @@ import CalenderSlice from "../features/CalenderSlice";
 import CuttingSlice from "../features/CuttingSlice";
 import stoneslice from "../features/stoneslice";
 import stitching from "../features/stitching";
+import AccountSlice from "../features/AccountSlice";
 export const store = configureStore({
   reducer: {
     auth: authSlice,
@@ -19,6 +20,7 @@ Calender:CalenderSlice,
 Cutting:CuttingSlice,
 stone:stoneslice,
 stitching:stitching,
+Account:AccountSlice
 
 
 

@@ -4,11 +4,14 @@ import toast from "react-hot-toast";
 
 //API URL
 const addEmployee = "http://localhost:8000/api/employe/addEmploye";
+const ActiveEmployee = "http://localhost:8000/api/employ/getAllActiveEmploye";
+const PastEmployee = "http://localhost:8000/api/employ/getAllPastEmploye";
+const EmployeeByID = "http://localhost:8000/api/employ/getEmployeDataById";
+const Update = "http://localhost:8000/api/employ/updateEmploye";
+const Delete = "http://localhost:8000/api/employe/addEmploye";
 
 
 
-
-//CREATE ASYNC THUNK
 export const CreateEmployee = createAsyncThunk(
   "Employee/create",
   async (formData) => {
@@ -23,11 +26,74 @@ export const CreateEmployee = createAsyncThunk(
   }
 );
 
+export const GetEmployeeActive = createAsyncThunk(
+  "Employee/GetActiveEmployee",
+  async () => {
+    try {
+      const response = await axios.post(ActiveEmployee);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+export const GetEmployeePast = createAsyncThunk(
+  "Employee/GetEmplpyeePast",
+  async () => {
+    try {
+      const response = await axios.post(PastEmployee);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+
+
+export const GetEmployeeById = createAsyncThunk(
+  "Employee/SingleEmployee",
+  async (id) => {
+    try {
+      const response = await axios.post(EmployeeByID,id);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+
+
+export const UpdateEmployee = createAsyncThunk(
+  "Employee/Update",
+  async (formData) => {
+    try {
+      const response = await axios.post(Update, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  }
+);
+
+
+
 
 
 const initialState = {
   
-  Employee: [],
+  Employees: [],
+  Employee:{},
   loading: false,
 };
 
@@ -46,6 +112,48 @@ const AccountSlice = createSlice({
       })
       .addCase(CreateEmployee.fulfilled, (state, action) => {
         state.loading = false;
+    
+      })
+
+
+      .addCase(GetEmployeeActive.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetEmployeeActive.fulfilled, (state, action) => {
+        state.loading = false;
+        state.Employees = action.payload
+    
+      })
+      .addCase(GetEmployeePast.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetEmployeePast.fulfilled, (state, action) => {
+        state.loading = false;
+        state.Employees = action.payload
+
+    
+      })
+
+
+      .addCase(GetEmployeeById.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetEmployeeById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.Employee = action.payload
+
+    
+      })
+
+    
+
+      .addCase(UpdateEmployee.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(UpdateEmployee.fulfilled, (state, action) => {
+        state.loading = false;
+   
+
     
       })
 
