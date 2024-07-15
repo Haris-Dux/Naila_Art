@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { FaEye } from "react-icons/fa";
 import { CreateEmployee } from '../../features/AccountSlice';
 import { useDispatch } from 'react-redux';
+import {  FaEdit, FaTrashAlt } from "react-icons/fa";
+
 const data = [
   {
     id: 1,
@@ -24,6 +26,9 @@ const data = [
   },
 ]
 
+const categories = ['Active Employee', 'Past Employee'];
+
+
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
     if (phone.length > 3) {
@@ -39,9 +44,13 @@ const PhoneComponent = ({ phone }) => {
 };
 
 const Employee = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { loading } = useSelector((state) => state.InStock);
-const dispatch = useDispatch()
+
+const [isOpen, setIsOpen] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
+const [selectedEmployee, setSelectedEmployee] = useState(null);
+const { loading } = useSelector((state) => state.InStock);
+const dispatch = useDispatch();
+const [selectedCategory, setSelectedCategory] = useState('ActiveEmployee');
 
 
 const [formData, setFormData] = useState({
@@ -69,12 +78,41 @@ const handleChange = (e) => {
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(CreateEmployee(formData)).then(() => {
-      closeModal();
-    }).catch((error) => {
-      console.error("Error adding employee:", error);
-    });
+    if (isEditing) {
+      dispatch(UpdateEmployee({ id: selectedEmployee.id, ...formData }))
+        .then(() => {
+          closeModal();
+        })
+        .catch((error) => {
+          console.error("Error updating employee:", error);
+        });
+    } else {
+      dispatch(CreateEmployee(formData))
+        .then(() => {
+          closeModal();
+        })
+        .catch((error) => {
+          console.error("Error adding employee:", error);
+        });
+    }
   };
+  const handleEdit = (employee) => {
+    setFormData(employee);
+    setSelectedEmployee(employee);
+    setIsEditing(true);
+    openModal();
+  };
+
+  const handleDelete = (id) => {
+    dispatch(DeleteEmployee(id))
+      .then(() => {
+        console.log("Employee deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting employee:", error);
+      });
+  };
+
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = 'hidden';
@@ -95,9 +133,7 @@ const handleChange = (e) => {
 
           {/* <!-- search bar --> */}
           <div className="search_bar flex items-center gap-3 mr-2">
-            <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-              <IoAdd size={22} className='text-white' />
-            </button>
+        
 
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -126,6 +162,27 @@ const handleChange = (e) => {
             </div>
           </div>
         </div>
+
+
+
+        <div className="tabs flex justify-between items-center my-5">
+                    <div className="tabs_button">
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                className={`border border-gray-500 dark:bg-gray-700 text-gray-900  dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900   ' : ''}`}
+                                onClick={() => setSelectedCategory(category)}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+              <IoAdd size={22} className='text-white' />
+            </button>
+                </div>
+
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
@@ -169,6 +226,7 @@ const handleChange = (e) => {
                   >
                     Details
                   </th>
+                  <th className="px-6 py-4 text-md font-medium" scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,6 +253,13 @@ const handleChange = (e) => {
                           <FaEye size={20} className='cursor-pointer' />
                         </Link>
                       </td>
+
+                      <td className="pl-10 py-4 flex gap-2 mt-2">
+                      
+                        <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(data)} />
+                        <FaTrashAlt size={20} className='cursor-pointer' onClick={() => handleDelete(data.id)} />
+                      </td>
+                    
                     </tr>
                   ))
                 ) : (
@@ -402,7 +467,7 @@ const handleChange = (e) => {
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-                    Submit
+                  {isEditing ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
