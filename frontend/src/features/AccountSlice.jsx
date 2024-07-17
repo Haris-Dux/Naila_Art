@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addEmployee = "http://localhost:8000/api/employe/addEmploye";
+const addEmployee = "http://localhost:8000/api/employ/addEmploye";
 const ActiveEmployee = "http://localhost:8000/api/employ/getAllActiveEmploye";
 const PastEmployee = "http://localhost:8000/api/employ/getAllPastEmploye";
 const EmployeeByID = "http://localhost:8000/api/employ/getEmployeDataById";
@@ -29,9 +29,9 @@ export const CreateEmployee = createAsyncThunk(
 
 export const GetEmployeeActive = createAsyncThunk(
   "Employee/GetActiveEmployee",
-  async () => {
+  async (search) => {
     try {
-      const response = await axios.post(ActiveEmployee);
+      const response = await axios.post(`${ActiveEmployee}?search=${search}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -43,9 +43,9 @@ export const GetEmployeeActive = createAsyncThunk(
 
 export const GetEmployeePast = createAsyncThunk(
   "Employee/GetEmplpyeePast",
-  async () => {
+  async (search) => {
     try {
-      const response = await axios.post(PastEmployee);
+      const response = await axios.post(`${PastEmployee}?search=${search}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
