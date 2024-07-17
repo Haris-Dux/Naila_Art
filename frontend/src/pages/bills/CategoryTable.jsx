@@ -40,6 +40,12 @@ const CategoryTable = ({ category }) => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
+                                        Category
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
                                         Colors
                                     </th>
                                     <th
@@ -66,7 +72,9 @@ const CategoryTable = ({ category }) => {
                                 {Base && Base.length > 0 ? (
                                     Base?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-
+                                            <th className="px-6 py-4 font-medium" scope="row">
+                                                {data?.category}
+                                            </th>
                                             <td className="px-6 py-4">
                                                 {data?.colors}
                                             </td>
@@ -181,7 +189,7 @@ const CategoryTable = ({ category }) => {
                 )}
             </>
         );
-    } else if (category === 'Bag') {
+    } else if (category === 'Bag & Box') {
         return (
             <>
                 {loading ? (
@@ -199,19 +207,19 @@ const CategoryTable = ({ category }) => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Name
-                                    </th>
-                                    <th
-                                        className="px-6 py-3"
-                                        scope="col"
-                                    >
                                         Bill No
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Recently
+                                        Name
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Total Quantity
                                     </th>
                                     <th
                                         className="px-6 py-3"
@@ -223,8 +231,9 @@ const CategoryTable = ({ category }) => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Total Quantity
+                                        Recently
                                     </th>
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -234,19 +243,20 @@ const CategoryTable = ({ category }) => {
                                             <td className="px-6 py-4"
                                                 scope="row"
                                             >
-                                                {data.name}
-                                            </td>
-                                            <td className="px-6 py-4">
                                                 {data.bill_no}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently} m
+                                                {data.name}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data.totalQuantity} m
                                             </td>
                                             <td className="px-6 py-4">
                                                 {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
+
                                             <td className="px-6 py-4">
-                                                {data.totalQuantity} m
+                                                {data.recently} m
                                             </td>
                                         </tr>
                                     ))
