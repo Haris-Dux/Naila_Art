@@ -38,12 +38,39 @@ export const addBaseInStock = async (req, res, next) => {
 
 export const getAllBases = async (req, res, next) => {
   try {
-    const data = await BaseModel.find({}).sort({ createdAt: -1 });
-    return res.status(200).json(data);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    let search = req.query.search || "";
+
+    let query = {};
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+
+   
+
+    const data = await BaseModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await BaseModel.countDocuments(query);
+
+  
+    const response = {
+      totalPages: Math.ceil(total / limit),
+      page,
+      Base: total,
+      data,
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
+
+
 
 export const getAllCategoriesForbase = async (req, res, next) => {
   try {
