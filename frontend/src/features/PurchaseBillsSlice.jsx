@@ -3,14 +3,29 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
+const createBase = "http://localhost:8000/api/stock/base/addBaseInStock";
 const createBag = "http://localhost:8000/api/stock/bags/addBagsAndBoxInStock";
 const createLace = "http://localhost:8000/api/stock/lace/addLaceInStock";
-
-const createAccesseries =
-  "http://localhost:8000/api/stock/accessories/addAccesoriesInStock";
+const createAccesseries = "http://localhost:8000/api/stock/accessories/addAccesoriesInStock";
 const createExpense = "http://localhost:8000/api/stock/expense/addExpense";
 
-//CREATE ASYNC THUNK
+// CREATE BASE ASYNC THUNK
+export const createBaseAsync = createAsyncThunk(
+  "Base/create",
+  async (formData) => {
+    try {
+      const response = await axios.post(createBase, formData);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+      console.log(error?.response?.data?.error);
+    }
+  }
+);
+
+// CREATE BAG ASYNC THUNK
 export const createBagAsync = createAsyncThunk(
   "Box/create",
   async (formData) => {
@@ -26,7 +41,7 @@ export const createBagAsync = createAsyncThunk(
   }
 );
 
-// lOGIN ASYNC THUNK
+// CREATE LACE ASYNC THUNK
 export const createLaceAsync = createAsyncThunk(
   "Lace/Create",
   async (formData) => {
@@ -42,6 +57,7 @@ export const createLaceAsync = createAsyncThunk(
   }
 );
 
+// CREATE ACCESSORIES ASYNC THUNK
 export const createAsseceriesAsync = createAsyncThunk(
   "Asseceries/Create",
   async (formData) => {
@@ -57,6 +73,7 @@ export const createAsseceriesAsync = createAsyncThunk(
   }
 );
 
+// CREATE EXPENSE ASYNC THUNK
 export const CeateExpenseAsync = createAsyncThunk(
   "Expense/Create",
   async (formData) => {
@@ -87,7 +104,15 @@ const PurchaseSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // Shop Add ADD CASE
+      // CREATE BASE
+      .addCase(createBaseAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(createBaseAsync.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+
+      // CREATE BAG
       .addCase(createBagAsync.pending, (state, action) => {
         state.loading = true;
       })
@@ -95,6 +120,7 @@ const PurchaseSlice = createSlice({
         state.loading = false;
       })
 
+      // CREATE LACE
       .addCase(createLaceAsync.pending, (state, action) => {
         state.loading = true;
       })
@@ -102,6 +128,7 @@ const PurchaseSlice = createSlice({
         state.loading = false;
       })
 
+      // CREATE ACCESSORIES
       .addCase(createAsseceriesAsync.pending, (state, action) => {
         state.loading = true;
       })
@@ -109,6 +136,7 @@ const PurchaseSlice = createSlice({
         state.loading = false;
       })
 
+      // CREATE EXPENSE
       .addCase(CeateExpenseAsync.pending, (state, action) => {
         state.loading = true;
       })

@@ -1,6 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
+import { GetAllBase } from '../../../features/InStockSlice';
 
 const BaseModals = ({ isOpen, closeModal }) => {
+    const dispatch = useDispatch();
+
+    // State variables to hold form data
+    const [formData, setFormData] = useState({
+        colors: "",
+        quantity: "",
+        r_Date: "",
+        category: "",
+    });
+
+    // Function to handle changes in form inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevState) => ({
+            ...prevState,
+            [name]: name === "quantity" ? Number(value) : value,
+        }));
+    };
+
+    // Function to handle form submission
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        dispatch(createBaseAsync(formData)).then((res) => {
+            if (res.payload.message === "Successfully Added") {
+                dispatch(GetAllBase());
+                setFormData({
+                    colors: "",
+                    quantity: "",
+                    r_Date: "",
+                    category: "",
+                });
+                closeModal();
+            }
+        });
+    };
+
+
     return (
         <>
             {isOpen && (
@@ -40,47 +80,17 @@ const BaseModals = ({ isOpen, closeModal }) => {
 
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
-                            <form className="">
+                            <form onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-                                    {/* BILL NO # */}
+
+                                    {/* COLORS */}
                                     <div>
                                         <input
-                                            name="category"
+                                            name="colors"
                                             type="text"
-                                            placeholder="Bill No"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* DATE */}
-                                    <div>
-                                        <input
-                                            id="color"
-                                            name="color"
-                                            type="date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* PARTY NAME */}
-                                    <div className='col-span-2'>
-                                        <input
-                                            name="color"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* CATEGORY */}
-                                    <div>
-                                        <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Category"
+                                            placeholder="Colors"
+                                            value={formData.colors}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
@@ -90,36 +100,41 @@ const BaseModals = ({ isOpen, closeModal }) => {
                                     <div>
                                         <input
                                             name="quantity"
-                                            type="text"
+                                            type="number"
                                             placeholder="Quantity"
+                                            value={formData.quantity}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* RATE */}
+                                    {/* CATEGORY */}
                                     <div>
                                         <input
-                                            name="quantity"
+                                            name="category"
                                             type="text"
-                                            placeholder="Rate"
+                                            placeholder="Category"
+                                            value={formData.category}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* TOTAL */}
+                                    {/* DATE */}
                                     <div>
                                         <input
-                                            name="quantity"
-                                            type="text"
-                                            placeholder="Total"
+                                            name="r_Date"
+                                            type="date"
+                                            placeholder="Date"
+                                            value={formData.r_Date}
+                                            onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
                                 </div>
-
 
                                 <div className="flex justify-center mt-6">
                                     <button

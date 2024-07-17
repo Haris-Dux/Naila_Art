@@ -9,8 +9,6 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   const { Branches } = useSelector((state) => state.InStock);
   console.log("Branches", Branches);
 
-  console.log("user", user);
-  10;
   // State variables to hold form data
   const [formData, setFormData] = useState({
     branchId: user?.user?.branchId || "",
@@ -168,7 +166,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                   </div>
 
                   {user?.user?.role === "superadmin" ||
-                  user?.user?.role === "admin" ? (
+                    user?.user?.role === "admin" ? (
                     <div className="col-span-2">
                       <select
                         id="branches"
