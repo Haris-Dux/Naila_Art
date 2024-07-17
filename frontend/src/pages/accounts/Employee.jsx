@@ -36,11 +36,11 @@ console.log('selected categorey',selectedCategory)
 
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive());
+      dispatch(GetEmployeeActive(searchText));
     } else {
-      dispatch(GetEmployeePast());
+      dispatch(GetEmployeePast(searchText));
     }
-  }, [selectedCategory, dispatch]);
+  }, [selectedCategory, searchText]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -55,13 +55,12 @@ console.log('selected categorey',selectedCategory)
     joininig_date: "",
   });
 
+
+
   const handleSearch = (event) => {
     setSearchText(event.target.value);
   };
-
-  const filteredEmployee = Employees?.employData?.filter((entry) =>
-    entry.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+ 
 
   const totalPages = Employees?.totalPages || 1;
 
@@ -90,8 +89,11 @@ console.log('selected categorey',selectedCategory)
     if (isEditing) {
       const updatedFormData = { ...formData, id: selectedEmployee.id };
       dispatch(UpdateEmployee(updatedFormData)).then(() => {
+        dispatch(GetEmployeeActive(searchText))
           closeModal();
-         dispatch(GetEmployeeActive())
+          setFormData('')
+       setIsEditing(false);
+
         })
         .catch((error) => {
           console.error("Error updating employee:", error);
@@ -99,8 +101,9 @@ console.log('selected categorey',selectedCategory)
     } else {
       dispatch(CreateEmployee(formData))
         .then(() => {
+          dispatch(GetEmployeeActive(searchText))
           closeModal();
-          GetEmployeeActive()
+          setFormData('')
 
         })
         .catch((error) => {
@@ -123,8 +126,10 @@ console.log('selected categorey',selectedCategory)
     }
     dispatch(UpdateEmployee(data))
       .then(() => {
+       dispatch(GetEmployeeActive(searchText))
+       
+
         closeConfirmationModal()
-       dispatch(GetEmployeeActive())
       })
       .catch((error) => {
         console.error("Error deleting employee:", error);
@@ -139,6 +144,10 @@ console.log('selected categorey',selectedCategory)
   const closeModal = () => {
     setIsOpen(false);
     document.body.style.overflow = 'auto';
+    setIsEditing(false);
+    setFormData('')
+
+
   };
 
   const openConfirmationModal = (employee) => {
@@ -209,10 +218,12 @@ console.log('selected categorey',selectedCategory)
               <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-md font-medium" scope="col"> Name</th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col"> Phone Number</th>
-
                   <th className="px-6 py-4 text-md font-medium" scope="col">Salary</th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">designation</th>
+
+
+                  <th className="px-6 py-4 text-md font-medium" scope="col">Advance</th>
+                  <th className="px-6 py-4 text-md font-medium" scope="col">Balance</th>
+
                   <th className="px-6 py-4 text-md font-medium" scope="col">Details</th>
                   {selectedCategory === 'Active Employee' && (
 
@@ -223,21 +234,34 @@ console.log('selected categorey',selectedCategory)
               <tbody>
                 
                 
-                {filteredEmployee && filteredEmployee.length > 0 ? (
-                  filteredEmployee.map((employee, index) => (
+                {Employees?.employData && Employees?.employData?.length > 0 ? (
+                  Employees?.employData?.map((employee, index) => (
                 <>
 
                     <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                       <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
                         <p>{employee.name}</p>
                       </th>
-                      <td className="px-6 py-4 font-medium">
-                      <PhoneComponent phone={employee.phone_number} />
-
-                      </td>
+                    
                       <td className="px-6 py-4 font-medium">{employee.salary} Rs</td>
-                      {/* <td className="px-6 py-4 font-medium">{employee?.advance === 0 ? "-" : (<>{employee?.advance} Rs</>)}</td> */}
-                      <td className="px-6 py-4 font-medium">{employee.designation}</td>
+                      <td className="px-6 py-4 font-medium">
+  {employee?.financeData && employee.financeData.length > 0 ? (
+    `${employee.financeData[employee.financeData.length - 1]?.balance < 0 ? 0 : employee.financeData[employee.financeData.length - 1]?.balance} Rs`
+  ) : (
+    "-"
+  )}
+</td>
+
+
+                    
+<td className="px-6 py-4 font-medium">
+  {employee?.financeData && employee.financeData.length > 0 ? (
+    `${employee.financeData[employee.financeData.length - 1]?.balance} Rs`
+  ) : (
+    "-"
+  )}
+</td>
+
                       <td className="pl-10 py-4">
                         <Link to={`/dashboard/employee-details/${employee.id}`}>
                           <FaEye size={20} className='cursor-pointer' />
@@ -489,11 +513,11 @@ console.log('selected categorey',selectedCategory)
                   {/* JOINING DATE */}
                   <div>
                     <input
-                     
+                     type='date'
                       placeholder="Joining Date"
                       name="joininig_date"
                       id="joininig_date"
-                      value={new Date(formData.joininig_date).toLocaleDateString()}
+                      value={formData.joininig_date}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
@@ -506,7 +530,7 @@ console.log('selected categorey',selectedCategory)
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-                  {isEditing ? 'Update' : 'Create'}
+           {isEditing ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
