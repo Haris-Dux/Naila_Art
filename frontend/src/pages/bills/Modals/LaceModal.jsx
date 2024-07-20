@@ -19,7 +19,7 @@ const LaceModal = ({ isOpen, closeModal }) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: name === "quantity" ? Number(value) : value,
     }));
   };
 
@@ -27,7 +27,7 @@ const LaceModal = ({ isOpen, closeModal }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(createLaceAsync(formData)).then((res) => {
-        console.log('res',res);
+      console.log('res', res);
       if (res.payload.message === "Successfully Added") {
         dispatch(GetAllLace());
         setFormData({

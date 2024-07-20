@@ -96,9 +96,9 @@ const Base = () => {
                         ))}
                     </div>
 
-                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                    {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                         <IoAdd size={22} className='text-white' />
-                    </button>
+                    </button> */}
                 </div>
 
 
@@ -114,6 +114,12 @@ const Base = () => {
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Category
+                                    </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
@@ -150,6 +156,9 @@ const Base = () => {
                                 {filteredData && filteredData.length > 0 ? (
                                     filteredData.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium" scope="row">
+                                                {data?.category}
+                                            </th>
                                             <td className="px-6 py-4">
                                                 {data.colors}
                                             </td>
@@ -225,7 +234,13 @@ const Base = () => {
                                             className="px-6 py-3"
                                             scope="col"
                                         >
-                                            Serial No
+                                            Category
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Color
                                         </th>
                                         <th
                                             className="px-6 py-3"
@@ -237,32 +252,26 @@ const Base = () => {
                                             className="px-6 py-3"
                                             scope="col"
                                         >
-                                            Name
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
                                             Quantity
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredData && filteredData.length > 0 ? (
-                                        filteredData.map((item, index) => (
+                                    {filteredBaseData && filteredBaseData.length > 0 ? (
+                                        filteredBaseData.map((item, index) => (
                                             item?.all_Records?.map((data, subIndex) => (
                                                 <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                                        {data.serial_No}
+                                                    <th className="px-6 py-4 font-medium" scope="row">
+                                                        {data?.category}
                                                     </th>
                                                     <td className="px-6 py-4">
-                                                        {new Date(data?.date).toLocaleDateString()}
+                                                        {data?.colors}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        {data.name}
+                                                        {new Date(data?.Date).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        {data.quantity} m
+                                                        {data?.quantity} m
                                                     </td>
                                                 </tr>
                                             ))
