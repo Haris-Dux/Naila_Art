@@ -11,14 +11,14 @@ export const addBaseInStock = async (req, res, next) => {
       category: { $regex: new RegExp(category, 'i') },
       colors: { $regex: new RegExp(colors, 'i') },
     });
-    let recordData = {category, colors, Date:r_Date, quantity};
+    let recordData = { category, colors, Date: r_Date, quantity };
     if (checkExistingStock) {
       const updatedTYm = checkExistingStock.TYm + quantity;
       checkExistingStock.recently = quantity,
-      checkExistingStock.r_Date = r_Date,
-      checkExistingStock.TYm = updatedTYm,
-      checkExistingStock.all_Records.push(recordData)
-      await checkExistingStock.save();     
+        checkExistingStock.r_Date = r_Date,
+        checkExistingStock.TYm = updatedTYm,
+        checkExistingStock.all_Records.push(recordData)
+      await checkExistingStock.save();
     } else {
       await BaseModel.create({
         category,
@@ -26,7 +26,7 @@ export const addBaseInStock = async (req, res, next) => {
         recently: quantity,
         r_Date,
         TYm: quantity,
-        all_Records:[recordData]
+        all_Records: [recordData]
       });
     }
 

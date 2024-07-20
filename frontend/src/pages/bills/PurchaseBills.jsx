@@ -47,7 +47,6 @@ const PurchaseBills = () => {
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Purchase Bills
-                        <span className='text-lg'> (Current State {selectedCategory})</span>
                     </h1>
 
                     {/* <!-- search bar --> */}
@@ -85,7 +84,7 @@ const PurchaseBills = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        {['Base', 'Lace', 'Bag', 'Accessories', 'Expense'].map((category) => (
+                        {['Base', 'Lace', 'Bag & Box', 'Accessories', 'Expense'].map((category) => (
                             <button
                                 key={category}
                                 className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-gray-800 text-white dark:bg-gray-600  dark:text-white' : ''}`}
@@ -108,7 +107,7 @@ const PurchaseBills = () => {
             {/* ALL MODALS  */}
             {selectedCategory === 'Base' && <BaseModals isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Lace' && <LaceModal isOpen={isOpen} closeModal={closeModal} />}
-            {selectedCategory === 'Bag' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
+            {selectedCategory === 'Bag & Box' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Accessories' && <AccessoriesModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Expense' && <ExpenseModal isOpen={isOpen} closeModal={closeModal} />}
         </>
