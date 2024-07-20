@@ -25,8 +25,34 @@ export const addSuitsInStock = async (req, res, next) => {
 
 export const getAllSuits = async (req, res, next) => {
   try {
-    const data = await SuitsModel.find({}).sort({ createdAt: -1 });
-    return res.status(200).json(data);
+  
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    let search = req.query.search || "";
+
+    let query = {};
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+
+   
+
+    const data = await SuitsModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await SuitsModel.countDocuments(query);
+
+  
+    const response = {
+      totalPages: Math.ceil(total / limit),
+      page,
+      Suits: total,
+      data,
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
