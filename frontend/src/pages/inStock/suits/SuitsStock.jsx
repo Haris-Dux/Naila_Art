@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IoAdd } from "react-icons/io5";
+// import { IoAdd } from "react-icons/io5";
 import { AddSuit, GetAllSuit } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -130,9 +130,9 @@ const SuitsStock = () => {
                         ))}
                     </div>
 
-                    <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                    {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                         <IoAdd size={22} className='text-white' />
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* -------------- TABLE -------------- */}
@@ -151,7 +151,7 @@ const SuitsStock = () => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        D# No
+                                        D # No
                                     </th>
                                     <th
                                         className="px-6 py-3"
@@ -182,8 +182,8 @@ const SuitsStock = () => {
                             <tbody>
                                 {filteredData && filteredData.length > 0 ? (
                                     filteredData.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium"
                                                 scope="row"
                                             >
                                                 {data.d_no}

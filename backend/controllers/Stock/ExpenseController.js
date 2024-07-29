@@ -36,14 +36,40 @@ export const addExpense = async (req, res, next) => {
   }
 };
 
-export const getAllExpenses = async (req, res, next) => {
-  try {
-    const data = await ExpenseModel.find({}).sort({ createdAt: -1 });
-    setMongoose();
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+export const getAllExpenses = async (req,res,next) => {
+    try {
+
+       
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        let search = req.query.search || "";
+     
+        let query = {
+          name: { $regex: search, $options: "i" },
+          
+        };
+      
+     
+        const data = await ExpenseModel.find(query)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .sort({ createdAt: -1 });
+    
+     
+        const total = await ExpenseModel.countDocuments(query);
+     
+        const response = {
+          totalPages: Math.ceil(total / limit),
+          page,
+          Expense:total,
+          data
+        };
+        setMongoose();
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).json({ error: error.message }); 
+    }
 };
 
 export const getExpensesForBranch = async (req, res, next) => {

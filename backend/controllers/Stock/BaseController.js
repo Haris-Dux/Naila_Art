@@ -11,14 +11,14 @@ export const addBaseInStock = async (req, res, next) => {
       category: { $regex: new RegExp(category, 'i') },
       colors: { $regex: new RegExp(colors, 'i') },
     });
-    let recordData = {category, colors, Date:r_Date, quantity};
+    let recordData = { category, colors, Date: r_Date, quantity };
     if (checkExistingStock) {
       const updatedTYm = checkExistingStock.TYm + quantity;
       checkExistingStock.recently = quantity,
-      checkExistingStock.r_Date = r_Date,
-      checkExistingStock.TYm = updatedTYm,
-      checkExistingStock.all_Records.push(recordData)
-      await checkExistingStock.save();     
+        checkExistingStock.r_Date = r_Date,
+        checkExistingStock.TYm = updatedTYm,
+        checkExistingStock.all_Records.push(recordData)
+      await checkExistingStock.save();
     } else {
       await BaseModel.create({
         category,
@@ -26,7 +26,7 @@ export const addBaseInStock = async (req, res, next) => {
         recently: quantity,
         r_Date,
         TYm: quantity,
-        all_Records:[recordData]
+        all_Records: [recordData]
       });
     }
 
@@ -38,12 +38,39 @@ export const addBaseInStock = async (req, res, next) => {
 
 export const getAllBases = async (req, res, next) => {
   try {
-    const data = await BaseModel.find({}).sort({ createdAt: -1 });
-    return res.status(200).json(data);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    let search = req.query.search || "";
+
+    let query = {};
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+
+   
+
+    const data = await BaseModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await BaseModel.countDocuments(query);
+
+  
+    const response = {
+      totalPages: Math.ceil(total / limit),
+      page,
+      Base: total,
+      data,
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
+
+
 
 export const getAllCategoriesForbase = async (req, res, next) => {
   try {
