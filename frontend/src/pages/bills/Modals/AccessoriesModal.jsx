@@ -17,7 +17,7 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: name === "quantity" ? Number(value) : value,
     }));
   };
 
@@ -37,7 +37,7 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
       }
     });
   };
- 
+
   return (
     <>
       {isOpen && (
