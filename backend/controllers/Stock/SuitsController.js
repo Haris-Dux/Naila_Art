@@ -64,7 +64,7 @@ export const getAllCategoriesForSuits = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .select("category");
     const categoryNames = Array.from(
-      new Set(data.map((item) => item.category))
+      new Set(data?.map((item) => item.category))
     );
     setMongoose();
     return res.status(200).json(categoryNames);
