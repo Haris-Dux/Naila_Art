@@ -55,7 +55,7 @@ const StitchingDetails = () => {
   const handleInputChange = (category, index, value) => {
     setFormData((prevState) => ({
       ...prevState,
-      [category]: prevState[category].map((item, i) =>
+      [category]: prevState[category]?.map((item, i) =>
         i === index ? { ...item, return_quantity: value } : item
       ),
     }));

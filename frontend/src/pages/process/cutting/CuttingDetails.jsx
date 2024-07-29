@@ -66,7 +66,7 @@ const CuttingDetails = () => {
         const { value } = e.target;
         setFormData(prevState => ({
           ...prevState,
-          category_quantity: prevState.category_quantity.map((row, i) =>
+          category_quantity: prevState.category_quantity?.map((row, i) =>
             i === index ? { ...row, category: value } : row
           )
         }));
@@ -76,7 +76,7 @@ const CuttingDetails = () => {
         const { value } = e.target;
         setFormData(prevState => ({
           ...prevState,
-          category_quantity: prevState.category_quantity.map((row, i) =>
+          category_quantity: prevState.category_quantity?.map((row, i) =>
             i === index ? { ...row, color: value } : row
           )
         }));
@@ -86,7 +86,7 @@ const CuttingDetails = () => {
         const { value } = e.target;
         setFormData(prevState => ({
           ...prevState,
-          category_quantity: prevState.category_quantity.map((row, i) =>
+          category_quantity: prevState.category_quantity?.map((row, i) =>
             i === index ? { ...row, quantity: value } : row
           )
         }));
@@ -401,7 +401,7 @@ const CuttingDetails = () => {
                                 
 
                              
-                                {formData.category_quantity && formData.category_quantity.map((row, index) => (
+                                {formData.category_quantity && formData.category_quantity?.map((row, index) => (
                                 <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
                                     {/* SELECT CATEGORY */}
                                     <div>

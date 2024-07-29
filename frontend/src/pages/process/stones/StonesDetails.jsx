@@ -82,7 +82,7 @@ const navigate = useNavigate()
         id: SingleStone.id,
         project_status: "Completed",
 
-        category_quantity: SingleStone.category_quantity.map((item) => ({
+        category_quantity: SingleStone?.category_quantity?.map((item) => ({
           id: item.id,
           first: item.recieved_Data?.first?.quantity || 0,
           second: item.recieved_Data?.second?.quantity || 0,
@@ -136,7 +136,7 @@ const navigate = useNavigate()
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType].map((row, i) =>
+      [categoryType]: prevState[categoryType]?.map((row, i) =>
         i === index ? { ...row, category: value } : row
       ),
     }));
@@ -146,7 +146,7 @@ const navigate = useNavigate()
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType].map((row, i) =>
+      [categoryType]: prevState[categoryType]?.map((row, i) =>
         i === index ? { ...row, color: value } : row
       ),
     }));
@@ -156,7 +156,7 @@ const navigate = useNavigate()
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType].map((row, i) =>
+      [categoryType]: prevState[categoryType]?.map((row, i) =>
         i === index ? { ...row, quantity_in_no: value } : row
       ),
     }));

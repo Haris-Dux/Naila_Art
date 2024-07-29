@@ -115,7 +115,7 @@ const DashboardStats = () => {
                 <div className="min-h-72 px-6 py-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
                   <h2 className="text-lg font-medium mb-3">Total Suite</h2>
                   <p className="w-full bg-gray-300 h-px my-2"></p>
-                  {citiesStats.map((data, index) => (
+                  {citiesStats?.map((data, index) => (
                     <div key={index} className="my-4 city flex justify-between items-center">
                       <span>{data.city}</span>
                       <span className="font-semibold">{data.percent}</span>
@@ -178,7 +178,7 @@ const DashboardStats = () => {
           {/* SALES BY LOCATION */}
           <div className="px-4 pt-5 lg:col-span-4 xl:col-span-1 pb-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
             <h2 className="mb-3 font-medium text-lg">Sales By Locations</h2>
-            {citiesStats.map((data, index) => (
+            {citiesStats?.map((data, index) => (
               <div key={index} className="my-4 city flex justify-between items-center">
                 <span>{data.city}</span>
                 <span className="font-semibold">{data.percent}</span>
