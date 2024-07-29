@@ -175,7 +175,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       >
                         <option value="">Choose Branch</option>
-                        {Branches.map((data) => (
+                        {Branches?.map((data) => (
                           <option key={data.id} value={data.id}>
                             {data.branchName}
                           </option>

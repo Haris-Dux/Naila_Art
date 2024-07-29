@@ -398,8 +398,8 @@ const CategoryTable = ({ category }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {allExpenses.length > 0 ? (
-                                    allExpenses.map((expense, index) => (
+                                {allExpenses?.length > 0 ? (
+                                    allExpenses?.map((expense, index) => (
                                         <tr key={index} className="bg-white border-b font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"

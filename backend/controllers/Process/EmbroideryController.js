@@ -81,7 +81,7 @@ export const addEmbriodery = async (req, res, next) => {
       // INVENTORY DEDUCTION THROUGH TRANSACTIONS
       const handleInventory = async (items) => {
         await Promise.all(
-          items.map(async (item) => {
+          items?.map(async (item) => {
             const matchedRecord = await BaseModel.findOne({
               category: item.category,
               colors: item.color,

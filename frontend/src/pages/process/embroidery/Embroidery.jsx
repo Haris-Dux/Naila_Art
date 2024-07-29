@@ -190,7 +190,8 @@ const Embroidery = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData?.map((data, index) => (
+                {filteredData && filteredData.length > 0 ? (
+                  filteredData?.map((data, index) => (
                     <tr
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -212,7 +213,13 @@ const Embroidery = () => {
                         </Link>
                       </td>
                     </tr>
-                  ))}
+            ))) : (
+              <tr className="w-full flex justify-center items-center">
+                  <td className='text-xl mt-3'>No Data Available</td>
+              </tr>
+          )}
+
+
                 </tbody>
               </table>
             </div>

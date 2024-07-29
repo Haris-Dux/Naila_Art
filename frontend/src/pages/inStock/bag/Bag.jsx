@@ -203,7 +203,7 @@ const Bag = () => {
                 </thead>
                 <tbody>
                   {filteredData && filteredData.length > 0 ? (
-                    filteredData.map((item, index) =>
+                    filteredData?.map((item, index) =>
                       item?.all_Records?.map((data, subIndex) => (
                         <tr
                           key={`${index}-${subIndex}`}
