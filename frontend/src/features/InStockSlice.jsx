@@ -4,17 +4,17 @@ import toast from "react-hot-toast";
 
 //API URL
 const getaccessories =
-  "http://localhost:8000/api/stock/accessories/getAllAccesoriesInStock";
-const getBags = "http://localhost:8000/api/stock/bags/getAllBagsAndBox";
-const getBase = "http://localhost:8000/api/stock/base/getAllBases";
-const getLace = "http://localhost:8000/api/stock/lace/getAllLaceStock";
-const getSuits = "http://localhost:8000/api/stock/suits/getAllSuits";
-const getExpense = "http://localhost:8000/api/stock/expense/getAllExpenses";
+  "/api/stock/accessories/getAllAccesoriesInStock";
+const getBags = "/api/stock/bags/getAllBagsAndBox";
+const getBase = "/api/stock/base/getAllBases";
+const getLace = "/api/stock/lace/getAllLaceStock";
+const getSuits = "/api/stock/suits/getAllSuits";
+const getExpense = "/api/stock/expense/getAllExpenses";
 
-const AddSuits = "http://localhost:8000/api/stock/suits/addBaseInStock";
+const AddSuits = "/api/stock/suits/addBaseInStock";
 
 // GET ALL BRANCHES API
-const getAllBranches = "http://localhost:8000/api/branches/getAllBranches";
+const getAllBranches = "/api/branches/getAllBranches";
 
 export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
   try {

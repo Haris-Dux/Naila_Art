@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addStitching = "http://localhost:8000/api/process/Stitching/addStitching";
-const UpdateStitching = "http://localhost:8000/api/process/Stitching/updateStitching";
-const getAllStitching = "http://localhost:8000/api/process/Stitching/getAllStitching";
-const getSingleStitching = "http://localhost:8000/api/process/Stitching/getStitchingById";
-const getStitchingByEmbroideryId = 'http://localhost:8000/api/process/stitching/getStitchingByEmbroideryId'
+const addStitching = "/api/process/Stitching/addStitching";
+const UpdateStitching = "/api/process/Stitching/updateStitching";
+const getAllStitching = "/api/process/Stitching/getAllStitching";
+const getSingleStitching = "/api/process/Stitching/getStitchingById";
+const getStitchingByEmbroideryId = '/api/process/stitching/getStitchingByEmbroideryId'
  
 
 //CREATE ASYNC THUNK

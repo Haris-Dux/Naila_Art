@@ -3,13 +3,13 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addEmployee = "http://localhost:8000/api/employ/addEmploye";
-const ActiveEmployee = "http://localhost:8000/api/employ/getAllActiveEmploye";
-const PastEmployee = "http://localhost:8000/api/employ/getAllPastEmploye";
-const EmployeeByID = "http://localhost:8000/api/employ/getEmployeDataById";
-const Update = "http://localhost:8000/api/employ/updateEmploye";
-const Debitcredit = "http://localhost:8000/api/employ/creditDebitBalance";
-const creditEmployeeeSalary = 'http://localhost:8000/api/employ/creditSalaryForSingleEmploye'
+const addEmployee = "/api/employ/addEmploye";
+const ActiveEmployee = "/api/employ/getAllActiveEmploye";
+const PastEmployee = "/api/employ/getAllPastEmploye";
+const EmployeeByID = "/api/employ/getEmployeDataById";
+const Update = "/api/employ/updateEmploye";
+const Debitcredit = "/api/employ/creditDebitBalance";
+const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
 
 
 

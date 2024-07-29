@@ -66,12 +66,12 @@ app.use(session({
   app.use("/api/employ",employRouter);
   app.use("/api/dailysale",dailySaleRouter);
 
-// const root = path.resolve();
-// app.use(express.static(path.join(root, 'dist')));
+const root = path.resolve();
+app.use(express.static(path.join(root, 'dist')));
 
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(root, 'dist/index.html'));
-// });
+app.get("*", (req, res) => {
+  res.sendFile(path.join(root, 'dist/index.html'));
+});
 
   
 mongoose

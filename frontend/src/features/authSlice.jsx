@@ -3,15 +3,15 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const signupUrl = "http://localhost:8000/api/users/signup";
-const loginUrl = "http://localhost:8000/api/users/login";
-const userSessionUrl = "http://localhost:8000/api/users/persistUserSession";
-const logoutUrl = "http://localhost:8000/api/users/logout";
-const authUserSessionUrl = "http://localhost:8000/api/users/persistUserSession"
-const forgetPassUrl = "http://localhost:8000/api/users/sendResetPasswordOTP";
-const verifyOtpPassUrl = "http://localhost:8000/api/users/verifyOtp";
-const resetPassUrl = "http://localhost:8000/api/users/updatePassword";
-const getUsersForBranch = "http://localhost:8000/api/users/getUsersForBranch";
+const signupUrl = "/api/users/signup";
+const loginUrl = "/api/users/login";
+const userSessionUrl = "/api/users/persistUserSession";
+const logoutUrl = "/api/users/logout";
+const authUserSessionUrl = "/api/users/persistUserSession"
+const forgetPassUrl = "/api/users/sendResetPasswordOTP";
+const verifyOtpPassUrl = "/api/users/verifyOtp";
+const resetPassUrl = "/api/users/updatePassword";
+const getUsersForBranch = "/api/users/getUsersForBranch";
 
 //CREATE ASYNC THUNK
 export const createuserAsync = createAsyncThunk(

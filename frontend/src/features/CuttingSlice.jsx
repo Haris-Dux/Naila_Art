@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addCutting = "http://localhost:8000/api/process/cutting/addCutting";
-const DeletCutting = "http://localhost:8000/api/branches/deleteBranch";
-const UpdateCutting = "http://localhost:8000/api/process/cutting/updateCutting";
-const getAllCutting = "http://localhost:8000/api/process/cutting/getAllCutting";
-const getSingleCutting = "http://localhost:8000/api/process/cutting/getCuttingById";
+const addCutting = "/api/process/cutting/addCutting";
+const DeletCutting = "/api/branches/deleteBranch";
+const UpdateCutting = "/api/process/cutting/updateCutting";
+const getAllCutting = "/api/process/cutting/getAllCutting";
+const getSingleCutting = "/api/process/cutting/getCuttingById";
 
 
 
