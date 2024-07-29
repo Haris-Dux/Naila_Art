@@ -188,7 +188,7 @@ console.log('selected categorey',selectedCategory)
 
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
-            {categories.map((category) => (
+            {categories?.map((category) => (
               <button
                 key={category}
                 className={`border border-gray-500 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900' : ''}`}
@@ -305,7 +305,7 @@ console.log('selected categorey',selectedCategory)
       Previous
     </button>
   </li>
-  {[...Array(totalPages)].map((_, pageIndex) => (
+  {[...Array(totalPages)]?.map((_, pageIndex) => (
     <li key={pageIndex}>
       <button
         onClick={() => setCurrentPage(pageIndex + 1)}
