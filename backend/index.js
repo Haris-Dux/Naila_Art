@@ -20,6 +20,7 @@ import cuttingRouter from "./routes/Process/CuttingRoutes.js";
 import stoneRouter from "./routes/Process/StoneRoutes.js";
 import stitchingRouter from "./routes/Process/StitchingRoutes.js";
 import employRouter from "./routes/EmployRoutes.js";
+import dailySaleRouter from "./routes/DailySaleRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -63,6 +64,7 @@ app.use(session({
   app.use("/api/process/stone",stoneRouter);
   app.use("/api/process/stitching",stitchingRouter);
   app.use("/api/employ",employRouter);
+  app.use("/api/dailysale",dailySaleRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));

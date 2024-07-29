@@ -1,5 +1,7 @@
 
 import mongoose from "mongoose";
+import moment from 'moment-timezone';
+
 
 const dailySaleData = new mongoose.Schema({
     totalSale:{
@@ -38,10 +40,6 @@ const dailySaleData = new mongoose.Schema({
         type:Number,
         default:0
     },
-    // remainingCash:{
-    //     type:Number,
-    //     default:0
-    // },
     totalCash:{
         type:Number,
         default:0
@@ -54,10 +52,11 @@ const DailySaleSchema = new mongoose.Schema({
         required:[true,"Branch Id required"]
     },
     date: {
-        type: Date,
-        required: [true, "Date required"],
-        default: Date.now
-    },
+        type: String,
+        default: function() {
+            return moment.tz('Asia/Karachi').format('YYYY-MM-DD');
+        }
+      },
     saleData:dailySaleData
 });
 
