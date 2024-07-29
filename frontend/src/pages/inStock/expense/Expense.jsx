@@ -100,7 +100,7 @@ const Expense = () => {
             >
               All
             </button>
-            {Branches.map((branch) => (
+            {Branches?.map((branch) => (
               <button
                 key={branch?.id}
                 className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
@@ -151,7 +151,7 @@ const Expense = () => {
               </thead>
               <tbody>
                 {filteredExpenses.length > 0 ? (
-                  filteredExpenses.map((expense, index) => (
+                  filteredExpenses?.map((expense, index) => (
                     <tr
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"

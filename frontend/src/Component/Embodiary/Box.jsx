@@ -20,8 +20,8 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   useEffect(() => {
     if (!loading && Base) {
       // Extract unique categories
-      const categories = [...new Set(Base.map((item) => item.category))];
-      const categoryOptions = categories.map((category) => ({
+      const categories = [...new Set(Base?.map((item) => item.category))];
+      const categoryOptions = categories?.map((category) => ({
         value: category,
         label: category,
       }));
@@ -123,7 +123,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleInputChange = (e, index, type) => {
     const { name, value } = e.target;
     setFormData((prevState) => {
-      const updatedArray = prevState[type].map((item, idx) =>
+      const updatedArray = prevState[type]?.map((item, idx) =>
         idx === index
           ? { ...item, [name.split(".")[1]]: parseFloat(value) }
           : item
@@ -135,7 +135,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleshirtCategory = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      shirt: prevState.shirt.map((item, idx) =>
+      shirt: prevState.shirt?.map((item, idx) =>
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
@@ -146,7 +146,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
-    const selectedCategoryColors = selectedCategory.map((item) => ({
+    const selectedCategoryColors = selectedCategory?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
@@ -157,7 +157,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleshirtColor = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      shirt: prevState.shirt.map((item, idx) =>
+      shirt: prevState.shirt?.map((item, idx) =>
         idx === index ? { ...item, color: newValue.value } : item
       ),
     }));
@@ -166,7 +166,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleduppataCategorey = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      duppata: prevState.duppata.map((item, idx) =>
+      duppata: prevState.duppata?.map((item, idx) =>
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
@@ -174,7 +174,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
-    const selectedCategoryColors = selectedCategory.map((item) => ({
+    const selectedCategoryColors = selectedCategory?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
@@ -185,7 +185,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleduppataColor = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      duppata: prevState.duppata.map((item, idx) =>
+      duppata: prevState.duppata?.map((item, idx) =>
         idx === index ? { ...item, color: newValue.value } : item
       ),
     }));
@@ -194,7 +194,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleTrouserCategorey = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      trouser: prevState.trouser.map((item, idx) =>
+      trouser: prevState.trouser?.map((item, idx) =>
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
@@ -202,7 +202,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
-    const selectedCategoryColors = selectedCategory.map((item) => ({
+    const selectedCategoryColors = selectedCategory?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
@@ -213,7 +213,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleTrouserColor = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      trouser: prevState.trouser.map((item, idx) =>
+      trouser: prevState.trouser?.map((item, idx) =>
         idx === index ? { ...item, color: newValue.value } : item
       ),
     }));
@@ -222,7 +222,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handletissueCategorey = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      tissue: prevState.tissue.map((item, idx) =>
+      tissue: prevState.tissue?.map((item, idx) =>
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
@@ -230,7 +230,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
-    const selectedCategoryColors = selectedCategory.map((item) => ({
+    const selectedCategoryColors = selectedCategory?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
@@ -241,7 +241,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handletissueColor = (newValue, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      tissue: prevState.tissue.map((item, idx) =>
+      tissue: prevState.tissue?.map((item, idx) =>
         idx === index ? { ...item, color: newValue.value } : item
       ),
     }));
@@ -288,7 +288,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
             <FiPlus size={24} className=" cursor-pointer" />
           </p>
         </div>
-        {formData.shirt.map((shirt, index) => (
+        {formData?.shirt?.map((shirt, index) => (
           <div
             className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
             key={index}
@@ -339,7 +339,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           </p>
         </div>
 
-        {formData.duppata.map((duppata, index) => (
+        {formData?.duppata?.map((duppata, index) => (
           <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
             <div>
               <Select
@@ -388,7 +388,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           </p>
         </div>
 
-        {formData.trouser.map((trouser, index) => (
+        {formData?.trouser?.map((trouser, index) => (
           <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
             <div>
               <Select
@@ -438,7 +438,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           </p>
         </div>
 
-        {formData.tissue.map((tissue, index) => (
+        {formData?.tissue?.map((tissue, index) => (
           <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
             <div>
               <Select

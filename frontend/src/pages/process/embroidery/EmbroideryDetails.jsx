@@ -48,7 +48,7 @@ const [formData, setFormData] = useState({
 
 const handleInputChange = (category, color, received, index, section) => {
     setFormData((prevState) => {
-        const updatedSection = prevState[section].map((item, idx) =>
+        const updatedSection = prevState[section]?.map((item, idx) =>
             idx === index ? { ...item, category, color, received } : item
         );
         return {

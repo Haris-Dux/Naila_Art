@@ -85,7 +85,7 @@ const Base = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        {categories.map(category => (
+                        {categories?.map(category => (
                             <button
                                 key={category}
                                 className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
@@ -154,7 +154,7 @@ const Base = () => {
                             </thead>
                             <tbody>
                                 {filteredData && filteredData.length > 0 ? (
-                                    filteredData.map((data, index) => (
+                                    filteredData?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium" scope="row">
                                                 {data?.category}
@@ -258,7 +258,7 @@ const Base = () => {
                                 </thead>
                                 <tbody>
                                     {filteredBaseData && filteredBaseData.length > 0 ? (
-                                        filteredBaseData.map((item, index) => (
+                                        filteredBaseData?.map((item, index) => (
                                             item?.all_Records?.map((data, subIndex) => (
                                                 <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                                     <th className="px-6 py-4 font-medium" scope="row">

@@ -63,7 +63,7 @@ corn.schedule("01 00 * * *",async () => {
    try {
     const branchData = await BranchModel.find({});
     const today = moment.tz('Asia/Karachi').format('YYYY-MM-DD');
-    const dailySalePromises = branchData.map((branch) => {
+    const dailySalePromises = branchData?.map((branch) => {
        DailySaleModel.create({
         branchId:branch._id,
         date:today,
