@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const createBase = "http://localhost:8000/api/stock/base/addBaseInStock";
-const createBag = "http://localhost:8000/api/stock/bags/addBagsAndBoxInStock";
-const createLace = "http://localhost:8000/api/stock/lace/addLaceInStock";
-const createAccesseries = "http://localhost:8000/api/stock/accessories/addAccesoriesInStock";
-const createExpense = "http://localhost:8000/api/stock/expense/addExpense";
+const createBase = "/api/stock/base/addBaseInStock";
+const createBag = "/api/stock/bags/addBagsAndBoxInStock";
+const createLace = "/api/stock/lace/addLaceInStock";
+const createAccesseries = "/api/stock/accessories/addAccesoriesInStock";
+const createExpense = "/api/stock/expense/addExpense";
 
 // CREATE BASE ASYNC THUNK
 export const createBaseAsync = createAsyncThunk(

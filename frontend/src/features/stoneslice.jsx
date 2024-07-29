@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addStone = "http://localhost:8000/api/process/stone/addStone";
+const addStone = "/api/process/stone/addStone";
 
-const UpdateStone = "http://localhost:8000/api/process/stone/updateStone";
-const getAllStone = "http://localhost:8000/api/process/stone/getAllStone";
-const getSingleStone = "http://localhost:8000/api/process/stone/getStoneById";
+const UpdateStone = "/api/process/stone/updateStone";
+const getAllStone = "/api/process/stone/getAllStone";
+const getSingleStone = "/api/process/stone/getStoneById";
 
 
 

@@ -3,12 +3,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const AddEmbroidery = "http://localhost:8000/api/process/embriodery/addEmbriodery";
-const getEmbroidery = "http://localhost:8000/api/process/embriodery/getAllEmbroidery";
-const getEmbroiderydetails = "http://localhost:8000/api/process/embriodery/getEmbroideryById";
+const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
+const getEmbroidery = "/api/process/embriodery/getAllEmbroidery";
+const getEmbroiderydetails = "/api/process/embriodery/getEmbroideryById";
 
-const editEmbroidery = "http://localhost:8000/api/process/embriodery/updateEmbroidery";
-const deleteEmbroidery = "http://localhost:8000/api/process/embriodery/addEmbriodery";
+const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
+const deleteEmbroidery = "/api/process/embriodery/addEmbriodery";
 
 
 

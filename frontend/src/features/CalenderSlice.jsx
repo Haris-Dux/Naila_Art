@@ -3,11 +3,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addCalender = "http://localhost:8000/api/process/calender/addCalender";
+const addCalender = "/api/process/calender/addCalender";
 
-const UpdateCalender = "http://localhost:8000/api/process/calender/updateCalender";
-const getAllCalender = "http://localhost:8000/api/process/calender/getAllCalender";
-const getSingleCalender = "http://localhost:8000/api/process/calender/getCalenderById";
+const UpdateCalender = "/api/process/calender/updateCalender";
+const getAllCalender = "/api/process/calender/getAllCalender";
+const getSingleCalender = "/api/process/calender/getCalenderById";
 
 
 
