@@ -111,7 +111,10 @@ const Calendar = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCalender?.map((entry, index) => (
+
+                {filteredCalender && filteredCalender.length > 0 ? (
+                  
+                  filteredCalender?.map((entry, index) => (
                     <tr key={index} className='bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white'>
                       <th className='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white' scope='row'>
                         {index + 1}
@@ -127,7 +130,11 @@ const Calendar = () => {
                         </Link>
                       </td>
                     </tr>
-                  ))}
+                  ))) : (
+                    <tr className="w-full flex justify-center items-center">
+                        <td className='text-xl mt-3'>No Data Available</td>
+                    </tr>
+                )}
                 </tbody>
               </table>
             </div>
@@ -143,7 +150,7 @@ const Calendar = () => {
                     Previous
                   </button>
                 </li>
-                {[...Array(totalPages)].map((_, pageIndex) => (
+                {[...Array(totalPages)]?.map((_, pageIndex) => (
                   <li key={pageIndex}>
                     <button
                       onClick={() => setCurrentPage(pageIndex + 1)}
