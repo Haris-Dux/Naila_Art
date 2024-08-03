@@ -47,8 +47,6 @@ export const getAllBases = async (req, res, next) => {
       query.name = { $regex: search, $options: "i" };
     }
 
-   
-
     const data = await BaseModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -69,8 +67,6 @@ export const getAllBases = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
-
 
 export const getAllCategoriesForbase = async (req, res, next) => {
   try {
