@@ -3,6 +3,7 @@ import { BranchModel } from "../../models/Branch.Model.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import mongoose from "mongoose";
 
 export const addExpense = async (req, res, next) => {
   try {
@@ -12,10 +13,15 @@ export const addExpense = async (req, res, next) => {
     const branch = await BranchModel.findOne({ _id: branchId });
     if (!branch) throw new Error("Branch Not Found");
     const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-    const existingDailySaleData = await DailySaleModel.findOne({ branchId, date: { $eq: today } });
+
+    const existingDailySaleData = await DailySaleModel.findOne({
+      branchId,
+      date: { $eq: today },
+    });
+    if (!existingDailySaleData) throw new Error("Daily Sale Not Found");
+
     const existingExpenseData = await ExpenseModel.findOne({ branchId });
     let expenseData = { name, reason, Date, rate, serial_no };
-    let dailySaleData = { branchId, totalExpense: rate, totalSale: rate };
     if (existingExpenseData) {
       existingExpenseData.brannchExpenses.push(expenseData);
       existingDailySaleData.saleData.totalExpense += rate;
@@ -27,7 +33,6 @@ export const addExpense = async (req, res, next) => {
     } else {
       await Promise.all([
         ExpenseModel.create({ branchId, brannchExpenses: [expenseData] }),
-        DailySaleModel.create({ branchId, saleData: dailySaleData }),
       ]);
     }
     return res.status(200).json({ success: true, message: "Expense Added" });
@@ -39,26 +44,36 @@ export const addExpense = async (req, res, next) => {
 export const getAllExpenses = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+
+    const limit = 6;
     let search = req.query.search || "";
+    let branchId = req.query.branchId || "";
 
-    let query = {
-      name: { $regex: search, $options: "i" },
+    const matchStage = {
+      $match: {
+        branchId: branchId ? new mongoose.Types.ObjectId(branchId) : { $exists: true },
+        "brannchExpenses.name": { $regex: search, $options: "i" },
+      },
     };
-    console.log(query);
-    const data = await ExpenseModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
 
+    const unwindStage = { $unwind: "$brannchExpenses" };
+    const sortStage = { $sort: { "brannchExpenses.Date": -1 } };
 
-    const total = await ExpenseModel.countDocuments(query);
+    const paginationStage = [{ $skip: (page - 1) * limit }, { $limit: limit }];
 
+    const pipeLine = [unwindStage, matchStage, sortStage, ...paginationStage];
+
+    const data = await ExpenseModel.aggregate(pipeLine);
+
+    const totalPipeline = [unwindStage, matchStage, { $count: "total" }];
+
+    const totalResult = await ExpenseModel.aggregate(totalPipeline);
     const response = {
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(totalResult[0].total / limit),
       page,
-      Expense: total,
-      data
+      total_Expense: totalResult[0].total,
+      data,
+
     };
     setMongoose();
     return res.status(200).json(response);
