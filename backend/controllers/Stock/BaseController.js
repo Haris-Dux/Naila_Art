@@ -51,11 +51,6 @@ export const getAllBases = async (req, res, next) => {
     if (category) {
       query = { ...query, category: category };
     };
-
-      query.name = { $regex: search, $options: "i" };
-    }
-
-
     const data = await BaseModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
