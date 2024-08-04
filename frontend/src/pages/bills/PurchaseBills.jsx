@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import data from './PurchaseBillsData';
+import { Link, useSearchParams } from "react-router-dom";
 import { IoAdd } from "react-icons/io5";
 import CategoryTable from './CategoryTable';
 import BaseModals from './Modals/BaseModals';
@@ -14,6 +15,9 @@ const PurchaseBills = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dispatch = useDispatch()
 
+    const [searchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+
     const [selectedCategory, setSelectedCategory] = useState('Base');
     // const filteredData = data.filter(item => item.category === selectedCategory);
 
@@ -22,9 +26,8 @@ const PurchaseBills = () => {
         dispatch(GetAllLace())
         dispatch(GetAllBags())
         dispatch(GetAllaccessories())
-        dispatch(GetAllExpense())
+        dispatch(GetAllExpense({ page }))
     }, [])
-
 
     const handleTabClick = (category) => {
         setSelectedCategory(category);
@@ -39,6 +42,8 @@ const PurchaseBills = () => {
         setIsOpen(false);
         document.body.style.overflow = 'auto';
     };
+
+   
 
 
     return (
@@ -110,6 +115,8 @@ const PurchaseBills = () => {
             {selectedCategory === 'Bag & Box' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Accessories' && <AccessoriesModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Expense' && <ExpenseModal isOpen={isOpen} closeModal={closeModal} />}
+
+           
         </>
     )
 }

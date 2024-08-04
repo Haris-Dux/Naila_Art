@@ -38,11 +38,8 @@ export const addLaceInStock = async (req, res, next) => {
 
 export const getAllLaceStock = async (req,res,next) => {
     try {
-    
-        
-
         const page = parseInt(req.query.page) || 1;
-        const limit = 20;
+        const limit = 2;
         let search = req.query.search || "";
      
         let query = {
