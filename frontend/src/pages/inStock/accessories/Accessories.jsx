@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from "react-router-dom";
 import { GetAllaccessories } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEye } from "react-icons/fa";
@@ -8,12 +9,18 @@ const Accessories = () => {
     const dispatch = useDispatch();
     const [isOpen, setIsOpen] = useState(false);
     const [accessoriesId, setAccessoriesId] = useState();
+    const [search, setSearch] = useState();
     const { loading, accessories } = useSelector((state) => state.InStock);
+    console.log('accessories', accessories);
+
+    const [searchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
-        dispatch(GetAllaccessories())
-        console.log('data accesseries', accessories)
-    }, [])
+        dispatch(GetAllaccessories({ search, page }))
+        // console.log('data accesseries', accessories)
+    }, [search, page, dispatch]);
+
 
     const openModal = (id) => {
         setIsOpen(true);
@@ -26,8 +33,38 @@ const Accessories = () => {
         document.body.style.overflow = 'auto';
     };
 
-    const filteredData = accessories.filter((data) => data.id === accessoriesId);
+    const filteredData = accessories?.data?.filter((data) => data.id === accessoriesId);
 
+    const renderPaginationLinks = () => {
+        const totalPages = accessories?.totalPages;
+        const paginationLinks = [];
+        for (let i = 1; i <= totalPages; i++) {
+            paginationLinks.push(
+                <li key={i} onClick={ToDown}>
+                    <Link
+                        to={`/dashboard/accessories?page=${i}`}
+                        className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+                            }`}
+                        onClick={() => dispatch(GetAllaccessories({ page: i }))}
+                    >
+                        {i}
+                    </Link>
+                </li>
+            );
+        }
+        return paginationLinks;
+    };
+
+    const ToDown = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    const handleSearch = (e) => {
+        setSearch(e.target.value);
+    }
 
     return (
         <>
@@ -58,9 +95,9 @@ const Accessories = () => {
                             <input
                                 type="text"
                                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                                placeholder="Search by Design Number"
-                            // value={searchText}
-                            // onChange={handleSearch}
+                                placeholder="Search by Name"
+                                value={search}
+                                onChange={handleSearch}
                             />
                         </div>
                     </div>
@@ -119,8 +156,8 @@ const Accessories = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {accessories && accessories.length > 0 ? (
-                                    accessories?.map((data, index) => (
+                                {accessories && accessories?.data?.length > 0 ? (
+                                    accessories?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"
@@ -155,6 +192,111 @@ const Accessories = () => {
                         </table>
                     </div>
                 )}
+            </section>
+
+            {/* -------- PAGINATION -------- */}
+            <section className="flex justify-center">
+                <nav aria-label="Page navigation example">
+                    <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+                        <li>
+                            {accessories?.page > 1 ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/accessories?page=${page - 1}`}
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                        {renderPaginationLinks()}
+                        <li>
+                            {accessories?.totalPages !== page ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/accessories?page=${page + 1}`}
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                    </ul>
+                </nav>
             </section>
 
             {isOpen && (

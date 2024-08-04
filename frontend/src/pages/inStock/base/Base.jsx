@@ -1,33 +1,44 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { IoAdd } from "react-icons/io5";
-import { GetAllBase } from '../../../features/InStockSlice';
+import { Link, useSearchParams } from "react-router-dom";
+import { GetAllBase, GetAllCategoriesForBase } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEye } from "react-icons/fa";
 
 const Base = () => {
     const dispatch = useDispatch();
     const { loading, Base } = useSelector((state) => state.InStock);
+    console.log('Base', Base);
+
+    const { BaseCategories } = useSelector((state) => state.InStock);
+    // console.log('BaseCategories', BaseCategories);
 
     const [isOpen, setIsOpen] = useState(false);
     const [baseId, setBaseId] = useState();
-    const [filteredData, setFilteredData] = useState(Base);
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [userSelectedCategory, setuserSelectedCategory] = useState("");
+    // const [filteredData, setFilteredData] = useState(Base);
+    const [search, setSearch] = useState();
+
+    const [searchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+
+    // useEffect(() => {
+    //     if (userSelectedCategory === 'All') {
+    //         setFilteredData(Base?.data);
+    //     } else {
+    //         const filtered = Base?.data?.filter(data => data.category === userSelectedCategory);
+    //         setFilteredData(filtered);
+    //     }
+    // }, [userSelectedCategory, Base]);
+
+    // console.log('userSelectedCategory', userSelectedCategory);
 
     useEffect(() => {
-        if (selectedCategory === 'All') {
-            setFilteredData(Base);
-        } else {
-            const filtered = Base.filter(data => data.category === selectedCategory);
-            setFilteredData(filtered);
-        }
-    }, [selectedCategory, Base]);
-
-    const categories = ['All', 'Lawn', 'Lilan', 'Dhanak', 'Organza', 'Reshmi'];
-
-    useEffect(() => {
-        dispatch(GetAllBase())
+        dispatch(GetAllBase({ category: userSelectedCategory, search, page }))
+        dispatch(GetAllCategoriesForBase());
         console.log('Base', Base)
-    }, [])
+
+    }, [page, dispatch]);
 
 
     const openModal = (id) => {
@@ -41,11 +52,67 @@ const Base = () => {
         document.body.style.overflow = 'auto';
     };
 
-    const filteredBaseData = Base?.filter((data) => data.id === baseId);
+    const renderPaginationLinks = () => {
+        const totalPages = Base?.totalPages;
+        const paginationLinks = [];
+        for (let i = 1; i <= totalPages; i++) {
+            paginationLinks.push(
+                <li key={i} onClick={ToDown}>
+                    <Link
+                        to={`/dashboard/base?page=${i}`}
+                        className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+                            }`}
+                        onClick={() => dispatch(GetAllBase({ category: userSelectedCategory, page: i }))}
+                    >
+                        {i}
+                    </Link>
+                </li>
+            );
+        }
+        return paginationLinks;
+    };
+
+    const ToDown = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+
+        if (value === "") {
+            dispatch(GetAllBase({ category: userSelectedCategory, page }));
+        } else {
+            dispatch(GetAllBase({ category: userSelectedCategory, search: value, page: 1 }));
+        }
+    };
+
+
+    const handleCategoryClick = (category) => {
+        const selectedCategory = category === "all" ? "" : category;
+        setuserSelectedCategory(selectedCategory);
+
+        // check
+        if (category === "all") {
+            dispatch(GetAllBase({ search, page: 1 }))
+        }
+        else if (search) {
+            dispatch(GetAllBase({ category, search, page: 1 }))
+        }
+        else {
+            dispatch(GetAllBase({ category, page: 1 }))
+        }
+    }
+
+    // const filteredBaseData = Base?.data?.filter((data) => data.id === baseId);
+    const filteredBaseData = useMemo(() => Base?.data?.filter(data => data.id === baseId), [Base, baseId]);
 
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Base</h1>
@@ -73,8 +140,8 @@ const Base = () => {
                                 type="text"
                                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                                 placeholder="Search by Color"
-                            // value={searchText}
-                            // onChange={handleSearch}
+                                value={search}
+                                onChange={handleSearch}
                             />
                         </div>
                     </div>
@@ -85,20 +152,27 @@ const Base = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        {categories?.map(category => (
-                            <button
+                        <Link
+                            to={`/dashboard/base?page=${1}`}
+                            className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${userSelectedCategory === ""
+                                ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                : ""
+                                }`}
+                            onClick={() => handleCategoryClick("all")}
+                        >
+                            All
+                        </Link>
+                        {BaseCategories?.map(category => (
+                            <Link
                                 key={category}
-                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
-                                onClick={() => setSelectedCategory(category)}
+                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${userSelectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
+                                onClick={() => handleCategoryClick(category)}
+                                to={`/dashboard/base?page=${1}`}
                             >
                                 {category}
-                            </button>
+                            </Link>
                         ))}
                     </div>
-
-                    {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button> */}
                 </div>
 
 
@@ -153,8 +227,8 @@ const Base = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData && filteredData.length > 0 ? (
-                                    filteredData?.map((data, index) => (
+                                {Base && Base?.data?.length > 0 ? (
+                                    Base?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium" scope="row">
                                                 {data?.category}
@@ -188,6 +262,111 @@ const Base = () => {
                     </div>
                 )}
             </section >
+
+            {/* -------- PAGINATION -------- */}
+            <section className="flex justify-center">
+                <nav aria-label="Page navigation example">
+                    <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+                        <li>
+                            {Base?.page > 1 ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/base?page=${page - 1}`}
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                        {renderPaginationLinks()}
+                        <li>
+                            {Base?.totalPages !== page ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/base?page=${page + 1}`}
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                    </ul>
+                </nav>
+            </section>
 
 
             {isOpen && (

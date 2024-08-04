@@ -13,11 +13,13 @@ export const addExpense = async (req, res, next) => {
     const branch = await BranchModel.findOne({ _id: branchId });
     if (!branch) throw new Error("Branch Not Found");
     const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+
     const existingDailySaleData = await DailySaleModel.findOne({
       branchId,
       date: { $eq: today },
     });
     if (!existingDailySaleData) throw new Error("Daily Sale Not Found");
+
     const existingExpenseData = await ExpenseModel.findOne({ branchId });
     let expenseData = { name, reason, Date, rate, serial_no };
     if (existingExpenseData) {
@@ -42,6 +44,7 @@ export const addExpense = async (req, res, next) => {
 export const getAllExpenses = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
+
     const limit = 6;
     let search = req.query.search || "";
     let branchId = req.query.branchId || "";
@@ -70,6 +73,7 @@ export const getAllExpenses = async (req, res, next) => {
       page,
       total_Expense: totalResult[0].total,
       data,
+
     };
     setMongoose();
     return res.status(200).json(response);
