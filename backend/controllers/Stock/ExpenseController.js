@@ -12,7 +12,7 @@ export const addExpense = async (req, res, next) => {
     const branch = await BranchModel.findOne({ _id: branchId });
     if (!branch) throw new Error("Branch Not Found");
     const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-    const existingDailySaleData = await DailySaleModel.findOne({ branchId , date : { $eq:today } });
+    const existingDailySaleData = await DailySaleModel.findOne({ branchId, date: { $eq: today } });
     const existingExpenseData = await ExpenseModel.findOne({ branchId });
     let expenseData = { name, reason, Date, rate, serial_no };
     let dailySaleData = { branchId, totalExpense: rate, totalSale: rate };
@@ -30,46 +30,41 @@ export const addExpense = async (req, res, next) => {
         DailySaleModel.create({ branchId, saleData: dailySaleData }),
       ]);
     }
-    return res.status(200).json({success:true, message: "Expense Added" });
+    return res.status(200).json({ success: true, message: "Expense Added" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-export const getAllExpenses = async (req,res,next) => {
-    try {
+export const getAllExpenses = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    let search = req.query.search || "";
 
-       
+    let query = {
+      name: { $regex: search, $options: "i" },
+    };
+    console.log(query);
+    const data = await ExpenseModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
-        const page = parseInt(req.query.page) || 1;
-        const limit = 20;
-        let search = req.query.search || "";
-     
-        let query = {
-          name: { $regex: search, $options: "i" },
-          
-        };
-      
-     
-        const data = await ExpenseModel.find(query)
-          .skip((page - 1) * limit)
-          .limit(limit)
-          .sort({ createdAt: -1 });
-    
-     
-        const total = await ExpenseModel.countDocuments(query);
-     
-        const response = {
-          totalPages: Math.ceil(total / limit),
-          page,
-          Expense:total,
-          data
-        };
-        setMongoose();
-        return res.status(200).json(response);
-    } catch (error) {
-        return res.status(500).json({ error: error.message }); 
-    }
+
+    const total = await ExpenseModel.countDocuments(query);
+
+    const response = {
+      totalPages: Math.ceil(total / limit),
+      page,
+      Expense: total,
+      data
+    };
+    setMongoose();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
 
 export const getExpensesForBranch = async (req, res, next) => {

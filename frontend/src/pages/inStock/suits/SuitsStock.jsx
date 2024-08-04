@@ -1,27 +1,23 @@
 import { useState, useEffect } from 'react';
 // import { IoAdd } from "react-icons/io5";
-import { AddSuit, GetAllSuit } from '../../../features/InStockSlice';
+import { AddSuit, GetAllCategoriesForSuits, GetAllSuit } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link, useSearchParams } from "react-router-dom";
+import { IoAdd } from "react-icons/io5";
 
 const SuitsStock = () => {
     const dispatch = useDispatch();
-
+    const [searchParams] = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
+    const [userSelectedCategory, setuserSelectedCategory] = useState("");
+    const [search, setSearch] = useState();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+
     const { loading, Suit } = useSelector((state) => state.InStock);
+    console.log('Suit', Suit);
 
-    const [filteredData, setFilteredData] = useState(Suit);
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const { SuitCategories } = useSelector((state) => state.InStock);
 
-    useEffect(() => {
-        if (selectedCategory === 'All') {
-            setFilteredData(Suit);
-        } else {
-            const filtered = Suit.filter(data => data.category === selectedCategory);
-            setFilteredData(filtered);
-        }
-    }, [selectedCategory, Suit]);
-
-    const categories = ['All', 'Lawn', 'Lilan', 'Dhanak', 'Organza', 'Reshmi'];
 
     // State variables to hold form data
     const [formData, setFormData] = useState({
@@ -34,8 +30,9 @@ const SuitsStock = () => {
     });
 
     useEffect(() => {
-        dispatch(GetAllSuit());
-    }, [dispatch]);
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+        dispatch(GetAllCategoriesForSuits());
+    }, [page, dispatch]);
 
     // Function to handle changes in form inputs
     const handleChange = (e) => {
@@ -51,7 +48,8 @@ const SuitsStock = () => {
         e.preventDefault();
         dispatch(AddSuit(formData)).then((res) => {
             if (res.payload.message === "Successfully Added") {
-                dispatch(GetAllSuit())
+                dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+                dispatch(GetAllCategoriesForSuits());
                 setFormData({
                     category: "",
                     color: "",
@@ -77,15 +75,74 @@ const SuitsStock = () => {
         document.body.style.overflow = 'auto';
     };
 
+    const renderPaginationLinks = () => {
+        const totalPages = Suit?.totalPages;
+        const paginationLinks = [];
+        for (let i = 1; i <= totalPages; i++) {
+            paginationLinks.push(
+                <li key={i} onClick={ToDown}>
+                    <Link
+                        to={`/dashboard/suits?page=${i}`}
+                        className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+                            }`}
+                        onClick={() => dispatch(GetAllSuit({ page: i }))}
+                    >
+                        {i}
+                    </Link>
+                </li>
+            );
+        }
+        return paginationLinks;
+    };
+
+    const ToDown = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+
+        if (value === "") {
+            dispatch(GetAllSuit({ category: userSelectedCategory, page }));
+        } else {
+            dispatch(GetAllSuit({ category: userSelectedCategory, search: value, page: 1 }));
+        }
+    };
+
+    const handleCategoryClick = (category) => {
+        console.log('category', category);
+        const selectedCategory = category === "all" ? "" : category;
+        setuserSelectedCategory(selectedCategory);
+
+        // check
+        if (category === "all") {
+            dispatch(GetAllSuit({ search, page: 1 }))
+        }
+        else if (search) {
+            dispatch(GetAllSuit({ category, search, page: 1 }))
+        }
+        else {
+            dispatch(GetAllSuit({ category, page: 1 }))
+        }
+    }
+
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Suits</h1>
 
                     {/* <!-- search bar --> */}
-                    <div className="search_bar mr-2">
+                    <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
+                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                            <IoAdd size={22} className='text-white' />
+                        </button>
+
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                 <svg
@@ -106,9 +163,9 @@ const SuitsStock = () => {
                             <input
                                 type="text"
                                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                                placeholder="Search by Design Number"
-                            // value={searchText}
-                            // onChange={handleSearch}
+                                placeholder="Search by Design No"
+                                value={search}
+                                onChange={handleSearch}
                             />
                         </div>
                     </div>
@@ -117,22 +174,29 @@ const SuitsStock = () => {
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
 
                 {/* -------------- TABS -------------- */}
-                <div className="tabs flex justify-between items-center my-5">
-                    <div className="tabs_button">
-                        {categories?.map(category => (
-                            <button
+                <div className="tabs my-5">
+                    <div className="tabs_button flex justify-start items-center flex-wrap gap-4">
+                        <Link
+                            to={`/dashboard/suits?page=${1}`}
+                            className={`border border-gray-500 px-5 py-2 text-sm rounded-md ${userSelectedCategory === ""
+                                ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                : ""
+                                }`}
+                            onClick={() => handleCategoryClick("all")}
+                        >
+                            All
+                        </Link>
+                        {SuitCategories?.map(category => (
+                            <Link
                                 key={category}
-                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
-                                onClick={() => setSelectedCategory(category)}
+                                className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 text-sm rounded-md ${userSelectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
+                                onClick={() => handleCategoryClick(category)}
+                                to={`/dashboard/suits?page=${1}`}
                             >
                                 {category}
-                            </button>
+                            </Link>
                         ))}
                     </div>
-
-                    {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button> */}
                 </div>
 
                 {/* -------------- TABLE -------------- */}
@@ -152,6 +216,12 @@ const SuitsStock = () => {
                                         scope="col"
                                     >
                                         D # No
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Category
                                     </th>
                                     <th
                                         className="px-6 py-3"
@@ -180,8 +250,8 @@ const SuitsStock = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData && filteredData.length > 0 ? (
-                                    filteredData.map((data, index) => (
+                                {Suit && Suit?.data?.length > 0 ? (
+                                    Suit?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"
@@ -189,13 +259,16 @@ const SuitsStock = () => {
                                                 {data.d_no}
                                             </th>
                                             <td className="px-6 py-4">
+                                                {data.category}
+                                            </td>
+                                            <td className="px-6 py-4">
                                                 {data.color}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.quantity}
                                             </td>
                                             <td className="px-6 py-4">
-                                                Rs {data.cost_price}
+                                                {data.cost_price}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.sale_price}
@@ -211,14 +284,119 @@ const SuitsStock = () => {
                         </table>
                     </div >
                 )}
-            </section >
+            </section>
+
+            {/* -------- PAGINATION -------- */}
+            <section className="flex justify-center">
+                <nav aria-label="Page navigation example">
+                    <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+                        <li>
+                            {Suit?.page > 1 ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/suits?page=${page - 1}`}
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Previous</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 1 1 5l4 4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                        {renderPaginationLinks()}
+                        <li>
+                            {Suit?.totalPages !== page ? (
+                                <Link
+                                    onClick={ToDown}
+                                    to={`/dashboard/suits?page=${page + 1}`}
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </Link>
+                            ) : (
+                                <button
+                                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                                    disabled
+                                >
+                                    <span className="sr-only">Next</span>
+                                    <svg
+                                        className="w-2.5 h-2.5 rtl:rotate-180"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 6 10"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="m1 9 4-4-4-4"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </li>
+                    </ul>
+                </nav>
+            </section>
 
             {isOpen && (
                 <div
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -251,71 +429,73 @@ const SuitsStock = () => {
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <input
-                                        name="category"
-                                        type="text"
-                                        placeholder="Enter Category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="color"
-                                        type="text"
-                                        placeholder="Enter Color"
-                                        value={formData.color}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="quantity"
-                                        type="text"
-                                        placeholder="Enter Quantity"
-                                        value={formData.quantity}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="cost_price"
-                                        type="text"
-                                        placeholder="Enter Cost Price"
-                                        value={formData.cost_price}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="sale_price"
-                                        type="text"
-                                        placeholder="Enter Sale Price"
-                                        value={formData.sale_price}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <input
-                                        name="d_no"
-                                        type="text"
-                                        placeholder="Enter Design Number"
-                                        value={formData.d_no}
-                                        onChange={handleChange}
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                        required
-                                    />
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                                    <div>
+                                        <input
+                                            name="category"
+                                            type="text"
+                                            placeholder="Enter Category"
+                                            value={formData.category}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            name="color"
+                                            type="text"
+                                            placeholder="Enter Color"
+                                            value={formData.color}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            name="quantity"
+                                            type="text"
+                                            placeholder="Enter Quantity"
+                                            value={formData.quantity}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            name="cost_price"
+                                            type="text"
+                                            placeholder="Enter Cost Price"
+                                            value={formData.cost_price}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            name="sale_price"
+                                            type="text"
+                                            placeholder="Enter Sale Price"
+                                            value={formData.sale_price}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            name="d_no"
+                                            type="text"
+                                            placeholder="Enter Design Number"
+                                            value={formData.d_no}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-center pt-2">
