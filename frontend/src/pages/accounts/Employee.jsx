@@ -28,13 +28,15 @@ const Employee = () => {
 
 
 
+
+
 useEffect(() => {
   if (selectedCategory === 'Active Employee') {
     dispatch(GetEmployeeActive({searchText,currentPage }));
   } else {
     dispatch(GetEmployeePast({searchText,currentPage }));
   }
-}, [selectedCategory, searchText, currentPage]);
+}, [selectedCategory, currentPage,searchText]);
 
   console.log('selected categorey', selectedCategory)
   console.log(page);

@@ -28,11 +28,18 @@ export const CreateEmployee = createAsyncThunk(
 );
 
 
+
+
+
 export const GetEmployeeActive = createAsyncThunk(
   "Employee/GetActiveEmployee",
-  async ({searchText,currentPage}) => {
+  async (data) => {
+    const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
     try {
-      const response = await axios.post(`${ActiveEmployee}?search=${searchText}&page=${currentPage}`);
+      const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -45,9 +52,13 @@ export const GetEmployeeActive = createAsyncThunk(
 
 export const GetEmployeePast = createAsyncThunk(
   "Employee/GetEmplpyeePast",
-  async ({searchText,currentPage}) => {
+  async (data) => {
+    const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
     try {
-      const response = await axios.post(`${PastEmployee}?search=${searchText}&page=${currentPage}`);
+      const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
