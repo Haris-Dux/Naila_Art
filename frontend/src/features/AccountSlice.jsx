@@ -39,6 +39,8 @@ export const GetEmployeeActive = createAsyncThunk(
     } catch (error) {
       console.log(error.response.data.error);
     }
+  }
+  )
 
 
 export const GetEmployeePast = createAsyncThunk(
@@ -52,6 +54,8 @@ export const GetEmployeePast = createAsyncThunk(
     } catch (error) {
       console.log(error.response.data.error);
     }
+  }
+  )
 
 
 

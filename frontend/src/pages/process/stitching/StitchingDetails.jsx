@@ -79,6 +79,7 @@ const StitchingDetails = () => {
         </div>
       </section>
     );
+  }
 
 
   console.log("sitching", SingleStitching);
