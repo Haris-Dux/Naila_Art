@@ -3,10 +3,10 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const createShop = "http://localhost:8000/api/branches/createBranch";
-const DeletShop = "http://localhost:8000/api/branches/deleteBranch";
-const UpdateShop = "http://localhost:8000/api/branches/updateBranch";
-const GetShop = "http://localhost:8000/api/branches/getAllBranches";
+const createShop = "/api/branches/createBranch";
+const DeletShop = "/api/branches/deleteBranch";
+const UpdateShop = "/api/branches/updateBranch";
+const GetShop = "/api/branches/getAllBranches";
 
 
 //CREATE ASYNC THUNK

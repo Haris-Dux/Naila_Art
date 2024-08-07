@@ -3,18 +3,19 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const getaccessories =
-  "http://localhost:8000/api/stock/accessories/getAllAccesoriesInStock";
-const getBags = "http://localhost:8000/api/stock/bags/getAllBagsAndBox";
-const getBase = "http://localhost:8000/api/stock/base/getAllBases";
-const getLace = "http://localhost:8000/api/stock/lace/getAllLaceStock";
-const getSuits = "http://localhost:8000/api/stock/suits/getAllSuits";
-const getExpense = "http://localhost:8000/api/stock/expense/getAllExpenses";
-
-const AddSuits = "http://localhost:8000/api/stock/suits/addBaseInStock";
+const getaccessories = "/api/stock/accessories/getAllAccesoriesInStock";
+const getBags = "/api/stock/bags/getAllBagsAndBox";
+const getBase = "/api/stock/base/getAllBases";
+const getAllCategoryForBaseUrl = "/api/stock/base/getAllCategoriesForbase";
+const getLace = "/api/stock/lace/getAllLaceStock";
+const getSuits = "/api/stock/suits/getAllSuits";
+const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
+const getExpense = "/api/stock/expense/getAllExpenses";
+const getExpenseForBranchUrl = "/api/stock/expense/getExpensesForBranch";
+const AddSuits = "/api/stock/suits/addBaseInStock";
 
 // GET ALL BRANCHES API
-const getAllBranches = "http://localhost:8000/api/branches/getAllBranches";
+const getAllBranches = "/api/branches/getAllBranches";
 
 export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
   try {
@@ -28,9 +29,18 @@ export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
   }
 });
 
-export const GetAllSuit = createAsyncThunk("Suit/Get", async () => {
+export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+
+  const category =
+    data?.category !== undefined && data?.category !== null
+      ? `&category=${data?.category}`
+      : "";
   try {
-    const response = await axios.post(getSuits);
+    const response = await axios.post(`${getSuits}?&page=${data.page}${category}${searchQuery}`);
     // toast.success(response.data.message);
     // console.log(response.data);
     return response.data;
@@ -40,9 +50,9 @@ export const GetAllSuit = createAsyncThunk("Suit/Get", async () => {
   }
 });
 
-export const GetAllBase = createAsyncThunk("Base/Get", async () => {
+export const GetAllCategoriesForSuits = createAsyncThunk("SuitsCategories/Get", async () => {
   try {
-    const response = await axios.post(getBase);
+    const response = await axios.post(getAllCategoryForSuitsUrl);
     // toast.success(response.data.message);
     return response.data;
   } catch (error) {
@@ -51,9 +61,44 @@ export const GetAllBase = createAsyncThunk("Base/Get", async () => {
   }
 });
 
-export const GetAllLace = createAsyncThunk("Lace/Get", async () => {
+export const GetAllBase = createAsyncThunk("Base/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+
+  const category =
+    data?.category !== undefined && data?.category !== null
+      ? `&category=${data?.category}`
+      : "";
   try {
-    const response = await axios.post(getLace);
+    const response = await axios.post(`${getBase}?&page=${data.page}${category}${searchQuery}`);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllCategoriesForBase = createAsyncThunk("BaseCategories/Get", async () => {
+  try {
+    const response = await axios.post(getAllCategoryForBaseUrl);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${getLace}?&page=${data.page}${searchQuery}`);
     // toast.success(response.data.message);
 
     return response.data;
@@ -76,9 +121,13 @@ export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
 
 export const GetAllaccessories = createAsyncThunk(
   "accessories/Get",
-  async () => {
+  async (data) => {
+    const searchQuery =
+      data?.search !== undefined && data?.search !== null
+        ? `&search=${data?.search}`
+        : "";
     try {
-      const response = await axios.post(getaccessories);
+      const response = await axios.post(`${getaccessories}?&page=${data.page}${searchQuery}`);
       // toast.success(response.data.message);
       return response.data;
     } catch (error) {
@@ -88,21 +137,41 @@ export const GetAllaccessories = createAsyncThunk(
   }
 );
 
-export const GetAllExpense = createAsyncThunk("Expense/Get", async () => {
+export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  const branchId =
+    data?.branchId !== undefined && data?.branchId !== null
+      ? `&branchId=${data?.branchId}`
+      : "";
   try {
-    const response = await axios.post(getExpense);
+    const response = await axios.post(`${getExpense}?&page=${data.page}${branchId}${searchQuery}`);;
     // toast.success(response.data.message);
 
     return response.data;
   } catch (error) {
     console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    // toast.error(error.response.data.error);
   }
 });
 
-export const GetAllBranches = createAsyncThunk("Branches/GetAll", async () => {
+// export const GetAllExpenseForBranch = createAsyncThunk("ExpenseForBranch/Get", async (fromData) => {
+//   try {
+//     const response = await axios.post(getExpenseForBranchUrl, fromData);
+//     // toast.success(response.data.message);
+//     console.log(response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.log(error.response.data.error);
+//     // toast.error(error.response.data.error);
+//   }
+// });
+
+export const GetAllBranches = createAsyncThunk("Branches/GetAll", async (id) => {
   try {
-    const response = await axios.post(getAllBranches);
+    const response = await axios.post(getAllBranches, id);
     // toast.success(response.data.message);
     console.log(response.data);
     return response.data;
@@ -116,10 +185,13 @@ export const GetAllBranches = createAsyncThunk("Branches/GetAll", async () => {
 const initialState = {
   Suit: [],
   Base: [],
+  BaseCategories: [],
+  SuitCategories: [],
   Lace: [],
   Bags: [],
   accessories: [],
   Expense: [],
+  // SingleBranchExpense: [],
   loading: false,
   Branches: [],
 };
@@ -147,6 +219,22 @@ const InStockSlic = createSlice({
       .addCase(GetAllBags.fulfilled, (state, action) => {
         state.loading = false;
         state.Bags = action.payload;
+      })
+
+      .addCase(GetAllCategoriesForBase.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllCategoriesForBase.fulfilled, (state, action) => {
+        state.loading = false;
+        state.BaseCategories = action.payload;
+      })
+
+      .addCase(GetAllCategoriesForSuits.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllCategoriesForSuits.fulfilled, (state, action) => {
+        state.loading = false;
+        state.SuitCategories = action.payload;
       })
 
       .addCase(GetAllBase.pending, (state, action) => {
@@ -180,6 +268,14 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.Expense = action.payload;
       })
+
+      // .addCase(GetAllExpenseForBranch.pending, (state, action) => {
+      //   state.loading = true;
+      // })
+      // .addCase(GetAllExpenseForBranch.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.SingleBranchExpense = action.payload;
+      // })
 
       .addCase(AddSuit.pending, (state, action) => {
         state.loading = true;

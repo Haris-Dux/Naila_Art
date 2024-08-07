@@ -3,15 +3,14 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addCalender = "http://localhost:8000/api/process/calender/addCalender";
-
-const UpdateCalender = "http://localhost:8000/api/process/calender/updateCalender";
-const getAllCalender = "http://localhost:8000/api/process/calender/getAllCalender";
-const getSingleCalender = "http://localhost:8000/api/process/calender/getCalenderById";
-
+const addCalender = "/api/process/calender/addCalender";
+const UpdateCalender = "/api/process/calender/updateCalender";
+const getAllCalender = "/api/process/calender/getAllCalender";
+const getSingleCalender = "/api/process/calender/getCalenderById";
 
 
-//CREATE ASYNC THUNK
+
+// CREATE CALENDER THUNK
 export const createCalender = createAsyncThunk(
   "Shop/create",
   async (formData) => {
@@ -26,7 +25,7 @@ export const createCalender = createAsyncThunk(
   }
 );
 
-// lOGIN ASYNC THUNK
+// UPDATE CALENDER THUNK
 export const UpdateCalenderAsync = createAsyncThunk(
   "Calender/Update",
   async (formData) => {
@@ -42,34 +41,31 @@ export const UpdateCalenderAsync = createAsyncThunk(
   }
 );
 
-
-
-
-
-// VERIFY ASYNC THUNK
-export const GetAllCalender = createAsyncThunk(
-  "Calender/Get",
-  async (formData) => {
-    try {
-      const response = await axios.post(getAllCalender, formData);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+// GET ALL CALENDER THUNK
+export const GetAllCalender = createAsyncThunk("Calender/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${getAllCalender}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
+}
 );
 
-
-
+// GET SINGLE CALENDER THUNK
 export const GetSingleCalender = createAsyncThunk(
-"Calender/GetSingle",
+  "Calender/GetSingle",
   async (id) => {
     try {
       const response = await axios.post(getSingleCalender, id);
-      toast.success(response.data.message);
+      // toast.success(response.data.message);
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -78,15 +74,13 @@ export const GetSingleCalender = createAsyncThunk(
     }
   }
 );
-
-
 
 
 // INITIAL STATE
 const initialState = {
-  
+
   Calender: [],
-  SingleCalender:{},
+  SingleCalender: {},
   loading: false,
 };
 
@@ -105,7 +99,7 @@ const CalenderSlice = createSlice({
       })
       .addCase(createCalender.fulfilled, (state, action) => {
         state.loading = false;
-    
+
       })
 
       // LOGIN ADD CASE
@@ -133,11 +127,6 @@ const CalenderSlice = createSlice({
         state.loading = false;
         state.SingleCalender = action.payload
       })
-
-
-
-      
-   
   },
 });
 

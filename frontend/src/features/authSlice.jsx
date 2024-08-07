@@ -3,15 +3,15 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const signupUrl = "http://localhost:8000/api/users/signup";
-const loginUrl = "http://localhost:8000/api/users/login";
-const userSessionUrl = "http://localhost:8000/api/users/persistUserSession";
-const logoutUrl = "http://localhost:8000/api/users/logout";
-const authUserSessionUrl = "http://localhost:8000/api/users/persistUserSession"
-const forgetPassUrl = "http://localhost:8000/api/users/sendResetPasswordOTP";
-const verifyOtpPassUrl = "http://localhost:8000/api/users/verifyOtp";
-const resetPassUrl = "http://localhost:8000/api/users/updatePassword";
-const getUsersForBranch = "http://localhost:8000/api/users/getUsersForBranch";
+const signupUrl = "/api/users/signup";
+const loginUrl = "/api/users/login";
+const userSessionUrl = "/api/users/persistUserSession";
+const logoutUrl = "/api/users/logout";
+const authUserSessionUrl = "/api/users/persistUserSession"
+const forgetPassUrl = "/api/users/sendResetPasswordOTP";
+const verifyOtpPassUrl = "/api/users/verifyOtp";
+const resetPassUrl = "/api/users/updatePassword";
+const getUsersForBranch = "/api/users/getUsersForBranch";
 
 //CREATE ASYNC THUNK
 export const createuserAsync = createAsyncThunk(
@@ -19,7 +19,7 @@ export const createuserAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(signupUrl, formData);
-      toast.success(response.data.message);
+      // toast.success(response.data.message);
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -34,7 +34,7 @@ export const loginuserAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(loginUrl, formData);
-      toast.success(response.data.message);
+      // toast.success(response.data.message);
       console.log(response);
       return response.data;
     } catch (error) {
@@ -59,7 +59,7 @@ export const userSessionAsync = createAsyncThunk("user/session", async () => {
 export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
   try {
     const response = await axios.delete(logoutUrl);
-    toast.success(response.data.message);
+    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
     console.log(error.response.data.error);
