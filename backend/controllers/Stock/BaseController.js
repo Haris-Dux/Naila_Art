@@ -39,14 +39,18 @@ export const addBaseInStock = async (req, res, next) => {
 export const getAllBases = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 10;
     let search = req.query.search || "";
+    let category = req.query.category || "";
 
     let query = {};
     if (search) {
-      query.name = { $regex: search, $options: "i" };
-    }
 
+      query.colors = { $regex: search, $options: "i" };
+    };
+    if (category) {
+      query = { ...query, category: category };
+    };
     const data = await BaseModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -54,7 +58,7 @@ export const getAllBases = async (req, res, next) => {
 
     const total = await BaseModel.countDocuments(query);
 
-  
+
     const response = {
       totalPages: Math.ceil(total / limit),
       page,

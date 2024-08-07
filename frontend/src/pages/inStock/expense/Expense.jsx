@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { GetAllBranches, GetAllExpense } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
+import { GetAllBranches, GetAllExpense } from "../../../features/InStockSlice";
 
 const Expense = () => {
   const dispatch = useDispatch();
@@ -8,19 +9,24 @@ const Expense = () => {
   const [messageId, setMessageId] = useState();
   const [selectedBranchId, setSelectedBranchId] = useState(null);
   const { loading, Expense } = useSelector((state) => state.InStock);
+  console.log('Expense', Expense);
+
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
   const { Branches } = useSelector((state) => state.InStock);
 
-  const allExpenses = Expense.reduce((acc, branch) => {
+  const allExpenses = Expense?.data?.reduce((acc, branch) => {
     return acc.concat(branch.brannchExpenses);
   }, []);
 
-  const filteredExpenses = selectedBranchId
-    ? Expense.filter((expense) => expense.branchId === selectedBranchId).reduce(
-        (acc, branch) => {
-          return acc.concat(branch.brannchExpenses);
-        },
-        []
-      )
+  const filteredExpenses = selectedBranchId ? Expense?.data?.filter((expense) => expense.branchId === selectedBranchId).reduce(
+    (acc, branch) => {
+      return acc.concat(branch.brannchExpenses);
+    },
+    []
+  )
     : allExpenses;
 
   const handleBranchClick = (branchId) => {
@@ -28,7 +34,7 @@ const Expense = () => {
   };
 
   useEffect(() => {
-    dispatch(GetAllExpense());
+    dispatch(GetAllExpense({ page }));
     dispatch(GetAllBranches());
     // console.log("Expense", Expense);
     // console.log("allExpenses", allExpenses);
@@ -44,7 +50,7 @@ const Expense = () => {
     document.body.style.overflow = "auto";
   };
 
-  const filteredMsgData = allExpenses.find((data) => data?.id === messageId);
+  const filteredMsgData = allExpenses?.find((data) => data?.id === messageId);
 
   return (
     <>
@@ -78,8 +84,8 @@ const Expense = () => {
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                 placeholder="Search by Design Number"
-                // value={searchText}
-                // onChange={handleSearch}
+              // value={searchText}
+              // onChange={handleSearch}
               />
             </div>
           </div>
@@ -91,11 +97,10 @@ const Expense = () => {
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
             <button
-              className={`border border-gray-500   px-5 py-2 mx-2 text-sm rounded-md ${
-                selectedBranchId === null
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : ""
-              }`}
+              className={`border border-gray-500   px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === null
+                ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                : ""
+                }`}
               onClick={() => handleBranchClick(null)}
             >
               All
@@ -103,11 +108,10 @@ const Expense = () => {
             {Branches?.map((branch) => (
               <button
                 key={branch?.id}
-                className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                  selectedBranchId === branch?.id
-                    ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                    : ""
-                }`}
+                className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === branch?.id
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : ""
+                  }`}
                 onClick={() => handleBranchClick(branch?.id)}
               >
                 {branch?.branchName}
@@ -150,7 +154,7 @@ const Expense = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredExpenses.length > 0 ? (
+                {filteredExpenses?.length > 0 ? (
                   filteredExpenses?.map((expense, index) => (
                     <tr
                       key={index}
