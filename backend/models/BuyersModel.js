@@ -5,7 +5,7 @@ const suits_sale_details = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: [true, "Suit Id is required"],
   },
-  design_no: {
+  d_no: {
     type: Number,
     required: [true, "Design No is required"],
   },
@@ -101,7 +101,7 @@ const BuyersSchema = new mongoose.Schema({
   payment_Method: {
     type: String,
     required: [true, "paymentMethod value is required"],
-    enum: ["Meezan Bank", "Jazz Cash", "Easy Paisa", "Cash"],
+    enum: ["cashInMeezanBank", "cashInJazzCash", "cashInEasyPaisa", "cashSale"],
   },
   packaging: {
     name: {
