@@ -27,37 +27,33 @@ export const CreateEmployee = createAsyncThunk(
   }
 );
 
-export const GetEmployeeActive = createAsyncThunk("Employee/GetActiveEmployee", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-  try {
-    const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
-    return response.data;
-  } catch (error) {
-    console.log(error.response.data.error);
-  }
-}
-);
 
-export const GetEmployeePast = createAsyncThunk("Employee/GetEmplpyeePast", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-  try {
-    const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
-    return response.data;
-  } catch (error) {
-    console.log(error.response.data.error);
-  }
-}
-);
+export const GetEmployeeActive = createAsyncThunk(
+  "Employee/GetActiveEmployee",
+  async ({searchText,currentPage}) => {
+    try {
+      const response = await axios.post(`${ActiveEmployee}?search=${searchText}&page=${currentPage}`);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+
+
+export const GetEmployeePast = createAsyncThunk(
+  "Employee/GetEmplpyeePast",
+  async ({searchText,currentPage}) => {
+    try {
+      const response = await axios.post(`${PastEmployee}?search=${searchText}&page=${currentPage}`);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+
+
 
 
 
