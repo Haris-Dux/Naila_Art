@@ -231,9 +231,11 @@ export const getAllActiveEmploye = async (req, res, next) => {
 
 export const getAllPastEmploye = async (req, res, next) => {
   try {
+
     const page = parseInt(req.query.page) || 1;
     const limit = 1;
     let search = req.query.search || "";
+
 
     let query = {
       name: { $regex: search, $options: "i" },
