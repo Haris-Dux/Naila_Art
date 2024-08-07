@@ -1,5 +1,5 @@
 import express from "express";
-import { superAdminOnly } from "../middleware/Auth.js";
+import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
 import {
   createBranch,
   deleteBranch,
@@ -12,6 +12,6 @@ const branchRouter = express.Router();
 branchRouter.post("/createBranch", superAdminOnly, createBranch);
 branchRouter.post("/updateBranch", superAdminOnly, updateBranch);
 branchRouter.post("/deleteBranch", superAdminOnly, deleteBranch);
-branchRouter.post("/getAllBranches", superAdminOnly, getAllBranches);
+branchRouter.post("/getAllBranches", verifyUser, getAllBranches);
 
 export default branchRouter;

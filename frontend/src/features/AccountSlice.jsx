@@ -27,32 +27,36 @@ export const CreateEmployee = createAsyncThunk(
   }
 );
 
-export const GetEmployeeActive = createAsyncThunk(
-  "Employee/GetActiveEmployee",
-  async (search) => {
-    try {
-      const response = await axios.post(`${ActiveEmployee}?search=${search}`);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-    }
+export const GetEmployeeActive = createAsyncThunk("Employee/GetActiveEmployee", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
   }
+}
 );
 
-export const GetEmployeePast = createAsyncThunk(
-  "Employee/GetEmplpyeePast",
-  async (search) => {
-    try {
-      const response = await axios.post(`${PastEmployee}?search=${search}`);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-    }
+export const GetEmployeePast = createAsyncThunk("Employee/GetEmplpyeePast", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
   }
+}
 );
 
 
@@ -61,7 +65,7 @@ export const GetEmployeeById = createAsyncThunk(
   "Employee/SingleEmployee",
   async (id) => {
     try {
-      const response = await axios.post(EmployeeByID,id);
+      const response = await axios.post(EmployeeByID, id);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -126,9 +130,9 @@ export const CreditSalary = createAsyncThunk(
 
 
 const initialState = {
-  
+
   Employees: [],
-  Employee:{},
+  Employee: {},
   loading: false,
 };
 
@@ -141,13 +145,13 @@ const AccountSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-     
+
       .addCase(CreateEmployee.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(CreateEmployee.fulfilled, (state, action) => {
         state.loading = false;
-    
+
       })
 
 
@@ -157,7 +161,7 @@ const AccountSlice = createSlice({
       .addCase(GetEmployeeActive.fulfilled, (state, action) => {
         state.loading = false;
         state.Employees = action.payload
-    
+
       })
       .addCase(GetEmployeePast.pending, (state, action) => {
         state.loading = true;
@@ -166,7 +170,7 @@ const AccountSlice = createSlice({
         state.loading = false;
         state.Employees = action.payload
 
-    
+
       })
 
 
@@ -177,19 +181,19 @@ const AccountSlice = createSlice({
         state.loading = false;
         state.Employee = action.payload
 
-    
+
       })
 
-    
+
 
       .addCase(UpdateEmployee.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(UpdateEmployee.fulfilled, (state, action) => {
         state.loading = false;
-   
 
-    
+
+
       })
 
 
@@ -198,27 +202,27 @@ const AccountSlice = createSlice({
       })
       .addCase(AddCreditDebit.fulfilled, (state, action) => {
         state.loading = false;
-   
 
-    
+
+
       })
 
-    
+
       .addCase(CreditSalary.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(CreditSalary.fulfilled, (state, action) => {
         state.loading = false;
-   
 
-    
+
+
       })
 
-    
 
-      
-      
-   
+
+
+
+
   },
 });
 

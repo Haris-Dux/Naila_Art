@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { IoAdd } from "react-icons/io5";
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from "react-router-dom";
 import { FaEye, FaEdit, FaTrashAlt } from "react-icons/fa";
-import { CreateEmployee, GetEmployeeActive, GetEmployeePast ,UpdateEmployee} from '../../features/AccountSlice';
+import { CreateEmployee, GetEmployeeActive, GetEmployeePast, UpdateEmployee } from '../../features/AccountSlice';
 
 const categories = ['Active Employee', 'Past Employee'];
 
@@ -20,27 +20,33 @@ const PhoneComponent = ({ phone }) => {
 };
 
 const Employee = () => {
+  const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const { loading, Employees } = useSelector((state) => state.Account);
-  const dispatch = useDispatch();
   const [selectedCategory, setSelectedCategory] = useState('Active Employee');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [search, setSearch] = useState();
 
 
-console.log('selected categorey',selectedCategory)
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page"), 10);
 
+
+  console.log('selected categorey', selectedCategory)
+  console.log(page);
 
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive(searchText));
+      dispatch(GetEmployeeActive({ page }));
     } else {
-      dispatch(GetEmployeePast(searchText));
+      dispatch(GetEmployeePast({ page }));
     }
-  }, [selectedCategory, searchText]);
+  }, [selectedCategory, page]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,23 +62,23 @@ console.log('selected categorey',selectedCategory)
   });
 
 
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearch(value);
 
-  const handleSearch = (event) => {
-    setSearchText(event.target.value);
-  };
- 
-
-  const totalPages = Employees?.totalPages || 1;
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+    if (value === "") {
+      if (selectedCategory === 'Active Employee') {
+        dispatch(GetEmployeeActive({ page: 1 }));
+      } else {
+        dispatch(GetEmployeePast({ page: 1 }));
+      }
     }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+    else {
+      if (selectedCategory === 'Active Employee') {
+        dispatch(GetEmployeeActive({ search, page: 1 }));
+      } else {
+        dispatch(GetEmployeePast({ search, page: 1 }));
+      }
     }
   };
 
@@ -90,11 +96,11 @@ console.log('selected categorey',selectedCategory)
       const updatedFormData = { ...formData, id: selectedEmployee.id };
       dispatch(UpdateEmployee(updatedFormData)).then(() => {
         dispatch(GetEmployeeActive(searchText))
-          closeModal();
-          setFormData('')
-       setIsEditing(false);
+        closeModal();
+        setFormData('')
+        setIsEditing(false);
 
-        })
+      })
         .catch((error) => {
           console.error("Error updating employee:", error);
         });
@@ -121,13 +127,13 @@ console.log('selected categorey',selectedCategory)
 
   const handleDelete = (id) => {
     const data = {
-      id:id,
-      pastEmploye:true
+      id: id,
+      pastEmploye: true
     }
     dispatch(UpdateEmployee(data))
       .then(() => {
-       dispatch(GetEmployeeActive(searchText))
-       
+        dispatch(GetEmployeeActive(searchText))
+
 
         closeConfirmationModal()
       })
@@ -162,12 +168,68 @@ console.log('selected categorey',selectedCategory)
     document.body.style.overflow = 'auto';
   };
 
+  const paginationLinkClick = () => {
+    if (selectedCategory === 'Active Employee') {
+      dispatch(GetEmployeeActive({ search, page }));
+    } else {
+      dispatch(GetEmployeePast({ search, page }));
+    }
+  }
+
+  const renderPaginationLinks = () => {
+    const totalPages = Employees?.totalPages;
+    const paginationLinks = [];
+    for (let i = 1; i <= totalPages; i++) {
+      paginationLinks.push(
+        <li key={i} onClick={ToDown}>
+          <Link
+            to={`/dashboard/employee?page=${i}`}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              }`}
+            onClick={() => paginationLinkClick(i)}
+          >
+            {i}
+          </Link>
+        </li >
+      );
+    }
+    return paginationLinks;
+  };
+
+
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category)
+    if (search === "") {
+      if (selectedCategory === 'Active Employee') {
+        dispatch(GetEmployeeActive({ page: 1 }));
+      } else {
+        dispatch(GetEmployeePast({ page: 1 }));
+      }
+    }
+    else {
+      if (selectedCategory === 'Active Employee') {
+        dispatch(GetEmployeeActive({ search, page: 1 }));
+      } else {
+        dispatch(GetEmployeePast({ search, page: 1 }));
+      }
+    }
+  }
+
+  const ToDown = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <>
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
+        {/* HEADER */}
         <div className="header flex justify-between items-center pt-6 mx-2">
           <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Employees</h1>
 
+          {/* SEARCH BAR */}
           <div className="search_bar flex items-center gap-3 mr-2">
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -178,24 +240,27 @@ console.log('selected categorey',selectedCategory)
               <input
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by Employee Name"
-                value={searchText}
+                placeholder="Search by name"
+                value={search}
                 onChange={handleSearch}
               />
             </div>
           </div>
         </div>
 
+        {/* TABS */}
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
             {categories?.map((category) => (
-              <button
+              <Link
+                to={`/dashboard/employee?page=${1}`}
                 key={category}
                 className={`border border-gray-500 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900' : ''}`}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryClick(category)}
+              // onClick={() => setSelectedCategory(category)}
               >
                 {category}
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -211,128 +276,182 @@ console.log('selected categorey',selectedCategory)
             </div>
           </div>
         ) : (
-
-          <>   
-          <div className="relative overflow-x-auto mt-5">
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-md font-medium" scope="col"> Name</th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">Salary</th>
-
-
-                  <th className="px-6 py-4 text-md font-medium" scope="col">Advance</th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">Balance</th>
-
-                  <th className="px-6 py-4 text-md font-medium" scope="col">Details</th>
-                  {selectedCategory === 'Active Employee' && (
-
-                  <th className="px-6 py-4 text-md font-medium" scope="col">Actions</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                
-                
-                {Employees?.employData && Employees?.employData?.length > 0 ? (
-                  Employees?.employData?.map((employee, index) => (
-                <>
-
-                    <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                      <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                        <p>{employee.name}</p>
-                      </th>
-                    
-                      <td className="px-6 py-4 font-medium">{employee.salary} Rs</td>
-                      <td className="px-6 py-4 font-medium">
-  {employee?.financeData && employee.financeData.length > 0 ? (
-    `${employee.financeData[employee.financeData.length - 1]?.balance < 0 ? 0 : employee.financeData[employee.financeData.length - 1]?.balance} Rs`
-  ) : (
-    "-"
-  )}
-</td>
+          <>
+            <div className="relative overflow-x-auto mt-5">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-md font-medium" scope="col"> Name</th>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">Salary</th>
 
 
-                    
-<td className="px-6 py-4 font-medium">
-  {employee?.financeData && employee.financeData.length > 0 ? (
-    `${employee.financeData[employee.financeData.length - 1]?.balance} Rs`
-  ) : (
-    "-"
-  )}
-</td>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">Advance</th>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">Balance</th>
 
-                      <td className="pl-10 py-4">
-                        <Link to={`/dashboard/employee-details/${employee.id}`}>
-                          <FaEye size={20} className='cursor-pointer' />
-                        </Link>
-                      </td>
-                      {selectedCategory === 'Active Employee' && (
-                      <td className="pl-10 py-4 flex gap-2 mt-2">
-                        <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(employee)} />
-                        <FaTrashAlt size={20} className='cursor-pointer'  onClick={() => openConfirmationModal(employee)} />
-                      </td>
-                      )}
-                    </tr>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">Details</th>
+                    {selectedCategory === 'Active Employee' && (
 
-
-
-
-
-</>
-
-                  ))
-                ) : (
-                  <tr className="w-full text-md font-semibold dark:text-white">
-                    <td colSpan={6} className="px-6 py-4 font-medium text-center">
-                      No employees found.
-                    </td>
+                      <th className="px-6 py-4 text-md font-medium" scope="col">Actions</th>
+                    )}
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {Employees?.employData && Employees?.employData?.length > 0 ? (
+                    Employees?.employData?.map((employee, index) => (
+                      <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                          <p>{employee.name}</p>
+                        </th>
+
+                        <td className="px-6 py-4 font-medium">{employee.salary} Rs</td>
+                        <td className="px-6 py-4 font-medium">
+                          {employee?.financeData && employee.financeData.length > 0 ? (
+                            `${employee.financeData[employee.financeData.length - 1]?.balance < 0 ? 0 : employee.financeData[employee.financeData.length - 1]?.balance} Rs`
+                          ) : (
+                            "-"
+                          )}
+                        </td>
 
 
-<nav className="flex items-center flex-column flex-wrap md:flex-row justify-end pt-4" aria-label="Table navigation">
-<ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-  <li>
-    <button
-      onClick={handlePreviousPage}
-      disabled={currentPage === 1}
-      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-    >
-      Previous
-    </button>
-  </li>
-  {[...Array(totalPages)]?.map((_, pageIndex) => (
-    <li key={pageIndex}>
-      <button
-        onClick={() => setCurrentPage(pageIndex + 1)}
-        className={`flex items-center justify-center px-3 h-8 leading-tight ${
-          currentPage === pageIndex + 1
-            ? "text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
-            : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-        }`}
-      >
-        {pageIndex + 1}
-      </button>
-    </li>
-  ))}
-  <li>
-    <button
-      onClick={handleNextPage}
-      disabled={currentPage === totalPages}
-      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-    >
-      Next
-    </button>
-  </li>
-</ul>
-</nav>
 
-</>
+                        <td className="px-6 py-4 font-medium">
+                          {employee?.financeData && employee.financeData.length > 0 ? (
+                            `${employee.financeData[employee.financeData.length - 1]?.balance} Rs`
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+
+                        <td className="pl-10 py-4">
+                          <Link to={`/dashboard/employee-details/${employee.id}`}>
+                            <FaEye size={20} className='cursor-pointer' />
+                          </Link>
+                        </td>
+                        {selectedCategory === 'Active Employee' && (
+                          <td className="pl-10 py-4 flex gap-2 mt-2">
+                            <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(employee)} />
+                            <FaTrashAlt size={20} className='cursor-pointer' onClick={() => openConfirmationModal(employee)} />
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="w-full text-md font-semibold dark:text-white">
+                      <td colSpan={6} className="px-6 py-4 font-medium text-center">
+                        No employees found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
+      </section>
+
+      {/* -------- PAGINATION -------- */}
+      <section className="flex justify-center">
+        <nav aria-label="Page navigation example">
+          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+            <li>
+              {Employees?.page > 1 ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/employee?page=${page - 1}`}
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+            {renderPaginationLinks()}
+            <li>
+              {Employees?.totalPages !== page ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/employee?page=${page + 1}`}
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+          </ul>
+        </nav>
       </section>
 
       {/* Modal */}
@@ -387,7 +506,7 @@ console.log('selected categorey',selectedCategory)
                       value={formData.name}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                     
+
                       required
                     />
                   </div>
@@ -513,7 +632,7 @@ console.log('selected categorey',selectedCategory)
                   {/* JOINING DATE */}
                   <div>
                     <input
-                     type='date'
+                      type='date'
                       placeholder="Joining Date"
                       name="joininig_date"
                       id="joininig_date"
@@ -530,7 +649,7 @@ console.log('selected categorey',selectedCategory)
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-           {isEditing ? 'Update' : 'Create'}
+                    {isEditing ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
@@ -539,37 +658,35 @@ console.log('selected categorey',selectedCategory)
         </div >
       )}
 
+      {isConfirmationOpen && (
+        <div aria-hidden="true" className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50">
+          <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Confirm Credit Salary
+              </h3>
+              <button onClick={closeConfirmationModal} className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" type="button">
+                <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                  <path d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
 
-
-{isConfirmationOpen && (
-          <div aria-hidden="true" className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50">
-            <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
-              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Confirm Credit Salary
-                </h3>
-                <button onClick={closeConfirmationModal} className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" type="button">
-                  <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-                    <path d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
+            <div className="p-4 md:p-5">
+              <p className="text-center text-gray-700 dark:text-gray-300">Are you sure you want to Delete the Employee?</p>
+              <div className="flex justify-center pt-5 gap-3">
+                <button onClick={() => handleDelete(selectedEmployee.id)} className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500">
+                  Yes
                 </button>
-              </div>
-
-              <div className="p-4 md:p-5">
-                <p className="text-center text-gray-700 dark:text-gray-300">Are you sure you want to Delete the Employee?</p>
-                <div className="flex justify-center pt-5 gap-3">
-                  <button onClick={() => handleDelete(selectedEmployee.id)} className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500">
-                    Yes
-                  </button>
-                  <button onClick={closeConfirmationModal} className="inline-block rounded border border-gray-300 bg-gray-300 dark:bg-gray-400 px-10 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-400 focus:outline-none focus:ring">
-                    No
-                  </button>
-                </div>
+                <button onClick={closeConfirmationModal} className="inline-block rounded border border-gray-300 bg-gray-300 dark:bg-gray-400 px-10 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-400 focus:outline-none focus:ring">
+                  No
+                </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 };

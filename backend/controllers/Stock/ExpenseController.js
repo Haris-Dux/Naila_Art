@@ -1,9 +1,9 @@
 import moment from "moment-timezone";
 import { BranchModel } from "../../models/Branch.Model.js";
+import mongoose from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import mongoose from "mongoose";
 
 export const addExpense = async (req, res, next) => {
   try {

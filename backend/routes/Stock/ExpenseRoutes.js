@@ -7,7 +7,7 @@ import { superAdminAndAdminOnly, verifyUser } from "../../middleware/Auth.js";
 const expenseRouter = express.Router();
 
 expenseRouter.post("/addExpense",verifyUser,addExpense);
-expenseRouter.post("/getAllExpenses",superAdminAndAdminOnly, getAllExpenses);
+expenseRouter.post("/getAllExpenses",verifyUser, getAllExpenses);
 expenseRouter.post("/getExpensesForBranch",verifyUser, getExpensesForBranch);
 
 
