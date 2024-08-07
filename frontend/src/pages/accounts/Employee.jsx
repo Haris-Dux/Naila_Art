@@ -7,17 +7,7 @@ import { CreateEmployee, GetEmployeeActive, GetEmployeePast ,UpdateEmployee} fro
 
 const categories = ['Active Employee', 'Past Employee'];
 
-const PhoneComponent = ({ phone }) => {
-  const maskPhoneNumber = (phone) => {
-    if (phone.length > 3) {
-      return phone.slice(0, 3) + '*******'.slice(0, phone.length - 3);
-    } else {
-      return phone;
-    }
-  };
 
-  return <p>{maskPhoneNumber(phone)}</p>;
-};
 
 const Employee = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,13 +24,13 @@ const Employee = () => {
 console.log('selected categorey',selectedCategory)
 
 
-  useEffect(() => {
-    if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive(searchText));
-    } else {
-      dispatch(GetEmployeePast(searchText));
-    }
-  }, [selectedCategory, searchText]);
+useEffect(() => {
+  if (selectedCategory === 'Active Employee') {
+    dispatch(GetEmployeeActive({searchText,currentPage }));
+  } else {
+    dispatch(GetEmployeePast({searchText,currentPage }));
+  }
+}, [selectedCategory, searchText, currentPage]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -88,12 +78,12 @@ console.log('selected categorey',selectedCategory)
     e.preventDefault();
     if (isEditing) {
       const updatedFormData = { ...formData, id: selectedEmployee.id };
-      dispatch(UpdateEmployee(updatedFormData)).then(() => {
-        dispatch(GetEmployeeActive(searchText))
+      dispatch(UpdateEmployee(updatedFormData))
+        .then(() => {
+          dispatch(GetEmployeeActive({ searchText, currentPage }));
           closeModal();
-          setFormData('')
-       setIsEditing(false);
-
+          setFormData('');
+          setIsEditing(false);
         })
         .catch((error) => {
           console.error("Error updating employee:", error);
@@ -101,16 +91,16 @@ console.log('selected categorey',selectedCategory)
     } else {
       dispatch(CreateEmployee(formData))
         .then(() => {
-          dispatch(GetEmployeeActive(searchText))
+          dispatch(GetEmployeeActive({ searchText, currentPage }));
           closeModal();
-          setFormData('')
-
+          setFormData('');
         })
         .catch((error) => {
           console.error("Error adding employee:", error);
         });
     }
   };
+
 
   const handleEdit = (employee) => {
     setFormData(employee);

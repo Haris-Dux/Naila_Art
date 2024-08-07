@@ -29,9 +29,9 @@ export const CreateEmployee = createAsyncThunk(
 
 export const GetEmployeeActive = createAsyncThunk(
   "Employee/GetActiveEmployee",
-  async (search) => {
+  async ({searchText,currentPage}) => {
     try {
-      const response = await axios.post(`${ActiveEmployee}?search=${search}`);
+      const response = await axios.post(`${ActiveEmployee}?search=${searchText}&page=${currentPage}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -43,9 +43,9 @@ export const GetEmployeeActive = createAsyncThunk(
 
 export const GetEmployeePast = createAsyncThunk(
   "Employee/GetEmplpyeePast",
-  async (search) => {
+  async ({searchText,currentPage}) => {
     try {
-      const response = await axios.post(`${PastEmployee}?search=${search}`);
+      const response = await axios.post(`${PastEmployee}?search=${searchText}&page=${currentPage}`);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
