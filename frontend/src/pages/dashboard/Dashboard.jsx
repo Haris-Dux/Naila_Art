@@ -107,9 +107,7 @@ const Dashboard = () => {
 
     // HANDLE LOGOUT
     const handleLogout = () => {
-        dispatch(logoutUserAsync()).then(() => {
-            toast.success("user Logout ");
-        });
+        dispatch(logoutUserAsync())
     }
 
 

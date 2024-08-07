@@ -2,44 +2,76 @@ import React, { useState, useEffect } from 'react';
 import { IoAdd, IoPencilOutline, IoTrash } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from "react-router-dom";
 import { GetAllCalender } from '../../../features/CalenderSlice';
 
 const Calendar = () => {
   const dispatch = useDispatch();
   const { loading, Calender } = useSelector((state) => state.Calender);
+  console.log('Calender', Calender);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
 
-  useEffect(() => {
-    dispatch(GetAllCalender());
-  }, [dispatch]);
+  const [search, setSearch] = useState('');
 
-  const handleSearch = (event) => {
-    setSearchText(event.target.value);
-  };
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+
+  // const handleSearch = (event) => {
+  //   setSearchText(event.target.value);
+  // };
 
   const filteredCalender = Calender?.data?.filter((entry) =>
     entry.partyName.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const totalPages = Calender?.totalPages || 1;
+  useEffect(() => {
+    dispatch(GetAllCalender({ search, page }));
+  }, [page, dispatch]);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+
+    if (value === "") {
+      dispatch(GetAllCalender({ page }));
+    } else {
+      dispatch(GetAllCalender({ search: value, page: 1 }));
     }
   };
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+  const renderPaginationLinks = () => {
+    const totalPages = Calender?.totalPages;
+    const paginationLinks = [];
+    for (let i = 1; i <= totalPages; i++) {
+      paginationLinks.push(
+        <li key={i} onClick={ToDown}>
+          <Link
+            to={`/dashboard/calendar?page=${i}`}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              }`}
+            onClick={() => dispatch(GetAllCalender({ page: i }))}
+          >
+            {i}
+          </Link>
+        </li>
+      );
     }
+    return paginationLinks;
+  };
+
+  const ToDown = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   return (
     <>
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
         {/* -------------- HEADER -------------- */}
         <div className='header flex justify-between items-center pt-6 mx-2'>
           <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Calendar</h1>
@@ -65,8 +97,8 @@ const Calendar = () => {
             <input
               type="text"
               className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-              placeholder="Search by Party Name"
-              value={searchText}
+              placeholder="Search by party name"
+              value={search}
               onChange={handleSearch}
             />
           </div>
@@ -111,72 +143,139 @@ const Calendar = () => {
                   </tr>
                 </thead>
                 <tbody>
-
-                {filteredCalender && filteredCalender.length > 0 ? (
-                  
-                  filteredCalender?.map((entry, index) => (
-                    <tr key={index} className='bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white'>
-                      <th className='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white' scope='row'>
-                        {index + 1}
-                      </th>
-                      <td className='px-6 py-4'>{entry.partyName}</td>
-                      <td className='px-6 py-4'>{entry.design_no}</td>
-                      <td className='px-6 py-4'>{entry.date}</td>
-                      <td className='px-6 py-4'>{entry.quantity} y</td>
-                      <td className='px-6 py-4'>{entry.project_status}</td>
-                      <td className='pl-10 py-4'>
-                        <Link to={`/dashboard/calendar-details/${entry.id}`}>
-                          <FaEye size={20} className='cursor-pointer' />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))) : (
+                  {filteredCalender && filteredCalender.length > 0 ? (
+                    filteredCalender?.map((entry, index) => (
+                      <tr key={index} className='bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white'>
+                        <th className='px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white' scope='row'>
+                          {index + 1}
+                        </th>
+                        <td className='px-6 py-4'>{entry.partyName}</td>
+                        <td className='px-6 py-4'>{entry.design_no}</td>
+                        <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
+                        <td className='px-6 py-4'>{entry.T_Quantity} y</td>
+                        <td className='px-6 py-4'>{entry.project_status}</td>
+                        <td className='pl-10 py-4'>
+                          <Link to={`/dashboard/calendar-details/${entry.id}`}>
+                            <FaEye size={20} className='cursor-pointer' />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))) : (
                     <tr className="w-full flex justify-center items-center">
-                        <td className='text-xl mt-3'>No Data Available</td>
+                      <td className='text-xl mt-3'>No Data Available</td>
                     </tr>
-                )}
+                  )}
                 </tbody>
               </table>
             </div>
-
-            <nav className="flex items-center flex-column flex-wrap md:flex-row justify-end pt-4" aria-label="Table navigation">
-              <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-                <li>
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    Previous
-                  </button>
-                </li>
-                {[...Array(totalPages)]?.map((_, pageIndex) => (
-                  <li key={pageIndex}>
-                    <button
-                      onClick={() => setCurrentPage(pageIndex + 1)}
-                      className={`flex items-center justify-center px-3 h-8 leading-tight ${
-                        currentPage === pageIndex + 1
-                          ? "text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
-                          : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                      }`}
-                    >
-                      {pageIndex + 1}
-                    </button>
-                  </li>
-                ))}
-                <li>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    Next
-                  </button>
-                </li>
-              </ul>
-            </nav>
           </>
         )}
+      </section>
+
+
+      {/* -------- PAGINATION -------- */}
+      <section className="flex justify-center">
+        <nav aria-label="Page navigation example">
+          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+            <li>
+              {Calender?.page > 1 ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/calendar?page=${page - 1}`}
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+            {renderPaginationLinks()}
+            <li>
+              {Calender?.totalPages !== page ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/calendar?page=${page + 1}`}
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+          </ul>
+        </nav>
       </section>
     </>
   );
