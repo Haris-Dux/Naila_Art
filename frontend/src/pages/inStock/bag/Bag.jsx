@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IoAdd } from "react-icons/io5";
+import { Link, useSearchParams } from "react-router-dom";
 import { GetAllBags } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
@@ -10,11 +10,15 @@ const Bag = () => {
   const dispatch = useDispatch();
   const [bagId, setBagId] = useState();
   const { loading, Bags } = useSelector((state) => state.InStock);
+  console.log('Bags', Bags);
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
-    dispatch(GetAllBags());
+    dispatch(GetAllBags({ page }));
     console.log("data", Bags);
-  }, []);
+  }, [page, dispatch]);
 
   const openModal = (id) => {
     setIsOpen(true);
@@ -27,7 +31,8 @@ const Bag = () => {
     document.body.style.overflow = "auto";
   };
 
-  const filteredData = Bags.filter((data) => data.id === bagId);
+  const filteredData = Bags?.data?.filter((data) => data.id === bagId);
+
 
   return (
     <>
@@ -39,14 +44,7 @@ const Bag = () => {
           </h1>
 
           {/* <!-- search bar --> */}
-          <div className="search_bar flex items-center gap-3 mr-2">
-            {/* <button
-              onClick={openModal}
-              className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
-            >
-              <IoAdd size={22} className="text-white" />
-            </button> */}
-
+          {/* <div className="search_bar flex items-center gap-3 mr-2">
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg
@@ -68,11 +66,9 @@ const Bag = () => {
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                 placeholder="Search by Design Number"
-              // value={searchText}
-              // onChange={handleSearch}
               />
             </div>
-          </div>
+          </div> */}
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
@@ -114,8 +110,8 @@ const Bag = () => {
                 </tr>
               </thead>
               <tbody>
-                {Bags && Bags.length > 0 ? (
-                  Bags?.map((data, index) => (
+                {Bags && Bags?.data?.length > 0 ? (
+                  Bags?.data?.map((data, index) => (
                     <tr
                       key={index}
                       className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -146,6 +142,8 @@ const Bag = () => {
           </div>
         )}
       </section>
+
+     
 
       {isOpen && (
         <div

@@ -3,11 +3,10 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addStone = "http://localhost:8000/api/process/stone/addStone";
-
-const UpdateStone = "http://localhost:8000/api/process/stone/updateStone";
-const getAllStone = "http://localhost:8000/api/process/stone/getAllStone";
-const getSingleStone = "http://localhost:8000/api/process/stone/getStoneById";
+const addStone = "/api/process/stone/addStone";
+const UpdateStone = "/api/process/stone/updateStone";
+const getAllStone = "/api/process/stone/getAllStone";
+const getSingleStone = "/api/process/stone/getStoneById";
 
 
 
@@ -42,51 +41,44 @@ export const UpdateStoneAsync = createAsyncThunk(
   }
 );
 
-
-
-
-
 // VERIFY ASYNC THUNK
-export const GetAllStone = createAsyncThunk(
-  "Stone/Get",
-  async (formData) => {
-    try {
-      const response = await axios.post(getAllStone, formData);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    // const response = await axios.post(getAllStone, formData);
+    const response = await axios.post(`${getAllStone}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
+}
 );
 
 
-
-export const GetSingleStone = createAsyncThunk(
-"Stone/GetSingle",
-  async (id) => {
-    try {
-      const response = await axios.post(getSingleStone, id);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetSingleStone = createAsyncThunk("Stone/GetSingle", async (id) => {
+  try {
+    const response = await axios.post(getSingleStone, id);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
+}
 );
-
-
 
 
 // INITIAL STATE
 const initialState = {
-  
   Stone: [],
-  SingleStone:{},
+  SingleStone: {},
   loading: false,
 };
 
@@ -105,7 +97,7 @@ const StoneSlice = createSlice({
       })
       .addCase(createStone.fulfilled, (state, action) => {
         state.loading = false;
-    
+
       })
 
       // LOGIN ADD CASE
@@ -136,8 +128,8 @@ const StoneSlice = createSlice({
 
 
 
-      
-   
+
+
   },
 });
 

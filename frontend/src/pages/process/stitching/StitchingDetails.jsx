@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   GetSingleStitching,
   UpdateStitchingAsync,
 } from "../../../features/stitching";
 
-import { useDispatch, useSelector } from "react-redux";
+
+
 const StitchingDetails = () => {
   const { id } = useParams();
   const { SingleStitching, loading } = useSelector((state) => state.stitching);
@@ -63,6 +65,7 @@ const StitchingDetails = () => {
 
   if (loading) {
     return (
+
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
         <div className="pt-16 flex justify-center mt-12 items-center">
           <div
@@ -70,12 +73,13 @@ const StitchingDetails = () => {
             role="status"
             aria-label="loading"
           >
+
             <span className="sr-only">Loading...</span>
           </div>
         </div>
       </section>
     );
-  }
+
 
   console.log("sitching", SingleStitching);
 
@@ -115,6 +119,7 @@ const StitchingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
+              <span> {new Date(SingleStitching?.date).toLocaleDateString()}</span>
             </div>
             <div className="box">
               <span className="font-medium">Lace Quantity:</span>
@@ -152,7 +157,7 @@ const StitchingDetails = () => {
                         type="text"
                         className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
                         value={
-                          formData.suits_category[index]?.return_quantity || ""
+                          formData?.suits_category[index]?.return_quantity || ""
                         }
                         onChange={(e) =>
                           handleInputChange(

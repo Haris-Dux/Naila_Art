@@ -3,12 +3,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addStitching = "http://localhost:8000/api/process/Stitching/addStitching";
-const UpdateStitching = "http://localhost:8000/api/process/Stitching/updateStitching";
-const getAllStitching = "http://localhost:8000/api/process/Stitching/getAllStitching";
-const getSingleStitching = "http://localhost:8000/api/process/Stitching/getStitchingById";
-const getStitchingByEmbroideryId = 'http://localhost:8000/api/process/stitching/getStitchingByEmbroideryId'
- 
+const addStitching = "/api/process/Stitching/addStitching";
+const UpdateStitching = "/api/process/Stitching/updateStitching";
+const getAllStitching = "/api/process/Stitching/getAllStitching";
+const getSingleStitching = "/api/process/Stitching/getStitchingById";
+const getStitchingByEmbroideryId = '/api/process/stitching/getStitchingByEmbroideryId'
+
 
 //CREATE ASYNC THUNK
 export const createStitching = createAsyncThunk(
@@ -42,34 +42,31 @@ export const UpdateStitchingAsync = createAsyncThunk(
   }
 );
 
-
-
-
-
 // VERIFY ASYNC THUNK
-export const GetAllStitching = createAsyncThunk(
-  "Stitching/Get",
-  async (formData) => {
-    try {
-      const response = await axios.post(getAllStitching, formData);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetAllStitching = createAsyncThunk("Stitching/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    // const response = await axios.post(getAllStitching, formData);
+    const response = await axios.post(`${getAllStitching}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
+}
 );
 
-
-
 export const GetSingleStitching = createAsyncThunk(
-"Stitching/GetSingle",
+  "Stitching/GetSingle",
   async (id) => {
     try {
       const response = await axios.post(getSingleStitching, id);
-      toast.success(response.data.message);
+      // toast.success(response.data.message);
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -79,32 +76,28 @@ export const GetSingleStitching = createAsyncThunk(
   }
 );
 
-
-
-
 export const getStitchingByEmbroidery = createAsyncThunk(
   "getStitchingByEmbroidery/getStitchingByEmbroideryGetSingle",
-    async (id) => {
-      try {
-        const response = await axios.post(getStitchingByEmbroideryId, id);
-        toast.success(response.data.message);
-        console.log(response.data);
-        return response.data;
-      } catch (error) {
-        console.log(error.response.data.error);
-        toast.error(error.response.data.error);
-      }
+  async (id) => {
+    try {
+      const response = await axios.post(getStitchingByEmbroideryId, id);
+      // toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
-  );
-
+  }
+);
 
 
 // INITIAL STATE
 const initialState = {
-  
+
   Stitching: [],
-  SingleStitching:{},
-  stitchingEmbroidery:{},
+  SingleStitching: {},
+  stitchingEmbroidery: {},
   loading: false,
 };
 
@@ -123,7 +116,7 @@ const StitchingSlice = createSlice({
       })
       .addCase(createStitching.fulfilled, (state, action) => {
         state.loading = false;
-    
+
       })
 
       // LOGIN ADD CASE
@@ -160,8 +153,8 @@ const StitchingSlice = createSlice({
         state.stitchingEmbroidery = action.payload
       })
 
-      
-   
+
+
   },
 });
 

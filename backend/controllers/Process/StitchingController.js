@@ -94,7 +94,7 @@ export const getAllStitching = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
     const search = req.query.search || "";
-    const limit = 20;
+    const limit = 4;
     let query = {
       partyName: { $regex: search, $options: "i" },
     };

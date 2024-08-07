@@ -55,7 +55,7 @@ export const addEmploye = async (req, res, next) => {
 
 export const creditDebitBalance = async (req, res, next) => {
   try {
-    const { id, credit, debit, date , particular } = req.body;
+    const { id, credit, debit, date, particular } = req.body;
     if (!id) throw new Error("Employ Id Fequired");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -109,7 +109,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
     newBalance += employe.salary;
     employe.financeData.push({
       credit: employe.salary,
-      debit:  employe.financeData[employe.financeData.length - 1].balance < 0 ? employe.salary - newBalance : 0 ,
+      debit: employe.financeData[employe.financeData.length - 1].balance < 0 ? employe.salary - newBalance : 0,
       balance: newBalance,
       particular: "Salary Credit Transaction",
       date: Date.now(),
@@ -175,38 +175,38 @@ export const updateEmploye = async (req, res, next) => {
     if (pastEmploye !== undefined) {
       updateQuery.pastEmploye = pastEmploye;
     };
-    const updatedEmployee = await EmployeModel.findByIdAndUpdate(id,updateQuery);
+    const updatedEmployee = await EmployeModel.findByIdAndUpdate(id, updateQuery);
     if (!updatedEmployee) throw new Error("Employee not found");
-    res.status(200).json({success:true , message: "Employe Updated Successfully" });
+    res.status(200).json({ success: true, message: "Employe Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-export const getEmployeDataById = async (req,res,next) => {
+export const getEmployeDataById = async (req, res, next) => {
   console.log("endpointhit");
   try {
-    const {id} = req.body;
+    const { id } = req.body;
     console.log(id);
-    if(!id) throw new Error("Employe Not Found");
+    if (!id) throw new Error("Employe Not Found");
     const employe = await EmployeModel.findById(id);
-    if(!employe) throw new Error("Employe Not Found");
+    if (!employe) throw new Error("Employe Not Found");
     setMongoose();
     return res.status(200).json(employe);
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message })
   }
 };
 
-export const getAllActiveEmploye = async (req,res,next) => {
-   try {
+export const getAllActiveEmploye = async (req, res, next) => {
+  try {
     const page = parseInt(req.query.page) || 1;
     const limit = 1;
     let search = req.query.search || "";
 
     let query = {
       name: { $regex: search, $options: "i" },
-      pastEmploye:false
+      pastEmploye: false
     };
 
     const employData = await EmployeModel.find(query)
@@ -219,45 +219,47 @@ export const getAllActiveEmploye = async (req,res,next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
-      totalEmploys:total,
+      totalEmploys: total,
       employData
     };
     setMongoose();
-   return res.status(200).json(response);
+    return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message })
   }
 };
 
-export const getAllPastEmploye = async (req,res,next) => {
+export const getAllPastEmploye = async (req, res, next) => {
   try {
-   const page = parseInt(req.query.page) || 1;
-   const limit =1;
-   let search = req.query.search || "";
 
-   let query = {
-     name: { $regex: search, $options: "i" },
-     pastEmploye:true
-   };
+    const page = parseInt(req.query.page) || 1;
+    const limit = 1;
+    let search = req.query.search || "";
 
-   const employData = await EmployeModel.find(query)
-     .skip((page - 1) * limit)
-     .limit(limit)
-     .sort({ createdAt: -1 });
 
-   const total = await EmployeModel.countDocuments(query);
+    let query = {
+      name: { $regex: search, $options: "i" },
+      pastEmploye: true
+    };
+console.log(page);
+    const employData = await EmployeModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
-   const response = {
-     totalPages: Math.ceil(total / limit),
-     page,
-     totalEmploys:total,
-     employData
-   };
-   setMongoose();
-  return res.status(200).json(response);
- } catch (error) {
-   return res.status(500).json({error:error.message})
- }
+    const total = await EmployeModel.countDocuments(query);
+
+    const response = {
+      totalPages: Math.ceil(total / limit),
+      page,
+      totalEmploys: total,
+      employData
+    };
+    setMongoose();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({ error: error.message })
+  }
 };
 
 
