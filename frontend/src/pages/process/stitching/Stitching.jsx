@@ -83,9 +83,7 @@ const Stitching = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="flex items-center gap-2 mr-2">
-                        <button className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                            <IoAdd size={22} className='text-white' />
-                        </button>
+                    
 
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">

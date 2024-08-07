@@ -400,8 +400,8 @@ const navigate = useNavigate()
           <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Stitching Details
+              <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
+                Stitching 
               </h3>
               <button
                 onClick={closeModal}
