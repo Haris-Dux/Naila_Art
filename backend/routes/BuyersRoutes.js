@@ -5,6 +5,6 @@ import { generateBuyersBillandAddBuyer } from "../controllers/BuyersController.j
 
 const buyerRouter = express.Router();
 
-buyerRouter.post("/getTodaysdailySaleforBranch",verifyUser, generateBuyersBillandAddBuyer);
+buyerRouter.post("/generateBuyersBillandAddBuyer",verifyUser, generateBuyersBillandAddBuyer);
 
 export default buyerRouter;
