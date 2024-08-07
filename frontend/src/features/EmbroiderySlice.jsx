@@ -6,11 +6,8 @@ import toast from "react-hot-toast";
 const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
 const getEmbroidery = "/api/process/embriodery/getAllEmbroidery";
 const getEmbroiderydetails = "/api/process/embriodery/getEmbroideryById";
-
 const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
 const deleteEmbroidery = "/api/process/embriodery/addEmbriodery";
-
-
 
 
 
@@ -32,31 +29,30 @@ export const CreateEmbroidery = createAsyncThunk(
   }
 );
 
-
-export const GETEmbroidery = createAsyncThunk(
-  "Embroidery/GET",
-  async (currentPage) => {
-    try {
-      const response = await axios.post(`${getEmbroidery}?page=${currentPage}`);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-      // Assuming you want to re-throw the error to handle it elsewhere
-      throw error;
-    }
+export const GETEmbroidery = createAsyncThunk("Embroidery/GET", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${getEmbroidery}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+    // Assuming you want to re-throw the error to handle it elsewhere
+    throw error;
   }
+}
 );
-
-
 
 export const GETEmbroiderySIngle = createAsyncThunk(
   "EmbroideryDetails/GET",
   async (id) => {
     try {
-      const response = await axios.post(getEmbroiderydetails,id);
+      const response = await axios.post(getEmbroiderydetails, id);
       toast.success(response.data.message);
       console.log(response.data);
       return response.data;
@@ -67,8 +63,6 @@ export const GETEmbroiderySIngle = createAsyncThunk(
     }
   }
 );
-
-
 
 export const UpdateEmbroidery = createAsyncThunk(
   "Embroidery/Update",
@@ -89,11 +83,8 @@ export const UpdateEmbroidery = createAsyncThunk(
 
 // INITIAL STATE
 const initialState = {
-  
   embroidery: [],
-  SingleEmbroidery:{
-
-  },
+  SingleEmbroidery: {},
   loading: false,
 };
 
@@ -112,7 +103,7 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(CreateEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
-    
+
       })
 
 
@@ -122,7 +113,7 @@ const EmbroiderySlice = createSlice({
       .addCase(GETEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
         state.embroidery = action.payload
-    
+
       })
 
 
@@ -132,19 +123,19 @@ const EmbroiderySlice = createSlice({
       .addCase(GETEmbroiderySIngle.fulfilled, (state, action) => {
         state.loading = false;
         state.SingleEmbroidery = action.payload
-    
+
       })
-   
+
 
       .addCase(UpdateEmbroidery.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(UpdateEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
-      
-    
+
+
       })
-   
+
 
 
 

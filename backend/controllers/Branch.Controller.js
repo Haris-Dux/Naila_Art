@@ -1,4 +1,5 @@
 import { BranchModel } from "../models/Branch.Model.js";
+import { UserModel } from "../models/User.Model.js";
 
 export const createBranch = async (req, res) => {
   try {
@@ -52,9 +53,21 @@ export const deleteBranch = async (req, res) => {
 
 export const getAllBranches = async (req, res) => {
   try {
-    const branches = await BranchModel.find({});
-    return res.status(200).json(branches);
+    const { id } = req.body;
+    if (!id) throw new Error("User Id Required")
+    const user = await UserModel.findById(id);
+    if (!user) throw new Error("User Not Found");
+    let response;
+    if (user?.role === "superadmin") {
+     const branches = await BranchModel.find({});
+      response = branches
+    } else {
+      const branch = await BranchModel.findOne({_id:user.branchId});
+      response = [branch];
+    }
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(404).json({ error: error.message });
   }
 };
+
