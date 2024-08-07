@@ -306,7 +306,6 @@ const Lace = () => {
                 </nav>
             </section>
 
-
             {isOpen && (
                 <div
                     aria-hidden="true"

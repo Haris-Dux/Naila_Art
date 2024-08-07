@@ -11,6 +11,7 @@ const getLace = "/api/stock/lace/getAllLaceStock";
 const getSuits = "/api/stock/suits/getAllSuits";
 const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
+const getExpenseForBranchUrl = "/api/stock/expense/getExpensesForBranch";
 const AddSuits = "/api/stock/suits/addBaseInStock";
 
 // GET ALL BRANCHES API
@@ -141,20 +142,36 @@ export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
     data?.search !== undefined && data?.search !== null
       ? `&search=${data?.search}`
       : "";
+  const branchId =
+    data?.branchId !== undefined && data?.branchId !== null
+      ? `&branchId=${data?.branchId}`
+      : "";
   try {
-    const response = await axios.post(`${getExpense}?&page=${data.page}${searchQuery}`);;
+    const response = await axios.post(`${getExpense}?&page=${data.page}${branchId}${searchQuery}`);;
     // toast.success(response.data.message);
 
     return response.data;
   } catch (error) {
     console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    // toast.error(error.response.data.error);
   }
 });
 
-export const GetAllBranches = createAsyncThunk("Branches/GetAll", async () => {
+// export const GetAllExpenseForBranch = createAsyncThunk("ExpenseForBranch/Get", async (fromData) => {
+//   try {
+//     const response = await axios.post(getExpenseForBranchUrl, fromData);
+//     // toast.success(response.data.message);
+//     console.log(response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.log(error.response.data.error);
+//     // toast.error(error.response.data.error);
+//   }
+// });
+
+export const GetAllBranches = createAsyncThunk("Branches/GetAll", async (id) => {
   try {
-    const response = await axios.post(getAllBranches);
+    const response = await axios.post(getAllBranches, id);
     // toast.success(response.data.message);
     console.log(response.data);
     return response.data;
@@ -174,6 +191,7 @@ const initialState = {
   Bags: [],
   accessories: [],
   Expense: [],
+  // SingleBranchExpense: [],
   loading: false,
   Branches: [],
 };
@@ -250,6 +268,14 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.Expense = action.payload;
       })
+
+      // .addCase(GetAllExpenseForBranch.pending, (state, action) => {
+      //   state.loading = true;
+      // })
+      // .addCase(GetAllExpenseForBranch.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.SingleBranchExpense = action.payload;
+      // })
 
       .addCase(AddSuit.pending, (state, action) => {
         state.loading = true;
