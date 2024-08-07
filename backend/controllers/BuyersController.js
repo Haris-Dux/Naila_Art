@@ -132,13 +132,13 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       console.log(updatedSaleData);
       // await dailySaleForToday.save({ session });
 
-      //DATA FOR VIRTUAL ACCOUNT
-      const virtualAccountData = {
-        let total_debit = 0 ,
-        let total_credit = 0 ,
-        let total_balance = 0 ,
-       let  status = ""
-      }
+      // //DATA FOR VIRTUAL ACCOUNT
+      // const virtualAccountData = {
+      //   let total_debit = 0 ,
+      //   let total_credit = 0 ,
+      //   let total_balance = 0 ,
+      //  let  status = ""
+      // }
 
 
       //CREATING BUYER
