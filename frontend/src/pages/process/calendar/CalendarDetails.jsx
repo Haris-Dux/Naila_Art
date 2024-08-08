@@ -62,7 +62,7 @@ const CalendarDetails = () => {
             setCuttingData({
              serial_No: SingleCalender?.serial_No || '',
              design_no: SingleCalender?.design_no || '',
-             date: SingleCalender?.date || '',
+             date: SingleCalender?.date ? SingleCalender?.date?.split('T')[0] : '',
              partyName:SingleCalender?.partyName || '',
              embroidery_Id: SingleCalender?.id || "",
            
