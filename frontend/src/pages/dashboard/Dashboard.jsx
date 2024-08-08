@@ -231,6 +231,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </nav>
+
                 {/* ---------------- SIDEBAR ---------------- */}
                 <aside aria-label="Sidenav" className={`fixed top-0 left-0 z-40 w-56 xl:w-64 h-screen pt-14 transition-transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700`}>
 
@@ -356,14 +357,6 @@ const Dashboard = () => {
                                 )}
                             </li>
 
-                            {/* CASH IN/OUT */}
-                            <li>
-                                <Link to="/dashboard/cash" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/cash" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
-                                    {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
-                                    <span className="ml-3">Cash</span>
-                                </Link>
-                            </li>
-
                             {/* BILLS DROPDOWN */}
                             <li className="relative">
                                 <button
@@ -397,6 +390,21 @@ const Dashboard = () => {
                                         </li>
                                     </ul>
                                 )}
+                            </li>
+
+                            {/* CASH IN/OUT */}
+                            <li>
+                                <Link to="/dashboard/cash" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/cash" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                    {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
+                                    <span className="ml-3">Cash</span>
+                                </Link>
+                            </li>
+
+                            {/* DAILY SALE */}
+                            <li>
+                                <Link to="/dashboard/dailySale" onClick={handleMoveTop} className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${location.pathname === "/dashboard/dailySale" || location.pathname.includes("dailySale-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>
+                                    <span className="ml-3">DailySale</span>
+                                </Link>
                             </li>
 
                             {/* SHOP FOR SUPERADMIN */}
