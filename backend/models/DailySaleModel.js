@@ -1,7 +1,6 @@
 
-import mongoose from "mongoose";
 import moment from 'moment-timezone';
-
+import mongoose from 'mongoose';
 
 const dailySaleData = new mongoose.Schema({
     totalSale:{
@@ -58,6 +57,7 @@ const DailySaleSchema = new mongoose.Schema({
         }
       },
     saleData:dailySaleData
-});
+},
+{timestamps:true});
 
 export const DailySaleModel = mongoose.model('Daily Sale',DailySaleSchema);
