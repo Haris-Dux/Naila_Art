@@ -53,6 +53,9 @@ const Embroidery = () => {
     dispatch(GETEmbroidery({ search, page }));
   }, [page, dispatch]);
 
+
+  
+
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
