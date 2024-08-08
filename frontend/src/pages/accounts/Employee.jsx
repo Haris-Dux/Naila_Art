@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IoAdd } from "react-icons/io5";
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye, FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CreateEmployee, GetEmployeeActive, GetEmployeePast, UpdateEmployee } from '../../features/AccountSlice';
 
@@ -21,6 +21,7 @@ const PhoneComponent = ({ phone }) => {
 
 const Employee = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -61,7 +62,6 @@ const Employee = () => {
     joininig_date: "",
   });
 
-
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -69,15 +69,19 @@ const Employee = () => {
     if (value === "") {
       if (selectedCategory === 'Active Employee') {
         dispatch(GetEmployeeActive({ page: 1 }));
+        navigate(`/dashboard/employee?page=1`)
       } else {
         dispatch(GetEmployeePast({ page: 1 }));
+        navigate(`/dashboard/employee?page=1`)
       }
     }
     else {
       if (selectedCategory === 'Active Employee') {
         dispatch(GetEmployeeActive({ search, page: 1 }));
+        navigate(`/dashboard/employee?page=1`)
       } else {
         dispatch(GetEmployeePast({ search, page: 1 }));
+        navigate(`/dashboard/employee?page=1`)
       }
     }
   };
@@ -195,7 +199,6 @@ const Employee = () => {
     }
     return paginationLinks;
   };
-
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category)

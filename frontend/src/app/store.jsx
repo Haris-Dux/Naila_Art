@@ -9,21 +9,20 @@ import CuttingSlice from "../features/CuttingSlice";
 import stoneslice from "../features/stoneslice";
 import stitching from "../features/stitching";
 import AccountSlice from "../features/AccountSlice";
+import DailySaleSlice from "../features/DailySaleSlice";
 export const store = configureStore({
   reducer: {
     auth: authSlice,
     Shop: ShopSlice,
-PurchaseBills:PurchaseBillsSlice,
-InStock:InStockSlice,
-Embroidery:EmbroiderySlice,
-Calender:CalenderSlice,
-Cutting:CuttingSlice,
-stone:stoneslice,
-stitching:stitching,
-Account:AccountSlice
-
-
-
+    PurchaseBills: PurchaseBillsSlice,
+    InStock: InStockSlice,
+    Embroidery: EmbroiderySlice,
+    Calender: CalenderSlice,
+    Cutting: CuttingSlice,
+    stone: stoneslice,
+    stitching: stitching,
+    Account: AccountSlice,
+    DailySale: DailySaleSlice
 
   },
 });
