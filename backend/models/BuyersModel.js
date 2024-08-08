@@ -1,8 +1,8 @@
 import mongoose, { Mongoose } from "mongoose";
 
 const suits_sale_details = new mongoose.Schema({
-  suit_id: {
-    type: mongoose.Types.ObjectId,
+  id: {
+    type: String,
     required: [true, "Suit Id is required"],
   },
   d_no: {
@@ -53,11 +53,11 @@ const transaction_details = new mongoose.Schema({
   },
   debit: {
     type: Number,
-    required: [true, "Debit value is required"],
+    default:null
   },
   credit: {
     type: Number,
-    required: [true, "Credit value is required"],
+    default:null
   },
   balance: {
     type: Number,

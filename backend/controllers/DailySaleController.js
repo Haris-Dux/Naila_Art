@@ -1,8 +1,9 @@
 import { BranchModel } from "../models/Branch.Model.js";
-import { DailySaleModel } from "../models/DailySaleModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import corn from "node-cron";
 import moment from 'moment-timezone';
+import { DailySaleModel } from "../models/DailySaleModel.js";
+
 
 export const getTodaysdailySaleforBranch = async (req,res,next) => {
     try {
@@ -23,8 +24,8 @@ export const getDailySaleHistoryForBranch = async (req,res,next) => {
         const {id} = req.body;
         if(!id) throw new Error("Id Not Found");
         const date = req.query.search || "";
-        const page = req.query.page || 1;
-        const limit = 15;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 3;
         let query = {
             branchId:id,
             date:{ $regex:date, $options:"i" }
@@ -59,15 +60,20 @@ export const getDailySaleById = async (req,res,next) => {
     }
 };
 
-corn.schedule("01 00 * * *",async () => {
+corn.schedule("01 20 * * *",async () => {
    try {
     const branchData = await BranchModel.find({});
     const today = moment.tz('Asia/Karachi').format('YYYY-MM-DD');
-    const dailySalePromises = branchData?.map((branch) => {
-       DailySaleModel.create({
+    const yesterday = moment.tz('Asia/Karachi').subtract(1,'day').format('YYYY-MM-DD');
+    const dailySalePromises = branchData?.map(async (branch) => {
+    const previousDaySale = await DailySaleModel.findOne({branchId:branch._id,date:yesterday})
+    console.log(previousDaySale);
+        return await DailySaleModel.create({
         branchId:branch._id,
         date:today,
-        saleData:{}
+        saleData:{
+            totalCash:previousDaySale.saleData.totalCash
+        }
        })
     });
     await Promise.all(dailySalePromises);
