@@ -14,42 +14,30 @@ const StitchingDetails = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const data = {
-      id: id,
-    };
-    dispatch(GetSingleStitching(data));
-  }, [id]);
-
   const [formData, setFormData] = useState({
     id: id,
     project_status: "Completed",
-    suits_category: [
-      {
-        id: "",
-        return_quantity: 0,
-      },
-    ],
-    dupatta_category: [
-      {
-        id: "",
-        return_quantity: 0,
-      },
-    ],
+    suits_category: [],
+    dupatta_category: [],
   });
+
+  useEffect(() => {
+    const data = { id };
+    dispatch(GetSingleStitching(data));
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (SingleStitching) {
       setFormData({
         ...formData,
-        suits_category: SingleStitching?.suits_category?.map((item) => ({
+        suits_category: SingleStitching.suits_category?.map((item) => ({
           id: item.id,
           return_quantity: item.recieved,
-        })),
-        dupatta_category: SingleStitching?.dupatta_category?.map((item) => ({
+        })) || [],
+        dupatta_category: SingleStitching.dupatta_category?.map((item) => ({
           id: item.id,
           return_quantity: item.recieved,
-        })),
+        })) || [],
       });
     }
   }, [SingleStitching]);
@@ -75,19 +63,24 @@ const StitchingDetails = () => {
       });
   };
 
-
   if (loading) {
     return (
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
         <div className="pt-16 flex justify-center mt-12 items-center">
-          <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+          <div
+            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
+            role="status"
+            aria-label="loading"
+          >
+
             <span className="sr-only">Loading...</span>
           </div>
         </div>
       </section>
     );
-
   }
+
 
   console.log("sitching", SingleStitching);
 
@@ -227,7 +220,7 @@ const StitchingDetails = () => {
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Gate Pass
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" >
             Next Step
           </button>
         </div>
