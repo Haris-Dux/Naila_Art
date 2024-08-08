@@ -36,10 +36,11 @@ const CuttingDetails = () => {
    
 
       useEffect(() => {
+        console.log(SingleCutting);
         setFormData({
           serial_No: SingleCutting?.serial_No || '',
           design_no: SingleCutting?.design_no || '',
-          date: SingleCutting?.date || '',
+          date: SingleCutting?.date ? SingleCutting?.date?.split('T')[0] : '',
           partyName: SingleCutting?.partyName || '',
           embroidery_Id: SingleCutting?.id || "",
           category_quantity: [initialRow] // You are setting category_quantity with initialRow
@@ -363,15 +364,16 @@ const CuttingDetails = () => {
                                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-2 gap-5">
                                     {/* DATE */}
                                     <div>
-                                        <input
-                                        name="date"
-                                            type="date"
-                                            placeholder="Date"
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                        />
+                                     
+                                          <input
+  name='date'
+  type='date'
+  placeholder='Date'
+  className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
+  value={formData.date}
+  onChange={handleChange}
+  required
+/>
                                     </div>
 
                                     {/* ENTER RATE */}

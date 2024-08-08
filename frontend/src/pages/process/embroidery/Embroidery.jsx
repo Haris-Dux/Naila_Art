@@ -43,7 +43,7 @@ const Embroidery = () => {
     Trouser_Stitch: { value: 0, head: 0 },
     D_Patch_Stitch: { value: 0, head: 0 },
     F_Patch_Stitch: { value: 0, head: 0 },
-    project_status: "pending",
+    project_status: "Pending",
     recieved_suit: 200,
     T_Quantity_In_m: 200,
     T_Quantity: 499,
@@ -643,7 +643,7 @@ const Embroidery = () => {
 
                 {/* SUIT DESCRIPION */}
 
-                <Box formData1={formData} setFormData1={setFormData} />
+                <Box formData1={formData} setFormData1={setFormData} closeModal={closeModal} />
               </div>
             </div>
           </div>

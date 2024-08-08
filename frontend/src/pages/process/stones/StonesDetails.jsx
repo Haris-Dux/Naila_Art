@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { FiPlus } from "react-icons/fi";
 import {
   createStitching,
-  getStitchingByEmbroidery,
+  
 } from "../../../features/stitching";
 import { GetAllLace } from "../../../features/InStockSlice";
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
@@ -81,7 +81,6 @@ const navigate = useNavigate()
       setStoneData({
         id: SingleStone.id,
         project_status: "Completed",
-
         category_quantity: SingleStone?.category_quantity?.map((item) => ({
           id: item.id,
           first: item.recieved_Data?.first?.quantity || 0,
@@ -492,7 +491,7 @@ const navigate = useNavigate()
                       placeholder="Party Name"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.partyName}
+                      value={formData?.partyName}
                       onChange={handleChange}
                     />
                   </div>
@@ -505,7 +504,7 @@ const navigate = useNavigate()
                       placeholder="Enter Rate"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.rate}
+                      value={formData?.rate}
                       onChange={handleChange}
                     />
                   </div>
@@ -518,7 +517,7 @@ const navigate = useNavigate()
                       placeholder="Lace Quantity"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.lace_quantity}
+                      value={formData?.lace_quantity}
                       onChange={handleChange}
                     />
                   </div>
@@ -529,7 +528,7 @@ const navigate = useNavigate()
                     <select
                        name="lace_category"
                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      value={formData.lace_category}
+                      value={formData?.lace_category}
                       onChange={handleChange}
                     >
                             <option selected>Select Value</option>

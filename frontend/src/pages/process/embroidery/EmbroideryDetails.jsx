@@ -23,10 +23,11 @@ const [CalenderData, setCalenderData] = useState({
   });
   
   useEffect(() => {
+    console.log(SingleEmbroidery.date);
    setCalenderData({
     serial_No: SingleEmbroidery?.serial_No || '',
     design_no: SingleEmbroidery?.design_no || '',
-    date: SingleEmbroidery?.date || '',
+    date: SingleEmbroidery?.date ? SingleEmbroidery?.date?.split('T')[0] : '',
     T_Quantity: SingleEmbroidery?.T_Quantity || '',
   
     embroidery_Id: SingleEmbroidery?.id || "",
@@ -408,6 +409,7 @@ const handleInputChange = (category, color, received, index, section) => {
   onChange={handleInputChangeCalender}
   required
 />
+
 
                   </div>
 
