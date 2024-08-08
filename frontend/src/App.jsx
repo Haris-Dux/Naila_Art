@@ -39,6 +39,8 @@ import BuyersDetails from "./pages/accounts/BuyersDetails";
 import SellersDetails from "./pages/accounts/SellersDetails";
 import EmployeeDetails from "./pages/accounts/EmployeeDetails";
 import CashInOut from "./pages/cash/CashInOut";
+import DailySale from "./pages/dailySale/DailySale";
+import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 
 
 function App() {
@@ -85,6 +87,8 @@ function App() {
 
             {/* CASH IN/OUT */}
             <Route path="cash" element={<CashInOut />} />
+            <Route path="dailySale" element={<DailySale />} />
+            <Route path="dailySale-details/:id" element={<DailySaleDetail />} />
 
             {/* PROCESS ROUTES */}
             <Route path="embroidery" element={<Embroidery />} />

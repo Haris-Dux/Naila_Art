@@ -5,36 +5,39 @@ import moment from 'moment-timezone';
 import { DailySaleModel } from "../models/DailySaleModel.js";
 
 
-export const getTodaysdailySaleforBranch = async (req,res,next) => {
+export const getTodaysdailySaleforBranch = async (req, res, next) => {
     try {
-        const {id} = req.body;
-        if(!id) throw new Error("Id Not Found");
+        const { id } = req.body;
+        if (!id) throw new Error("Id Not Found");
         const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-        const dailySale = await DailySaleModel.findOne({branchId:id , date : { $eq:today }});
-        if(!dailySale) throw new Error("daily Sale Not Found");
+        const dailySale = await DailySaleModel.findOne({ branchId: id, date: { $eq: today } });
+        if (!dailySale) throw new Error("daily Sale Not Found");
         setMongoose();
-        return res.status(200).json(dailySale);   
+        return res.status(200).json(dailySale);
     } catch (error) {
-        return res.status(500).json({error:error.message});
+        return res.status(500).json({ error: error.message });
     }
 };
 
-export const getDailySaleHistoryForBranch = async (req,res,next) => {
+export const getDailySaleHistoryForBranch = async (req, res, next) => {
     try {
-        const {id} = req.body;
-        if(!id) throw new Error("Id Not Found");
+        const { id } = req.body;
+        if (!id) throw new Error("Id Not Found");
         const date = req.query.search || "";
-        const page = parseInt(req.query.page) || 1;
-        const limit = 3;
+
+        const page = req.query.page || 1;
+        const limit = 5;
+
+  
         let query = {
-            branchId:id,
-            date:{ $regex:date, $options:"i" }
+            branchId: id,
+            date: { $regex: date, $options: "i" }
         };
         const totalDocuments = await DailySaleModel.countDocuments(query);
         const dailySaleHistory = await DailySaleModel.find(query)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({createdAt : -1})
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ createdAt: -1 })
         const response = {
             dailySaleHistory,
             page,
@@ -43,20 +46,20 @@ export const getDailySaleHistoryForBranch = async (req,res,next) => {
         setMongoose();
         return res.status(200).json(response);
     } catch (error) {
-        return res.status(500).json({error:error.message});
+        return res.status(500).json({ error: error.message });
     }
 };
 
-export const getDailySaleById = async (req,res,next) => {
+export const getDailySaleById = async (req, res, next) => {
     try {
-        const {id} = req.body;
-        if(!id) throw new Error("Id not Found");
+        const { id } = req.body;
+        if (!id) throw new Error("Id not Found");
         const dailySale = await DailySaleModel.findById(id);
-        if(!dailySale) throw new Error("Daily Sale Not Found");
+        if (!dailySale) throw new Error("Daily Sale Not Found");
         setMongoose();
         return res.status(200).json(dailySale);
     } catch (error) {
-        return res.status(500).json({error:error.message});
+        return res.status(500).json({ error: error.message });
     }
 };
 
