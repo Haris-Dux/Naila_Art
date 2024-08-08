@@ -220,9 +220,9 @@ const StitchingDetails = () => {
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Gate Pass
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" >
+          {/* <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" >
             Next Step
-          </button>
+          </button> */}
         </div>
       </section>
     </>
