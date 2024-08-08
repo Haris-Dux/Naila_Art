@@ -4,11 +4,13 @@ import { Link } from "react-router-dom";
 import { CreateEmbroidery } from "../../features/EmbroiderySlice";
 import { FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBase } from "../../features/InStockSlice";
-
+import {
+  GetAllBase,
+  GetAllBaseforEmroidery,
+} from "../../features/InStockSlice";
 
 const Box = ({ formData1, setFormData1, closeModal }) => {
-  const { loading, Base } = useSelector((state) => state.InStock);
+  const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
 
   const dispatch = useDispatch();
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -18,21 +20,23 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const [colorOptions4, setColorOptions4] = useState([]);
 
   useEffect(() => {
-    if (!loading && Base) {
+    if (!loading && BaseforEmroidery) {
       // Extract unique categories
-      const categories = [...new Set(Base?.map((item) => item.category))];
+      const categories = [
+        ...new Set(BaseforEmroidery?.map((item) => item.category)),
+      ];
       const categoryOptions = categories?.map((category) => ({
         value: category,
         label: category,
       }));
       setCategoryOptions(categoryOptions);
     }
-  }, [loading, Base]);
+  }, [loading, BaseforEmroidery]);
 
-  console.log(Base);
+  console.log(BaseforEmroidery);
 
   useEffect(() => {
-    dispatch(GetAllBase());
+    dispatch(GetAllBaseforEmroidery());
   }, []);
 
   const calculateTotal = (formData1) => {
@@ -142,7 +146,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
     console.log("selected value:", newValue);
 
     // Perform a case-insensitive comparison
-    const selectedCategory = Base.filter(
+    const selectedCategory = BaseforEmroidery.filter(
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
@@ -170,7 +174,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
-    const selectedCategory = Base.filter(
+    const selectedCategory = BaseforEmroidery?.filter(
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
@@ -198,7 +202,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
-    const selectedCategory = Base.filter(
+    const selectedCategory = BaseforEmroidery?.filter(
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
@@ -226,7 +230,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
-    const selectedCategory = Base.filter(
+    const selectedCategory = BaseforEmroidery?.filter(
       (item) => item.category.toLowerCase() === newValue.value.toLowerCase()
     );
 
@@ -269,7 +273,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
 
     dispatch(CreateEmbroidery(meregdata))
       .then(() => {
-        dispatch(GetAllBase());
+        dispatch(GetAllBaseforEmroidery());
         closeModal();
       })
       .catch((error) => {
@@ -472,7 +476,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           onClick={handleSubmit}
           className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
         >
-          Submit
+         {loading ?  "Submiting..." : 'submit' }
         </button>
       </div>
     </div>
