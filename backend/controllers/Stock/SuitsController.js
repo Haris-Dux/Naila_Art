@@ -35,6 +35,7 @@ export const getAllSuits = async (req, res, next) => {
     if (search) {
       query = { ...query, d_no: search };
     }
+    
     console.log('search', search);
     if (category) {
       query = { ...query, category: category };

@@ -41,6 +41,9 @@ import EmployeeDetails from "./pages/accounts/EmployeeDetails";
 import CashInOut from "./pages/cash/CashInOut";
 import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
+import GenerateBill from "./pages/generateBills/GenerateBill";
+import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
+import PreviewBill from "./pages/generateBills/PreviewBill";
 
 
 function App() {
@@ -61,8 +64,10 @@ function App() {
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/otp" element={<OtpChecker />} />
 
+          <Route path="/previewBill" element={<PreviewBill />} />
+
           {/* DASHBOARD ROUTE */}
-          <Route path="/dashboard" element={<UserProtected>  <Dashboard />  </UserProtected>}>
+          <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>
             <Route index element={<DashboardStats />} />
             {/* INSTOCK ROUTES */}
             <Route path="suits" element={<SuitsStock />} />
@@ -71,6 +76,10 @@ function App() {
             <Route path="bag" element={<Bag />} />
             <Route path="accessories" element={<Accessories />} />
             <Route path="expense" element={<Expense />} />
+
+            {/* GENERATE BILL */}
+            <Route path="generate-bill" element={<GenerateBill />} />
+            <Route path="old-buyer-generate-bill" element={<OldBuyerGenerateBill />} />
 
             {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
