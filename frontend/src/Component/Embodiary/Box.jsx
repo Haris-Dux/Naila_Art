@@ -97,6 +97,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
     quantity_in_m: 0,
   };
   const initialTissueRow = { category: "", color: "", quantity_in_m: 0 };
+  
   const [formData, setFormData] = useState({
     shirt: [initialShirtRow],
     duppata: [initialDupattaRow],
@@ -109,13 +110,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       ...prevState,
       [field]: [
         ...prevState[field],
-        field === "shirt"
-          ? initialShirtRow
-          : field === "duppata"
-          ? initialDupattaRow
-          : field === "trouser"
-          ? initialTrouserRow
-          : initialTissueRow,
+        field === "shirt" ? initialShirtRow : field === "duppata" ? initialDupattaRow : field === "trouser" ? initialTrouserRow : initialTissueRow,
       ],
     }));
   };

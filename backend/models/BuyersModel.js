@@ -53,11 +53,11 @@ const transaction_details = new mongoose.Schema({
   },
   debit: {
     type: Number,
-    default:null
+    default: null
   },
   credit: {
     type: Number,
-    default:null
+    default: null
   },
   balance: {
     type: Number,
@@ -107,7 +107,7 @@ const BuyersSchema = new mongoose.Schema({
     name: {
       type: String,
       required: [true, "packaging value is required"],
-      enum:['Bags','Box']
+      enum: ['Bags', 'Box']
     },
     quantity: {
       type: Number,

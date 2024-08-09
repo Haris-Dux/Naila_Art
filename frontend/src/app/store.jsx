@@ -10,6 +10,9 @@ import stoneslice from "../features/stoneslice";
 import stitching from "../features/stitching";
 import AccountSlice from "../features/AccountSlice";
 import DailySaleSlice from "../features/DailySaleSlice";
+import BuyerSlice from "../features/BuyerSlice";
+import GenerateBillSlice from "../features/GenerateBillSlice";
+
 export const store = configureStore({
   reducer: {
     auth: authSlice,
@@ -22,7 +25,8 @@ export const store = configureStore({
     stone: stoneslice,
     stitching: stitching,
     Account: AccountSlice,
-    DailySale: DailySaleSlice
-
+    DailySale: DailySaleSlice,
+    Buyer: BuyerSlice,
+    BuyerBills: GenerateBillSlice
   },
 });

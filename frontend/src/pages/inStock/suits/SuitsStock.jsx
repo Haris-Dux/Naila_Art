@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 // import { IoAdd } from "react-icons/io5";
 import { AddSuit, GetAllCategoriesForSuits, GetAllSuit } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useSearchParams } from "react-router-dom";
+import { FaEye } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
 
 const SuitsStock = () => {
     const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
+    const [historyModalOpen, setHistoryModalOpen] = useState();
+    const [SuitId, setSuitId] = useState();
     const [userSelectedCategory, setuserSelectedCategory] = useState("");
     const [search, setSearch] = useState();
     const page = parseInt(searchParams.get("page") || "1", 10);
 
-    const { loading, Suit } = useSelector((state) => state.InStock);
+    const { loading, Suit, GetSuitloading } = useSelector((state) => state.InStock);
     console.log('Suit', Suit);
 
     const { SuitCategories } = useSelector((state) => state.InStock);
@@ -75,6 +78,17 @@ const SuitsStock = () => {
         document.body.style.overflow = 'auto';
     };
 
+    const openHistoryModal = (id) => {
+        setHistoryModalOpen(true);
+        setSuitId(id);
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeHistoryModal = () => {
+        setHistoryModalOpen(false);
+        document.body.style.overflow = 'auto';
+    };
+
     const renderPaginationLinks = () => {
         const totalPages = Suit?.totalPages;
         const paginationLinks = [];
@@ -106,11 +120,13 @@ const SuitsStock = () => {
         const value = e.target.value;
         setSearch(value);
 
-        if (value === "") {
-            dispatch(GetAllSuit({ category: userSelectedCategory, page }));
-        } else {
-            dispatch(GetAllSuit({ category: userSelectedCategory, search: value, page: 1 }));
-        }
+        const payload = {
+            category: userSelectedCategory,
+            page: 1,
+            search: value || undefined,
+        };
+
+        dispatch(GetAllSuit(payload));
     };
 
     const handleCategoryClick = (category) => {
@@ -129,6 +145,10 @@ const SuitsStock = () => {
             dispatch(GetAllSuit({ category, page: 1 }))
         }
     }
+
+    const filteredSuitData = useMemo(() => Suit?.data?.filter(data => data.id === SuitId), [Suit, SuitId]);
+
+    console.log('filteredSuitData', filteredSuitData);
 
     return (
         <>
@@ -200,7 +220,7 @@ const SuitsStock = () => {
                 </div>
 
                 {/* -------------- TABLE -------------- */}
-                {loading ? (
+                {GetSuitloading ? (
                     <div className="pt-16 flex justify-center mt-12 items-center">
                         <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
                             <span className="sr-only">Loading...</span>
@@ -247,6 +267,12 @@ const SuitsStock = () => {
                                     >
                                         Sales Prices
                                     </th>
+                                    <th
+                                        className="px-6 py-4 text-md"
+                                        scope="col"
+                                    >
+                                        History
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -272,6 +298,11 @@ const SuitsStock = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.sale_price}
+                                            </td>
+                                            <td className="pl-10 py-4">
+                                                <span onClick={() => openHistoryModal(data?.id)}>
+                                                    <FaEye size={20} className='cursor-pointer' />
+                                                </span>
                                             </td>
                                         </tr>
                                     ))
@@ -391,6 +422,7 @@ const SuitsStock = () => {
                 </nav>
             </section>
 
+            {/* ---------- ADD SUIT MODALS ------------ */}
             {isOpen && (
                 <div
                     aria-hidden="true"
@@ -510,6 +542,109 @@ const SuitsStock = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+
+            {/* ---------- HISTORY MODALS ------------ */}
+            {historyModalOpen && (
+                <div
+                    aria-hidden="true"
+                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+                >
+                    <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                        {/* ------------- HEADER ------------- */}
+                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Suit History
+                            </h3>
+                            <button
+                                onClick={closeHistoryModal}
+                                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                type="button"
+                            >
+                                <svg
+                                    aria-hidden="true"
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    viewBox="0 0 14 14"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                    />
+                                </svg>
+                                <span className="sr-only">Close modal</span>
+                            </button>
+                        </div>
+
+                        {/* ------------- BODY ------------- */}
+                        <div className="p-4 md:p-5">
+                            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                    <tr>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Date
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Cost Price
+                                        </th>
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Sale Price
+                                        </th>
+
+                                        <th
+                                            className="px-6 py-3"
+                                            scope="col"
+                                        >
+                                            Quantity
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredSuitData && filteredSuitData.length > 0 ? (
+                                        filteredSuitData?.map((item, index) => (
+                                            item?.all_records?.map((data, subIndex) => (
+                                                <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                                    <td className="px-6 py-4" scope="row">
+                                                        {new Date(data?.date).toLocaleDateString()}
+                                                    </td>
+                                                    <th className="px-6 py-4 font-medium" >
+                                                        {data?.cost_price}
+                                                    </th>
+                                                    <td className="px-6 py-4">
+                                                        {data?.sale_price}
+                                                    </td>
+
+                                                    <td className="px-6 py-4">
+                                                        {data?.quantity} m
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ))
+                                    ) : (
+                                        <tr className="w-full flex justify-center items-center">
+                                            <td className='text-xl mt-3'>No Data Available</td>
+                                        </tr>
+                                    )}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div >
             )}
         </>
     );
