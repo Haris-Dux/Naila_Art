@@ -57,6 +57,7 @@ export const getAllSuits = async (req, res, next) => {
     if (search) {
       query = { ...query, d_no: search };
     }
+
     if (category) {
       query = { ...query, category: category };
     }
