@@ -63,25 +63,26 @@ export const getDailySaleById = async (req, res, next) => {
     }
 };
 
-
-corn.schedule("01 20 * * *",async () => {
+corn.schedule("01 00 * * *",async () => {
    try {
     const branchData = await BranchModel.find({});
     const today = moment.tz('Asia/Karachi').format('YYYY-MM-DD');
     const yesterday = moment.tz('Asia/Karachi').subtract(1,'day').format('YYYY-MM-DD');
     const dailySalePromises = branchData?.map(async (branch) => {
+    const verifyDuplicateSaleData = await DailySaleModel.findOne({branchId:branch._id,date:today});
+    if(verifyDuplicateSaleData) throw new Error(`Daily Sale Already Exists for ${verifyDuplicateSaleData.date}`)
     const previousDaySale = await DailySaleModel.findOne({branchId:branch._id,date:yesterday})
-    console.log(previousDaySale);
         return await DailySaleModel.create({
         branchId:branch._id,
         date:today,
         saleData:{
-            totalCash:previousDaySale.saleData.totalCash
+            totalCash:previousDaySale ? previousDaySale.saleData.totalCash : 0
         }
        })
     });
     await Promise.all(dailySalePromises);
    } catch (error) {
+    console.log({error:error.message});
     throw new Error({error:error.message});
    }
     
