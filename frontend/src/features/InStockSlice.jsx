@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 const getaccessories = "/api/stock/accessories/getAllAccesoriesInStock";
 const getBags = "/api/stock/bags/getAllBagsAndBox";
 const getBase = "/api/stock/base/getAllBases";
+const getBaseforEmroidery = '/api/stock/base/getAllBasesForEmbroidery'
 const getAllCategoryForBaseUrl = "/api/stock/base/getAllCategoriesForbase";
 const getLace = "/api/stock/lace/getAllLaceStock";
 const getSuits = "/api/stock/suits/getAllSuits";
@@ -73,6 +74,18 @@ export const GetAllBase = createAsyncThunk("Base/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getBase}?&page=${data.page}${category}${searchQuery}`);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+export const GetAllBaseforEmroidery = createAsyncThunk("BaseforEmroifery/Get", async (data) => {
+  
+  try {
+    const response = await axios.post(`${getBaseforEmroidery}`);
     // toast.success(response.data.message);
     return response.data;
   } catch (error) {
@@ -185,6 +198,7 @@ export const GetAllBranches = createAsyncThunk("Branches/GetAll", async (id) => 
 const initialState = {
   Suit: [],
   Base: [],
+  BaseforEmroidery:[],
   BaseCategories: [],
   SuitCategories: [],
   Lace: [],
@@ -245,6 +259,18 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.Base = action.payload;
       })
+
+
+      .addCase(GetAllBaseforEmroidery.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllBaseforEmroidery.fulfilled, (state, action) => {
+        state.loading = false;
+        state.BaseforEmroidery = action.payload;
+      })
+
+
+      
 
       .addCase(GetAllLace.pending, (state, action) => {
         state.loading = true;
