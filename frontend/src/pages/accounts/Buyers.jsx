@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IoAdd } from "react-icons/io5";
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
+import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
+import { GetAllBranches } from '../../features/InStockSlice';
 
 const data = [
   {
@@ -40,11 +42,51 @@ const PhoneComponent = ({ phone }) => {
 };
 
 const Buyers = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const { loading } = useSelector((state) => state.InStock);
+  const [searchUser, setSearchUser] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [search, setSearch] = useState();
+  const [paymentStatus, setPaymentStatus] = useState();
+  const [selectedBranchId, setSelectedBranchId] = useState();
+  // console.log('paymentStatus', paymentStatus);
+  // console.log('selectedBranchId', selectedBranchId);
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+  const { user } = useSelector((state) => state.auth);
+  const { Branches } = useSelector((state) => state.InStock);
+  // console.log('Branches', Branches);
+  const { loading, Buyers } = useSelector((state) => state.Buyer);
+
+  useEffect(() => {
+    if (user?.user?.id) {
+      dispatch(GetAllBranches({ id: user?.user?.id }));
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (Branches.length > 1) {
+      const payload = {
+        id: user?.user?.id,
+        branchId: user?.user?.branchId || Branches[0]?.id,
+        page,
+      };
+      dispatch(getBuyerForBranchAsync(payload));
+
+      setSelectedBranchId(user?.user?.branchId || Branches[0]?.id)
+    }
+  }, [user, dispatch, Branches]);
 
 
-  // State variables to hold form data
+  const filteredData = searchText ? Buyers?.buyers?.filter((item) =>
+    item.partyName.toLowerCase().includes(searchText.toLowerCase())
+  )
+    : Buyers?.buyers;
+
+
   const [formData, setFormData] = useState({
     category: "",
     color: "",
@@ -54,7 +96,6 @@ const Buyers = () => {
     d_no: ""
   });
 
-  // Function to handle changes in form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -63,7 +104,6 @@ const Buyers = () => {
     }));
   };
 
-  // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     // Dispatch action with form data
@@ -85,14 +125,114 @@ const Buyers = () => {
     document.body.style.overflow = 'auto';
   };
 
+  const renderPaginationLinks = () => {
+    const totalPages = Buyers?.totalPages;
+    const paginationLinks = [];
+    for (let i = 1; i <= totalPages; i++) {
+      paginationLinks.push(
+        <li key={i} onClick={ToDown}>
+          <Link
+            to={`/dashboard/buyers?page=${i}`}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              }`}
+            onClick={() => dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: i, branchId: selectedBranchId }))}
+          >
+            {i}
+          </Link>
+        </li >
+      );
+    }
+    return paginationLinks;
+  };
+
+  const ToDown = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+
+    const payload = {
+      id: user?.user?.id,
+      page: 1,
+      search: value || undefined,
+      status: paymentStatus !== "All" ? paymentStatus : undefined,
+      branchId: selectedBranchId
+    };
+
+    dispatch(getBuyerForBranchAsync(payload));
+  };
+
+  const handleStatusClick = (status) => {
+    setPaymentStatus(status);
+    if (status === "All") {
+      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, branchId: selectedBranchId }));
+      navigate(`/dashboard/buyers?page=${1}`)
+    }
+    else {
+      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, status, branchId: selectedBranchId }));
+      navigate(`/dashboard/buyers?page=${1}`)
+    }
+  }
+
+  const handleBranchClick = (branchId) => {
+    const selectedBranch = branchId === "All" ? "" : branchId;
+    setSelectedBranchId(selectedBranch);
+    setPaymentStatus();
+
+    setSearch("");
+
+    const payload = {
+      id: user?.user?.id,
+      branchId: branchId,
+      page: 1,
+    };
+    dispatch(getBuyerForBranchAsync(payload));
+  }
+
   return (
     <>
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
         {/* UPPER TABS */}
         <div className="mb-3 upper_tabs flex justify-start items-center">
-          <h2 className='px-6 py-2 mr-2 rounded-lg text-black dark:text-gray-800 bg-gray-200 border border-gray-100 cursor-pointer'>Head Office</h2>
-          <h2 className='px-6 py-2 mr-2 rounded-lg text-black dark:text-gray-100 border border-gray-600 cursor-pointer'>Brand Azam Market</h2>
-          <h2 className='px-6 py-2 mr-2 rounded-lg text-black dark:text-gray-100 border border-gray-600 cursor-pointer'>Brand Faisalabad</h2>
+          <div className="tabs_button">
+            {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
+            {user?.user?.role === "superadmin" ? (
+              <>
+                {Branches?.map((branch) => (
+                  <Link
+                    to={`/dashboard/buyers?page=${1}`}
+                    key={branch?.id}
+                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === branch?.id
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : ""
+                      }`}
+                    onClick={() => handleBranchClick(branch?.id)}
+                  >
+                    {branch?.branchName}
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <>
+                {/* THIS SHOWS TO ADMIN & USER */}
+                {Branches?.map((branch) => (
+                  <button
+                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${user?.user?.branchId === branch?.id
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : ""
+                      }`}
+                  >
+                    {branch?.branchName}
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
         </div>
 
         {/* -------------- HEADER -------------- */}
@@ -125,9 +265,9 @@ const Buyers = () => {
               <input
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by Party Name"
-              // value={searchText}
-              // onChange={handleSearch}
+                placeholder="Search by name"
+                value={search}
+                onChange={handleSearch}
               />
             </div>
           </div>
@@ -138,10 +278,26 @@ const Buyers = () => {
         {/* -------------- TABS -------------- */}
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
-            <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>All</button>
-            <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Paid</button>
-            <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Pending</button>
-            <button className='border border-gray-500 bg-white dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md'>Partially Paid</button>
+            <button onClick={() => handleStatusClick('All')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === undefined || paymentStatus === "All"
+              ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+              : ""
+              }`}>All</button>
+
+
+            <button onClick={() => handleStatusClick('Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Paid"
+              ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+              : ""
+              }`}>Paid</button>
+
+            <button onClick={() => handleStatusClick('Unpaid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Unpaid"
+              ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+              : ""
+              }`}>Unpaid</button>
+
+            <button onClick={() => handleStatusClick('Partially Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Partially Paid"
+              ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+              : ""
+              }`}>Partially Paid</button>
           </div>
         </div>
 
@@ -196,8 +352,8 @@ const Buyers = () => {
                 </tr>
               </thead>
               <tbody>
-                {data && data.length > 0 ? (
-                  data?.map((data, index) => (
+                {filteredData && filteredData.length > 0 ? (
+                  filteredData?.map((data, index) => (
                     <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                       <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                         scope="row"
@@ -206,19 +362,19 @@ const Buyers = () => {
                         <PhoneComponent phone={data.phone} />
                       </th>
                       <td className="px-6 py-4 font-medium">
-                        {data.credit} Rs
+                        {data.virtual_account.total_credit} Rs
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.debit} Rs
+                        {data.virtual_account.total_debit} Rs
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.balance} Rs
+                        {data.virtual_account.total_balance} Rs
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.status}
+                        {data.virtual_account.status}
                       </td>
                       <td className="pl-10 py-4">
-                        <Link to={`/dashboard/buyers-details/${data.id}`}>
+                        <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/buyers-details/${data.id}`}>
                           <FaEye size={20} className='cursor-pointer' />
                         </Link>
                       </td>
@@ -235,20 +391,152 @@ const Buyers = () => {
         )}
       </section >
 
+      {/* -------- PAGINATION -------- */}
+      <section className="flex justify-center" >
+        <nav aria-label="Page navigation example">
+          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+            <li>
+              {Buyers?.page > 1 ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/buyers?page=${page - 1}`}
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Previous</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 1 1 5l4 4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+            {renderPaginationLinks()}
+            <li>
+              {Buyers?.totalPages !== page ? (
+                <Link
+                  onClick={ToDown}
+                  to={`/dashboard/buyers?page=${page + 1}`}
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                  disabled
+                >
+                  <span className="sr-only">Next</span>
+                  <svg
+                    className="w-2.5 h-2.5 rtl:rotate-180"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 6 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m1 9 4-4-4-4"
+                    />
+                  </svg>
+                </button>
+              )}
+            </li>
+          </ul>
+        </nav>
+      </section >
+
       {isOpen && (
         <div
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-8 px-3 w-full max-w-xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Add New Suit
+            <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
+
+
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
+                Generate Bill
               </h3>
+            </div>
+
+            {/* ------------- BODY ------------- */}
+            <div className="p-3">
+              <div className="flex justify-center items-center gap-x-4">
+                <Link to="/dashboard/generate-bill" onClick={closeModal} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">New Buyer</Link>
+                <button onClick={() => setSearchUser(!searchUser)} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Old Buyer</button>
+              </div>
+
+              {searchUser && (
+                <div className="search_user border-t flex justify-center flex-col pt-6 mt-6">
+                  <input
+                    type="text"
+                    className="w-full py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                    placeholder="Search by name"
+                  // value={search}
+                  // onChange={handleSearch}
+                  />
+
+                  <Link to="/dashboard/old-buyer-generate-bill" onClick={closeModal} className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Create Bill</Link>
+                </div>
+              )}
+            </div>
+
+            <div className="button absolute top-3 right-3">
               <button
                 onClick={closeModal}
-                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                className="end-2.5 bg-gray-100 text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                 type="button"
               >
                 <svg
@@ -268,87 +556,6 @@ const Buyers = () => {
                 </svg>
                 <span className="sr-only">Close modal</span>
               </button>
-            </div>
-
-            {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <input
-                    name="category"
-                    type="text"
-                    placeholder="Enter Category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="color"
-                    type="text"
-                    placeholder="Enter Color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="quantity"
-                    type="text"
-                    placeholder="Enter Quantity"
-                    value={formData.quantity}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="cost_price"
-                    type="text"
-                    placeholder="Enter Cost Price"
-                    value={formData.cost_price}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="sale_price"
-                    type="text"
-                    placeholder="Enter Sale Price"
-                    value={formData.sale_price}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="d_no"
-                    type="text"
-                    placeholder="Enter Design Number"
-                    value={formData.d_no}
-                    onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-center pt-2">
-                  <button
-                    type="submit"
-                    className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         </div>

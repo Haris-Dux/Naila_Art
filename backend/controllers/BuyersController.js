@@ -219,7 +219,7 @@ export const getBuyersForBranch = async (req, res, next) => {
   try {
     const { id } = req.body;
     const page = parseInt(req.query.page) || 1;
-    let limit = 2;
+    let limit = 6;
     let search = req.query.search || "";
     let branchQuery = req.query.branchId || "";
     const status = req.query.status || "";
