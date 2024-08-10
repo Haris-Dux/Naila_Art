@@ -302,7 +302,7 @@ export const validateAndGetOldBuyerData = async (req,res,next) => {
   } catch (error) {
     return res.status(500).json({error:error.message});
   }
-}
+};
 
 export const generateBillForOldbuyer = async (req,res,nex) => {
   const session = await mongoose.startSession();
@@ -384,7 +384,7 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
       if (updatedBagsorBoxQuantity < 0)
         throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
       bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
-      // await bagsorBoxStock.save({ session });
+      await bagsorBoxStock.save({ session });
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
@@ -399,9 +399,9 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
         suit.quantity = updatedSuitQuantity;
-        // return suit.save({ session });
+        return suit.save({ session });
       });
-      // await Promise.all(updatePromises);
+      await Promise.all(updatePromises);
 
       //ADDING IN DAILY SALE
       const dailySaleForToday = await DailySaleModel.findOne({
@@ -435,11 +435,10 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
       };
 
       dailySaleForToday.saleData = updatedSaleData;
-      // await dailySaleForToday.save({ session });
+      await dailySaleForToday.save({ session });
 
       //GETTING BUYERS PREVIOUS DATA
       const buyerData = await BuyersModel.findById({_id:buyerId});
-      console.log(buyerData);
       if (!buyerData)  throw new Error("Buyer Data Not Found");
 
 
@@ -475,7 +474,7 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
           date,
           particular: `Bill No ${serialNumber}`,
           debit: total,
-          balance: total,
+          balance: buyerData.virtual_account.total_balance + total,
         },
       ];
       if (paid > 0) {
@@ -483,33 +482,33 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
           date,
           particular: payment_Method,
           credit: paid,
-          balance: remaining,
+          balance: new_total_balance,
         });
       }
 
-      //CREATING BUYER
-      // await BuyersModel.create(
-      //   [
-      //     {
-      //       branchId,
-      //       serialNumber,
-      //       name,
-      //       city,
-      //       cargo,
-      //       phone,
-      //       date,
-      //       bill_by,
-      //       payment_Method,
-      //       packaging,
-      //       discount,
-      //       suits_data,
-      //       virtual_account: virtualAccountData,
-      //       credit_debit_history: credit_debit_history_details,
-      //     },
-      //   ],
-      //   { session }
-      // );
-
+          // UPDATING BUYER DATA
+          await BuyersModel.findByIdAndUpdate(
+            buyerId,
+            {
+              branchId,
+              serialNumber,
+              name,
+              city,
+              cargo,
+              phone,
+              date,
+              bill_by,
+              payment_Method,
+              packaging,
+              discount,
+              virtual_account: virtualAccountData,
+              $push:{
+                credit_debit_history: {$each:credit_debit_history_details},
+                suits_data:{$each:suits_data}
+              }
+            },
+            { session }
+          );
       return res
         .status(200)
         .json({ succes: true, message: "Bill Generated Successfully" });
@@ -519,6 +518,8 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
   } finally {
     session.endSession();
   }
-}
+};
+
+
 
 

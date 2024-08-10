@@ -65,7 +65,7 @@ const transaction_details = new mongoose.Schema({
   },
 });
 
-const BuyersSchema = new mongoose.Schema({
+const SellersSchema = new mongoose.Schema({
   branchId: {
     type: mongoose.Types.ObjectId,
     required: [true, "Branch Id required"],
@@ -124,4 +124,4 @@ const BuyersSchema = new mongoose.Schema({
 },
 {timestamps:true});
 
-export const BuyersModel = mongoose.model("Buyers", BuyersSchema);
+export const SellersModel = mongoose.model("Sellers", SellersSchema);
