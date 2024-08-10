@@ -68,3 +68,13 @@ export const getAllLaceStock = async (req,res,next) => {
         return res.status(500).json({ error: error.message });
     }
 };
+
+export const getAllLaceForEmbroidery =  async (req,res,next) => {
+  try {
+    const baseData = await LaceModel.find({});
+    setMongoose();
+    return res.status(200).json(baseData);
+  } catch (error) {
+    return res.status(500).json({error:error.message})
+  }
+};

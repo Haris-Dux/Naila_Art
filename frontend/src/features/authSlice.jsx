@@ -12,6 +12,8 @@ const forgetPassUrl = "/api/users/sendResetPasswordOTP";
 const verifyOtpPassUrl = "/api/users/verifyOtp";
 const resetPassUrl = "/api/users/updatePassword";
 const getUsersForBranch = "/api/users/getUsersForBranch";
+const updateUser  = '/api/users/updateUser'
+const pendingRequest = '/api/users/getPendingRequests'
 
 //CREATE ASYNC THUNK
 export const createuserAsync = createAsyncThunk(
@@ -135,6 +137,42 @@ export const GetUserBYBranch = createAsyncThunk(
 );
 
 
+export const getPendingRequests = createAsyncThunk(
+  "user/PendingRequestsUser",
+  async () => {
+    try {
+      const response = await axios.post(pendingRequest);
+      toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
+
+
+export const UpdateUser = createAsyncThunk(
+  "user/uppdateUser",
+  async (data) => {
+    try {
+      const response = await axios.post(updateUser, data);
+      toast.success(response.data.message);
+     
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
 export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async () => {
   try {
     const response = await axios.get(authUserSessionUrl);
@@ -191,7 +229,8 @@ const initialState = {
   forgetPasswordEmail: null,
   resetPassword: null,
   validateToken: null,
-  getUsersForBranch: []
+  getUsersForBranch: [],
+  pending:[]
 };
 
 const authSlice = createSlice({
@@ -280,6 +319,27 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
       })
+
+      .addCase(UpdateUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(UpdateUser.fulfilled, (state, ) => {
+        state.loading = false;
+      
+      })
+
+
+
+
+      .addCase(getPendingRequests.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getPendingRequests.fulfilled, (state,action ) => {
+        state.loading = false;
+        state.pending = action.payload;
+      
+      })
+
 
       .addCase(logoutUserAsync.pending, (state) => {
         state.loading = true;

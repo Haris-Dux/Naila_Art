@@ -24,6 +24,7 @@ import ForgetPassword from "./auth/ForgetPassword";
 import ResetPassword from "./auth/ResetPassword";
 import OtpChecker from "./auth/OtpChecker";
 import Shop from "./pages/Shop/Shop";
+import PendingRequest from "./pages/Shop/PendingRequest";
 import { useDispatch } from "react-redux";
 import { authUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
@@ -104,6 +105,8 @@ function App() {
 
             {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />
+            <Route path="PendingRequest" element={<PendingRequest />} />
+
           </Route >
         </Routes >
         <Toaster />
