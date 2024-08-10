@@ -1,5 +1,20 @@
 import mongoose from 'mongoose';
 
+const record_data = new mongoose.Schema({
+  date:{
+    type:String
+  },
+  quantity:{
+    type:Number
+  },
+  cost_price:{
+    type:Number
+  },
+  sale_price:{
+    type:Number
+  }
+});
+
 const suitsSchema = new mongoose.Schema({
   category: {
     type: String,
@@ -24,8 +39,9 @@ const suitsSchema = new mongoose.Schema({
   d_no: {
     type: Number,
     required: [true,"D number required"],
-    unique: true
-  }
+    unique: true,
+  },
+  all_records:[record_data]
 }, { timestamps: true });
 
 export const SuitsModel = mongoose.model('Suit', suitsSchema);
