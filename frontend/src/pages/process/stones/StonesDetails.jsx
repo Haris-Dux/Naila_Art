@@ -7,21 +7,21 @@ import {
   createStitching,
   
 } from "../../../features/stitching";
-import { GetAllLace } from "../../../features/InStockSlice";
+
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
+import {GetAllLaceForEmroidery} from  '../../../features/InStockSlice'
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleStone } = useSelector((state) => state.stone);
-  const { Lace } = useSelector((state) => state.InStock);
+  const { LaceForEmroidery } = useSelector((state) => state.InStock);
   // const { stitchingEmbroidery } = useSelector((state) => state.stitching);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
-  console.log("stitching data", SingleEmbroidery);
+  console.log("SingleStone data", SingleStone);
 const navigate = useNavigate()
   const dispatch = useDispatch();
-  console.log("lace data", Lace);
 
 
 
@@ -34,7 +34,7 @@ const navigate = useNavigate()
       id: id,
     };
     dispatch(GetSingleStone(data));
-    dispatch(GetAllLace());
+    dispatch(GetAllLaceForEmroidery());
   }, [id]);
 
   useEffect(() => {
@@ -533,7 +533,7 @@ const navigate = useNavigate()
                     >
                             <option selected>Select Value</option>
 
-                      {Lace?.map((item, index) => (
+                      {LaceForEmroidery?.map((item, index) => (
                         <option value={item.category}>{item.category}</option>
                       ))}
                     </select>
