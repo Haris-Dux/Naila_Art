@@ -278,7 +278,7 @@ const Shop = () => {
 
         {selectedShopId && 
     
-        
+    
     pendingloading ? (
              <div className="pt-16 flex justify-center mt-12 items-center">
                <div
@@ -334,7 +334,8 @@ const Shop = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
-  {getUsersForBranch?.map((data, index) => (
+  {  getUsersForBranch.length > 0 ?
+  getUsersForBranch?.map((data, index) => (
     <tr key={data?.id}>
       <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
         {data?.name}
@@ -383,7 +384,14 @@ const Shop = () => {
         </select>
       </td>
     </tr>
-  ))}
+  ))
+  :
+  <div className="flex justify-center items-center mt-4">
+          <h2 className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
+            No Data Found
+          </h2>
+        </div>
+}
 </tbody>
 
             </table>
@@ -395,34 +403,45 @@ const Shop = () => {
 
       {/* Delete Confirmation Modal */}
       {DeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-black bg-opacity-50 absolute inset-0"></div>
-          <div className="bg-white p-6 rounded-md z-10">
-            <p>Are you sure you want to delete this shop?</p>
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setDeleteModal(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-md"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+
+<div className="fixed inset-0 flex items-center justify-center z-50">
+<div className="bg-black bg-opacity-50 absolute inset-0"></div>
+<div className="bg-white p-6 rounded-md z-10 dark:bg-gray-700">
+  <p className="dark:text-white">Are you sure you want to delete this shop?</p>
+  <div className="flex justify-end mt-4">
+    <button
+      onClick={() => setDeleteModal(false)}
+      className="px-4 py-2 bg-gray-500 text-white rounded-md mr-2"
+    >
+      Cancel
+    </button>
+    <button
+      onClick={confirmDelete}
+      className="px-4 py-2 bg-red-600 text-white rounded-md"
+    >
+      Delete
+    </button>
+  </div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+      
       )}
 
       {/* Confirmation Modal for Role/Authentication/Branch Change */}
       {confirmationModal.isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 ">
           <div className="bg-black bg-opacity-50 absolute inset-0"></div>
-          <div className="bg-white p-6 rounded-md z-10">
-            <p>Are you sure you want to apply the changes?</p>
+          <div className="bg-white p-6 rounded-md z-10 dark:bg-gray-700">
+            <p className="dark:text-white">Are you sure you want to apply the changes?</p>
             <div className="flex justify-end mt-4">
               <button
                 onClick={closeConfirmationModal}
@@ -447,12 +466,12 @@ const Shop = () => {
             className="fixed inset-0 bg-gray-800 opacity-75"
             onClick={closeModal}
           ></div>
-          <div className="bg-white w-full max-w-lg p-6 rounded-lg z-50">
+          <div className="bg-white w-full max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
                   htmlFor="branchName"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
                 >
                   Branch Name
                 </label>
@@ -463,7 +482,7 @@ const Shop = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, branchName: e.target.value })
                   }
-                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
                   required
                 />
               </div>
