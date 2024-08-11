@@ -228,8 +228,8 @@ const Shop = () => {
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
-        <div className="tabs flex justify-between items-center my-5">
-          <div className="tabs_button">
+        <div className="tabs flex justify-between items-start my-5">
+        <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-1 gap-y-4">
             {loading ? (
               <div className="flex justify-center  items-center">
                 <div
