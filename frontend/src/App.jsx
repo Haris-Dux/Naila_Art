@@ -64,7 +64,7 @@ function App() {
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/otp" element={<OtpChecker />} />
 
-          <Route path="/previewBill" element={<PreviewBill />} />
+          {/* <Route path="/previewBill" element={<PreviewBill />} /> */}
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>
@@ -79,7 +79,7 @@ function App() {
 
             {/* GENERATE BILL */}
             <Route path="generate-bill" element={<GenerateBill />} />
-            <Route path="old-buyer-generate-bill" element={<OldBuyerGenerateBill />} />
+            <Route path="old-buyer-generate-bill/:id" element={<OldBuyerGenerateBill />} />
 
             {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
