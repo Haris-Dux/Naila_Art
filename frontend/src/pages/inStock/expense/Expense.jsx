@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { GetAllBranches, GetAllExpense } from "../../../features/InStockSlice";
-
+import { IoAdd } from "react-icons/io5";
+import ExpenseModal from "../../bills/Modals/ExpenseModal";
 const Expense = () => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [messageId, setMessageId] = useState();
   const [selectedBranchId, setSelectedBranchId] = useState(null);
-  console.log('selectedBranchId', selectedBranchId);
+
 
   const { user } = useSelector((state) => state.auth);
   let branchId = user?.user?.branchId;
@@ -19,6 +20,17 @@ const Expense = () => {
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const [expenseModal, setexpenseModal] = useState(false);
+
+
+  console.log('expensemodal',expenseModal)
+
+
+  const handleTabClick = () => {
+    setexpenseModal(!expenseModal);
+};
+
+
 
 
   const allExpenses = Expense?.data?.reduce((acc, branch) => {
@@ -124,6 +136,13 @@ const Expense = () => {
           </h1>
 
           {/* <!-- search bar --> */}
+
+<div className="flex items-center gap-3"> 
+
+          <button type='button' onClick={handleTabClick} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                        <IoAdd size={22} className='text-white' />
+                    </button>
+
           <div className="search_bar mr-2">
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -150,6 +169,7 @@ const Expense = () => {
                 onChange={handleSearch}
               />
             </div>
+          </div>
           </div>
         </div>
 
@@ -422,6 +442,11 @@ const Expense = () => {
           </div>
         </div>
       )}
+
+{expenseModal && <ExpenseModal isOpen={expenseModal} closeModal={() => setexpenseModal(false)} />}
+
+
+
     </>
   );
 };
