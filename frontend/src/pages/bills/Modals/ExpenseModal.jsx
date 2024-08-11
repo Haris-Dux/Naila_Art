@@ -7,6 +7,8 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
+  
+
   console.log("Branches", Branches);
 
   // State variables to hold form data
@@ -20,7 +22,8 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   });
 
   useEffect(() => {
-    dispatch(GetAllBranches());
+    dispatch(GetAllBranches({ id: user?.user?.id }));
+ 
   }, []);
 
   // Function to handle changes in form inputs
