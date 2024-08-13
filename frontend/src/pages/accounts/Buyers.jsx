@@ -51,7 +51,6 @@ const Buyers = () => {
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState();
   const [paymentStatus, setPaymentStatus] = useState();
-  const [selectedBranchId, setSelectedBranchId] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
   const [oldBuyerData, setOldBuyerData] = useState([]);
@@ -63,6 +62,11 @@ const Buyers = () => {
   const { Branches } = useSelector((state) => state.InStock);
   const { loading, Buyers } = useSelector((state) => state.Buyer);
   const { OldBuyerData, getBuyerLoading } = useSelector((state) => state.BuyerBills);
+
+
+  const [selectedBranchId, setSelectedBranchId] = useState();
+
+
 
   useEffect(() => {
     if (user?.user?.id) {
