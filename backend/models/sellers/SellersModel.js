@@ -1,32 +1,9 @@
-import mongoose, { Mongoose } from "mongoose";
-
-const suits_sale_details = new mongoose.Schema({
-  id: {
-    type: String,
-    required: [true, "Suit Id is required"],
-  },
-  d_no: {
-    type: Number,
-    required: [true, "Design No is required"],
-  },
-  color: {
-    type: String,
-    required: [true, "color value is required"],
-  },
-  quantity: {
-    type: Number,
-    required: [true, "Quantity value is required"],
-  },
-  price: {
-    type: Number,
-    required: [true, "Price value is required"],
-  },
-});
+import mongoose from "mongoose";
 
 const financialDetails = new mongoose.Schema({
   total_debit: {
     type: Number,
-    required: [true, "Total Debit value is required"],
+    default:null,
   },
   total_credit: {
     type: Number,
@@ -44,7 +21,7 @@ const financialDetails = new mongoose.Schema({
 
 const transaction_details = new mongoose.Schema({
   date: {
-    type: Date,
+    type: String,
     required: [true, "Date is required"],
   },
   particular: {
@@ -66,59 +43,47 @@ const transaction_details = new mongoose.Schema({
 });
 
 const SellersSchema = new mongoose.Schema({
-  branchId: {
-    type: mongoose.Types.ObjectId,
-    required: [true, "Branch Id required"],
-  },
-  serialNumber: {
+  bill_no: {
     type: String,
-    required: [true, "Serial Number is required"],
+    required: [true, "Bill Number is required"],
   },
   name: {
     type: String,
     required: [true, "Name Value is required"],
-  },
-  city: {
-    type: String,
-    required: [true, "City value is required"],
-  },
-  cargo: {
-    type: String,
-    required: [true, "Cargo value is required"],
   },
   phone: {
     type: String,
     required: [true, "Phone value is required"],
   },
   date: {
-    type: Date,
-    required: [true, "Date value is required"],
-  },
-  bill_by: {
     type: String,
-    required: [true, "billBy value is required"],
+    required: [true, "Date value is required"],
   },
   payment_Method: {
     type: String,
-    required: [true, "paymentMethod value is required"],
     enum: ["cashInMeezanBank", "cashInJazzCash", "cashInEasyPaisa", "cashSale"],
   },
-  packaging: {
-    name: {
-      type: String,
-      required: [true, "packaging value is required"],
-      enum:['Bags','Box']
-    },
-    quantity: {
-      type: Number,
-      required: [true, "quantity value is required"],
-    },
+  seller_stock_category : {
+    type: String,
+    required:[true,'Seller Stock Category Required'],
+    enum:['Base','Lace','Bag/box','Accessories']
   },
-  discount: {
+  category: {
+    type: String,
+    required: [true, "category Value is required"],
+  },
+  quantity: {
     type: Number,
-    required: [true, "discount value is required"],
+    required: [true, "Quantity Value is required"],
   },
-  suits_data: [suits_sale_details],
+  rate: {
+    type: Number,
+    required: [true, "Rate Value is required"],
+  },
+  total: {
+    type: Number,
+    required: [true, "Numnber Value is required"],
+  },
   virtual_account: financialDetails,
   credit_debit_history: [transaction_details],
 },

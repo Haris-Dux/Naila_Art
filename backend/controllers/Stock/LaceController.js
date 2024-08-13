@@ -1,14 +1,13 @@
 import { LaceModel } from "../../models/Stock/Lace.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-export const addLaceInStock = async (req, res, next) => {
+export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,session}) => {
   try {
-    const { bill_no, name, category, r_Date, quantity } = req.body;
     if (!category || !bill_no || !quantity || !r_Date || !name)
       throw new Error("All Fields Required");
     const checkExistingStock = await LaceModel.findOne({
       category: category,
-    });
+    }).session(session);
     let recordData = {bill_no,name,category,quantity,date:r_Date};
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
@@ -17,9 +16,9 @@ export const addLaceInStock = async (req, res, next) => {
           checkExistingStock.totalQuantity = updatedTotalQuantity,
           checkExistingStock.bill_no = bill_no,
           checkExistingStock.all_Records.push(recordData)
-          await checkExistingStock.save();     
+          await checkExistingStock.save({session});     
     } else {
-      await LaceModel.create({
+      await LaceModel.create([{
         bill_no,
         name,
         recently: quantity,
@@ -27,12 +26,12 @@ export const addLaceInStock = async (req, res, next) => {
         totalQuantity: quantity,
         category,
         all_Records:[recordData]
-      });
+      }],{session});
     }
 
-    return res.status(200).json({ message: "Successfully Added" });
+    return { message: "Successfully Added" };
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return { error: error.message };
   }
 };
 
