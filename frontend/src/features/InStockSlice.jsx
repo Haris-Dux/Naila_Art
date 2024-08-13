@@ -9,6 +9,7 @@ const getBase = "/api/stock/base/getAllBases";
 const getBaseforEmroidery = '/api/stock/base/getAllBasesForEmbroidery'
 const getAllCategoryForBaseUrl = "/api/stock/base/getAllCategoriesForbase";
 const getLace = "/api/stock/lace/getAllLaceStock";
+const GetLaceForEmroidery = "/api/stock/lace/getAllLaceForEmbroidery";
 const getSuits = "/api/stock/suits/getAllSuits";
 const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
@@ -121,6 +122,23 @@ export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
   }
 });
 
+
+
+export const GetAllLaceForEmroidery = createAsyncThunk("LaceForEmroidery/Get", async () => {
+ 
+  try {
+    const response = await axios.post(GetLaceForEmroidery);
+    // toast.success(response.data.message);
+
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+});
+
+
+
 export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
   try {
     const response = await axios.post(getBags);
@@ -202,6 +220,7 @@ const initialState = {
   BaseCategories: [],
   SuitCategories: [],
   Lace: [],
+  LaceForEmroidery: [],
   Bags: [],
   accessories: [],
   Expense: [],
@@ -317,7 +336,20 @@ const InStockSlic = createSlice({
       .addCase(GetAllBranches.fulfilled, (state, action) => {
         state.loading = false;
         state.Branches = action.payload;
+      })
+
+
+      .addCase(GetAllLaceForEmroidery.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetAllLaceForEmroidery.fulfilled, (state, action) => {
+        state.loading = false;
+        state.LaceForEmroidery = action.payload;
       });
+
+
+
+      
   },
 });
 
