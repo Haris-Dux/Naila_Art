@@ -454,7 +454,7 @@ export const getAllPurchasingHistory = async (req, res, next) => {
     const response = {
       sellerHistory,
       page,
-      sellerHistory,
+      sellers,
       totalPages: Math.ceil(sellerHistory / limit)
     };
     setMongoose();
