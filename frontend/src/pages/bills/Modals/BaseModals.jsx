@@ -3,9 +3,14 @@ import { useDispatch } from 'react-redux';
 import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
 import { GetAllBase } from '../../../features/InStockSlice';
 import { AddSellerDetailsFromAsync } from '../../../features/SellerSlice';
+import { useSearchParams } from 'react-router-dom';
 
 const BaseModals = ({ isOpen, closeModal }) => {
     const dispatch = useDispatch();
+
+    const [searchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+
 
     // State variables to hold form data
     const [formData, setFormData] = useState({
@@ -43,7 +48,7 @@ const BaseModals = ({ isOpen, closeModal }) => {
 
         dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
             if (res.payload.success === true) {
-                dispatch(GetAllBase());
+                dispatch(GetAllBase({ page }));
                 setFormData({
                     bill_no: "",
                     date: "",
