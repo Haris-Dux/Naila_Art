@@ -122,8 +122,6 @@ export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
   }
 });
 
-
-
 export const GetAllLaceForEmroidery = createAsyncThunk("LaceForEmroidery/Get", async () => {
  
   try {
@@ -136,8 +134,6 @@ export const GetAllLaceForEmroidery = createAsyncThunk("LaceForEmroidery/Get", a
     toast.error(error.response.data.error);
   }
 });
-
-
 
 export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
   try {
