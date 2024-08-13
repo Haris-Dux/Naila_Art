@@ -3,8 +3,16 @@ import { createLaceAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllLace } from "../../../features/InStockSlice";
 import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
+import { useSearchParams } from "react-router-dom";
+
+
 const LaceModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
@@ -42,7 +50,7 @@ const LaceModal = ({ isOpen, closeModal }) => {
 
     dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllLace());
+        dispatch(GetAllLace({ page }))
         setFormData({
           bill_no: "",
           date: "",

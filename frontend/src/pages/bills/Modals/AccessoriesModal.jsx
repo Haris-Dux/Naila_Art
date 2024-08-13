@@ -2,9 +2,14 @@ import React, { useState } from "react";
 import { createAsseceriesAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllaccessories } from "../../../features/InStockSlice";
+import { useSearchParams } from "react-router-dom";
+import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
 
 const AccessoriesModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
 
   // State variables to hold form data
@@ -17,7 +22,7 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
     quantity: "",
     rate: "",
     total: "",
-    seller_stock_category: "Base",
+    seller_stock_category: "Accessories",
   });
 
 
@@ -42,11 +47,10 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
       bill_no: Number(formData.bill_no),
     };
 
-    console.log('modifiedFormData', modifiedFormData);
 
     dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllaccessories());
+        dispatch(GetAllaccessories({ page }));
         setFormData({
           bill_no: "",
           date: "",
