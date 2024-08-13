@@ -38,7 +38,7 @@ export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,sess
 export const getAllLaceStock = async (req,res,next) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 2;
+        const limit = 10;
         let search = req.query.search || "";
      
         let query = {

@@ -2,16 +2,29 @@ import React, { useState } from "react";
 import { createLaceAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllLace } from "../../../features/InStockSlice";
+import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
+import { useSearchParams } from "react-router-dom";
+
+
 const LaceModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
+
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
     bill_no: "",
+    date: "",
     name: "",
-    quantity: "",
-    r_Date: "",
+    phone: "",
     category: "",
+    quantity: "",
+    rate: "",
+    total: "",
+    seller_stock_category: "Lace",
   });
 
   // Function to handle changes in form inputs
@@ -26,21 +39,32 @@ const LaceModal = ({ isOpen, closeModal }) => {
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(createLaceAsync(formData)).then((res) => {
-      console.log('res', res);
-      if (res.payload.message === "Successfully Added") {
-        dispatch(GetAllLace());
+
+    const modifiedFormData = {
+      ...formData,
+      total: Number(formData.total),
+      rate: Number(formData.rate),
+      quantity: Number(formData.quantity),
+      bill_no: Number(formData.bill_no),
+    };
+
+    dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GetAllLace({ page }))
         setFormData({
-          branchId: "",
+          bill_no: "",
+          date: "",
           name: "",
+          phone: "",
+          category: "",
+          quantity: "",
           rate: "",
-          Date: "",
-          reason: "",
-          serial_no: "",
+          total: "",
+          seller_stock_category: "",
         });
+        closeModal();
       }
     });
-    closeModal();
   };
 
   return (
@@ -84,11 +108,12 @@ const LaceModal = ({ isOpen, closeModal }) => {
             <div className="p-4 md:p-5">
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-                  {/* BILL NO */}
+
+                  {/* BILL */}
                   <div>
                     <input
                       name="bill_no"
-                      type="number"
+                      type="text"
                       placeholder="Bill No"
                       value={formData.bill_no}
                       onChange={handleChange}
@@ -97,18 +122,45 @@ const LaceModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
-                  {/* NAME */}
+                  {/* DATE */}
                   <div>
+                    <input
+                      name="date"
+                      type="date"
+                      placeholder="Date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* PARTY NAME */}
+                  <div className='col-span-2'>
                     <input
                       name="name"
                       type="text"
-                      placeholder="Name"
+                      placeholder="Party Name"
                       value={formData.name}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
                   </div>
+
+                  {/* CATEGORY */}
+                  <div>
+                    <input
+                      name="category"
+                      type="text"
+                      placeholder="Category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
 
                   {/* QUANTITY */}
                   <div>
@@ -123,31 +175,45 @@ const LaceModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
-                  {/* DATE */}
+                  {/* TOTAL */}
                   <div>
                     <input
-                      name="r_Date"
-                      type="date"
-                      placeholder="Date"
-                      value={formData.r_Date}
+                      name="total"
+                      type="number"
+                      placeholder="Total"
+                      value={formData.total}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
                   </div>
 
-                  {/* CATEGORY */}
-                  <div className="col-span-2">
+                  {/* RATE */}
+                  <div>
                     <input
-                      name="category"
-                      type="text"
-                      placeholder="Category"
-                      value={formData.category}
+                      name="rate"
+                      type="number"
+                      placeholder="Rate"
+                      value={formData.rate}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
                   </div>
+
+                  {/* PHONE NUMBER */}
+                  <div className='col-span-2'>
+                    <input
+                      name="phone"
+                      type="number"
+                      placeholder="Phone Number"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
                 </div>
 
                 <div className="flex justify-center mt-6">

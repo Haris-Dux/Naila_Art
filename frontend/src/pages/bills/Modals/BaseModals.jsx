@@ -2,16 +2,27 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
 import { GetAllBase } from '../../../features/InStockSlice';
+import { AddSellerDetailsFromAsync } from '../../../features/SellerSlice';
+import { useSearchParams } from 'react-router-dom';
 
 const BaseModals = ({ isOpen, closeModal }) => {
     const dispatch = useDispatch();
 
+    const [searchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page") || "1", 10);
+
+
     // State variables to hold form data
     const [formData, setFormData] = useState({
-        colors: "",
-        quantity: "",
-        r_Date: "",
+        bill_no: "",
+        date: "",
+        name: "",
+        phone: "",
         category: "",
+        quantity: "",
+        rate: "",
+        total: "",
+        seller_stock_category: "Base",
     });
 
     // Function to handle changes in form inputs
@@ -26,14 +37,28 @@ const BaseModals = ({ isOpen, closeModal }) => {
     // Function to handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(createBaseAsync(formData)).then((res) => {
-            if (res.payload.message === "Successfully Added") {
-                dispatch(GetAllBase());
+
+        const modifiedFormData = {
+            ...formData,
+            total: Number(formData.total),
+            rate: Number(formData.rate),
+            quantity: Number(formData.quantity),
+            bill_no: Number(formData.bill_no),
+        };
+
+        dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
+            if (res.payload.success === true) {
+                dispatch(GetAllBase({ page }));
                 setFormData({
-                    colors: "",
-                    quantity: "",
-                    r_Date: "",
+                    bill_no: "",
+                    date: "",
+                    name: "",
+                    phone: "",
                     category: "",
+                    quantity: "",
+                    rate: "",
+                    total: "",
+                    seller_stock_category: "",
                 });
                 closeModal();
             }
@@ -83,26 +108,39 @@ const BaseModals = ({ isOpen, closeModal }) => {
                             <form onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
 
-                                    {/* COLORS */}
+                                    {/* BILL */}
                                     <div>
                                         <input
-                                            name="colors"
+                                            name="bill_no"
                                             type="text"
-                                            placeholder="Colors"
-                                            value={formData.colors}
+                                            placeholder="Bill No"
+                                            value={formData.bill_no}
                                             onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
 
-                                    {/* QUANTITY */}
+                                    {/* DATE */}
                                     <div>
                                         <input
-                                            name="quantity"
-                                            type="number"
-                                            placeholder="Quantity"
-                                            value={formData.quantity}
+                                            name="date"
+                                            type="date"
+                                            placeholder="Date"
+                                            value={formData.date}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PARTY NAME */}
+                                    <div className='col-span-2'>
+                                        <input
+                                            name="name"
+                                            type="text"
+                                            placeholder="Party Name"
+                                            value={formData.name}
                                             onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
@@ -122,18 +160,59 @@ const BaseModals = ({ isOpen, closeModal }) => {
                                         />
                                     </div>
 
-                                    {/* DATE */}
+
+                                    {/* QUANTITY */}
                                     <div>
                                         <input
-                                            name="r_Date"
-                                            type="date"
-                                            placeholder="Date"
-                                            value={formData.r_Date}
+                                            name="quantity"
+                                            type="number"
+                                            placeholder="Quantity"
+                                            value={formData.quantity}
                                             onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                             required
                                         />
                                     </div>
+
+                                    {/* TOTAL */}
+                                    <div>
+                                        <input
+                                            name="total"
+                                            type="number"
+                                            placeholder="Total"
+                                            value={formData.total}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* RATE */}
+                                    <div>
+                                        <input
+                                            name="rate"
+                                            type="number"
+                                            placeholder="Rate"
+                                            value={formData.rate}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* PHONE NUMBER */}
+                                    <div className='col-span-2'>
+                                        <input
+                                            name="phone"
+                                            type="number"
+                                            placeholder="Phone Number"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
                                 </div>
 
                                 <div className="flex justify-center mt-6">

@@ -8,7 +8,11 @@ import LaceModal from './Modals/LaceModal';
 import BagModal from './Modals/BagModal';
 import AccessoriesModal from './Modals/AccessoriesModal';
 import { useDispatch } from 'react-redux';
-import { GetAllBags, GetAllBase,GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
+import { GetAllBags, GetAllBase, GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
+import BaseTable from './Tables/BaseTable';
+import LaceTable from './Tables/LaceTable';
+import BagBoxTable from './Tables/BagBoxTable';
+import AccessoriesTable from './Tables/AccessoriesTable';
 
 const PurchaseBills = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +29,7 @@ const PurchaseBills = () => {
         dispatch(GetAllLace())
         dispatch(GetAllBags())
         dispatch(GetAllaccessories())
-    
+
     }, [])
 
     const handleTabClick = (category) => {
@@ -42,7 +46,7 @@ const PurchaseBills = () => {
         document.body.style.overflow = 'auto';
     };
 
-   
+
 
 
     return (
@@ -54,33 +58,33 @@ const PurchaseBills = () => {
                     </h1>
 
                     {/* <!-- search bar --> */}
-                    <div className="search_bar mr-2">
-                        <div className="relative mt-4 md:mt-0">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                                <svg
-                                    className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                >
-                                    <path
-                                        d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    ></path>
-                                </svg>
-                            </span>
+                    {/* <div className="search_bar mr-2">
+                            <div className="relative mt-4 md:mt-0">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <svg
+                                        className="w-5 h-5 text-gray-800 dark:text-gray-200"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                    >
+                                        <path
+                                            d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        ></path>
+                                    </svg>
+                                </span>
 
-                            <input
-                                type="text"
-                                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                                placeholder="Search by Bill Number"
-                            // value={searchText}
-                            // onChange={handleSearch}
-                            />
-                        </div>
-                    </div>
+                                <input
+                                    type="text"
+                                    className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                                    placeholder="Search by Bill Number"
+                                // value={searchText}
+                                // onChange={handleSearch}
+                                />
+                            </div>
+                        </div> */}
                 </div>
 
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
@@ -103,9 +107,13 @@ const PurchaseBills = () => {
                     </button>
                 </div>
 
-                <CategoryTable category={selectedCategory} />
-            </section >
+                {/* <CategoryTable category={selectedCategory} /> */}
 
+                {selectedCategory === 'Base' && <BaseTable />}
+                {selectedCategory === 'Lace' && <LaceTable />}
+                {selectedCategory === 'Bag & Box' && <BagBoxTable />}
+                {selectedCategory === 'Accessories' && <AccessoriesTable />}
+            </section >
 
 
             {/* ALL MODALS  */}
@@ -113,11 +121,9 @@ const PurchaseBills = () => {
             {selectedCategory === 'Lace' && <LaceModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Bag & Box' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Accessories' && <AccessoriesModal isOpen={isOpen} closeModal={closeModal} />}
-       \
 
-           
         </>
     )
 }
 
-export default PurchaseBills
+export default PurchaseBills;
