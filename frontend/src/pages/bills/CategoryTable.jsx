@@ -12,15 +12,10 @@ const CategoryTable = ({ category }) => {
     // ALL USE SELECTORRS
     const { loading } = useSelector((state) => state.InStock);
     const { Base } = useSelector((state) => state.InStock);
-    console.log('Base', Base);
     const { Lace } = useSelector((state) => state.InStock);
-    console.log('Lace', Lace);
     const { Bags } = useSelector((state) => state.InStock);
-    console.log('Bags', Bags);
     const { accessories } = useSelector((state) => state.InStock);
-    console.log('accessories', accessories);
     const { Expense } = useSelector((state) => state.InStock);
-    console.log('Expense', Expense);
 
     const allExpenses = Expense?.data?.reduce((acc, branch) => {
         return acc.concat(branch.brannchExpenses);

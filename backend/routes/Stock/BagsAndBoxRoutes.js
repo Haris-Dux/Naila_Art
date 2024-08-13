@@ -5,7 +5,7 @@ import { addBagsAndBoxInStock, getAllBagsAndBox } from "../../controllers/Stock/
 
 const bagsAndBoxRouter = express.Router();
 
-bagsAndBoxRouter.post("/addBagsAndBoxInStock",superAdminAndAdminOnly, addBagsAndBoxInStock);
-bagsAndBoxRouter.post("/getAllBagsAndBox",verifyUser, getAllBagsAndBox);
+bagsAndBoxRouter.post("/addBagsAndBoxInStock", superAdminAndAdminOnly, addBagsAndBoxInStock);
+bagsAndBoxRouter.post("/getAllBagsAndBox", verifyUser, getAllBagsAndBox);
 
 export default bagsAndBoxRouter;
