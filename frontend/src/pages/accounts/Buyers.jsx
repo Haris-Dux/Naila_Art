@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
 import { GetAllBranches } from '../../features/InStockSlice';
+import { validateOldBuyerAsync } from '../../features/GenerateBillSlice';
 
 const data = [
   {
@@ -44,22 +45,28 @@ const PhoneComponent = ({ phone }) => {
 const Buyers = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState();
   const [paymentStatus, setPaymentStatus] = useState();
-  const [selectedBranchId, setSelectedBranchId] = useState();
-  // console.log('paymentStatus', paymentStatus);
-  // console.log('selectedBranchId', selectedBranchId);
+
+  const [validateOldBuyer, setValidateOldBuyer] = useState('');
+  const [oldBuyerData, setOldBuyerData] = useState([]);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
-  // console.log('Branches', Branches);
   const { loading, Buyers } = useSelector((state) => state.Buyer);
+  const { OldBuyerData, getBuyerLoading } = useSelector((state) => state.BuyerBills);
+
+
+  const [selectedBranchId, setSelectedBranchId] = useState();
+
+
 
   useEffect(() => {
     if (user?.user?.id) {
@@ -122,6 +129,8 @@ const Buyers = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setSearchUser(!searchUser)
+    setValidateOldBuyer("");
     document.body.style.overflow = 'auto';
   };
 
@@ -166,6 +175,19 @@ const Buyers = () => {
 
     dispatch(getBuyerForBranchAsync(payload));
   };
+
+  const handleValidateOldBuyer = (e) => {
+    const value = e.target.value;
+    setValidateOldBuyer(value);
+
+    if (value.length > 0) {
+      const timer = setTimeout(() => {
+        dispatch(validateOldBuyerAsync({ name: value }));
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }
+
 
   const handleStatusClick = (status) => {
     setPaymentStatus(status);
@@ -266,7 +288,7 @@ const Buyers = () => {
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                 placeholder="Search by name"
-                value={search}
+                value={validateOldBuyer}
                 onChange={handleSearch}
               />
             </div>
@@ -496,12 +518,13 @@ const Buyers = () => {
         </nav>
       </section >
 
+
       {isOpen && (
         <div
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-8 px-3 w-full max-w-xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
 
@@ -522,13 +545,44 @@ const Buyers = () => {
                 <div className="search_user border-t flex justify-center flex-col pt-6 mt-6">
                   <input
                     type="text"
-                    className="w-full py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                    className="w-full py-2 pl-6 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                     placeholder="Search by name"
-                  // value={search}
-                  // onChange={handleSearch}
+                    value={validateOldBuyer}
+                    onChange={handleValidateOldBuyer}
                   />
 
-                  <Link to="/dashboard/old-buyer-generate-bill" onClick={closeModal} className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Create Bill</Link>
+                  {/* Displaying names below the input */}
+                  {getBuyerLoading ? (
+                    <>
+                      <div className="py-6 flex justify-center items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                          <span className="sr-only">Loading...</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {validateOldBuyer.length > 0 && OldBuyerData && OldBuyerData.oldBuyerData && OldBuyerData.oldBuyerData.length > 0 ? (
+                        <ul className="mt-4 max-h-60 overflow-y-auto border rounded-lg">
+                          {OldBuyerData.oldBuyerData.map((buyer) => (
+                            <li key={buyer.id}>
+                              <Link
+                                to={`/dashboard/old-buyer-generate-bill/${buyer.id}`}
+                                onClick={closeModal}
+                                className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
+                                <span>{buyer.name}</span><span>{buyer.phone}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-4 text-gray-600 pl-4">No matching buyers found.</p>
+                      )}
+                    </>
+                  )}
+
+
+                  <Link to="" onClick={closeModal} className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Create Bill</Link>
                 </div>
               )}
             </div>
@@ -558,7 +612,7 @@ const Buyers = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div >
       )}
     </>
   );
