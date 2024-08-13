@@ -5,23 +5,23 @@ import { useSelector, useDispatch } from "react-redux";
 import { FiPlus } from "react-icons/fi";
 import {
   createStitching,
-  getStitchingByEmbroidery,
+  
 } from "../../../features/stitching";
-import { GetAllLace } from "../../../features/InStockSlice";
+
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
+import {GetAllLaceForEmroidery} from  '../../../features/InStockSlice'
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleStone } = useSelector((state) => state.stone);
-  const { Lace } = useSelector((state) => state.InStock);
+  const { LaceForEmroidery } = useSelector((state) => state.InStock);
   // const { stitchingEmbroidery } = useSelector((state) => state.stitching);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
-  console.log("stitching data", SingleEmbroidery);
+  console.log("SingleStone data", SingleStone);
 const navigate = useNavigate()
   const dispatch = useDispatch();
-  console.log("lace data", Lace);
 
 
 
@@ -34,7 +34,7 @@ const navigate = useNavigate()
       id: id,
     };
     dispatch(GetSingleStone(data));
-    dispatch(GetAllLace());
+    dispatch(GetAllLaceForEmroidery());
   }, [id]);
 
   useEffect(() => {
@@ -81,7 +81,6 @@ const navigate = useNavigate()
       setStoneData({
         id: SingleStone.id,
         project_status: "Completed",
-
         category_quantity: SingleStone?.category_quantity?.map((item) => ({
           id: item.id,
           first: item.recieved_Data?.first?.quantity || 0,
@@ -131,6 +130,16 @@ const navigate = useNavigate()
       [categoryType]: [...prevState[categoryType], initialRow],
     }));
   };
+
+
+
+  const removeRow = (categoryType) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [categoryType]: prevState[categoryType].slice(0, -1),
+    }));
+  };
+  
 
   const handleCategoryChange = (e, index, categoryType) => {
     const { value } = e.target;
@@ -492,7 +501,7 @@ const navigate = useNavigate()
                       placeholder="Party Name"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.partyName}
+                      value={formData?.partyName}
                       onChange={handleChange}
                     />
                   </div>
@@ -505,7 +514,7 @@ const navigate = useNavigate()
                       placeholder="Enter Rate"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.rate}
+                      value={formData?.rate}
                       onChange={handleChange}
                     />
                   </div>
@@ -518,7 +527,7 @@ const navigate = useNavigate()
                       placeholder="Lace Quantity"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.lace_quantity}
+                      value={formData?.lace_quantity}
                       onChange={handleChange}
                     />
                   </div>
@@ -529,12 +538,12 @@ const navigate = useNavigate()
                     <select
                        name="lace_category"
                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      value={formData.lace_category}
+                      value={formData?.lace_category}
                       onChange={handleChange}
                     >
                             <option selected>Select Value</option>
 
-                      {Lace?.map((item, index) => (
+                      {LaceForEmroidery?.map((item, index) => (
                         <option value={item.category}>{item.category}</option>
                       ))}
                     </select>
@@ -597,7 +606,7 @@ const navigate = useNavigate()
                       </div>
 
                       {/* ENTER QUANITY */}
-                      <div className="col-span-2">
+                      <div className="col-span-2 flex items-center">
                         <input
                           type="text"
                           placeholder="Enter Quantity In No"
@@ -608,6 +617,30 @@ const navigate = useNavigate()
                             handleQuantityChange(e, index, "suits_category")
                           }
                         />
+                             {formData?.suits_category?.length > 1 && (
+                <button
+                onClick={() => removeRow('suits_category')}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
                       </div>
                     </div>
                   ))}
@@ -665,7 +698,7 @@ const navigate = useNavigate()
                       </div>
 
                       {/* ENTER QUANITY */}
-                      <div className="col-span-2">
+                      <div className="col-span-2 flex items-center">
                         <input
                           type="text"
                           placeholder="Enter Quantity In No"
@@ -676,6 +709,30 @@ const navigate = useNavigate()
                             handleQuantityChange(e, index, "dupatta_category")
                           }
                         />
+                         {formData?.dupatta_category?.length > 1 && (
+                <button
+                onClick={() => removeRow('dupatta_category')}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
                       </div>
                     </div>
                   ))}

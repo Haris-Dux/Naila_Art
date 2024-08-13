@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Link } from "react-router-dom";
 import { CreateEmbroidery } from "../../features/EmbroiderySlice";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   GetAllBase,
@@ -116,6 +116,13 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
         ...prevState[field],
         field === "shirt" ? initialShirtRow : field === "duppata" ? initialDupattaRow : field === "trouser" ? initialTrouserRow : initialTissueRow,
       ],
+    }));
+  };
+
+  const deleteRow = (field, index) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [field]: prevState[field].filter((_, idx) => idx !== index),
     }));
   };
 
@@ -284,7 +291,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
             Enter Suit Colors And Quantity:
           </p>
           <p onClick={() => addNewRow("shirt")}>
-            <FiPlus size={24} className=" cursor-pointer" />
+            <FiPlus size={24} className=" cursor-pointer dark:text-white" />
           </p>
         </div>
         {formData?.shirt?.map((shirt, index) => (
@@ -315,16 +322,40 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 onChange={(e) => handleInputChange(e, index, "shirt")} // Passing index and type to handleInputChange
               />
             </div>
-            <div>
+            <div className="flex items-center">
               <input
                 name="shirt.quantity_in_m"
                 type="number"
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={shirt.quantity_in_m} // Accessing the quantity_in_m property of the shirt object
-                onChange={(e) => handleInputChange(e, index, "shirt")} // Passing index and type to handleInputChange
+                value={shirt.quantity_in_m}
+                onChange={(e) => handleInputChange(e, index, "shirt")}
               />
+              {formData.shirt.length > 1 && (
+                <button
+                  onClick={() => deleteRow("shirt", index)}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -334,7 +365,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
             Enter Duppta Colors And Quantity :
           </p>
           <p onClick={() => addNewRow("duppata")}>
-            <FiPlus size={24} className=" cursor-pointer" />
+            <FiPlus size={24} className=" cursor-pointer dark:text-white" />
           </p>
         </div>
 
@@ -363,7 +394,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
             </div>
-            <div>
+            <div className="flex items-center">
               <input
                 name="duppata.quantity_in_m"
                 type="number"
@@ -373,6 +404,30 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 value={duppata.quantity_in_m}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
+                {formData?.duppata?.length > 1 && (
+                <button
+                  onClick={() => deleteRow("duppata", index)}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -383,7 +438,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
             Enter Trousers Colors And Quantity :
           </p>
           <p onClick={() => addNewRow("trouser")}>
-            <FiPlus size={24} className=" cursor-pointer" />
+            <FiPlus size={24} className=" cursor-pointer dark:text-white" />
           </p>
         </div>
 
@@ -412,7 +467,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
             </div>
-            <div>
+            <div className="flex items-center">
               <input
                 name="trouser.quantity_in_m"
                 type="number"
@@ -422,6 +477,32 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 value={trouser.quantity_in_m}
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
+
+
+{formData?.trouser?.length > 1 && (
+                <button
+                  onClick={() => deleteRow("trouser", index)}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -433,7 +514,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           </p>
 
           <p onClick={() => addNewRow("tissue")}>
-            <FiPlus size={24} className=" cursor-pointer" />
+            <FiPlus size={24} className=" cursor-pointer dark:text-white" />
           </p>
         </div>
 
@@ -452,7 +533,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
               />
             </div>
 
-            <div>
+            <div className="flex items-center">
               <input
                 name="tissue.quantity_in_m"
                 type="number"
@@ -461,6 +542,30 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 value={tissue.quantity_in_m}
                 onChange={(e) => handleInputChange(e, index, "tissue")}
               />
+              {formData?.tissue?.length > 1 && (
+                <button
+                  onClick={() => deleteRow("tissue", index)}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -471,7 +576,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           onClick={handleSubmit}
           className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
         >
-         {loading ?  "Submiting..." : 'submit' }
+          {loading ? "Submiting..." : "submit"}
         </button>
       </div>
     </div>
