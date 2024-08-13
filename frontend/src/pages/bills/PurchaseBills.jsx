@@ -7,9 +7,8 @@ import BaseModals from './Modals/BaseModals';
 import LaceModal from './Modals/LaceModal';
 import BagModal from './Modals/BagModal';
 import AccessoriesModal from './Modals/AccessoriesModal';
-import ExpenseModal from './Modals/ExpenseModal';
 import { useDispatch } from 'react-redux';
-import { GetAllBags, GetAllBase, GetAllExpense, GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
+import { GetAllBags, GetAllBase,GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
 
 const PurchaseBills = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +25,7 @@ const PurchaseBills = () => {
         dispatch(GetAllLace())
         dispatch(GetAllBags())
         dispatch(GetAllaccessories())
-        dispatch(GetAllExpense({ page }))
+    
     }, [])
 
     const handleTabClick = (category) => {
@@ -89,7 +88,7 @@ const PurchaseBills = () => {
                 {/* -------------- TABS -------------- */}
                 <div className="tabs flex justify-between items-center my-5">
                     <div className="tabs_button">
-                        {['Base', 'Lace', 'Bag & Box', 'Accessories', 'Expense']?.map((category) => (
+                        {['Base', 'Lace', 'Bag & Box', 'Accessories']?.map((category) => (
                             <button
                                 key={category}
                                 className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-gray-800 text-white dark:bg-gray-600  dark:text-white' : ''}`}
@@ -114,7 +113,7 @@ const PurchaseBills = () => {
             {selectedCategory === 'Lace' && <LaceModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Bag & Box' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Accessories' && <AccessoriesModal isOpen={isOpen} closeModal={closeModal} />}
-            {selectedCategory === 'Expense' && <ExpenseModal isOpen={isOpen} closeModal={closeModal} />}
+       \
 
            
         </>
