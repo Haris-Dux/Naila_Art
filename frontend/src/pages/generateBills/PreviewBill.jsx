@@ -159,7 +159,7 @@ const PreviewBill = ({ onReturnClick, billData }) => {
                                     <h2 className='pl-3 py-3 w-full'>{Number(billData?.total) + Number(billData?.discount)}</h2>
                                 </div>
                                 <div className="total flex justify-start items-center w-full">
-                                    <h2 className='pl-3 py-3 w-full border-r'>Discount %</h2>
+                                    <h2 className='pl-3 py-3 w-full border-r'>Discount</h2>
                                     <h2 className='pl-3 py-3 w-full'>{billData?.discount}</h2>
                                 </div>
                                 <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
