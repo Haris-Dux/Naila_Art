@@ -1,10 +1,18 @@
 import React from 'react'
 import { HiPhone } from "react-icons/hi";
+import { MdArrowBack } from "react-icons/md";
 
-const PreviewBill = () => {
+
+const PreviewBill = ({ onReturnClick, billData }) => {
     return (
         <>
-            <section className='w-full'>
+            <section className='w-full relative'>
+                <div className="button">
+                    <button className='absolute flex justify-center items-center gap-x-1 top-6 right-8 text-lg font-medium hover:underline' onClick={onReturnClick}>
+                        <MdArrowBack size={20} /> Back</button>
+                </div>
+
+
                 <div className="max-w-6xl mx-auto px-4">
 
                     {/* HEADER */}
@@ -48,37 +56,68 @@ const PreviewBill = () => {
                         <div className="grid grid-cols-2 gap-0 lg:grid-cols-4">
                             <div className='flex justify-start items-center'>
                                 <span className='w-[7rem]'>Serial No: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.serialNumber || '____________'}
+                                />
                             </div>
                             <div className='flex justify-start items-center'>
                                 <span>Name: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.name || '____________'}
+                                />
                             </div>
                             <div className='flex justify-start items-center'>
                                 <span>City: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.city || '____________'}
+                                />
                             </div>
                             <div className='flex justify-start items-center'>
                                 <span>Cargo: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.cargo || '____________'}
+                                />
                             </div>
 
                             {/* SECOND ROW */}
                             <div className='flex justify-start items-center'>
                                 <span className='text-start'>Phone: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.phone || '____________'}
+                                />
                             </div>
                             <div className='flex justify-start items-center'>
                                 <span className='text-start'>Date: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.date || '____________'}
+                                />
                             </div>
                             <div className='flex justify-start items-center'>
                                 <span className='text-start w-[4rem]'>Bill By: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
-                            </div>
-                            <div className='flex justify-start items-center'>
-                                <span className='text-start w-[4rem]'>Bill By: </span>
-                                <input type="text" className='border-none w-full' readOnly placeholder='____________' />
+                                <input
+                                    type="text"
+                                    className='border-none w-full'
+                                    readOnly
+                                    value={billData?.bill_by || '____________'}
+                                />
                             </div>
                         </div>
                     </div>
@@ -95,13 +134,13 @@ const PreviewBill = () => {
                             </div>
                         </div>
                         <div className="table_body">
-                            {[1, 2, 3, 4, 5].map((data, index) => (
-                                <div className="grid grid-cols-2 gap-0 lg:grid-cols-6 text-black">
-                                    <h2 className='pl-3 border py-3'>{index + 1}</h2>
-                                    <h2 className='pl-3 border py-3'>1122</h2>
-                                    <h2 className='col-span-2 pl-3 border py-3'>Black</h2>
-                                    <h2 className='pl-3 border py-3'>2000</h2>
-                                    <h2 className='pl-3 border py-3'>4000</h2>
+                            {billData?.suits_data?.map((data, index) => (
+                                <div key={index} className="grid grid-cols-2 gap-0 lg:grid-cols-6 text-black">
+                                    <h2 className='pl-3 border py-3'>{data?.quantity}</h2>
+                                    <h2 className='pl-3 border py-3'>{data?.d_no}</h2>
+                                    <h2 className='col-span-2 pl-3 border py-3'>{data?.color}</h2>
+                                    <h2 className='pl-3 border py-3'>{data?.price}</h2>
+                                    <h2 className='pl-3 border py-3'>{data?.quantity * data?.price}</h2>
                                 </div>
                             ))}
                         </div>
@@ -117,19 +156,19 @@ const PreviewBill = () => {
                             <div className="total border border-gray-400">
                                 <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
                                     <h2 className='pl-3 py-3 w-full border-r'>Total</h2>
-                                    <h2 className='pl-3 py-3 w-full'></h2>
+                                    <h2 className='pl-3 py-3 w-full'>{Number(billData?.total) + Number(billData?.discount)}</h2>
                                 </div>
                                 <div className="total flex justify-start items-center w-full">
-                                    <h2 className='pl-3 py-3 w-full border-r'>Discount %</h2>
-                                    <h2 className='pl-3 py-3 w-full'></h2>
+                                    <h2 className='pl-3 py-3 w-full border-r'>Discount</h2>
+                                    <h2 className='pl-3 py-3 w-full'>{billData?.discount}</h2>
                                 </div>
                                 <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
                                     <h2 className='pl-3 py-3 w-full border-r'>Advance</h2>
-                                    <h2 className='pl-3 py-3 w-full'></h2>
+                                    <h2 className='pl-3 py-3 w-full'>{billData?.paid}</h2>
                                 </div>
                                 <div className="total flex justify-start items-center w-full">
                                     <h2 className='pl-3 py-3 w-full border-r'>Balance</h2>
-                                    <h2 className='pl-3 py-3 w-full'></h2>
+                                    <h2 className='pl-3 py-3 w-full'>{billData?.remaining}</h2>
                                 </div>
                             </div>
                         </div>
