@@ -8,7 +8,7 @@ import LaceModal from './Modals/LaceModal';
 import BagModal from './Modals/BagModal';
 import AccessoriesModal from './Modals/AccessoriesModal';
 import { useDispatch } from 'react-redux';
-import { GetAllBags, GetAllBase,GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
+import { GetAllBags, GetAllBase, GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
 
 const PurchaseBills = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +25,7 @@ const PurchaseBills = () => {
         dispatch(GetAllLace())
         dispatch(GetAllBags())
         dispatch(GetAllaccessories())
-    
+
     }, [])
 
     const handleTabClick = (category) => {
@@ -42,7 +42,7 @@ const PurchaseBills = () => {
         document.body.style.overflow = 'auto';
     };
 
-   
+
 
 
     return (
@@ -107,15 +107,12 @@ const PurchaseBills = () => {
             </section >
 
 
-
             {/* ALL MODALS  */}
             {selectedCategory === 'Base' && <BaseModals isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Lace' && <LaceModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Bag & Box' && <BagModal isOpen={isOpen} closeModal={closeModal} />}
             {selectedCategory === 'Accessories' && <AccessoriesModal isOpen={isOpen} closeModal={closeModal} />}
-       \
 
-           
         </>
     )
 }
