@@ -1,15 +1,14 @@
 import { AccssoriesModel } from "../../models/Stock/AccssoriesModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,session}) => {
+export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,session,category}) => {
   try {
-    if (!serial_No || !quantity || !r_Date || !name)
+    if (!serial_No || !quantity || !r_Date || !name || !category)
       throw new Error("All Fields Required");
-    const lowerCaseName = name.toLowerCase();
     const checkExistingStock = await AccssoriesModel.findOne({
-      name: lowerCaseName,
+      name: { $regex: new RegExp(`^${category}$`, "i") },
     }).session(session);
-    let recordData = { serial_No, name: lowerCaseName, quantity, date: r_Date };
+    let recordData = { serial_No, name: category, quantity, date: r_Date };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
       (checkExistingStock.recently = quantity),
@@ -21,7 +20,7 @@ export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,se
     } else {
       await AccssoriesModel.create([{
         serial_No,
-        name: lowerCaseName,
+        name: category,
         recently: quantity,
         r_Date,
         totalQuantity: quantity,

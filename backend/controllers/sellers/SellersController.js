@@ -119,6 +119,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
               r_Date: date,
               quantity,
               session,
+              category
             });
             if (accessoriesResult.error)
               throw new Error(accessoriesResult.error);
@@ -230,7 +231,7 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
   }
 };
 
-export const validateAndGetOldBuyerData = async (req,res,next) => {
+export const validateAndGetOldSellerData = async (req,res,next) => {
   try {
     const {name} = req.body;
     if(!name) throw new Error('Seller Name Required');
@@ -284,6 +285,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
 
       //GETTING OLD SELLER DATA
       const oldSellerData = await SellersModel.findById({_id:sellerId});
+      if(oldSellerData.seller_stock_category !== seller_stock_category) throw new Error("Invalid Buyer For this Stock Category")
       
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit = oldSellerData.virtual_account.total_credit + total;
@@ -300,7 +302,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
       const credit_debit_history_details = [
         {
           date,
-          particular: `Bill No ${serialNumber}`,
+          particular: `Bill No ${bill_no}`,
           credit: total,
           balance: new_total_balance,
         },
@@ -328,7 +330,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
             },
           { session }
         ),
-         purchasing_History_model.create({
+         purchasing_History_model.create([{
           seller_stock_category,
           bill_no,
           date,
@@ -337,7 +339,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
           quantity,
           rate,
           total,
-        },{session})
+        }],{session})
         ])
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
@@ -362,6 +364,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
               r_Date: date,
               quantity,
               session,
+              category
             });
             if (accessoriesResult.error)
               throw new Error(accessoriesResult.error);
@@ -393,13 +396,15 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
               rate,
               total,
               seller_stock_category,
-              credit_debit_history: credit_debit_history_details,
+              $push:{
+                credit_debit_history: {$each:credit_debit_history_details},
+               },
               virtual_account: virtualAccountData,
             },
           
           { session }
         ),
-         purchasing_History_model.create({
+         purchasing_History_model.create([{
           seller_stock_category,
           bill_no,
           date,
@@ -408,7 +413,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
           quantity,
           rate,
           total,
-        },{session})
+        }],{session})
         ]) 
       };
     });
