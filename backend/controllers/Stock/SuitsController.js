@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
@@ -7,17 +8,39 @@ export const addSuitsInStock = async (req, res, next) => {
       req.body;
     if (!category || !color || !quantity || !cost_price || !sale_price || !d_no)
       throw new Error("All Fields Required");
-    const checkExistingD_no = await SuitsModel.findOne({ d_no });
-    if (checkExistingD_no) throw new Error("Already Exists D-No.");
-    await SuitsModel.create({
-      category,
-      color,
-      quantity,
-      cost_price,
-      sale_price,
+    const checkExistingSuitStock = await SuitsModel.findOne({
       d_no,
+      category: { $regex: new RegExp(`^${category}$`, "i") },
     });
-    return res.status(200).json({ message: "Successfully Added" });
+    const verifyd_no = await SuitsModel.findOne({
+      d_no
+    });
+    if (
+      !checkExistingSuitStock && verifyd_no
+    ) {
+      throw new Error("Design Number Already Exists");
+    }
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    let recordData = { date: today, quantity, cost_price, sale_price };
+    if (checkExistingSuitStock && checkExistingSuitStock.color.toLowerCase() === color.toLowerCase()) {
+      (checkExistingSuitStock.quantity += parseInt(quantity)),
+        (checkExistingSuitStock.cost_price = cost_price),
+        (checkExistingSuitStock.sale_price = sale_price);
+      checkExistingSuitStock.all_records.push(recordData);
+      await checkExistingSuitStock.save();
+    } 
+    else  {
+      await SuitsModel.create({
+        category,
+        color,
+        quantity,
+        cost_price,
+        sale_price,
+        d_no,
+        all_records: [recordData],
+      });
+    }
+    return res.status(200).json({success:true , message: "Successfully Added" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -25,7 +48,6 @@ export const addSuitsInStock = async (req, res, next) => {
 
 export const getAllSuits = async (req, res, next) => {
   try {
-
     const page = parseInt(req.query.page) || 1;
     const limit = 8;
     let search = parseInt(req.query.search) || "";
@@ -35,10 +57,10 @@ export const getAllSuits = async (req, res, next) => {
     if (search) {
       query = { ...query, d_no: search };
     }
-    console.log('search', search);
+
     if (category) {
       query = { ...query, category: category };
-    };
+    }
 
     const data = await SuitsModel.find(query)
       .skip((page - 1) * limit)
@@ -46,7 +68,6 @@ export const getAllSuits = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     const total = await SuitsModel.countDocuments(query);
-
 
     const response = {
       totalPages: Math.ceil(total / limit),

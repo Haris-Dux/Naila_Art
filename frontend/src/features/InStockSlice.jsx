@@ -226,6 +226,7 @@ const initialState = {
   Expense: [],
   // SingleBranchExpense: [],
   loading: false,
+  GetSuitloading: false,
   Branches: [],
 };
 
@@ -299,10 +300,10 @@ const InStockSlic = createSlice({
       })
 
       .addCase(GetAllSuit.pending, (state, action) => {
-        state.loading = true;
+        state.GetSuitloading = true;
       })
       .addCase(GetAllSuit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.GetSuitloading = false;
         state.Suit = action.payload;
       })
 

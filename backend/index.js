@@ -22,6 +22,7 @@ import stitchingRouter from "./routes/Process/StitchingRoutes.js";
 import employRouter from "./routes/EmployRoutes.js";
 import dailySaleRouter from "./routes/DailySaleRoutes.js";
 import buyerRouter from "./routes/BuyersRoutes.js";
+import cashInOutRouter from "./routes/CashInOutRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -67,6 +68,7 @@ app.use(session({
   app.use("/api/employ",employRouter);
   app.use("/api/dailysale",dailySaleRouter);
   app.use("/api/buyers",buyerRouter);
+  app.use("/api/cashInOut",cashInOutRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));

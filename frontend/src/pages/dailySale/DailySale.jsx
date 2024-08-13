@@ -21,6 +21,7 @@ const DailySale = () => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const [selectedBranchId, setSelectedBranchId] = useState();
 
+
     const [searchDate, setSearchDate] = useState('');
     console.log('searchDate', searchDate);
 
