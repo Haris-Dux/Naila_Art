@@ -289,8 +289,21 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
       
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit = oldSellerData.virtual_account.total_credit + total;
+      const new_total_debit = oldSellerData.virtual_account.total_debit;
       const new_total_balance = oldSellerData.virtual_account.total_balance + total;
-      let new_status = "Unpaid";
+      let new_status = "";
+
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit && new_total_debit > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+      }
 
       const virtualAccountData = {
         total_credit:new_total_credit,
