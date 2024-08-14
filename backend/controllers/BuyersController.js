@@ -6,6 +6,7 @@ import { DailySaleModel } from "../models/DailySaleModel.js";
 import { BuyersModel } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import generatePDF from "../utils/GeneratePdf.js";
 
 export const generateBuyersBillandAddBuyer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -205,6 +206,23 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         ],
         { session }
       );
+
+      //GENERATING PDF
+      await generatePDF( branchId,
+        serialNumber,
+        name,
+        city,
+        cargo,
+        phone,
+        date,
+        bill_by,
+        payment_Method,
+        packaging,
+        discount,
+        suits_data,
+        total,
+        paid,
+        remaining,)
 
       return res
         .status(200)
