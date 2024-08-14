@@ -63,11 +63,11 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
           balance: total,
         },
       ];
-      
-       //ADDING BASE DATA IN  SEELER
+
+      //ADDING BASE DATA IN  SEELER
       if (seller_stock_category === "Base") {
         await Promise.all([
-           SellersModel.create(
+          SellersModel.create(
             [
               {
                 bill_no,
@@ -85,7 +85,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
             ],
             { session }
           ),
-            purchasing_History_model.create([{
+          purchasing_History_model.create([{
             seller_stock_category,
             bill_no,
             date,
@@ -94,7 +94,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
             quantity,
             rate,
             total,
-          }],{session})
+          }], { session })
         ])
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
@@ -166,8 +166,8 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
             quantity,
             rate,
             total,
-          }],{session})
-        ])    
+          }], { session })
+        ])
       };
     });
     return res
@@ -180,16 +180,16 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
   }
 };
 
-export const getSelleForPurchasingById = async (req,res,next) => {
+export const getSelleForPurchasingById = async (req, res, next) => {
   try {
-    const {id} = req.body;
+    const { id } = req.body;
     if (!id) throw new Error("Seller Id Required");
     const seller = await SellersModel.findById(id);
     if (!seller) throw new Error("Buyer Not Found");
     setMongoose();
     return res.status(200).json(seller);
-    } catch (error) {
-    return res.status(500).json({error:error.message})
+  } catch (error) {
+    return res.status(500).json({ error: error.message })
   }
 };
 
@@ -202,20 +202,20 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
 
     let query = {};
 
-    if(category){
+    if (category) {
       query.seller_stock_category = category
     };
 
-    if(search){
+    if (search) {
       query.bill_no = { $regex: search }
     };
 
-    const totalSellers =  await SellersModel.countDocuments(query);
+    const totalSellers = await SellersModel.countDocuments(query);
 
     const sellers = await SellersModel.find(query)
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({createdAt : -1})
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 })
 
     const response = {
       sellers,
@@ -231,16 +231,16 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
   }
 };
 
-export const validateAndGetOldSellerData = async (req,res,next) => {
+export const validateAndGetOldSellerData = async (req, res, next) => {
   try {
-    const {name} = req.body;
-    if(!name) throw new Error('Seller Name Required');
-    const oldSellerData = await SellersModel.find({name:{$regex:name,$options:'i'}});
-    if(!oldSellerData) throw new Error('No Data Found With This Seller Name');
+    const { name } = req.body;
+    if (!name) throw new Error('Seller Name Required');
+    const oldSellerData = await SellersModel.find({ name: { $regex: name, $options: 'i' } });
+    if (!oldSellerData) throw new Error('No Data Found With This Seller Name');
     setMongoose();
-    return res.status(200).json({success:true,oldSellerData});
+    return res.status(200).json({ success: true, oldSellerData });
   } catch (error) {
-    return res.status(500).json({error:error.message});
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -284,9 +284,9 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         throw new Error(`Missing Fields ${missingFields}`);
 
       //GETTING OLD SELLER DATA
-      const oldSellerData = await SellersModel.findById({_id:sellerId});
-      if(oldSellerData.seller_stock_category !== seller_stock_category) throw new Error("Invalid Buyer For this Stock Category")
-      
+      const oldSellerData = await SellersModel.findById({ _id: sellerId });
+      if (oldSellerData.seller_stock_category !== seller_stock_category) throw new Error("Invalid Buyer For this Stock Category")
+
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit = oldSellerData.virtual_account.total_credit + total;
       const new_total_debit = oldSellerData.virtual_account.total_debit;
@@ -306,9 +306,9 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
       }
 
       const virtualAccountData = {
-        total_credit:new_total_credit,
-        total_balance:new_total_balance,
-        status:new_status,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
       };
 
       //DATA FOR CREDIT DEBIT HISTORY
@@ -320,8 +320,8 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
           balance: new_total_balance,
         },
       ];
-      
-       //ADDING BASE DATA IN  SEELER
+
+      //ADDING BASE DATA IN  SEELER
       if (seller_stock_category === "Base" && oldSellerData.seller_stock_category === "Base") {
         await Promise.all([
           SellersModel.findByIdAndUpdate(
@@ -337,22 +337,22 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
               total,
               seller_stock_category,
               virtual_account: virtualAccountData,
-             $push:{
-              credit_debit_history: {$each:credit_debit_history_details},
-             }
+              $push: {
+                credit_debit_history: { $each: credit_debit_history_details },
+              }
             },
-          { session }
-        ),
-         purchasing_History_model.create([{
-          seller_stock_category,
-          bill_no,
-          date,
-          name,
-          category,
-          quantity,
-          rate,
-          total,
-        }],{session})
+            { session }
+          ),
+          purchasing_History_model.create([{
+            seller_stock_category,
+            bill_no,
+            date,
+            name,
+            category,
+            quantity,
+            rate,
+            total,
+          }], { session })
         ])
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
@@ -409,25 +409,25 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
               rate,
               total,
               seller_stock_category,
-              $push:{
-                credit_debit_history: {$each:credit_debit_history_details},
-               },
+              $push: {
+                credit_debit_history: { $each: credit_debit_history_details },
+              },
               virtual_account: virtualAccountData,
             },
-          
-          { session }
-        ),
-         purchasing_History_model.create([{
-          seller_stock_category,
-          bill_no,
-          date,
-          name,
-          category,
-          quantity,
-          rate,
-          total,
-        }],{session})
-        ]) 
+
+            { session }
+          ),
+          purchasing_History_model.create([{
+            seller_stock_category,
+            bill_no,
+            date,
+            name,
+            category,
+            quantity,
+            rate,
+            total,
+          }], { session })
+        ])
       };
     });
     return res
@@ -449,20 +449,20 @@ export const getAllPurchasingHistory = async (req, res, next) => {
 
     let query = {};
 
-    if(category){
+    if (category) {
       query.seller_stock_category = category
     };
 
-    if(search){
+    if (search) {
       query.bill_no = { $regex: search }
     };
 
-    const sellerHistory =  await purchasing_History_model.countDocuments(query);
+    const sellerHistory = await purchasing_History_model.countDocuments(query);
 
     const sellers = await purchasing_History_model.find(query)
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({createdAt : -1})
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 })
 
     const response = {
       sellerHistory,
