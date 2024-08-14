@@ -7,6 +7,8 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { generateBuyerBillAsync, getSuitFromDesignAsync } from '../../features/GenerateBillSlice';
 import PreviewBill from './PreviewBill';
+import moment from "moment-timezone";
+
 
 
 const GenerateBill = () => {
@@ -17,6 +19,7 @@ const GenerateBill = () => {
     const { Branches } = useSelector((state) => state.InStock);
     const { Bags } = useSelector((state) => state.InStock);
     const { SuitFromDesign } = useSelector((state) => state.BuyerBills);
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
     const [billData, setBillData] = useState({
         branchId: user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
@@ -25,7 +28,7 @@ const GenerateBill = () => {
         city: '',
         cargo: '',
         phone: '',
-        date: new Date().toISOString().split('T')[0],
+        date: today,
         bill_by: '',
         payment_Method: '',
         total: '',
@@ -215,29 +218,29 @@ const GenerateBill = () => {
         dispatch(generateBuyerBillAsync(modifiedBillData))
             .then((res) => {
                 if (res.payload.succes === true) {
-                    setBillData({
-                        branchId: '',
-                        serialNumber: '',
-                        name: '',
-                        city: '',
-                        cargo: '',
-                        phone: '',
-                        date: new Date().toISOString().split('T')[0],
-                        bill_by: '',
-                        payment_Method: '',
-                        total: '',
-                        paid: '',
-                        remaining: '',
-                        discount: '',
-                        packaging: {
-                            name: '',
-                            id: '',
-                            quantity: ''
-                        },
-                        suits_data: [
-                            { id: '', quantity: '', d_no: '', color: '', price: '' }
-                        ]
-                    });
+                    // setBillData({
+                    //     branchId: '',
+                    //     serialNumber: '',
+                    //     name: '',
+                    //     city: '',
+                    //     cargo: '',
+                    //     phone: '',
+                    //     date: new Date().toISOString().split('T')[0],
+                    //     bill_by: '',
+                    //     payment_Method: '',
+                    //     total: '',
+                    //     paid: '',
+                    //     remaining: '',
+                    //     discount: '',
+                    //     packaging: {
+                    //         name: '',
+                    //         id: '',
+                    //         quantity: ''
+                    //     },
+                    //     suits_data: [
+                    //         { id: '', quantity: '', d_no: '', color: '', price: '' }
+                    //     ]
+                    // });
                 }
             });
     };

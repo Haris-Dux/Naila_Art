@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer-core';
 async function generatePDF(data) {
   try {
     const browser = await puppeteer.launch( {headless: true,
+      executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe', 
     args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
 
@@ -481,8 +482,6 @@ async function generatePDF(data) {
     
   `);
 
-
-  
   await page.waitForFunction('document.readyState === "complete"')
   
   const pdfBuffer = await page.pdf({ format: 'A4' });
@@ -496,6 +495,7 @@ async function generatePDF(data) {
 
     return { pdfBuffer, headers };
   } catch (error) {
+    console.log(error);
     throw new Error(error)
   }
 }
