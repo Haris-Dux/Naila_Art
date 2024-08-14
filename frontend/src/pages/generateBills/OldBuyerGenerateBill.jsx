@@ -258,30 +258,32 @@ const OldBuyerGenerateBill = () => {
         // Uncomment and use this once ready to dispatch the action
         dispatch(generateBillForOlderBuyerAsync(modifiedBillData))
             .then((res) => {
-                console.log(res);
-                // setBillData({
-                //     branchId: '',
-                //     serialNumber: '',
-                //     name: '',
-                //     city: '',
-                //     cargo: '',
-                //     phone: '',
-                //     date: '',
-                //     bill_by: '',
-                //     payment_Method: '',
-                //     total: '',
-                //     paid: '',
-                //     remaining: '',
-                //     discount: '',
-                //     packaging: {
-                //         name: '',
-                //         id: '',
-                //         quantity: ''
-                //     },
-                //     suits_data: [
-                //         { id: '', quantity: '', d_no: '', color: '', price: '' }
-                //     ]
-                // });
+                if (res.payload.succes === true) {
+                    setBillData({
+                        buyerId: id,
+                        branchId: user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+                        serialNumber: '',
+                        name: BuyerById?.name || '',
+                        city: BuyerById?.city || '',
+                        cargo: '',
+                        phone: BuyerById?.phone || '',
+                        date: new Date().toISOString().split('T')[0],
+                        bill_by: '',
+                        payment_Method: '',
+                        total: '',
+                        paid: '',
+                        remaining: '',
+                        discount: '',
+                        packaging: {
+                            name: '',
+                            id: '',
+                            quantity: ''
+                        },
+                        suits_data: [
+                            { id: '', quantity: '', d_no: '', color: '', price: '' }
+                        ]
+                    });
+                }
             });
     };
 
@@ -523,9 +525,9 @@ const OldBuyerGenerateBill = () => {
                                     </div>
 
                                     {/* fields */}
-                                    <div className="mb-5 pt-3 flex items-center justify-between gap-x-4">
+                                    <div className="mb-5 pt-3 space-y-5">
                                         {billData.suits_data.map((suit, index) => (
-                                            <React.Fragment key={index}>
+                                            <div key={index} className="flex items-center justify-between gap-x-4">
                                                 <div className="grid items-start grid-cols-1 lg:grid-cols-4 gap-5 w-full">
                                                     <div>
                                                         <input
@@ -587,7 +589,7 @@ const OldBuyerGenerateBill = () => {
                                                         <IoTrashOutline size={20} />
                                                     </button>
                                                 </div>
-                                            </React.Fragment>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
