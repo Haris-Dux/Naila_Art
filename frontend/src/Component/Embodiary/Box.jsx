@@ -101,7 +101,6 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
     quantity_in_m: 0,
   };
   const initialTissueRow = { category: "", color: "", quantity_in_m: 0 };
-  
   const [formData, setFormData] = useState({
     shirt: [initialShirtRow],
     duppata: [initialDupattaRow],
@@ -114,7 +113,13 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
       ...prevState,
       [field]: [
         ...prevState[field],
-        field === "shirt" ? initialShirtRow : field === "duppata" ? initialDupattaRow : field === "trouser" ? initialTrouserRow : initialTissueRow,
+        field === "shirt"
+          ? initialShirtRow
+          : field === "duppata"
+            ? initialDupattaRow
+            : field === "trouser"
+              ? initialTrouserRow
+              : initialTissueRow,
       ],
     }));
   };
@@ -404,7 +409,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 value={duppata.quantity_in_m}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
-                {formData?.duppata?.length > 1 && (
+              {formData?.duppata?.length > 1 && (
                 <button
                   onClick={() => deleteRow("duppata", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -479,7 +484,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
               />
 
 
-{formData?.trouser?.length > 1 && (
+              {formData?.trouser?.length > 1 && (
                 <button
                   onClick={() => deleteRow("trouser", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -583,4 +588,4 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   );
 };
 
-export default Box;
+export default Box
