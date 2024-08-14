@@ -8,11 +8,7 @@ import { getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 const BaseTable = () => {
     const dispatch = useDispatch();
 
-    const { loading, Base } = useSelector((state) => state.InStock);
-
-    const { PurchasingHistory } = useSelector((state) => state.Seller);
-    console.log('PurchasingHistory', PurchasingHistory);
-
+    const { loading, PurchasingHistory } = useSelector((state) => state.Seller);
 
     const [baseId, setBaseId] = useState();
     const [userSelectedCategory, setuserSelectedCategory] = useState("");
@@ -29,7 +25,7 @@ const BaseTable = () => {
     }, [page, dispatch]);
 
     const renderPaginationLinks = () => {
-        const totalPages = Base?.totalPages;
+        const totalPages = PurchasingHistory?.totalPages;
         const paginationLinks = [];
         for (let i = 1; i <= totalPages; i++) {
             paginationLinks.push(
@@ -38,7 +34,7 @@ const BaseTable = () => {
                         to={`/dashboard/purchasebills?page=${i}`}
                         className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
                             }`}
-                        onClick={() => dispatch(GetAllBase({ category: userSelectedCategory, page: i }))}
+                        onClick={() => dispatch(getAllPurchasingHistoryAsync({ category: 'Base', search, page: i }))}
                     >
                         {i}
                     </Link>
@@ -82,7 +78,7 @@ const BaseTable = () => {
         }
     }
 
-    const filteredBaseData = useMemo(() => Base?.data?.filter(data => data.id === baseId), [Base, baseId]);
+    const filteredBaseData = useMemo(() => PurchasingHistory?.sellers?.filter(data => data.id === baseId), [PurchasingHistory, baseId]);
 
     return (
         <>
@@ -131,63 +127,70 @@ const BaseTable = () => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
+                                        Name
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
+                                        Bill No
+                                    </th>
+                                    <th
+                                        className="px-6 py-3"
+                                        scope="col"
+                                    >
                                         Category
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Colors
+                                        Date
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        T. m
+                                        Quantity
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        R. Date
+                                        Rate
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Recently
-                                    </th>
-                                    <th
-                                        className="px-6 py-4 text-md"
-                                        scope="col"
-                                    >
-                                        History
+                                        Total
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {Base && Base?.data?.length > 0 ? (
-                                    Base?.data?.map((data, index) => (
+                                {PurchasingHistory && PurchasingHistory?.sellers?.length > 0 ? (
+                                    PurchasingHistory?.sellers?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium" scope="row">
-                                                {data?.category}
+                                            <td className="px-6 py-4" scope="row">
+                                                {data.name}
+                                            </td>
+                                            <th className="px-6 py-4 font-medium">
+                                                {data?.bill_no}
                                             </th>
                                             <td className="px-6 py-4">
-                                                {data.colors}
+                                                {data.category}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.TYm} m
+                                                {new Date(data.date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {new Date(data.r_Date).toLocaleDateString()}
+                                                {data.quantity} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently} m
+                                                {data.rate}
                                             </td>
-                                            <td className="pl-10 py-4">
-                                                <span onClick={() => openModal(data?.id)}>
-                                                    <FaEye size={20} className='cursor-pointer' />
-                                                </span>
+                                            <td className="px-6 py-4">
+                                                {data.total}
                                             </td>
                                         </tr>
                                     ))
@@ -208,7 +211,7 @@ const BaseTable = () => {
                 <nav aria-label="Page navigation example">
                     <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
                         <li>
-                            {Base?.page > 1 ? (
+                            {PurchasingHistory?.page > 1 ? (
                                 <Link
                                     onClick={ToDown}
                                     to={`/dashboard/purchasebills?page=${page - 1}`}
@@ -257,7 +260,7 @@ const BaseTable = () => {
                         </li>
                         {renderPaginationLinks()}
                         <li>
-                            {Base?.totalPages !== page ? (
+                            {PurchasingHistory?.totalPages !== page ? (
                                 <Link
                                     onClick={ToDown}
                                     to={`/dashboard/purchasebills?page=${page + 1}`}

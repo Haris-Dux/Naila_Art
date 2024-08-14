@@ -5,6 +5,43 @@ import toast from "react-hot-toast";
 //API URL
 const addSellerDetailsFromBase = "/api/sellerRouter/addInStockAndGeneraeSellerData_NEW";
 const purchasingHistory = "/api/sellerRouter/getAllPurchasingHistory";
+const getAllSellerForPurchasingURL = "/api/sellerRouter/getAllSellersForPurchasing";
+const getSellerByIdURL = "/api/sellerRouter/getSelleForPurchasingById";
+
+
+
+// GET ALL SELLER FOR PURCHSING THUNK
+export const getAllSellerForPurchasingAsync = createAsyncThunk("get/allSellers", async (data) => {
+    const searchQuery =
+        data?.search !== undefined && data?.search !== null
+            ? `&search=${data?.search}`
+            : "";
+
+    const category =
+        data?.category !== undefined && data?.category !== null
+            ? `&category=${data?.category}`
+            : "";
+    try {
+        const response = await axios.post(`${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}`);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
+
+// GET SELLER BY ID THUNK
+export const GetSellerByIdAsync = createAsyncThunk("getSeller/id", async (id) => {
+    try {
+        const response = await axios.post(getSellerByIdURL, id);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
 
 // ADD SELLER DETAILS FROM BASE THUNK
 export const AddSellerDetailsFromAsync = createAsyncThunk("addSeller/details", async (data) => {
@@ -44,6 +81,8 @@ export const getAllPurchasingHistoryAsync = createAsyncThunk("getAll/PurchasingH
 const initialState = {
     SellerData: [],
     PurchasingHistory: [],
+    AllSeller: [],
+    SellerById: [],
     loading: false,
 };
 
@@ -53,6 +92,24 @@ const SellerSlice = createSlice({
     extraReducers: (builder) => {
         builder
 
+            // GET ALL SELLER FOR PURCHSING
+            .addCase(getAllSellerForPurchasingAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getAllSellerForPurchasingAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.AllSeller = action.payload
+            })
+
+            // GET SELLER BY ID
+            .addCase(GetSellerByIdAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(GetSellerByIdAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.SellerById = action.payload
+            })
+
             // ADD SELLER DETAILS FROM BASE
             .addCase(AddSellerDetailsFromAsync.pending, (state) => {
                 state.loading = true;
@@ -61,7 +118,6 @@ const SellerSlice = createSlice({
                 state.loading = false;
                 state.SellerData = action.payload
             })
-
 
             // GET ALL PURCHSING HISTORY
             .addCase(getAllPurchasingHistoryAsync.pending, (state) => {

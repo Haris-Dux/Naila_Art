@@ -3,38 +3,26 @@ import { Link, useSearchParams } from "react-router-dom";
 import { GetAllLace } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEye } from "react-icons/fa";
+import { getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 
 const LaceTable = () => {
     const dispatch = useDispatch();
 
-    const { loading, Lace } = useSelector((state) => state.InStock);
+    const { loading, PurchasingHistory } = useSelector((state) => state.Seller);
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [laceId, setlaceId] = useState();
+    
     const [search, setSearch] = useState();
-
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
-        dispatch(GetAllLace({ search, page }))
-    }, [search, page, dispatch]);
+        dispatch(getAllPurchasingHistoryAsync({ category: 'Lace', search, page }))
 
-    const openModal = (id) => {
-        setIsOpen(true);
-        setlaceId(id);
-        // document.body.style.overflow = 'hidden';
-    };
+    }, [page, dispatch]);
 
-    const closeModal = () => {
-        setIsOpen(false);
-        // document.body.style.overflow = 'auto';
-    };
-
-    const filteredData = Lace?.data?.filter((data) => data.id === laceId);
 
     const renderPaginationLinks = () => {
-        const totalPages = Lace?.totalPages;
+        const totalPages = PurchasingHistory?.totalPages;
         const paginationLinks = [];
         for (let i = 1; i <= totalPages; i++) {
             paginationLinks.push(
@@ -43,7 +31,7 @@ const LaceTable = () => {
                         to={`/dashboard/purchasebills?page=${i}`}
                         className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
                             }`}
-                        onClick={() => dispatch(GetAllLace({ page: i }))}
+                        onClick={() => dispatch(getAllPurchasingHistoryAsync({ category: 'Lace', search, page: i }))}
                     >
                         {i}
                     </Link>
@@ -79,13 +67,13 @@ const LaceTable = () => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Bill No
+                                        Name
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Name
+                                        Bill No
                                     </th>
                                     <th
                                         className="px-6 py-3"
@@ -97,56 +85,52 @@ const LaceTable = () => {
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Total Quantity
+                                        Date
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        R. Date
+                                        Quantity
                                     </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
                                     >
-                                        Recently
+                                        Rate
                                     </th>
                                     <th
-                                        className="px-6 py-4 text-md"
+                                        className="px-6 py-3"
                                         scope="col"
                                     >
-                                        History
+                                        Total
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {Lace && Lace?.data?.length > 0 ? (
-                                    Lace?.data?.map((data, index) => (
-                                        <tr key={index} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                                                scope="row"
-                                            >
-                                                {data.bill_no}
-                                            </th>
-                                            <td className="px-6 py-4">
+                                {PurchasingHistory && PurchasingHistory?.sellers?.length > 0 ? (
+                                    PurchasingHistory?.sellers?.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <td className="px-6 py-4" scope="row">
                                                 {data.name}
                                             </td>
+                                            <th className="px-6 py-4 font-medium">
+                                                {data?.bill_no}
+                                            </th>
                                             <td className="px-6 py-4">
                                                 {data.category}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.totalQuantity} m
+                                                {new Date(data.date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {new Date(data?.r_Date).toLocaleDateString()}
+                                                {data.quantity} m
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.recently} m
+                                                {data.rate}
                                             </td>
-                                            <td className="pl-10 py-4">
-                                                <span onClick={() => openModal(data?.id)}>
-                                                    <FaEye size={20} className='cursor-pointer' />
-                                                </span>
+                                            <td className="px-6 py-4">
+                                                {data.total}
                                             </td>
                                         </tr>
                                     ))
@@ -166,7 +150,7 @@ const LaceTable = () => {
                 <nav aria-label="Page navigation example">
                     <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
                         <li>
-                            {Lace?.page > 1 ? (
+                            {PurchasingHistory?.page > 1 ? (
                                 <Link
                                     onClick={ToDown}
                                     to={`/dashboard/purchasebills?page=${page - 1}`}
@@ -215,7 +199,7 @@ const LaceTable = () => {
                         </li>
                         {renderPaginationLinks()}
                         <li>
-                            {Lace?.totalPages !== page ? (
+                            {PurchasingHistory?.totalPages !== page ? (
                                 <Link
                                     onClick={ToDown}
                                     to={`/dashboard/purchasebills?page=${page + 1}`}
@@ -265,114 +249,6 @@ const LaceTable = () => {
                     </ul>
                 </nav>
             </section>
-
-            {isOpen && (
-                <div
-                    aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
-                >
-                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
-                        {/* ------------- HEADER ------------- */}
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Lace History
-                            </h3>
-                            <button
-                                onClick={closeModal}
-                                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                                type="button"
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    viewBox="0 0 14 14"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                    />
-                                </svg>
-                                <span className="sr-only">Close modal</span>
-                            </button>
-                        </div>
-
-                        {/* ------------- BODY ------------- */}
-                        <div className="p-4 md:p-5">
-                            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                                    <tr>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Bill No
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Date
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Name
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Category
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Quantity
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredData && filteredData.length > 0 ? (
-                                        filteredData.map((item, index) => (
-                                            item?.all_Records?.map((data, subIndex) => (
-                                                <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                                        {data.bill_no}
-                                                    </th>
-                                                    <td className="px-6 py-4">
-                                                        {new Date(data?.date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {data.name}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {data.category}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {data.quantity} m
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ))
-                                    ) : (
-                                        <tr className="w-full flex justify-center items-center">
-                                            <td className='text-xl mt-3'>No Data Available</td>
-                                        </tr>
-                                    )}
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div >
-            )}
         </>
     )
 }

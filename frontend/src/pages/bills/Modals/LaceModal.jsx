@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createLaceAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllLace } from "../../../features/InStockSlice";
-import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
+import { AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
 
 
@@ -50,7 +50,7 @@ const LaceModal = ({ isOpen, closeModal }) => {
 
     dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllLace({ page }))
+        dispatch(getAllPurchasingHistoryAsync({ category: 'Lace', page }))
         setFormData({
           bill_no: "",
           date: "",
