@@ -129,7 +129,7 @@ const Buyers = () => {
 
   const closeModal = () => {
     setIsOpen(false);
-    setSearchUser(!searchUser)
+    setSearchUser(false)
     setValidateOldBuyer("");
     document.body.style.overflow = 'auto';
   };
@@ -187,7 +187,6 @@ const Buyers = () => {
       return () => clearTimeout(timer);
     }
   }
-
 
   const handleStatusClick = (status) => {
     setPaymentStatus(status);
