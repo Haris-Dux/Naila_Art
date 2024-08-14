@@ -3,10 +3,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
-const addSellerDetailsFromBase = "/api/sellerRouter/addInStockAndGeneraeSellerData_NEW";
+const addNewSellerDetails = "/api/sellerRouter/addInStockAndGeneraeSellerData_NEW";
+const addOldSellerDetails = "/api/sellerRouter/addInStockAndGeneraeSellerData_OLD";
 const purchasingHistory = "/api/sellerRouter/getAllPurchasingHistory";
 const getAllSellerForPurchasingURL = "/api/sellerRouter/getAllSellersForPurchasing";
 const getSellerByIdURL = "/api/sellerRouter/getSelleForPurchasingById";
+const validateOldSeller = "/api/sellerRouter/validateAndGetOldSellerData";
 
 
 
@@ -46,7 +48,19 @@ export const GetSellerByIdAsync = createAsyncThunk("getSeller/id", async (id) =>
 // ADD SELLER DETAILS FROM BASE THUNK
 export const AddSellerDetailsFromAsync = createAsyncThunk("addSeller/details", async (data) => {
     try {
-        const response = await axios.post(addSellerDetailsFromBase, data);
+        const response = await axios.post(addNewSellerDetails, data);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
+
+// ADD OLD SELLER DETAILS THUNK
+export const AddOldSellerDetailsFromAsync = createAsyncThunk("addOldSeller/details", async (data) => {
+    try {
+        const response = await axios.post(addOldSellerDetails, data);
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -76,14 +90,30 @@ export const getAllPurchasingHistoryAsync = createAsyncThunk("getAll/PurchasingH
 }
 );
 
+// VALIDATE OLD SELLER THUNK
+export const validateOldSellerAsync = createAsyncThunk("Seller/validate", async (data) => {
+    try {
+        const response = await axios.post(validateOldSeller, data);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
+
 
 // INITIAL STATE
 const initialState = {
     SellerData: [],
+    OldSellerData: [],
     PurchasingHistory: [],
     AllSeller: [],
     SellerById: [],
+    validateSeller: [],
     loading: false,
+    addLoading: false,
+    searchLoading: false
 };
 
 const SellerSlice = createSlice({
@@ -110,13 +140,22 @@ const SellerSlice = createSlice({
                 state.SellerById = action.payload
             })
 
-            // ADD SELLER DETAILS FROM BASE
+            // ADD SELLER DETAILS
             .addCase(AddSellerDetailsFromAsync.pending, (state) => {
-                state.loading = true;
+                state.addLoading = true;
             })
             .addCase(AddSellerDetailsFromAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.addLoading = false;
                 state.SellerData = action.payload
+            })
+
+            // ADD OLD SELLER DETAILS
+            .addCase(AddOldSellerDetailsFromAsync.pending, (state) => {
+                state.addLoading = true;
+            })
+            .addCase(AddOldSellerDetailsFromAsync.fulfilled, (state, action) => {
+                state.addLoading     = false;
+                state.OldSellerData = action.payload
             })
 
             // GET ALL PURCHSING HISTORY
@@ -126,6 +165,15 @@ const SellerSlice = createSlice({
             .addCase(getAllPurchasingHistoryAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.PurchasingHistory = action.payload
+            })
+
+            // VALIDATE OLD SELLER
+            .addCase(validateOldSellerAsync.pending, (state) => {
+                state.searchLoading = true;
+            })
+            .addCase(validateOldSellerAsync.fulfilled, (state, action) => {
+                state.searchLoading = false;
+                state.validateSeller = action.payload
             })
     },
 });
