@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
 import { GetAllBase } from '../../../features/InStockSlice';
-import { AddSellerDetailsFromAsync } from '../../../features/SellerSlice';
+import { AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 import { useSearchParams } from 'react-router-dom';
 
 const BaseModals = ({ isOpen, closeModal }) => {
@@ -48,7 +48,7 @@ const BaseModals = ({ isOpen, closeModal }) => {
 
         dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
             if (res.payload.success === true) {
-                dispatch(GetAllBase({ page }));
+                dispatch(getAllPurchasingHistoryAsync({ category: 'Base', page }))
                 setFormData({
                     bill_no: "",
                     date: "",

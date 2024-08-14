@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { createBagAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllBags } from "../../../features/InStockSlice";
-import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
+import { AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
 
 const BagModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
 
   const [searchParams] = useSearchParams();
-    const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
 
   // State variables to hold form data
@@ -56,8 +56,9 @@ const BagModal = ({ isOpen, closeModal }) => {
     };
 
     dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
+      console.log('res.payload.success', res.payload.success);
       if (res.payload.success === true) {
-        dispatch(GetAllBags({ page }));
+        dispatch(getAllPurchasingHistoryAsync({ category: 'Bag/box', page }))
         setFormData({
           bill_no: "",
           date: "",
@@ -69,8 +70,8 @@ const BagModal = ({ isOpen, closeModal }) => {
           total: "",
           seller_stock_category: "",
         });
-        closeModal();
       }
+      closeModal();
     });
   };
 
@@ -160,7 +161,7 @@ const BagModal = ({ isOpen, closeModal }) => {
                     <input
                       name="category"
                       type="text"
-                      placeholder="Category"
+                      placeholder="Bags / Boxes"
                       value={formData.category}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"

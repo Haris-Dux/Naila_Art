@@ -1,4 +1,7 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { GetSellerByIdAsync } from '../../features/SellerSlice';
+import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const data = [
     {
@@ -20,7 +23,18 @@ const data = [
 ]
 
 const SellersDetails = () => {
-    const { loading } = useSelector((state) => state.InStock);
+    const { id } = useParams();
+    const dispatch = useDispatch();
+
+    const { loading, SellerById } = useSelector((state) => state.Seller);
+    console.log('SellerById', SellerById);
+
+    useEffect(() => {
+        if (id) {
+            dispatch(GetSellerByIdAsync({ id }));
+        }
+    }, [dispatch, id]);
+
 
     return (
         <>
@@ -29,27 +43,23 @@ const SellersDetails = () => {
                 <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Title</h3>
-                        <h3>M Amir</h3>
+                        <h3>{SellerById?.name}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Phone Number</h3>
-                        <h3>0332 4700802</h3>
-                    </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Location</h3>
-                        <h3>Lahore</h3>
+                        <h3>{SellerById?.phone}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium text-red-500'>Total Debit</h3>
-                        <h3 className='font-medium text-red-500'>20 Lac</h3>
+                        <h3 className='font-medium text-red-500'>{SellerById?.virtual_account?.total_debit === null ? "0" : SellerById?.virtual_account?.total_debit}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Total Credit</h3>
-                        <h3>90 Lac</h3>
+                        <h3>{SellerById?.virtual_account?.total_credit === null ? "0" : SellerById?.virtual_account?.total_credit}</h3>
                     </div>
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Total Balance</h3>
-                        <h3>90 Lac</h3>
+                        <h3>{SellerById?.virtual_account?.total_balance === null ? "0" : SellerById?.virtual_account?.total_balance}</h3>
                     </div>
                 </div>
 
@@ -99,25 +109,25 @@ const SellersDetails = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data && data.length > 0 ? (
-                                    data?.map((data, index) => (
+                                {SellerById && SellerById?.credit_debit_history?.length > 0 ? (
+                                    SellerById?.credit_debit_history?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
                                             >
-                                                <p>{data.date}</p>
+                                                <p>{new Date(data.date).toLocaleDateString()}</p>
                                             </th>
                                             <td className="px-6 py-4 font-medium">
                                                 {data.particular}
                                             </td>
                                             <td className="px-6 py-4 font-medium">
-                                                {data.credit === 0 ? "-" : data.credit}
+                                                {data.credit === 0 || data.credit === null ? "-" : data.credit}
                                             </td>
                                             <td className="px-6 py-4 font-medium">
-                                                {data.debit === 0 ? "-" : data.debit}
+                                                {data.debit === 0 || data.debit === null ? "-" : data.debit}
                                             </td>
                                             <td className="px-6 py-4 font-medium">
-                                                {data.balance === 0 ? "-" : data.balance}
+                                                {data.balance === 0 || data.balance === null ? "-" : data.balance}
                                             </td>
                                         </tr>
                                     ))

@@ -3,7 +3,7 @@ import { createAsseceriesAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllaccessories } from "../../../features/InStockSlice";
 import { useSearchParams } from "react-router-dom";
-import { AddSellerDetailsFromAsync } from "../../../features/SellerSlice";
+import { AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 
 const AccessoriesModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
@@ -50,7 +50,7 @@ const AccessoriesModal = ({ isOpen, closeModal }) => {
 
     dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllaccessories({ page }));
+        dispatch(getAllPurchasingHistoryAsync({ category: 'Accessories', page }))
         setFormData({
           bill_no: "",
           date: "",
