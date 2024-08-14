@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
-import { BranchModel } from "../models/Branch.Model.js";
+import { DailySaleModel } from "../models/DailySaleModel.js";
 import { BuyersModel } from "../models/BuyersModel.js";
 import { SellersModel } from "../models/sellers/SellersModel.js";
-import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import { CashInOutModel } from "../models/CashInOutModel.js";
+import moment from "moment-timezone";
+import corn from "node-cron";
+import { BranchModel } from "../models/Branch.Model.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -43,25 +46,25 @@ export const cashIn = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId , payment_Method, date } = req.body;
-      if (!cash || !partyId || !payment_Method || !date || !branchId )
+      const { cash, partyId, branchId, payment_Method, date } = req.body;
+      if (!cash || !partyId || !payment_Method || !date || !branchId)
         throw new Error("All Fields Required");
-      const userDataToUpdate = await Promise.all([
-        BuyersModel.findById(partyId),
-        SellersModel.findById(partyId),
-      ]);
+      const userDataToUpdate = await BuyersModel.findById(partyId);
+
+      if (userDataToUpdate.virtual_account.total_balance === 0)
+        throw new Error("Balance Cleared");
+
       if (!userDataToUpdate)
         throw new Error("No Data Found With This Party Id");
 
       //DAILY SLAE UPDATE
-
       const dailySaleForToday = await DailySaleModel.findOne({
         branchId,
         date: { $eq: date },
       }).session(session);
       if (!dailySaleForToday) {
         throw new Error("Daily sale record not found for This Date");
-      };
+      }
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
@@ -72,13 +75,15 @@ export const cashIn = async (req, res, next) => {
       };
 
       dailySaleForToday.saleData = updatedSaleData;
-      // await dailySaleForToday.save({ session });
+      await dailySaleForToday.save({ session });
 
       //DATA FOR VIRTUAL ACCOUNT
-      const new_total_debit = userDataToUpdate.virtual_account.total_debit - cash;
-      const new_total_credit = userDataToUpdate.virtual_account.total_credit + cash;
+      const new_total_debit =
+        userDataToUpdate.virtual_account.total_debit - cash;
+      const new_total_credit =
+        userDataToUpdate.virtual_account.total_credit + cash;
       const new_total_balance =
-      userDataToUpdate.virtual_account.total_balance - cash;
+        userDataToUpdate.virtual_account.total_balance - cash;
       let new_status = "";
 
       switch (true) {
@@ -91,7 +96,9 @@ export const cashIn = async (req, res, next) => {
         case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
-      }
+      };
+
+      if(new_total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
 
       const virtualAccountData = {
         total_debit: new_total_debit,
@@ -102,21 +109,29 @@ export const cashIn = async (req, res, next) => {
 
       //DATA FOR CREDIT DEBIT HISTORY
 
-      const credit_debit_history_details = [
-        {
-          date,
-          particular: `Bill No ${payment_Method}`,
-          credit: cash,
-          balance: userDataToUpdate.virtual_account.total_balance - cash,
-        },
-      ];
+      const credit_debit_history_details = {
+        date,
+        particular: payment_Method,
+        credit: cash,
+        balance: userDataToUpdate.virtual_account.total_balance - cash,
+      };
 
       //UPDATING USER DATA IN DB
 
       userDataToUpdate.virtual_account = virtualAccountData;
       userDataToUpdate.credit_debit_history.push(credit_debit_history_details);
 
-      await userDataToUpdate.save({session})
+      await userDataToUpdate.save({ session });
+
+      //UPDATING CASH IN OUT
+      const todayCashInOut = await CashInOutModel.findOne({
+        branchId,
+        date: { $eq: date },
+      }).session(session);
+      if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
+      todayCashInOut.todayCashIn += cash;
+      await todayCashInOut.save({ session });
+
       return res
         .status(200)
         .json({ sucess: true, message: "Cash In Successfull" });
@@ -125,3 +140,134 @@ export const cashIn = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const cashOut = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { cash, partyId, branchId, payment_Method, date } = req.body;
+      if (!cash || !partyId || !payment_Method || !date || !branchId)
+        throw new Error("All Fields Required");
+      const userDataToUpdate = await SellersModel.findById(partyId);
+
+      if (userDataToUpdate.virtual_account.total_balance === 0)
+        throw new Error("Balance Cleared");
+
+      if (!userDataToUpdate)
+        throw new Error("No Data Found With This Party Id");
+
+      //DAILY SLAE UPDATE
+      const dailySaleForToday = await DailySaleModel.findOne({
+        branchId,
+        date: { $eq: date },
+      }).session(session);
+      if (!dailySaleForToday) {
+        throw new Error("Daily sale record not found for This Date");
+      }
+
+      const updatedSaleData = {
+        ...dailySaleForToday.saleData,
+        totalCash: (dailySaleForToday.saleData.totalCash -= cash),
+      };
+
+      if(updatedSaleData.totalCash < 0) throw new Error("Not Enough Total Cash")
+
+      dailySaleForToday.saleData = updatedSaleData;
+      await dailySaleForToday.save({ session });
+
+      //DATA FOR VIRTUAL ACCOUNT
+      const new_total_debit =
+        userDataToUpdate.virtual_account.total_debit + cash;
+      const new_total_credit =
+        userDataToUpdate.virtual_account.total_credit - cash;
+      const new_total_balance =
+        userDataToUpdate.virtual_account.total_balance - cash;
+      let new_status ;
+
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit && new_total_debit > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+      };
+
+      if(new_total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
+
+
+      const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+      //DATA FOR CREDIT DEBIT HISTORY
+
+      const credit_debit_history_details = {
+        date,
+        particular: payment_Method,
+        debit: cash,
+        balance: userDataToUpdate.virtual_account.total_balance - cash,
+      };
+
+      //UPDATING USER DATA IN DB
+
+      userDataToUpdate.virtual_account = virtualAccountData;
+      userDataToUpdate.credit_debit_history.push(credit_debit_history_details);
+
+      await userDataToUpdate.save({ session });
+
+      //UPDATING CASH IN OUT
+      const todayCashInOut = await CashInOutModel.findOne({
+        branchId,
+        date: { $eq: date },
+      }).session(session);
+      if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
+      todayCashInOut.todayCashOut += cash;
+      await todayCashInOut.save({ session });
+
+      return res
+        .status(200)
+        .json({ sucess: true, message: "Cash Out Successfull" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+corn.schedule(
+  "16 07 * * *",
+  async () => {
+    try {
+      const branchData = await BranchModel.find({});
+      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+      const dailyCashInOutPromises = branchData?.map(async (branch) => {
+        const verifyDuplicateData = await CashInOutModel.findOne({
+          branchId: branch._id,
+          date: today,
+        });
+        if (verifyDuplicateData)
+          throw new Error(
+            `Cash In Out Data Already Exists for ${verifyDuplicateData.date}`
+          );
+        return await CashInOutModel.create({
+          branchId: branch._id,
+          date: today,
+          todayCashIn: 0,
+          todayCashOut: 0,
+        });
+      });
+      await Promise.all(dailyCashInOutPromises);
+    } catch (error) {
+      throw new Error({ error: error.message });
+    }
+  },
+  {
+    timezone: "Asia/Karachi",
+  }
+);
