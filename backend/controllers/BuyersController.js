@@ -208,7 +208,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       );
 
       //GENERATING PDF
-      await generatePDF( branchId,
+    const [ pdfBuffer, headers] =  await generatePDF( branchId,
         serialNumber,
         name,
         city,
