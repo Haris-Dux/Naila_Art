@@ -207,23 +207,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         { session }
       );
 
-      //GENERATING PDF
-    const [ pdfBuffer, headers] =  await generatePDF( branchId,
-        serialNumber,
-        name,
-        city,
-        cargo,
-        phone,
-        date,
-        bill_by,
-        payment_Method,
-        packaging,
-        discount,
-        suits_data,
-        total,
-        paid,
-        remaining,)
-
       return res
         .status(200)
         .json({ succes: true, message: "Bill Generated Successfully" });
