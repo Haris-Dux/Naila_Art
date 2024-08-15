@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from "react-router-dom";
 import { IoAdd } from "react-icons/io5";
-import CategoryTable from './CategoryTable';
 import BaseModals from './Modals/BaseModals';
 import LaceModal from './Modals/LaceModal';
 import BagModal from './Modals/BagModal';
 import AccessoriesModal from './Modals/AccessoriesModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { GetAllBags, GetAllBase, GetAllLace, GetAllaccessories } from '../../features/InStockSlice';
 import BaseTable from './Tables/BaseTable';
 import LaceTable from './Tables/LaceTable';
 import BagBoxTable from './Tables/BagBoxTable';

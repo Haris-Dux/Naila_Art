@@ -27,10 +27,6 @@ export const CreateEmployee = createAsyncThunk(
   }
 );
 
-
-
-
-
 export const GetEmployeeActive = createAsyncThunk(
   "Employee/GetActiveEmployee",
   async (data) => {
