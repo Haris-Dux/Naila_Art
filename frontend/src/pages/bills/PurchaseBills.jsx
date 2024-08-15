@@ -24,7 +24,6 @@ const PurchaseBills = () => {
     const [searchModal, setSearchModal] = useState();
 
     const { loading, validateSeller } = useSelector((state) => state.Seller);
-    console.log('validateSeller', validateSeller);
 
     const [search, setSearch] = useState();
     const [searchParams] = useSearchParams();

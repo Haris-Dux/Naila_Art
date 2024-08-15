@@ -13,6 +13,7 @@ import DailySaleSlice from "../features/DailySaleSlice";
 import BuyerSlice from "../features/BuyerSlice";
 import GenerateBillSlice from "../features/GenerateBillSlice";
 import SellerSlice from "../features/SellerSlice";
+import CashInOutSlice from "../features/CashInOutSlice";
 
 export const store = configureStore({
   reducer: {
@@ -30,5 +31,6 @@ export const store = configureStore({
     Buyer: BuyerSlice,
     BuyerBills: GenerateBillSlice,
     Seller: SellerSlice,
+    CashInOut: CashInOutSlice,
   },
 });
