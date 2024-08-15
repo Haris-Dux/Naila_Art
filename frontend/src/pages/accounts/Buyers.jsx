@@ -84,6 +84,9 @@ const Buyers = () => {
       dispatch(getBuyerForBranchAsync(payload));
 
       setSelectedBranchId(user?.user?.branchId || Branches[0]?.id)
+      console.log('user', user);
+      console.log("user branch", user?.user?.branchId);
+      console.log("branch", Branches[0]?.id);
     }
   }, [user, dispatch, Branches]);
 

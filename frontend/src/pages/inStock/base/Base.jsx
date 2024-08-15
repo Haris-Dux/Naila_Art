@@ -4,16 +4,16 @@ import { Link, useSearchParams } from "react-router-dom";
 import { GetAllBase, GetAllCategoriesForBase } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEye } from "react-icons/fa";
+import AddBaseModal from './AddBaseModal';
 
 const Base = () => {
     const dispatch = useDispatch();
     const { loading, Base } = useSelector((state) => state.InStock);
-    console.log('Base', Base);
 
     const { BaseCategories } = useSelector((state) => state.InStock);
-    // console.log('BaseCategories', BaseCategories);
 
     const [isOpen, setIsOpen] = useState(false);
+    const [isBaseModalOpen, setIsBaseModalOpen] = useState(false);
     const [baseId, setBaseId] = useState();
     const [userSelectedCategory, setuserSelectedCategory] = useState("");
     // const [filteredData, setFilteredData] = useState(Base);
@@ -29,6 +29,14 @@ const Base = () => {
 
     }, [page, dispatch]);
 
+
+    const addBaseModal = () => {
+        setIsBaseModalOpen(true);
+    };
+
+    const closeBaseModal = () => {
+        setIsBaseModalOpen(false);
+    };
 
     const openModal = (id) => {
         setIsOpen(true);
@@ -79,7 +87,6 @@ const Base = () => {
         }
     };
 
-
     const handleCategoryClick = (category) => {
         const selectedCategory = category === "all" ? "" : category;
         setuserSelectedCategory(selectedCategory);
@@ -96,7 +103,6 @@ const Base = () => {
         }
     }
 
-    // const filteredBaseData = Base?.data?.filter((data) => data.id === baseId);
     const filteredBaseData = useMemo(() => Base?.data?.filter(data => data.id === baseId), [Base, baseId]);
 
     return (
@@ -107,7 +113,12 @@ const Base = () => {
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Base</h1>
 
                     {/* <!-- search bar --> */}
-                    <div className="search_bar mr-2">
+                    <div className="search_bar mr-2 flex items-center gap-x-3">
+                        <button onClick={addBaseModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                            <IoAdd size={22} className='text-white' />
+                        </button>
+
+
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                 <svg
@@ -356,6 +367,8 @@ const Base = () => {
                     </ul>
                 </nav>
             </section>
+
+            {isBaseModalOpen === true && <AddBaseModal addBaseModal={addBaseModal} closeBaseModal={closeBaseModal} />}
 
 
             {isOpen && (
