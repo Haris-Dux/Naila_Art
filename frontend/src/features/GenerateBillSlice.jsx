@@ -101,7 +101,7 @@ const initialState = {
     loading: false,
     pdfLoading:false,
     generateBillloading:false,    
-    generateBillloadingOlD:false,    
+   
 
 };
 
