@@ -30,13 +30,13 @@ export const validatePartyNameForOtherBranches = async (req, res, next) => {
     const { name } = req.body;
     if (!name) throw new Error("Buyer Name Required");
     const projection = "name phone _id";
-    const oldBuyerData = await BuyersModel.find(
+    const Data = await BuyersModel.find(
       { name: { $regex: name, $options: "i" } },
       projection
     );
-    if (!oldBuyerData) throw new Error("No Data Found With This Buyer Name");
+    if (!Data) throw new Error("No Data Found With This Buyer Name");
     setMongoose();
-    return res.status(200).json({ success: true, oldBuyerData });
+    return res.status(200).json({ success: true, Data });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
