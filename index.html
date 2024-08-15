@@ -11,6 +11,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        padding: 2rem;
       }
       html {
         -webkit-print-color-adjust: exact;
@@ -325,7 +326,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.serialNumber}
+              value=${data.serialNumber}
             />
           </div>
           <div class="details_input">
@@ -334,7 +335,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.name}
+              value=${data.name}
             />
           </div>
           <div class="details_input">
@@ -343,7 +344,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.city}
+              value=${data.city}
             />
           </div>
           <div class="details_input">
@@ -352,7 +353,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.cargo}
+                value=${data.cargo}
             />
           </div>
           <div class="details_input">
@@ -361,7 +362,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.phone}
+                value=${data.phone}
             />
           </div>
           <div class="details_input">
@@ -370,7 +371,7 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.date}
+                value=${data.date}
             />
           </div>
           <div class="details_input">
@@ -379,13 +380,12 @@
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.bill_by}
+                value=${data.bill_by}
             />
           </div>
         </div>
       </section>
-
-      <section class="table-container">
+ <section class="table-container">
         <table>
           <thead>
             <tr>
@@ -397,7 +397,7 @@
             </tr>
           </thead>
           <tbody>
-           {data.suits_data.map((suit)=>{
+           ${data.suits_data.map((suit)=>{
             <tr>
               <td>{suit.quantity}</td>
               <td>{suit.d_no}</td>
@@ -408,7 +408,7 @@
            })}
           </tbody>
         </table>
-      </section>
+      </section> 
 
       <section class="total">
         <!-- bill text -->
@@ -420,19 +420,19 @@
         <div class="bill_total">
           <div class="bill_row dark_class">
             <div class="bill_title">Total</div>
-            <div class="bill_value">{data.total + data.discount}</div>
+            <div class="bill_value">${data.total + data.discount}</div>
           </div>
           <div class="bill_row">
             <div class="bill_title">Discount</div>
-            <div class="bill_value">{data.discount}</div>
+            <div class="bill_value">${data.discount}</div>
           </div>
           <div class="bill_row dark_class">
             <div class="bill_title">Advance</div>
-            <div class="bill_value">{data.paid}</div>
+            <div class="bill_value">${data.paid}</div>
           </div>
           <div class="bill_row">
             <div class="bill_title">Balance</div>
-            <div class="bill_value">{data.remaining}</div>
+            <div class="bill_value">${data.remaining}</div>
           </div>
         </div>
       </section>

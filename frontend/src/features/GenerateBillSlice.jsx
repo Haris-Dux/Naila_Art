@@ -7,6 +7,7 @@ const generateBuyerBillUrl = "/api/buyers/generateBuyersBillandAddBuyer";
 const generateOldBuyerBillUrl = "/api/buyers/generateBillForOldbuyer";
 const getSuitFromDesignUrl = "/api/buyers/validateD_NoAndGetSuitData";
 const validateOldBuyerUrl = "/api/buyers/validateAndGetOldBuyerData";
+const generatePdf = "/api/buyers/generatePdfFunction"
 
 // GENERATE BUYER BILL THUNK
 export const generateBuyerBillAsync = createAsyncThunk("buyerBill/generate", async (billData) => {
@@ -58,6 +59,37 @@ export const validateOldBuyerAsync = createAsyncThunk("buyer/validate", async (n
 }
 );
 
+// DOWNLOAD PDF file
+const downloadPDF = (response) => {
+    if (response.headers && response.data) {
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+  
+      const contentDisposition = response.headers['content-disposition'];
+      const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'invoice.pdf';
+  
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error('Invalid response format');
+    }
+  };
+  
+export const generatePdfAsync = createAsyncThunk("buyers/pdf", async (modifiedBillData) => {
+    try {
+      const response = await axios.post(generatePdf, {modifiedBillData}, { responseType: 'arraybuffer' });
+      downloadPDF(response);
+      return response;
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Error downloading PDF');
+    }
+  });
+
 
 // INITIAL STATE
 const initialState = {
@@ -67,6 +99,10 @@ const initialState = {
     OldBuyerData: [],
     getBuyerLoading: false,
     loading: false,
+    pdfLoading:false,
+    generateBillloading:false,    
+    generateBillloadingOlD:false,    
+
 };
 
 const GenerateBillSlice = createSlice({
@@ -77,19 +113,19 @@ const GenerateBillSlice = createSlice({
 
             // GENERATE BUYER BILL
             .addCase(generateBuyerBillAsync.pending, (state) => {
-                state.loading = true;
+                state.generateBillloading = true;
             })
             .addCase(generateBuyerBillAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.generateBillloading = false;
                 state.BuyerBill = action.payload
             })
 
             // GENERATE BILL FOR OLDER BUYER
             .addCase(generateBillForOlderBuyerAsync.pending, (state) => {
-                state.loading = true;
+                state.generateBillloading = true;
             })
             .addCase(generateBillForOlderBuyerAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.generateBillloading = false;
                 state.OldBuyerBilData = action.payload
             })
 
@@ -110,6 +146,15 @@ const GenerateBillSlice = createSlice({
                 state.getBuyerLoading = false;
                 state.OldBuyerData = action.payload
             })
+
+                //DOWNLOAD PDF
+                .addCase(generatePdfAsync.pending, (state) => {
+                    state.pdfLoading = true;
+                })
+                .addCase(generatePdfAsync.fulfilled, (state, action) => {
+                    state.pdfLoading = false;
+                    
+                })
     },
 });
 
