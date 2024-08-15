@@ -11,15 +11,7 @@ const cashInOutRouter = express.Router();
 
 cashInOutRouter.post("/cashIn", verifyUser, cashIn);
 cashInOutRouter.post("/cashOut", verifyUser, cashOut);
-cashInOutRouter.post(
-  "/validatePartyNameForMainBranch",
-  superAdminAndAdminOnly,
-  validatePartyNameForMainBranch
-);
-cashInOutRouter.post(
-  "/validatePartyNameForOtherBranches",
-  superAdminAndAdminOnly,
-  validatePartyNameForOtherBranches
-);
+cashInOutRouter.post("/validatePartyNameForMainBranch", superAdminAndAdminOnly, validatePartyNameForMainBranch);
+cashInOutRouter.post("/validatePartyNameForOtherBranches", verifyUser, validatePartyNameForOtherBranches);
 
 export default cashInOutRouter;
