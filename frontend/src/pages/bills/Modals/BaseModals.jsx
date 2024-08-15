@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
-import { GetAllBase } from '../../../features/InStockSlice';
 import { AddOldSellerDetailsFromAsync, AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 import { useSearchParams } from 'react-router-dom';
 import moment from "moment-timezone";

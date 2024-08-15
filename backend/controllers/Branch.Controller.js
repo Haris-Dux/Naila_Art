@@ -6,13 +6,13 @@ export const createBranch = async (req, res) => {
     const { branchName } = req.body;
     if (!branchName) throw new Error("Invalid branch name");
     const existingBranch = await BranchModel.findOne({
-      branchName,
+      branchName:{$regex:new $RegExp(branchName)},
     });
     if (existingBranch) {
       throw new Error("This branch already exists");
     }
     await BranchModel.create({ branchName });
-    return res.status(201).json({ message: "Success" });
+    return res.status(201).json({success:true, message: "Success" });
   } catch (error) {
     return res.status(404).json({ error: error.message });
   }
@@ -34,7 +34,7 @@ export const updateBranch = async (req, res) => {
       { _id: branchId },
       { branchName: branchName }
     );
-    return res.status(201).json({ message: "updated successfully" });
+    return res.status(201).json({success:true, message: "updated successfully" });
   } catch (error) {
     return res.status(404).json({ error: error.message });
   }
@@ -45,7 +45,7 @@ export const deleteBranch = async (req, res) => {
     const { branchId } = req.body;
     if (!branchId) throw new Error("Invalid branch ID");
     await BranchModel.findByIdAndDelete(branchId);
-    return res.status(201).json({ message: "deleted successfully" });
+    return res.status(201).json({ success:true,message: "deleted successfully" });
   } catch (error) {
     return res.status(404).json({ error: error.message });
   }

@@ -96,9 +96,10 @@ export const cashIn = async (req, res, next) => {
         case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
-      };
+      }
 
-      if(new_total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
+      if (new_total_balance < 0)
+        throw new Error("Invalid Balance Amount For This Party");
 
       const virtualAccountData = {
         total_debit: new_total_debit,
@@ -170,7 +171,8 @@ export const cashOut = async (req, res, next) => {
         totalCash: (dailySaleForToday.saleData.totalCash -= cash),
       };
 
-      if(updatedSaleData.totalCash < 0) throw new Error("Not Enough Total Cash")
+      if (updatedSaleData.totalCash < 0)
+        throw new Error("Not Enough Total Cash");
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
@@ -182,7 +184,7 @@ export const cashOut = async (req, res, next) => {
         userDataToUpdate.virtual_account.total_credit - cash;
       const new_total_balance =
         userDataToUpdate.virtual_account.total_balance - cash;
-      let new_status ;
+      let new_status;
 
       switch (true) {
         case new_total_balance === 0:
@@ -194,10 +196,10 @@ export const cashOut = async (req, res, next) => {
         case new_total_debit === 0 && new_total_balance === new_total_credit:
           new_status = "Unpaid";
           break;
-      };
+      }
 
-      if(new_total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
-
+      if (new_total_balance < 0)
+        throw new Error("Invalid Balance Amount For This Party");
 
       const virtualAccountData = {
         total_debit: new_total_debit,
@@ -240,8 +242,30 @@ export const cashOut = async (req, res, next) => {
   }
 };
 
+export const getTodaysCashInOut = async (req, res, next) => {
+  try {
+    const { branchId } = req.body;
+    if (!branchId) throw new Error("Branch Id Not Found");
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    const projection = "saleData.totalCash";
+    const TodaysCashInOut = await CashInOutModel.findOne({
+      date: { $eq: today },
+      branchId,
+    });
+    const TodaysDailySale = await DailySaleModel.findOne(
+      { date: { $eq: today }, branchId },
+      projection
+    );
+    console.log(TodaysDailySale);
+    const data = { ...TodaysCashInOut._doc, ...TodaysDailySale._doc };
+    return res.status(500).json({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 corn.schedule(
-  "16 07 * * *",
+  "01 00 * * *",
   async () => {
     try {
       const branchData = await BranchModel.find({});
