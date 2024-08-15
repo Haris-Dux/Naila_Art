@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FaEye } from "react-icons/fa";
 import { GetAllBranches } from '../../features/InStockSlice';
-import { validatePartyNameForMainBranchAsync, validatePartyNameForOtherBranchAsync } from '../../features/CashInOutSlice';
+import { cashInAsync, cashOutAsync, getTodayCashInOutAsync, validatePartyNameForMainBranchAsync, validatePartyNameForOtherBranchAsync } from '../../features/CashInOutSlice';
 import moment from "moment-timezone";
+import toast from 'react-hot-toast';
 
 
 const CashInOut = () => {
@@ -14,12 +15,13 @@ const CashInOut = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [validatePartyName, setvalidatePartyName] = useState();
     const [selectedParty, setSelectedParty] = useState();
+    const [selectedBranchId, setSelectedBranchId] = useState();
 
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
     const { user } = useSelector((state) => state.auth);
     const { Branches } = useSelector((state) => state.InStock);
-    const { loading, mainBranchResponse, otherBranchResponse } = useSelector((state) => state.CashInOut);
+    const { loading, cashInLoading, cashOutLoading, mainBranchResponse, otherBranchResponse, TodayCashInOutData } = useSelector((state) => state.CashInOut);
 
     const [formData, setFormData] = useState({
         partyId: '',
@@ -28,7 +30,6 @@ const CashInOut = () => {
         date: today,
         payment_Method: '',
     });
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -79,8 +80,6 @@ const CashInOut = () => {
         closeModal();
     }
 
-    console.log('formData', formData);
-
     const openModal = () => {
         setIsOpen(true);
         document.body.style.overflow = 'hidden';
@@ -92,6 +91,71 @@ const CashInOut = () => {
         document.body.style.overflow = 'auto';
     };
 
+    const handleCashIn = () => {
+        const isFormValid = Object.values(formData).every(value => value !== '' && value !== null);
+
+        if (!isFormValid) {
+            toast.error('All fields must be filled');
+            return;
+        }
+
+        const modifiedFormData = {
+            ...formData,
+            cash: Number(formData.cash),
+        };
+
+        dispatch(cashInAsync(modifiedFormData))
+            .then((res) => {
+                if (res.payload.sucess === true) {
+                    resetForm();
+                }
+            });
+    };
+
+    const handleCashOut = () => {
+        const isFormValid = Object.values(formData).every(value => value !== '' && value !== null);
+
+        if (!isFormValid) {
+            toast.error('All fields must be filled');
+            return;
+        }
+
+        const modifiedFormData = {
+            ...formData,
+            cash: Number(formData.cash),
+        };
+
+        dispatch(cashOutAsync(modifiedFormData))
+            .then((res) => {
+                if (res.payload.sucess === true) {
+                    resetForm();
+                }
+            });
+    };
+
+    const resetForm = () => {
+        setFormData({
+            partyId: '',
+            branchId: '',
+            cash: '',
+            date: today,
+            payment_Method: '',
+        })
+    }
+
+    const handleBranchClick = (branchId) => {
+        const selectedBranch = branchId === "All" ? "" : branchId;
+        // setSelectedBranchId(selectedBranch);
+        // setPaymentStatus();
+
+
+        // const payload = {
+        //     id: user?.user?.id,
+        //     branchId: branchId,
+        //     page: 1,
+        // };
+        // dispatch(getBuyerForBranchAsync(payload));
+    }
 
     useEffect(() => {
         if (user?.user?.id) {
@@ -99,55 +163,110 @@ const CashInOut = () => {
         }
     }, [dispatch, user]);
 
+
+    useEffect(() => {
+        if (Branches?.length > 0) {
+
+            const payload = {
+                branchId: user?.user?.branchId || Branches[0]?.id
+            }
+
+            dispatch(getTodayCashInOutAsync(payload));
+        }
+    }, [dispatch, Branches]);
+
+
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
+                {/* UPPER TABS */}
+                <div className="mb-5 upper_tabs flex justify-start items-center">
+                    <div className="tabs_button">
+                        {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
+                        {user?.user?.role === "superadmin" ? (
+                            <>
+                                {Branches?.map((branch) => (
+                                    <button
+                                        key={branch?.id}
+                                        className={`border border-gray-500 px-5 py-2 mr-4 text-sm rounded-md ${selectedBranchId === branch?.id
+                                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                            : ""
+                                            }`}
+                                        onClick={() => handleBranchClick(branch?.id)}
+                                    >
+                                        {branch?.branchName}
+                                    </button>
+                                ))}
+                            </>
+                        ) : (
+                            <>
+                                {/* THIS SHOWS TO ADMIN & USER */}
+                                {Branches?.map((branch) => (
+                                    <button
+                                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${user?.user?.branchId === branch?.id
+                                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                            : ""
+                                            }`}
+                                    >
+                                        {branch?.branchName}
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                </div>
+
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash In
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    232,789
-                                </span>
-                                <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span>
+                    {TodayCashInOutData?.map((data) => (
+                        <>
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Today Cash In
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            232,789
+                                        </span>
+                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                            +1.5k
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash Out
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    232,789
-                                </span>
-                                <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span>
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Today Cash Out
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            232,789
+                                        </span>
+                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                            +1.5k
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash In Hand
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    232,789
-                                </span>
-                                <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span>
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Today Cash In Hand
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            232,789
+                                        </span>
+                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                            +1.5k
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </>
+                    ))}
                 </div>
 
                 {/* -------------- HEADER -------------- */}
@@ -237,17 +356,41 @@ const CashInOut = () => {
                                 readOnly
                             />
                         </div>
+                    </div>
 
+                    <div className="grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
                         <div className='cashIn'>
-                            <button className='w-full rounded-md bg-[#04D000] text-white py-3'>
-                                Cash In
-                            </button>
+                            {cashInLoading ? (
+                                <button
+                                    disabled
+                                    type="submit"
+                                    className="w-full cursor-not-allowed rounded-md bg-[#04D000] border border-[#04D000] py-3 text-sm text-white focus:outline-none"
+                                >
+                                    Loading ...
+                                </button>
+                            ) : (
+                                <button onClick={handleCashIn} className='w-full rounded-md bg-[#04D000] text-white py-3'>
+                                    Cash In
+                                </button>
+                            )}
                         </div>
-                        <div className='cashOut'>
-                            <button className='w-full rounded-md bg-[#E82B2B] text-white py-3'>
-                                Cash Out
-                            </button>
-                        </div>
+                        {user?.user?.role !== "user" ? (
+                            <div className='cashOut'>
+                                {cashOutLoading ? (
+                                    <button
+                                        disabled
+                                        type="submit"
+                                        className="w-full cursor-not-allowed rounded-md bg-[#E82B2B] border border-[#E82B2B] py-3 text-sm text-white focus:outline-none"
+                                    >
+                                        Loading ...
+                                    </button>
+                                ) : (
+                                    <button onClick={handleCashOut} className='w-full rounded-md bg-[#E82B2B] text-white py-3'>
+                                        Cash Out
+                                    </button>
+                                )}
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </section >
@@ -289,18 +432,9 @@ const CashInOut = () => {
                                             </>
                                         ) : (
                                             <>
-                                                {validatePartyName?.length > 0 && mainBranchResponse && mainBranchResponse?.Data && mainBranchResponse?.Data.length > 0 ? (
+                                                {validatePartyName?.length > 0 && otherBranchResponse && otherBranchResponse?.Data && otherBranchResponse?.Data.length > 0 ? (
                                                     <ul className="mt-4 max-h-60 overflow-y-auto rounded-lg">
-                                                        {mainBranchResponse?.Data[0].map((data) => (
-                                                            <li key={data?.id}>
-                                                                <button
-                                                                    onClick={() => handleSelectParty(data)}
-                                                                    className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                                                    <span>{data?.name}</span><span>{data?.phone}</span>
-                                                                </button>
-                                                            </li>
-                                                        ))}
-                                                        {mainBranchResponse?.Data[1].map((data) => (
+                                                        {otherBranchResponse?.Data.map((data) => (
                                                             <li key={data?.id}>
                                                                 <button
                                                                     onClick={() => handleSelectParty(data)}
@@ -385,7 +519,8 @@ const CashInOut = () => {
                         </div>
                     </div>
                 </div >
-            )}
+            )
+            }
         </>
     );
 }
