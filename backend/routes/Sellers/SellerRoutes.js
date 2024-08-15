@@ -9,6 +9,7 @@ import {
 } from "../../controllers/sellers/SellersController.js";
 import { superAdminOnly } from "../../middleware/Auth.js";
 
+
 const sellerRouter = express.Router();
 
 sellerRouter.post("/addInStockAndGeneraeSellerData_NEW", superAdminOnly, addInStockAndGeneraeSellerData_NEW);

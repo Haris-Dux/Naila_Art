@@ -1,16 +1,15 @@
-
-import puppeteer from 'puppeteer-core';
+import puppeteer from "puppeteer";
 
 async function generatePDF(data) {
   try {
-    const browser = await puppeteer.launch( {headless: true,
-      executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe', 
-    args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
     const page = await browser.newPage();
 
-    
-  await page.setContent(`
-    <!DOCTYPE html>
+    const htmlContent = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -23,6 +22,7 @@ async function generatePDF(data) {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+         padding: 0.2rem;
       }
       html {
         -webkit-print-color-adjust: exact;
@@ -130,12 +130,12 @@ async function generatePDF(data) {
         display: flex;
         justify-content: start;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.2rem;
         padding-block: 1rem;
       }
 
       .field_title {
-        min-width: 4.5rem !important;
+        min-width: 5rem !important;
       }
 
       .details_input input {
@@ -337,7 +337,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.serialNumber}
+              value=${data.serialNumber}
             />
           </div>
           <div class="details_input">
@@ -346,7 +346,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.name}
+              value=${data.name}
             />
           </div>
           <div class="details_input">
@@ -355,7 +355,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-              value={data.city}
+              value=${data.city}
             />
           </div>
           <div class="details_input">
@@ -364,7 +364,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.cargo}
+                value=${data.cargo}
             />
           </div>
           <div class="details_input">
@@ -373,7 +373,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.phone}
+                value=${data.phone}
             />
           </div>
           <div class="details_input">
@@ -382,7 +382,7 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.date}
+                value=${data.date}
             />
           </div>
           <div class="details_input">
@@ -391,13 +391,12 @@ async function generatePDF(data) {
               type="text"
               class="border-none w-full"
               placeholder="_______________"
-                value={data.bill_by}
+                value=${data.bill_by}
             />
           </div>
         </div>
       </section>
-
-      <section class="table-container">
+ <section class="table-container">
         <table>
           <thead>
             <tr>
@@ -408,19 +407,24 @@ async function generatePDF(data) {
               <th>Amount</th>
             </tr>
           </thead>
-          <tbody>
-           {data.suits_data.map((suit)=>{
-            <tr>
-              <td>{suit.quantity}</td>
-              <td>{suit.d_no}</td>
-              <td>{suit.color}</td>
-              <td>{suit.price}</td>
-              <td>{suit.price * suit.quantity}</td>
-            </tr>
-           })}
-          </tbody>
+        <tbody>
+  ${data.suits_data
+    .map(
+      (suit) => `
+    <tr>
+      <td>${suit.quantity}</td>
+      <td>${suit.d_no}</td>
+      <td>${suit.color}</td>
+      <td>${suit.price}</td>
+      <td>${suit.price * suit.quantity}</td>
+    </tr>
+  `
+    )
+    .join("")}
+</tbody>
+
         </table>
-      </section>
+      </section> 
 
       <section class="total">
         <!-- bill text -->
@@ -432,19 +436,19 @@ async function generatePDF(data) {
         <div class="bill_total">
           <div class="bill_row dark_class">
             <div class="bill_title">Total</div>
-            <div class="bill_value">{data.total + data.discount}</div>
+            <div class="bill_value">${data.total + data.discount}</div>
           </div>
           <div class="bill_row">
             <div class="bill_title">Discount</div>
-            <div class="bill_value">{data.discount}</div>
+            <div class="bill_value">${data.discount}</div>
           </div>
           <div class="bill_row dark_class">
             <div class="bill_title">Advance</div>
-            <div class="bill_value">{data.paid}</div>
+            <div class="bill_value">${data.paid}</div>
           </div>
           <div class="bill_row">
             <div class="bill_title">Balance</div>
-            <div class="bill_value">{data.remaining}</div>
+            <div class="bill_value">${data.remaining}</div>
           </div>
         </div>
       </section>
@@ -478,25 +482,28 @@ async function generatePDF(data) {
       </section>
     </main>
   </body>
-</html>
-    
-  `);
+</html>`;
 
-  await page.waitForFunction('document.readyState === "complete"')
-  
-  const pdfBuffer = await page.pdf({ format: 'A4' });
+    await page.setContent(htmlContent);
+
+    // Ensure the page is fully loaded before generating the PDF
+    await page.evaluate(() => {
+      return new Promise((resolve) => {
+        if (document.readyState === "complete") {
+          resolve();
+        } else {
+          window.addEventListener("load", resolve);
+        }
+      });
+    });
+
+    const pdfBuffer = await page.pdf({ format: "A4" });
 
     await browser.close();
 
-    const headers = {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${data.name}.pdf"`
-    };
-
-    return { pdfBuffer, headers };
+    return pdfBuffer;
   } catch (error) {
-    console.log(error);
-    throw new Error(error)
+    throw new Error(error);
   }
 }
 
