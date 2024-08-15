@@ -1,43 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
-import { GetAllBase } from '../../../features/InStockSlice';
-import { AddOldSellerDetailsFromAsync, AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 import { useSearchParams } from 'react-router-dom';
 import moment from "moment-timezone";
+import { GetAllBase } from '../../../features/InStockSlice';
 
-const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
+const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
     const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
-
     const { searchLoading } = useSelector((state) => state.Seller);
 
     // State variables to hold form data
     const [formData, setFormData] = useState({
-        bill_no: "",
-        date: today,
-        name: "",
-        phone: "",
         category: "",
+        colors: "",
+        r_Date: "",
         quantity: "",
-        rate: "",
-        total: "",
-        seller_stock_category: "Base",
     });
-
-    useEffect(() => {
-        if (sellerDetails) {
-            setFormData((prevFormData) => ({
-                ...prevFormData,
-                name: sellerDetails.name || "",
-                phone: sellerDetails.phone || "",
-            }));
-        }
-    }, [sellerDetails]);
-
 
     // Function to handle changes in form inputs
     const handleChange = (e) => {
@@ -53,54 +35,31 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
         const modifiedFormData = {
             ...formData,
-            total: Number(formData.total),
-            rate: Number(formData.rate),
             quantity: Number(formData.quantity),
-            bill_no: Number(formData.bill_no),
         };
 
-        if (sellerDetails && sellerDetails?.id) {
-            modifiedFormData.sellerId = sellerDetails?.id;
-        }
 
-        if (sellerDetails) {
-            dispatch(AddOldSellerDetailsFromAsync(modifiedFormData)).then((res) => {
-                if (res.payload.success === true) {
-                    dispatch(getAllPurchasingHistoryAsync({ category: 'Base', page }));
-                    resetFormData();
-                    closeModal();
-                }
-            });
-        } else {
-            dispatch(AddSellerDetailsFromAsync(modifiedFormData)).then((res) => {
-                if (res.payload.success === true) {
-                    dispatch(getAllPurchasingHistoryAsync({ category: 'Base', page }));
-                    resetFormData();
-                    closeModal();
-                }
-            });
-        }
+        dispatch(createBaseAsync(modifiedFormData)).then((res) => {
+            if (res.payload.message === "Successfully Added") {
+                dispatch(GetAllBase({ page: 1 }));
+                resetFormData();
+                closeBaseModal();
+            }
+        });
     };
 
     const resetFormData = () => {
         setFormData({
-            bill_no: "",
-            date: today,
-            name: "",
-            phone: "",
             category: "",
+            colors: "",
+            r_Date: "",
             quantity: "",
-            rate: "",
-            total: "",
-            seller_stock_category: "",
         });
     };
 
-
-
     return (
         <>
-            {isOpen && (
+            {addBaseModal && (
                 <div
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
@@ -112,7 +71,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                 Base
                             </h3>
                             <button
-                                onClick={closeModal}
+                                onClick={closeBaseModal}
                                 className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                                 type="button"
                             >
@@ -138,49 +97,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         {/* ------------- BODY ------------- */}
                         <div className="p-4 md:p-5">
                             <form onSubmit={handleSubmit}>
-                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
-
-                                    {/* BILL */}
-                                    <div>
-                                        <input
-                                            name="bill_no"
-                                            type="text"
-                                            placeholder="Bill No"
-                                            value={formData.bill_no}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* DATE */}
-                                    <div>
-                                        <input
-                                            name="date"
-                                            type="date"
-                                            placeholder="Date"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                            readOnly
-                                        />
-                                    </div>
-
-                                    {/* PARTY NAME */}
-                                    <div className='col-span-2'>
-                                        <input
-                                            name="name"
-                                            type="text"
-                                            placeholder="Party Name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                            readOnly={!!sellerDetails}
-                                        />
-                                    </div>
-
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-1 lg:gap-x-4">
                                     {/* CATEGORY */}
                                     <div>
                                         <input
@@ -194,6 +111,31 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                         />
                                     </div>
 
+                                    {/* COLOR */}
+                                    <div>
+                                        <input
+                                            name="colors"
+                                            type="text"
+                                            placeholder="Color"
+                                            value={formData.colors}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* DATE */}
+                                    <div>
+                                        <input
+                                            name="r_Date"
+                                            type="date"
+                                            placeholder="Date"
+                                            value={formData.r_Date}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
 
                                     {/* QUANTITY */}
                                     <div>
@@ -207,47 +149,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                             required
                                         />
                                     </div>
-
-                                    {/* TOTAL */}
-                                    <div>
-                                        <input
-                                            name="total"
-                                            type="number"
-                                            placeholder="Total"
-                                            value={formData.total}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* RATE */}
-                                    <div>
-                                        <input
-                                            name="rate"
-                                            type="number"
-                                            placeholder="Rate"
-                                            value={formData.rate}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* PHONE NUMBER */}
-                                    <div className='col-span-2'>
-                                        <input
-                                            name="phone"
-                                            type="number"
-                                            placeholder="Phone Number"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                            required
-                                            readOnly={!!sellerDetails}
-                                        />
-                                    </div>
-
                                 </div>
 
                                 <div className="flex justify-center mt-6">
@@ -277,4 +178,4 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     );
 };
 
-export default BaseModals;
+export default AddBaseModal;

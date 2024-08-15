@@ -4,19 +4,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetAllLace } from "../../../features/InStockSlice";
 import { AddOldSellerDetailsFromAsync, AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
-
+import moment from "moment-timezone";
 
 const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const { searchLoading } = useSelector((state) => state.Seller);
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
     bill_no: "",
-    date: "",
+    date: today,
     name: "",
     phone: "",
     category: "",
@@ -82,7 +83,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const resetFormData = () => {
     setFormData({
       bill_no: "",
-      date: "",
+      date: today,
       name: "",
       phone: "",
       category: "",
@@ -158,6 +159,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
+                      readOnly
                     />
                   </div>
 
