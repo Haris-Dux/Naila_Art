@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 //API URL
 const cashIn = "/api/cashInOut/cashIn";
 const cashOut = "/api/cashInOut/cashOut";
+const getTodayCashInOut = "/api/cashInOut/getTodaysCashInOut";
 const validatePartyNameForMainBranch = "/api/cashInOut/validatePartyNameForMainBranch";
 const validatePartyNameForOtherBranch = "/api/cashInOut/validatePartyNameForOtherBranches";
 
@@ -12,6 +13,7 @@ const validatePartyNameForOtherBranch = "/api/cashInOut/validatePartyNameForOthe
 export const cashInAsync = createAsyncThunk("cashInOut/cashIn", async (data) => {
     try {
         const response = await axios.post(cashIn, data);
+        toast.success(response.data.message)
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -24,6 +26,20 @@ export const cashInAsync = createAsyncThunk("cashInOut/cashIn", async (data) => 
 export const cashOutAsync = createAsyncThunk("cashInOut/cashOut", async (data) => {
     try {
         const response = await axios.post(cashOut, data);
+        toast.success(response.data.message)
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
+
+// GET TODAY CASH IN OUT THUNK
+export const getTodayCashInOutAsync = createAsyncThunk("getToday/cashInOut", async (data) => {
+    try {
+        const response = await axios.post(getTodayCashInOut, data);
+        toast.success(response.data.message)
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -61,8 +77,11 @@ export const validatePartyNameForOtherBranchAsync = createAsyncThunk("validate/o
 // INITIAL STATE
 const initialState = {
     loading: false,
+    cashInLoading: false,
+    cashOutLoading: false,
     cashInResponse: [],
     cashOutResponse: [],
+    TodayCashInOutData: [],
     mainBranchResponse: [],
     otherBranchResponse: [],
 };
@@ -75,20 +94,29 @@ const CashInOutSlice = createSlice({
 
             // CASH IN
             .addCase(cashInAsync.pending, (state) => {
-                state.loading = true;
+                state.cashInLoading = true;
             })
             .addCase(cashInAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.cashInLoading = false;
                 state.cashInResponse = action.payload
             })
 
             // CASH OUT
             .addCase(cashOutAsync.pending, (state) => {
-                state.loading = true;
+                state.cashOutLoading = true;
             })
             .addCase(cashOutAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.cashOutLoading = false;
                 state.cashOutResponse = action.payload
+            })
+
+            // GET TODAY CASH IN OUT
+            .addCase(getTodayCashInOutAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getTodayCashInOutAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.TodayCashInOutData = action.payload
             })
 
             // VALIDATE PARTY NAME FOR MAIN BRANCH
