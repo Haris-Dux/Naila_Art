@@ -167,6 +167,7 @@ const Buyers = () => {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
+    setValidateOldBuyer(value)
 
     const payload = {
       id: user?.user?.id,
@@ -193,21 +194,24 @@ const Buyers = () => {
 
   const handleStatusClick = (status) => {
     setPaymentStatus(status);
-    if (status === "All") {
-      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, branchId: selectedBranchId }));
-      navigate(`/dashboard/buyers?page=${1}`)
-    }
-    else {
-      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, status, branchId: selectedBranchId }));
-      navigate(`/dashboard/buyers?page=${1}`)
-    }
+
+    const payload = {
+      id: user?.user?.id,
+      page: 1,
+      status: status !== "All" ? status : null,
+      branchId: selectedBranchId,
+      search: validateOldBuyer.length > 0 ? validateOldBuyer : null
+    };
+
+    dispatch(getBuyerForBranchAsync(payload));
+    navigate(`/dashboard/buyers?page=${1}`)
   }
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "All" ? "" : branchId;
     setSelectedBranchId(selectedBranch);
     setPaymentStatus();
-
+    setValidateOldBuyer("")
     setSearch("");
 
     const payload = {

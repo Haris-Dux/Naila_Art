@@ -12,7 +12,6 @@ const Debitcredit = "/api/employ/creditDebitBalance";
 const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
 
 
-
 export const CreateEmployee = createAsyncThunk(
   "Employee/create",
   async (formData) => {
@@ -27,46 +26,39 @@ export const CreateEmployee = createAsyncThunk(
   }
 );
 
-export const GetEmployeeActive = createAsyncThunk(
-  "Employee/GetActiveEmployee",
-  async (data) => {
-    const searchQuery =
+export const GetEmployeeActive = createAsyncThunk("Employee/GetActiveEmployee", async (data) => {
+  const searchQuery =
     data?.search !== undefined && data?.search !== null
       ? `&search=${data?.search}`
       : "";
-    try {
-      const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
-      toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-    }
+  try {
+    const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
   }
-  )
-
+}
+)
 
 export const GetEmployeePast = createAsyncThunk(
   "Employee/GetEmplpyeePast",
   async (data) => {
     const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
+      data?.search !== undefined && data?.search !== null
+        ? `&search=${data?.search}`
+        : "";
     try {
       const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
-      toast.success(response.data.message);
+      // toast.success(response.data.message);
       console.log(response.data);
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
     }
   }
-  )
-
-
-
-
+)
 
 export const GetEmployeeById = createAsyncThunk(
   "Employee/SingleEmployee",
@@ -82,8 +74,6 @@ export const GetEmployeeById = createAsyncThunk(
   }
 );
 
-
-
 export const UpdateEmployee = createAsyncThunk(
   "Employee/Update",
   async (formData) => {
@@ -98,7 +88,6 @@ export const UpdateEmployee = createAsyncThunk(
   }
 );
 
-
 export const AddCreditDebit = createAsyncThunk(
   "Employee/Debitcredit",
   async (formData) => {
@@ -112,8 +101,6 @@ export const AddCreditDebit = createAsyncThunk(
     }
   }
 );
-
-
 
 export const CreditSalary = createAsyncThunk(
   "Employee/CreaditEmployeeSalary",
@@ -137,8 +124,9 @@ export const CreditSalary = createAsyncThunk(
 
 
 const initialState = {
-
   Employees: [],
+  ActiveEmployees: [],
+  PastEmployees: [],
   Employee: {},
   loading: false,
 };
@@ -152,7 +140,6 @@ const AccountSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-
       .addCase(CreateEmployee.pending, (state, action) => {
         state.loading = true;
       })
@@ -161,23 +148,20 @@ const AccountSlice = createSlice({
 
       })
 
-
       .addCase(GetEmployeeActive.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(GetEmployeeActive.fulfilled, (state, action) => {
         state.loading = false;
-        state.Employees = action.payload
-
+        state.ActiveEmployees = action.payload
       })
+
       .addCase(GetEmployeePast.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(GetEmployeePast.fulfilled, (state, action) => {
         state.loading = false;
-        state.Employees = action.payload
-
-
+        state.PastEmployees = action.payload
       })
 
 
@@ -187,10 +171,7 @@ const AccountSlice = createSlice({
       .addCase(GetEmployeeById.fulfilled, (state, action) => {
         state.loading = false;
         state.Employee = action.payload
-
-
       })
-
 
 
       .addCase(UpdateEmployee.pending, (state, action) => {
@@ -198,9 +179,6 @@ const AccountSlice = createSlice({
       })
       .addCase(UpdateEmployee.fulfilled, (state, action) => {
         state.loading = false;
-
-
-
       })
 
 
@@ -209,9 +187,6 @@ const AccountSlice = createSlice({
       })
       .addCase(AddCreditDebit.fulfilled, (state, action) => {
         state.loading = false;
-
-
-
       })
 
 
@@ -220,16 +195,7 @@ const AccountSlice = createSlice({
       })
       .addCase(CreditSalary.fulfilled, (state, action) => {
         state.loading = false;
-
-
-
       })
-
-
-
-
-
-
   },
 });
 
