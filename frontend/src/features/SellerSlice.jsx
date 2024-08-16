@@ -113,7 +113,8 @@ const initialState = {
     validateSeller: [],
     loading: false,
     addLoading: false,
-    searchLoading: false
+    searchLoading: false,
+    addSellerLoading: false,
 };
 
 const SellerSlice = createSlice({
@@ -142,19 +143,19 @@ const SellerSlice = createSlice({
 
             // ADD SELLER DETAILS
             .addCase(AddSellerDetailsFromAsync.pending, (state) => {
-                state.addLoading = true;
+                state.addSellerLoading = true;
             })
             .addCase(AddSellerDetailsFromAsync.fulfilled, (state, action) => {
-                state.addLoading = false;
+                state.addSellerLoading = false;
                 state.SellerData = action.payload
             })
 
             // ADD OLD SELLER DETAILS
             .addCase(AddOldSellerDetailsFromAsync.pending, (state) => {
-                state.addLoading = true;
+                state.addSellerLoading = true;
             })
             .addCase(AddOldSellerDetailsFromAsync.fulfilled, (state, action) => {
-                state.addLoading     = false;
+                state.addSellerLoading = false;
                 state.OldSellerData = action.payload
             })
 
