@@ -122,7 +122,7 @@ export const getPendingRequests = createAsyncThunk(
       const response = await axios.post(pendingRequest);
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );
@@ -160,7 +160,8 @@ const initialState = {
   resetPassword: null,
   validateToken: null,
   getUsersForBranch: [],
-  pending:[]
+  pendingRequest:[],
+  pendingRequestsLoading:false
 };
 
 const authSlice = createSlice({
@@ -259,15 +260,12 @@ const authSlice = createSlice({
       })
 
 
-
-
       .addCase(getPendingRequests.pending, (state) => {
-        state.loading = true;
+        state.pendingRequestsLoading = true;
       })
       .addCase(getPendingRequests.fulfilled, (state,action ) => {
-        state.loading = false;
-        state.pending = action.payload;
-      
+        state.pendingRequestsLoading = false;
+        state.pendingRequest = action.payload;
       })
 
 
@@ -279,26 +277,6 @@ const authSlice = createSlice({
         state.user = null;
       });
 
-
-
-
-    //       // RESET PASSWORD ADD CASE
-    //       .addCase(resetpasswordAsync.pending, (state, action) => {
-    //         state.loading = true;
-    //       })
-    //       .addCase(resetpasswordAsync.fulfilled, (state, action) => {
-    //         state.loading = false;
-    //         state.resetPassword = action.payload;
-    //       })
-
-    //       // AUTH USER ADD CASE
-    //       .addCase(authUserAsync.pending, (state) => {
-    //         state.loading = true;
-    //       })
-    //       .addCase(authUserAsync.fulfilled, (state, action) => {
-    //         state.loading = false;
-    //         state.user = action.payload;
-    //       });
   },
 });
 

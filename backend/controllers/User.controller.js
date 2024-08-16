@@ -77,7 +77,7 @@ export const updateUser = async (req, res, next) => {
     if (Object.keys(updateQuery).length === 0)
       throw new Error("No fields to update");
     await UserModel.findByIdAndUpdate(id, updateQuery);
-    return res.status(200).json({ message: "User updated" });
+    return res.status(200).json({success:true , message: "User updated" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -109,6 +109,7 @@ export const getPendingRequests = async (req, res, next) => {
 export const getUsersForBranch = async (req, res, next) => {
   try {
     const { branchId } = req.body;
+    if(!branchId) throw new Error("Branch Id Required")
     const users = await UserModel.find({ branchId: branchId });
     return res.status(200).json(users);
   } catch (error) {

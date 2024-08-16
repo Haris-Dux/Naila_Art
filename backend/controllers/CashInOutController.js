@@ -256,9 +256,9 @@ export const getTodaysCashInOut = async (req, res, next) => {
       { date: { $eq: today }, branchId },
       projection
     );
-    console.log(TodaysDailySale);
+ 
     const data = { ...TodaysCashInOut._doc, ...TodaysDailySale._doc };
-    return res.status(500).json({ success: true, data });
+    return res.status(200).json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

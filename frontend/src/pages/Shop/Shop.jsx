@@ -87,6 +87,16 @@ const Shop = () => {
     }
   };
 
+  //FETCH USERS FOR BRANCH
+  useEffect(()=>{
+    if(Shop.length > 0 && selectedShopId === null){
+      const data = { branchId: Shop[0]?.id };
+      setSelectedShopId(Shop[0]?.id)
+      dispatch(GetUserBYBranch(data));
+    }
+  },[Shop,dispatch,selectedShopId]);
+
+ 
   const fetchBranchUser = (branchId) => {
     setSelectedShopId(branchId);
     const data = { branchId: branchId };
@@ -185,7 +195,7 @@ const Shop = () => {
               <Link to={"/dashboard/PendingRequest"}>Pending Request</Link>
             </button>
 
-            <div className="search_bar mr-2">
+            {/* <div className="search_bar mr-2">
               <div className="relative mt-4 md:mt-0">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <svg
@@ -205,10 +215,10 @@ const Shop = () => {
                 <input
                   type="text"
                   className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                  placeholder="Search by Design Number"
+                  placeholder="Search by Name"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -232,7 +242,7 @@ const Shop = () => {
                 <button
                   onClick={() => fetchBranchUser(data?.id)}
                   className={`border w-56 border-gray-500 ${
-                    selectedShopId === data.id
+                    selectedShopId === data?.id 
                       ? "bg-blue-800 text-white border-none"
                       : "bg-white dark:bg-gray-700 text-black hover:bg-blue-800 hover:text-white dark:text-gray-100"
                   } px-5 py-2 mx-2 text-sm rounded-md`}
