@@ -7,35 +7,35 @@ import { CreateEmployee, GetEmployeeActive, GetEmployeePast, UpdateEmployee } fr
 
 const categories = ['Active Employee', 'Past Employee'];
 
-
-
 const Employee = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const [search, setSearch] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-  const { loading, Employees } = useSelector((state) => state.Account);
   const [selectedCategory, setSelectedCategory] = useState('Active Employee');
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [search, setSearch] = useState();
 
 
   const [searchParams] = useSearchParams();
-  const page = parseInt(searchParams.get("page"), 10);
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
-
+  const { loading, ActiveEmployees, PastEmployees } = useSelector((state) => state.Account);
 
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ searchText, page: 1 }));
+      dispatch(GetEmployeeActive({ searchText, page: currentPage }));
     } else {
-      dispatch(GetEmployeePast({ searchText, page: 1 }));
+      dispatch(GetEmployeePast({ searchText, page: currentPage }));
     }
-  }, [selectedCategory, currentPage, searchText]);
+  }, [currentPage, searchText, dispatch]);
+
+  const Employees = selectedCategory === 'Active Employee' ? ActiveEmployees : PastEmployees;
 
 
   const [formData, setFormData] = useState({
@@ -55,25 +55,20 @@ const Employee = () => {
     const value = e.target.value;
     setSearch(value);
 
-    if (value === "") {
-      if (selectedCategory === 'Active Employee') {
-        dispatch(GetEmployeeActive({ page: 1 }));
-        navigate(`/dashboard/employee?page=1`)
-      } else {
-        dispatch(GetEmployeePast({ page: 1 }));
-        navigate(`/dashboard/employee?page=1`)
-      }
+    const payload = {
+      search: value || "",
+      page: 1,
+    };
+
+    if (selectedCategory === 'Active Employee') {
+      dispatch(GetEmployeeActive(payload));
+    } else {
+      dispatch(GetEmployeePast(payload));
     }
-    else {
-      if (selectedCategory === 'Active Employee') {
-        dispatch(GetEmployeeActive({ search, page: 1 }));
-        navigate(`/dashboard/employee?page=1`)
-      } else {
-        dispatch(GetEmployeePast({ search, page: 1 }));
-        navigate(`/dashboard/employee?page=1`)
-      }
-    }
+
+    navigate(`/dashboard/employee?page=1`);
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -162,11 +157,11 @@ const Employee = () => {
     document.body.style.overflow = 'auto';
   };
 
-  const paginationLinkClick = () => {
+  const paginationLinkClick = (i) => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ search, page }));
+      dispatch(GetEmployeeActive({ search, page: i }));
     } else {
-      dispatch(GetEmployeePast({ search, page }));
+      dispatch(GetEmployeePast({ search, page: i }));
     }
   }
 
@@ -191,22 +186,25 @@ const Employee = () => {
   };
 
   const handleCategoryClick = (category) => {
-    setSelectedCategory(category)
-    if (search === "") {
-      if (selectedCategory === 'Active Employee') {
-        dispatch(GetEmployeeActive({ page: 1 }));
+    if (category !== selectedCategory) {
+      setSelectedCategory(category);
+      setSearch("")
+
+
+      const payload = {
+        searchText: search || "",
+        page: 1,
+      };
+
+      if (category === 'Active Employee') {
+        dispatch(GetEmployeeActive(payload));
       } else {
-        dispatch(GetEmployeePast({ page: 1 }));
+        dispatch(GetEmployeePast(payload));
       }
+
+      navigate(`/dashboard/employee?page=1`);
     }
-    else {
-      if (selectedCategory === 'Active Employee') {
-        dispatch(GetEmployeeActive({ search, page: 1 }));
-      } else {
-        dispatch(GetEmployeePast({ search, page: 1 }));
-      }
-    }
-  }
+  };
 
   const ToDown = () => {
     window.scrollTo({
@@ -245,15 +243,16 @@ const Employee = () => {
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
             {categories?.map((category) => (
-              <Link
-                to={`/dashboard/employee?page=${1}`}
+              <button
                 key={category}
-                className={`border border-gray-500 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900' : ''}`}
+                className={`border border-gray-500 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md transition-colors duration-300 ${selectedCategory === category
+                  ? 'bg-[#252525] text-white dark:bg-white dark:text-gray-900'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
                 onClick={() => handleCategoryClick(category)}
-              // onClick={() => setSelectedCategory(category)}
               >
                 {category}
-              </Link>
+              </button>
             ))}
           </div>
 
@@ -276,14 +275,10 @@ const Employee = () => {
                   <tr>
                     <th className="px-6 py-4 text-md font-medium" scope="col"> Name</th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">Salary</th>
-
-
                     <th className="px-6 py-4 text-md font-medium" scope="col">Advance</th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">Balance</th>
-
                     <th className="px-6 py-4 text-md font-medium" scope="col">Details</th>
                     {selectedCategory === 'Active Employee' && (
-
                       <th className="px-6 py-4 text-md font-medium" scope="col">Actions</th>
                     )}
                   </tr>
@@ -304,9 +299,6 @@ const Employee = () => {
                             "-"
                           )}
                         </td>
-
-
-
                         <td className="px-6 py-4 font-medium">
                           {employee?.financeData && employee.financeData.length > 0 ? (
                             `${employee.financeData[employee.financeData.length - 1]?.balance} Rs`
@@ -314,7 +306,6 @@ const Employee = () => {
                             "-"
                           )}
                         </td>
-
                         <td className="pl-10 py-4">
                           <Link to={`/dashboard/employee-details/${employee.id}`}>
                             <FaEye size={20} className='cursor-pointer' />
