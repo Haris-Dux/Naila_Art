@@ -29,19 +29,13 @@ const Employee = () => {
 
 
 
-
-
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ searchText, currentPage }));
+      dispatch(GetEmployeeActive({ searchText, page: 1 }));
     } else {
-      dispatch(GetEmployeePast({ searchText, currentPage }));
+      dispatch(GetEmployeePast({ searchText, page: 1 }));
     }
   }, [selectedCategory, currentPage, searchText]);
-
-  console.log('selected categorey', selectedCategory)
-  console.log(page);
-
 
 
   const [formData, setFormData] = useState({
@@ -117,7 +111,6 @@ const Employee = () => {
         });
     }
   };
-
 
   const handleEdit = (employee) => {
     setFormData(employee);

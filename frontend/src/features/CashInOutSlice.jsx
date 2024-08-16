@@ -39,10 +39,10 @@ export const cashOutAsync = createAsyncThunk("cashInOut/cashOut", async (data) =
 export const getTodayCashInOutAsync = createAsyncThunk("getToday/cashInOut", async (data) => {
     try {
         const response = await axios.post(getTodayCashInOut, data);
-        toast.success(response.data.message)
+        // toast.success(response.data.message)
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        // toast.error(error.response.data.error);
         console.log(error?.response?.data?.error);
     }
 }
