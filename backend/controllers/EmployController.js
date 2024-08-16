@@ -201,7 +201,7 @@ export const getEmployeDataById = async (req, res, next) => {
 export const getAllActiveEmploye = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 1;
+    const limit = 2;
     let search = req.query.search || "";
 
     let query = {
@@ -233,7 +233,7 @@ export const getAllPastEmploye = async (req, res, next) => {
   try {
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 1;
+    const limit = 2;
     let search = req.query.search || "";
 
 
@@ -241,7 +241,7 @@ export const getAllPastEmploye = async (req, res, next) => {
       name: { $regex: search, $options: "i" },
       pastEmploye: true
     };
-console.log(page);
+    console.log(page);
     const employData = await EmployeModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)

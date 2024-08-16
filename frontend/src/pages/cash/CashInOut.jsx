@@ -145,16 +145,8 @@ const CashInOut = () => {
 
     const handleBranchClick = (branchId) => {
         const selectedBranch = branchId === "All" ? "" : branchId;
-        // setSelectedBranchId(selectedBranch);
-        // setPaymentStatus();
-
-
-        // const payload = {
-        //     id: user?.user?.id,
-        //     branchId: branchId,
-        //     page: 1,
-        // };
-        // dispatch(getBuyerForBranchAsync(payload));
+        setSelectedBranchId(selectedBranch);
+        dispatch(getTodayCashInOutAsync({ branchId }));
     }
 
     useEffect(() => {
@@ -172,6 +164,7 @@ const CashInOut = () => {
             }
 
             dispatch(getTodayCashInOutAsync(payload));
+            setSelectedBranchId(user?.user?.branchId || Branches[0]?.id);
         }
     }, [dispatch, Branches]);
 
@@ -218,55 +211,51 @@ const CashInOut = () => {
 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
-                    {TodayCashInOutData?.map((data) => (
-                        <>
-                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                                <div className="stat_data pl-4">
-                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                        Today Cash In
-                                    </h3>
-                                    <div className="mt-3 flex justify-start items-center gap-3">
-                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                            232,789
-                                        </span>
-                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                            +1.5k
-                                        </span>
-                                    </div>
-                                </div>
+                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                        <div className="stat_data pl-4">
+                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                Today Cash In
+                            </h3>
+                            <div className="mt-3 flex justify-start items-center gap-3">
+                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                    {TodayCashInOutData?.data?.todayCashIn}
+                                </span>
+                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                    +1.5k
+                                </span> */}
                             </div>
-                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                                <div className="stat_data pl-4">
-                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                        Today Cash Out
-                                    </h3>
-                                    <div className="mt-3 flex justify-start items-center gap-3">
-                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                            232,789
-                                        </span>
-                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                            +1.5k
-                                        </span>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                        <div className="stat_data pl-4">
+                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                Today Cash Out
+                            </h3>
+                            <div className="mt-3 flex justify-start items-center gap-3">
+                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                    {TodayCashInOutData?.data?.todayCashOut}
+                                </span>
+                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                    +1.5k
+                                </span> */}
                             </div>
-                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                                <div className="stat_data pl-4">
-                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                        Today Cash In Hand
-                                    </h3>
-                                    <div className="mt-3 flex justify-start items-center gap-3">
-                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                            232,789
-                                        </span>
-                                        <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                            +1.5k
-                                        </span>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                        <div className="stat_data pl-4">
+                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                Today Cash In Hand
+                            </h3>
+                            <div className="mt-3 flex justify-start items-center gap-3">
+                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                    {TodayCashInOutData?.data?.saleData?.totalCash}
+                                </span>
+                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
+                                    +1.5k
+                                </span> */}
                             </div>
-                        </>
-                    ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* -------------- HEADER -------------- */}
