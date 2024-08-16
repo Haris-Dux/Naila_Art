@@ -1,12 +1,13 @@
 import { BranchModel } from "../models/Branch.Model.js";
 import { UserModel } from "../models/User.Model.js";
+import { setMongoose } from "../utils/Mongoose.js";
 
 export const createBranch = async (req, res) => {
   try {
     const { branchName } = req.body;
     if (!branchName) throw new Error("Invalid branch name");
     const existingBranch = await BranchModel.findOne({
-      branchName:{$regex:new $RegExp(branchName)},
+      branchName:{$regex: new RegExp(branchName ,'i')},
     });
     if (existingBranch) {
       throw new Error("This branch already exists");
@@ -25,7 +26,7 @@ export const updateBranch = async (req, res) => {
     const foundBranch = BranchModel.findById(branchId);
     if (!foundBranch) throw new Error("Invalid Branch Id");
     const existingBranch = await BranchModel.findOne({
-      branchName,
+      branchName:{$regex: new RegExp(branchName ,'i')},
     });
     if (existingBranch && existingBranch._id !== branchId) {
       throw new Error("This branch already exists");
@@ -65,6 +66,7 @@ export const getAllBranches = async (req, res) => {
       const branch = await BranchModel.findOne({_id:user.branchId});
       response = [branch];
     }
+    setMongoose();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(404).json({ error: error.message });
