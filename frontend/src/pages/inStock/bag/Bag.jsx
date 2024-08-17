@@ -10,14 +10,12 @@ const Bag = () => {
   const dispatch = useDispatch();
   const [bagId, setBagId] = useState();
   const { loading, Bags } = useSelector((state) => state.InStock);
-  console.log('Bags', Bags);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
     dispatch(GetAllBags({ page }));
-    console.log("data", Bags);
   }, [page, dispatch]);
 
   const openModal = (id) => {

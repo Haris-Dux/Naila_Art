@@ -26,7 +26,6 @@ const BuyersDetails = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const { loading, BuyerById } = useSelector((state) => state.Buyer);
-    console.log('BuyerById', BuyerById);
 
     useEffect(() => {
         if (id) {
