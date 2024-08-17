@@ -55,7 +55,7 @@ export const updateCutting = async (req,res,next) => {
             updateQuery = {...updateQuery,project_status};
         };
         await CuttingModel.findByIdAndUpdate(id,updateQuery);
-        return res.status(500).json({ success:true,message:"Updated Successfully" });
+        return res.status(200).json({ success:true,message:"Updated Successfully" });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
