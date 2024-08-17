@@ -21,11 +21,9 @@ export const createuserAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(signupUrl, formData);
-      // toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
   }
 );
@@ -36,39 +34,31 @@ export const loginuserAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(loginUrl, formData);
-      // toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
 );
-
 
 export const userSessionAsync = createAsyncThunk("user/session", async () => {
   try {
     const response = await axios.get(userSessionUrl);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
+    throw new Error(error.response.data.error);
   }
 });
-
 
 // Logout Function
 export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
   try {
     const response = await axios.delete(logoutUrl);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
     toast.error(error.response.data.error);
   }
 });
-
 
 // FORGET ASYNC THUNK
 export const forgetuserAsync = createAsyncThunk(
@@ -77,15 +67,12 @@ export const forgetuserAsync = createAsyncThunk(
     try {
       const response = await axios.post(forgetPassUrl, formData);
       toast.success(response.data.message);
-      console.log(response.data);
-      return response.data;
+    return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
 );
-
 
 // VERIFY ASYNC THUNK
 export const verifyOtpAsync = createAsyncThunk(
@@ -94,15 +81,12 @@ export const verifyOtpAsync = createAsyncThunk(
     try {
       const response = await axios.post(verifyOtpPassUrl, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
 );
-
 
 // RESET ASYNC THUNK
 export const resetPassAsync = createAsyncThunk(
@@ -111,67 +95,50 @@ export const resetPassAsync = createAsyncThunk(
     try {
       const response = await axios.post(resetPassUrl, { id, resetPassword });
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
 );
-
 
 export const GetUserBYBranch = createAsyncThunk(
   "user/GetUserBYBranch",
   async (data) => {
     try {
       const response = await axios.post(getUsersForBranch, data);
-      toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
+      
     }
   }
 );
-
 
 export const getPendingRequests = createAsyncThunk(
   "user/PendingRequestsUser",
   async () => {
     try {
       const response = await axios.post(pendingRequest);
-      toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );
-
-
-
-
 
 export const UpdateUser = createAsyncThunk(
   "user/uppdateUser",
   async (data) => {
     try {
       const response = await axios.post(updateUser, data);
-      toast.success(response.data.message);
-     
+      toast.success(response.data.message);  
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
 );
-
-
 
 export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async () => {
   try {
@@ -179,46 +146,9 @@ export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime"
     return response.data;
   } catch (error) {
     console.log(error.response.data.message);
-    // toast.error(error.response.data.message);
   }
 });
 
-
-
-// RESET PASSWORD ASYNC THUNK
-// export const resetpasswordAsync = createAsyncThunk(
-//   "user/resetPassword",
-//   async ({ newPassword, confirmPassword, resetToken }) => {
-//     try {
-//       const response = await axios.post(resetPasswordUrl, {
-//         newPassword,
-//         confirmPassword,
-//         resetToken,
-//       });
-//       toast.success(response.data.msg);
-//       // console.log(response.data);
-//       return response.data;
-//     } catch (error) {
-//       // console.log(error.response.data.msg);
-//       toast.error(error.response.data.msg);
-//     }
-//   }
-// );
-
-// AUTH USER ASYNC THUNK
-// export const authUserAsync = createAsyncThunk("users/authUser", async () => {
-//   try {
-//     const response = await axios.get(authUserUrl);
-//     return response.data;
-//   } catch (error) {
-//     throw new Error(error.message);
-//   }
-// });
-
-// LOGOUT ASYNC THUNK
-// export const logoutUserAsync = createAsyncThunk("users/logout", async () => {
-//   await axios.delete(logoutUrl);
-// });
 
 // INITIAL STATE
 const initialState = {
@@ -230,7 +160,8 @@ const initialState = {
   resetPassword: null,
   validateToken: null,
   getUsersForBranch: [],
-  pending:[]
+  pendingRequest:[],
+  pendingRequestsLoading:false
 };
 
 const authSlice = createSlice({
@@ -329,15 +260,12 @@ const authSlice = createSlice({
       })
 
 
-
-
       .addCase(getPendingRequests.pending, (state) => {
-        state.loading = true;
+        state.pendingRequestsLoading = true;
       })
       .addCase(getPendingRequests.fulfilled, (state,action ) => {
-        state.loading = false;
-        state.pending = action.payload;
-      
+        state.pendingRequestsLoading = false;
+        state.pendingRequest = action.payload;
       })
 
 
@@ -349,26 +277,6 @@ const authSlice = createSlice({
         state.user = null;
       });
 
-
-
-
-    //       // RESET PASSWORD ADD CASE
-    //       .addCase(resetpasswordAsync.pending, (state, action) => {
-    //         state.loading = true;
-    //       })
-    //       .addCase(resetpasswordAsync.fulfilled, (state, action) => {
-    //         state.loading = false;
-    //         state.resetPassword = action.payload;
-    //       })
-
-    //       // AUTH USER ADD CASE
-    //       .addCase(authUserAsync.pending, (state) => {
-    //         state.loading = true;
-    //       })
-    //       .addCase(authUserAsync.fulfilled, (state, action) => {
-    //         state.loading = false;
-    //         state.user = action.payload;
-    //       });
   },
 });
 
