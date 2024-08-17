@@ -18,7 +18,7 @@ const GenerateBill = () => {
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
   const { Bags } = useSelector((state) => state.InStock);
-  const { SuitFromDesign, pdfLoading , generateBillloading} = useSelector(
+  const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -258,7 +258,7 @@ const GenerateBill = () => {
         <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 overflow-y-auto min-h-screen rounded-lg">
           <div className="content">
             <div className="header pt-3 pb-5 w-full border-b">
-              <h2 className="text-3xl font-medium text-center">
+              <h2 className="text-3xl font-medium text-center text-gray-900 dark:text-white">
                 Generate Bill
               </h2>
             </div>
@@ -419,11 +419,10 @@ const GenerateBill = () => {
 
               {/* FORTH ROW */}
               <div
-                className={`mb-4 grid items-start grid-cols-2 gap-5 ${
-                  user?.user?.role === "superadmin"
-                    ? "lg:grid-cols-4"
-                    : "lg:grid-cols-3"
-                }`}
+                className={`mb-4 grid items-start grid-cols-2 gap-5 ${user?.user?.role === "superadmin"
+                  ? "lg:grid-cols-4"
+                  : "lg:grid-cols-3"
+                  }`}
               >
                 <div>
                   <input
@@ -484,7 +483,7 @@ const GenerateBill = () => {
             <div className="fields mt-10">
               {/* header */}
               <div className="header flex justify-between items-center">
-                <h3 className="text-xl font-medium">Enter Design Number</h3>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white">Enter Design Number</h3>
 
                 <button
                   type="button"
@@ -578,20 +577,20 @@ const GenerateBill = () => {
               >
                 Preview Bill
               </button>
-             {pdfLoading || generateBillloading ? 
-             <button
-             disabled
-             type="submit"
-             className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
-           >
-             Loading ...
-           </button> 
-             :<button
-                type="submit"
-                className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-gray-500"
-              >
-                Generate Bill
-              </button>}
+              {pdfLoading || generateBillloading ?
+                <button
+                  disabled
+                  type="submit"
+                  className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
+                >
+                  Loading ...
+                </button>
+                : <button
+                  type="submit"
+                  className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-gray-500"
+                >
+                  Generate Bill
+                </button>}
             </div>
           </form>
         </section>
