@@ -106,6 +106,7 @@ export const getProcessillById = async (req, res, next) => {
 };
 
 export const getAllProcessBills = async (req, res, next) => {
+
     try {
       const page = parseInt(req.query.page) || 1;
       let limit = 6;
@@ -143,3 +144,4 @@ export const getAllProcessBills = async (req, res, next) => {
       return res.status(500).json({ error: error.message });
     }
   };
+
