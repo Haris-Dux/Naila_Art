@@ -67,17 +67,21 @@ export const updateUser = async (req, res, next) => {
     if (!user) throw new Error("User not found");
     if (authenticated !== undefined) {
       updateQuery = { ...updateQuery, authenticated };
-    }
+    };
     if (role) {
       updateQuery = { ...updateQuery, role };
-    }
+    };
     if (branchId) {
       updateQuery = { ...updateQuery, branchId };
-    }
+    };
+    if(updateQuery.authenticated === false){
+      updateQuery.branchId = null;
+      updateQuery.role = "user";
+    };
     if (Object.keys(updateQuery).length === 0)
       throw new Error("No fields to update");
     await UserModel.findByIdAndUpdate(id, updateQuery);
-    return res.status(200).json({ message: "User updated" });
+    return res.status(200).json({success:true , message: "User updated" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -109,6 +113,7 @@ export const getPendingRequests = async (req, res, next) => {
 export const getUsersForBranch = async (req, res, next) => {
   try {
     const { branchId } = req.body;
+    if(!branchId) throw new Error("Branch Id Required")
     const users = await UserModel.find({ branchId: branchId });
     return res.status(200).json(users);
   } catch (error) {

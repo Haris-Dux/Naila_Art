@@ -16,7 +16,7 @@ export const createBaseAsync = createAsyncThunk(
     try {
       const response = await axios.post(createBase, formData);
       toast.success(response.data.message);
-      console.log(response.data);
+      // console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
@@ -32,7 +32,7 @@ export const createBagAsync = createAsyncThunk(
     try {
       const response = await axios.post(createBag, formData);
       toast.success(response.data.message);
-      console.log(response.data);
+      // console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
@@ -48,7 +48,7 @@ export const createLaceAsync = createAsyncThunk(
     try {
       const response = await axios.post(createLace, formData);
       toast.success(response.data.message);
-      console.log(response);
+      // console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
@@ -64,7 +64,7 @@ export const createAsseceriesAsync = createAsyncThunk(
     try {
       const response = await axios.post(createAccesseries, formData);
       toast.success(response.data.message);
-      console.log(response);
+      // console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);

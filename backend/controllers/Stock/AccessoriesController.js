@@ -1,16 +1,14 @@
 import { AccssoriesModel } from "../../models/Stock/AccssoriesModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-export const addAccesoriesInStock = async (req, res, next) => {
+export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,session,category}) => {
   try {
-    const { serial_No, name, r_Date, quantity } = req.body;
-    if (!serial_No || !quantity || !r_Date || !name)
+    if (!serial_No || !quantity || !r_Date || !name || !category)
       throw new Error("All Fields Required");
-    const lowerCaseName = name.toLowerCase();
     const checkExistingStock = await AccssoriesModel.findOne({
-      name: lowerCaseName,
-    });
-    let recordData = { serial_No, name: lowerCaseName, quantity, date: r_Date };
+      name: { $regex: new RegExp(`^${category}$`, "i") },
+    }).session(session);
+    let recordData = { serial_No, name: category, quantity, date: r_Date };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
       (checkExistingStock.recently = quantity),
@@ -18,21 +16,20 @@ export const addAccesoriesInStock = async (req, res, next) => {
         (checkExistingStock.totalQuantity = updatedTotalQuantity),
         (checkExistingStock.serial_No = serial_No),
         checkExistingStock.all_Records.push(recordData);
-      await checkExistingStock.save();
+      await checkExistingStock.save({session});
     } else {
-      await AccssoriesModel.create({
+      await AccssoriesModel.create([{
         serial_No,
-        name: lowerCaseName,
+        name: category,
         recently: quantity,
         r_Date,
         totalQuantity: quantity,
         all_Records: [recordData],
-      });
+      }],{session});
     }
-
-    return res.status(200).json({ message: "Successfully Added" });
+    return { message: "Successfully Added" };
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return { error: error.message };
   }
 };
 

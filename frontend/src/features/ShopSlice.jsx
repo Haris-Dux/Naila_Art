@@ -15,11 +15,9 @@ export const createShopAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(createShop, formData);
-      toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error)
     }
   }
 );
@@ -31,10 +29,8 @@ export const UpdateShopAsync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateShop, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -48,10 +44,8 @@ export const DeleteShop = createAsyncThunk(
     try {
       const response = await axios.post(DeletShop, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -66,12 +60,10 @@ export const GetAllShop = createAsyncThunk(
       const response = await axios.post(GetShop, formData);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error)
     }
   }
 );
-
 
 
 
