@@ -32,7 +32,6 @@ const Embroidery = () => {
     rATE_per_stitching: "",
     project_status: "",
     design_no: "",
-    received_suit: 0,
     T_Quantity_In_m: 0,
     T_Quantity: 0,
     Front_Stitch: { value: 0, head: 0 },
@@ -44,18 +43,37 @@ const Embroidery = () => {
     D_Patch_Stitch: { value: 0, head: 0 },
     F_Patch_Stitch: { value: 0, head: 0 },
     project_status: "Pending",
-    recieved_suit: 200,
-    T_Quantity_In_m: 200,
-    T_Quantity: 499,
+   
   });
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     dispatch(GETEmbroidery({ search, page }));
   }, [page, dispatch]);
 
+  const calculateTotal = (formData1) => {
+    const rate = parseFloat(formData1.rATE_per_stitching) || 450;
+    const stitches = [
+      { value: formData1.Front_Stitch.value, head: formData1.Front_Stitch.head },
+      { value: formData1.Bazo_Stitch.value, head: formData1.Bazo_Stitch.head },
+      { value: formData1.Gala_Stitch.value, head: formData1.Gala_Stitch.head },
+      { value: formData1.Back_Stitch.value, head: formData1.Back_Stitch.head },
+      { value: formData1.Pallu_Stitch.value, head: formData1.Pallu_Stitch.head },
+      { value: formData1.Trouser_Stitch.value, head: formData1.Trouser_Stitch.head },
+      { value: formData1.D_Patch_Stitch.value, head: formData1.D_Patch_Stitch.head },
+      { value: formData1.F_Patch_Stitch.value, head: formData1.F_Patch_Stitch.head },
+    ];
 
+    const total = stitches.reduce((sum, stitch) => {
+      const value = parseFloat(stitch.value) || 0;
+      const head = parseFloat(stitch.head) || 0;
+      const stitchTotal = (value / 1000) * rate * head;
+      return sum + stitchTotal;
+    }, 0);
 
-
+    return total;
+  };
+  
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -89,6 +107,9 @@ const Embroidery = () => {
         [name]: value, // Convert string to float
       }));
     }
+
+
+    setTotal(calculateTotal(formData));
   };
 
   const openModal = () => {
@@ -455,7 +476,7 @@ const Embroidery = () => {
                       placeholder="Front Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Front_Stitch.value}
+                      value={formData.Front_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
                     <input
@@ -464,7 +485,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Front_Stitch.head}
+                      value={formData.Front_Stitch.head || ""}
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -475,7 +497,8 @@ const Embroidery = () => {
                       placeholder="Back Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Back_Stitch.value}
+                      value={formData.Back_Stitch.value || ""}
+
                       onChange={handleInputChange}
                     />
                     <input
@@ -484,7 +507,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Back_Stitch.head}
+                      value={formData.Back_Stitch.head || ""} 
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -495,7 +519,8 @@ const Embroidery = () => {
                       placeholder="Bazu Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Bazo_Stitch.value}
+                      value={formData.Bazo_Stitch.value || ""}
+
                       onChange={handleInputChange}
                     />
                     <input
@@ -504,7 +529,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Bazo_Stitch.head}
+                      value={formData.Bazo_Stitch.head || ""}
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -515,7 +541,8 @@ const Embroidery = () => {
                       placeholder="Gala Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Gala_Stitch.value}
+                      value={formData.Gala_Stitch.value || ""}
+
                       onChange={handleInputChange}
                     />
                     <input
@@ -524,7 +551,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Gala_Stitch.head}
+                      value={formData.Gala_Stitch.head || ""}
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -537,7 +565,8 @@ const Embroidery = () => {
                       placeholder="Dupatta Patch Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.D_Patch_Stitch.value}
+                      value={formData.D_Patch_Stitch.value || ""}
+
                       onChange={handleInputChange}
                     />
                     <input
@@ -546,7 +575,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.D_Patch_Stitch.head}
+                      value={formData.D_Patch_Stitch.head || ""}
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -557,7 +587,8 @@ const Embroidery = () => {
                       placeholder="Pallu Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Pallu_Stitch.value}
+                      value={formData.Pallu_Stitch.value || ""}
+
                       onChange={handleInputChange}
                     />
                     <input
@@ -566,7 +597,8 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Pallu_Stitch.head}
+                      value={formData.Pallu_Stitch.head || ""}
+
                       onChange={handleInputChange}
                     />
                   </div>
@@ -577,7 +609,7 @@ const Embroidery = () => {
                       placeholder="Front Patch Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.F_Patch_Stitch.value}
+                      value={formData.F_Patch_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
                     <input
@@ -586,7 +618,7 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.F_Patch_Stitch.head}
+                      value={formData.F_Patch_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -599,7 +631,7 @@ const Embroidery = () => {
                       placeholder="Trouser Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Trouser_Stitch.value}
+                      value={formData.Trouser_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
                     <input
@@ -608,7 +640,7 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Trouser_Stitch.head}
+                      value={formData.Trouser_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -620,28 +652,27 @@ const Embroidery = () => {
                       placeholder="Rate Per Stitch"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.rATE_per_stitching}
+                      value={formData.rATE_per_stitching || ""}
                       onChange={handleInputChange}
                     />
                   </div>
 
                   <div>
-                    <input
-                      name="per_suit"
-                      type="number"
-                      placeholder="Rate Per Suit"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.per_suit}
-                      onChange={handleInputChange}
-                      readOnly
-                    />
+                  
+                      <input
+        type="text"
+        value={total.toFixed(2)}
+        readOnly
+          name="per_suit"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          
+      />
                   </div>
                 </div>
 
                 {/* SUIT DESCRIPION */}
 
-                <Box formData1={formData} setFormData1={setFormData} closeModal={closeModal} />
+                <Box formData1={formData} setFormData1={setFormData} closeModal={closeModal} total={total} />
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Link } from "react-router-dom";
-import { CreateEmbroidery } from "../../features/EmbroiderySlice";
+import { CreateEmbroidery, GETEmbroidery } from "../../features/EmbroiderySlice";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,7 +9,7 @@ import {
   GetAllBaseforEmroidery,
 } from "../../features/InStockSlice";
 
-const Box = ({ formData1, setFormData1, closeModal }) => {
+const Box = ({ formData1, setFormData1, closeModal,total }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
 
   const dispatch = useDispatch();
@@ -39,48 +39,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
     dispatch(GetAllBaseforEmroidery());
   }, []);
 
-  const calculateTotal = (formData1) => {
-    const rate = parseFloat(formData1.rATE_per_stitching) || 450; // Use formData1 rate if available
-    console.log("rate", rate);
-    const stitches = [
-      {
-        value: formData1.Front_Stitch.value,
-        head: formData1.Front_Stitch.head,
-      },
-      { value: formData1.Bazo_Stitch.value, head: formData1.Bazo_Stitch.head },
-      { value: formData1.Gala_Stitch.value, head: formData1.Gala_Stitch.head },
-      { value: formData1.Back_Stitch.value, head: formData1.Back_Stitch.head },
-      {
-        value: formData1.Pallu_Stitch.value,
-        head: formData1.Pallu_Stitch.head,
-      },
-      {
-        value: formData1.Trouser_Stitch.value,
-        head: formData1.Trouser_Stitch.head,
-      },
-      {
-        value: formData1.D_Patch_Stitch.value,
-        head: formData1.D_Patch_Stitch.head,
-      },
-      {
-        value: formData1.F_Patch_Stitch.value,
-        head: formData1.F_Patch_Stitch.head,
-      },
-    ];
-
-    const total = stitches.reduce((sum, stitch) => {
-      const value = parseFloat(stitch.value) || 0;
-      console.log("statiych valye", value);
-      const head = parseFloat(stitch.head) || 0;
-      console.log("statiych head", head);
-
-      const stitchTotal = (value / 1000) * rate * head;
-
-      return sum + stitchTotal;
-    }, 0);
-
-    return total;
-  };
+ 
 
   const initialShirtRow = {
     category: "",
@@ -261,11 +220,11 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const total = calculateTotal(formData1);
+  
 
     setFormData1((prevState) => ({
       ...prevState,
-      per_suit: parseFloat(total.toFixed(2)),
+      per_suit:total,
     }));
 
     // Merge updated formData1 (without per_suit) with formData
@@ -273,17 +232,20 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
     const meregdata = {
       ...restFormData1,
       ...formData,
-      per_suit: parseFloat(total.toFixed(2)),
+      per_suit: total.toFixed(2),
+      T_Quantity : formData.shirt.reduce((total, item) => total + item.quantity_in_no, 0) + formData.duppata.reduce((total, item) => total + item.quantity_in_no, 0) + formData.trouser.reduce((total, item) => total + item.quantity_in_no, 0),
+      T_Quantity_In_m : formData.shirt.reduce((total, item) => total + item.quantity_in_m, 0) + formData.duppata.reduce((total, item) => total + item.quantity_in_m, 0) + formData.trouser.reduce((total, item) => total + item.quantity_in_m, 0),
+
+
     };
 
     console.log("final result", meregdata);
 
     dispatch(CreateEmbroidery(meregdata))
       .then(() => {
-        dispatch(GetAllBaseforEmroidery());
+        dispatch(GETEmbroidery({ page: 1 }));
         closeModal();
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error("Error:", error);
       });
   };
@@ -323,7 +285,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={shirt.quantity_in_no} // Accessing the quantity_in_no property of the shirt object
+                value={shirt.quantity_in_no || ""} // Accessing the quantity_in_no property of the shirt object
                 onChange={(e) => handleInputChange(e, index, "shirt")} // Passing index and type to handleInputChange
               />
             </div>
@@ -334,7 +296,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={shirt.quantity_in_m}
+                value={shirt.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "shirt")}
               />
               {formData.shirt.length > 1 && (
@@ -395,7 +357,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={duppata.quantity_in_no}
+                value={duppata.quantity_in_no || ""}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
             </div>
@@ -406,7 +368,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={duppata.quantity_in_m}
+                value={duppata.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
               {formData?.duppata?.length > 1 && (
@@ -468,7 +430,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={trouser.quantity_in_no}
+                value={trouser.quantity_in_no || ""}
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
             </div>
@@ -479,7 +441,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 placeholder="Enter Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={trouser.quantity_in_m}
+                value={trouser.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
 
@@ -544,7 +506,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
                 type="number"
                 placeholder="Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                value={tissue.quantity_in_m}
+                value={tissue.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "tissue")}
               />
               {formData?.tissue?.length > 1 && (
@@ -581,7 +543,7 @@ const Box = ({ formData1, setFormData1, closeModal }) => {
           onClick={handleSubmit}
           className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
         >
-          {loading ? "Submiting..." : "submit"}
+          { "submit"}
         </button>
       </div>
     </div>
