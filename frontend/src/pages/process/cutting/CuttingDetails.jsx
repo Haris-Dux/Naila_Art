@@ -8,12 +8,15 @@ import {
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
 import { createStone } from "../../../features/stoneslice";
+import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleCutting } = useSelector((state) => state.Cutting);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
 
   const [cuttingData, setcuttingData] = useState({
     id,
@@ -40,6 +43,14 @@ const CuttingDetails = () => {
       partyName: SingleCutting?.partyName || "",
       embroidery_Id: SingleCutting?.id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
+    });
+  }, [SingleCutting]);
+
+  useEffect(() => {
+    setcuttingData({
+      id:id,
+      r_quantity: SingleCutting?.r_quantity || "",
+      
     });
   }, [SingleCutting]);
 
@@ -126,7 +137,7 @@ const CuttingDetails = () => {
       });
   };
 
-  const handleCompleteCutting = (e) => {
+  const  handleUpdateCutting = (e) => {
     e.preventDefault();
 
     const data = {
@@ -135,14 +146,11 @@ const CuttingDetails = () => {
 
     dispatch(Updatecuttingasync(cuttingData))
       .then(() => {
-        closeModal();
+   
 
         dispatch(GetSingleCutting(data));
-        setcuttingData({
-          id: id,
-          r_quantity: "",
-          project_status: "Completed",
-        });
+        closeUpdateRecievedModal()
+    
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -150,7 +158,7 @@ const CuttingDetails = () => {
   };
 
 
-  const handleUpdateCutting = (e) => {
+  const handleCompleteCutting = (e) => {
     e.preventDefault();
 
     const data = {
@@ -160,13 +168,8 @@ const CuttingDetails = () => {
    
     dispatch(Updatecuttingasync({ project_status: "Completed",  id: id,}))
       .then(() => {
-        closeModal();
-
         dispatch(GetSingleCutting(data));
-        setcuttingData({
-          id: id,
-         
-        });
+      closeCompletedModal()
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -185,6 +188,33 @@ const CuttingDetails = () => {
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };
+
+
+
+  const handleCompletedClick = () => {
+    
+    setIsCompletedConfirmOpen(true);
+  };
+
+  const closeCompletedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleUpdateReceivedClick = () => {
+    console.log("Update Received button clicked");
+    setIsUpdateReceivedConfirmOpen(true);
+  };
+
+  const closeUpdateRecievedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+
+
 
   if (loading) {
     return (
@@ -280,7 +310,7 @@ const CuttingDetails = () => {
           {SingleCutting?.project_status !== "Completed" && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
-              onClick={handleUpdateCutting}
+              onClick={handleUpdateReceivedClick}
             >
               Update Recived
             </button>
@@ -295,7 +325,7 @@ const CuttingDetails = () => {
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompleteCutting}
+            onClick={handleCompletedClick}
           >
             Completed
           </button>
@@ -305,13 +335,18 @@ const CuttingDetails = () => {
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Bill
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
-
+         
           </>
 
           )}
+
+<button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+            Generate Gate Pass
+          </button>
+
+
+
+
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -525,6 +560,26 @@ const CuttingDetails = () => {
             </div>
           </div>
         )}
+
+
+
+{isUpdateReceivedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Update"
+          message="Are you sure you want to update the received items?"
+          onConfirm={handleUpdateCutting}
+          onClose={closeUpdateRecievedModal}
+        />
+      )}
+
+{isCompletedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Complete"
+          message="Are you sure you want to Complete?"
+          onConfirm={handleCompleteCutting}
+          onClose={closeCompletedModal}
+        />
+      )}
       </section>
     </>
   );
