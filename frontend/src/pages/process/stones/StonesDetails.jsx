@@ -322,7 +322,7 @@ const navigate = useNavigate()
                     <span className="w-32 font-semibold">{item.category}</span>
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-white dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.first}
                       readOnly={SingleStone.project_status === "Completed"}
                       onChange={(e) =>
@@ -331,7 +331,7 @@ const navigate = useNavigate()
                     />
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-white dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.second}
                       onChange={(e) =>
                         handlstoneChange(index, "second", e.target.value)
@@ -340,7 +340,7 @@ const navigate = useNavigate()
                     />
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-white dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.third}
                       onChange={(e) =>
                         handlstoneChange(index, "third", e.target.value)
@@ -349,7 +349,7 @@ const navigate = useNavigate()
                     />
                     <input
                       type="text"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm text-white dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={sum}
                       readOnly
                     />
@@ -368,7 +368,7 @@ const navigate = useNavigate()
                   <span className="w-28 font-semibold">Recent Date</span>
                   <input
                     type="text"
-                    className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-white dark:text-gray-800"
+                    className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-black text-black  dark:text-gray-800"
                     readOnly
                     value={new Date(item?.createdAt).toLocaleDateString()}
                   />
@@ -378,10 +378,13 @@ const navigate = useNavigate()
           </div>
         </div>
 
+
+        
+
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-text-black  dark:text-gray-800"
             onClick={handleUpdateStone}
           >
             Completed
