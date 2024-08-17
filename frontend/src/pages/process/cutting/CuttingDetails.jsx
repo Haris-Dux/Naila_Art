@@ -18,7 +18,6 @@ const CuttingDetails = () => {
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
-    project_status: "Completed",
   });
 
   const initialRow = { category: "", color: "", quantity: 0 };
@@ -150,6 +149,33 @@ const CuttingDetails = () => {
       });
   };
 
+
+  const handleUpdateCutting = (e) => {
+    e.preventDefault();
+
+    const data = {
+      id: id,
+    };
+
+   
+    dispatch(Updatecuttingasync({ project_status: "Completed",  id: id,}))
+      .then(() => {
+        closeModal();
+
+        dispatch(GetSingleCutting(data));
+        setcuttingData({
+          id: id,
+         
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+
+  
+
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
@@ -211,12 +237,13 @@ const CuttingDetails = () => {
               <span className="font-medium">Project Status:</span>
               <span className="text-green-600 dark:text-green-300">
                 {" "}
-                Complete
+                {SingleCutting?.project_status}
               </span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span> {SingleCutting?.date}</span>
+              <span>{new Date(SingleCutting?.date).toLocaleDateString()}</span>
+
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>
@@ -247,6 +274,23 @@ const CuttingDetails = () => {
           />
         </div>
 
+
+
+        <div className="flex justify-center items-center">
+          {SingleCutting?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              onClick={handleUpdateCutting}
+            >
+              Update Recived
+            </button>
+          )}
+        </div>
+
+
+        
+
+
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
@@ -255,12 +299,19 @@ const CuttingDetails = () => {
           >
             Completed
           </button>
+
+          {SingleCutting?.project_status === "Completed" && (
+<> 
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Bill
           </button>
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Gate Pass
           </button>
+
+          </>
+
+          )}
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}

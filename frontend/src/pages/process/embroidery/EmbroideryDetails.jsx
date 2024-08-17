@@ -50,11 +50,31 @@ const EmbroideryDetails = () => {
     id: id,
   });
 
-  const handleInputChange = (section, index, field, value) => {
+
+
+  useEffect(() => {
+    if (SingleEmbroidery) {
+      setFormData({
+        shirt: SingleEmbroidery.shirt || [{ category: '', color: '', received: 0 }],
+        duppata: SingleEmbroidery.duppata || [{ category: '', color: '', received: 0 }],
+        trouser: SingleEmbroidery.trouser || [{ category: '', color: '', received: 0}],
+        id: id,
+      });
+    }
+  }, [SingleEmbroidery, id]);
+  
+
+  
+
+
+  const handleInputChange = (category, color, received, index, section) => {
+    console.log('Received:', received);
     setFormData((prevState) => {
-      const updatedSection = prevState[section]?.map((item, idx) =>
-        idx === index ? { ...item, [field]: value } : item
+      const updatedSection = prevState[section].map((item, idx) =>
+        idx === index ? { ...item, category, color, received } : item
       );
+      console.log('Updated Section:', updatedSection); // Log the updated section
+      console.log('Updated Item:', updatedSection[index]); // Log the specific updated item
       return {
         ...prevState,
         [section]: updatedSection,
@@ -113,7 +133,7 @@ const EmbroideryDetails = () => {
     tissue,
   } = SingleEmbroidery;
 
-  const handleUpdate = (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     console.log("formdata", formData);
@@ -127,12 +147,10 @@ const EmbroideryDetails = () => {
       });
   };
 
-  const handleComplete = (event) => {
+  const handleCompleted = (event) => {
     event.preventDefault();
 
-    console.log("formdata", formData);
-
-    dispatch(UpdateEmbroidery({ project_status: "Completed" }))
+    dispatch(UpdateEmbroidery({ project_status: "Completed",id }))
       .then(() => {
         dispatch(GETEmbroiderySIngle({ id }));
       })
@@ -196,11 +214,12 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span>{date}</span>
+              <span>{new Date(date).toLocaleDateString()}</span>
+
             </div>
             <div className="box">
               <span className="font-medium">Per Suit:</span>
-              <span> {per_suit}</span>
+              <span> {per_suit?.toFixed(2)}</span>
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
@@ -233,7 +252,8 @@ const EmbroideryDetails = () => {
 
             <div className="box">
               <span className="font-medium">Received Suit:</span>
-              <span> ---</span>
+              <span>{ SingleEmbroidery?.recieved_suit }</span>
+              
             </div>
             {/* THIRD ROW */}
             <div className="box">
@@ -320,7 +340,7 @@ const EmbroideryDetails = () => {
                 Received Shirts Colors
               </h3>
               <div className="details space-y-2">
-                {shirt?.map((item, index) => (
+                {formData?.shirt?.map((item, index) => (
                   <div
                     key={index}
                     className="details_box flex items-center gap-x-3"
@@ -328,15 +348,26 @@ const EmbroideryDetails = () => {
                     <p>
                       {item.category} - {item.color}
                     </p>
-                    <input
-                      type="text"
-                      className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                      value={item.received}
-                      onChange={(e) =>
-                        handleInputChange("shirt", index, "received", e.target.value)
-                      }
-                      readOnly={project_status === "Completed"}
-                    />
+                   
+
+<input
+
+  key={`shirt-${index}`}
+  name={`shirt-${index}`}
+  className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+  value={item.received}  // Ensure this is tied to the state
+  onChange={(e) =>
+    handleInputChange(
+      item.category,
+      item.color,
+      e.target.value,  // Ensure the correct value is passed
+      index,
+      "shirt"  // Update this accordingly for different sections
+    )
+  }
+  readOnly={project_status === "Completed"}
+/>
+
                   </div>
                 ))}
               </div>
@@ -346,7 +377,7 @@ const EmbroideryDetails = () => {
                 Received Dupatta Colors
               </h3>
               <div className="details space-y-2">
-                {duppata?.map((item, index) => (
+                {formData?.duppata?.map((item, index) => (
                   <div
                     key={index}
                     className="details_box flex items-center gap-x-3"
@@ -356,10 +387,18 @@ const EmbroideryDetails = () => {
                     </p>
                     <input
                       type="text"
+  key={`duppata-${index}`}
+
                       className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
                       value={item.received}
                       onChange={(e) =>
-                        handleInputChange("shirt", index, "received", e.target.value)
+                        handleInputChange(
+                          item.category,
+                          item.color,
+                          e.target.value,
+                          index,
+                          "duppata"
+                        )
                       }
                       readOnly={project_status === "Completed"}
                     />
@@ -372,7 +411,7 @@ const EmbroideryDetails = () => {
                 Received Trousers Colors
               </h3>
               <div className="details space-y-2">
-                {trouser?.map((item, index) => (
+                {formData.trouser?.map((item, index) => (
                   <div
                     key={index}
                     className="details_box flex items-center gap-x-3"
@@ -381,11 +420,19 @@ const EmbroideryDetails = () => {
                       {item.category} - {item.color}
                     </p>
                     <input
+  key={`trouser-${index}`}
+
                       type="text"
                       className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
                       value={item.received}
                       onChange={(e) =>
-                        handleInputChange("shirt", index, "received", e.target.value)
+                        handleInputChange(
+                          item.category,
+                          item.color,
+                          e.target.value,
+                          index,
+                          "trouser"
+                        )
                       }
                       readOnly={project_status === "Completed"}
                     />
@@ -395,32 +442,35 @@ const EmbroideryDetails = () => {
             </div>
           </div>
         </div>
-
+        <div className="flex justify-center items-center">   
+          {project_status !== "Completed" && 
         <button
-          className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-          onClick={handleUpdate}
+          className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+          onClick={handleSubmit}
         >
-          Update Recieved{" "}
+          Update Recived
         </button>
+}
 
+        </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleComplete}
+            onClick={handleCompleted}
           >
             Completed
           </button>
-          {SingleEmbroidery?.project_status === "Completed" && (
-            <>
-              <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-                Generate Bill
-              </button>
-              <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-                Generate Gate Pass
-              </button>
-            </>
-          )}
+          {project_status === "Completed" && 
+          <>  
+          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+            Generate Bill
+          </button>
+          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+            Generate Gate Pass
+          </button>
+          </>
+}
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
