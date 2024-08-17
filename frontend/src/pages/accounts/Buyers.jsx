@@ -84,9 +84,6 @@ const Buyers = () => {
       dispatch(getBuyerForBranchAsync(payload));
 
       setSelectedBranchId(user?.user?.branchId || Branches[0]?.id)
-      console.log('user', user);
-      console.log("user branch", user?.user?.branchId);
-      console.log("branch", Branches[0]?.id);
     }
   }, [user, dispatch, Branches]);
 
@@ -237,7 +234,7 @@ const Buyers = () => {
                     key={branch?.id}
                     className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === branch?.id
                       ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                      : ""
+                      : "dark:text-white"
                       }`}
                     onClick={() => handleBranchClick(branch?.id)}
                   >
@@ -308,23 +305,23 @@ const Buyers = () => {
           <div className="tabs_button">
             <button onClick={() => handleStatusClick('All')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === undefined || paymentStatus === "All"
               ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-              : ""
+              : "dark:text-white"
               }`}>All</button>
 
 
             <button onClick={() => handleStatusClick('Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Paid"
               ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-              : ""
+              : "dark:text-white"
               }`}>Paid</button>
 
             <button onClick={() => handleStatusClick('Unpaid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Unpaid"
               ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-              : ""
+              : "dark:text-white"
               }`}>Unpaid</button>
 
             <button onClick={() => handleStatusClick('Partially Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Partially Paid"
               ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-              : ""
+              : "dark:text-white"
               }`}>Partially Paid</button>
           </div>
         </div>
@@ -449,7 +446,7 @@ const Buyers = () => {
                 </Link>
               ) : (
                 <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-s-lg cursor-not-allowed"
                   disabled
                 >
                   <span className="sr-only">Previous</span>
@@ -498,7 +495,7 @@ const Buyers = () => {
                 </Link>
               ) : (
                 <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-e-lg cursor-not-allowed"
                   disabled
                 >
                   <span className="sr-only">Next</span>
