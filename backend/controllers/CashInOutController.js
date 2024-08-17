@@ -7,15 +7,18 @@ import { CashInOutModel } from "../models/CashInOutModel.js";
 import moment from "moment-timezone";
 import corn from "node-cron";
 import { BranchModel } from "../models/Branch.Model.js";
+import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
     const { name } = req.body;
     if (!name) throw new Error("Buyer Name Required");
     const projection = "name phone _id";
+    const projectionForProcess = "partyName _id serial_No"
     const Data = await Promise.all([
       BuyersModel.find({ name: { $regex: name, $options: "i" } }, projection),
       SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
+      processBillsModel.find({ partyName: { $regex: name, $options: "i" }}, projectionForProcess )
     ]);
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
@@ -149,7 +152,7 @@ export const cashOut = async (req, res, next) => {
       const { cash, partyId, branchId, payment_Method, date } = req.body;
       if (!cash || !partyId || !payment_Method || !date || !branchId)
         throw new Error("All Fields Required");
-      const userDataToUpdate = await SellersModel.findById(partyId);
+      const userDataToUpdate = await SellersModel.findById(partyId) || await processBillsModel.findById(partyId) ;
 
       if (userDataToUpdate.virtual_account.total_balance === 0)
         throw new Error("Balance Cleared");
