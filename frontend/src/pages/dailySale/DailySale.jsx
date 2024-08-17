@@ -15,15 +15,12 @@ const DailySale = () => {
     const { user } = useSelector((state) => state.auth);
     const { Branches } = useSelector((state) => state.InStock);
     const { loading, DailySaleHistory } = useSelector((state) => state.DailySale);
-    // console.log('DailySaleHistory', DailySaleHistory);
 
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
     const [selectedBranchId, setSelectedBranchId] = useState();
 
-
     const [searchDate, setSearchDate] = useState('');
-    console.log('searchDate', searchDate);
 
 
     const filteredData = searchText ? DailySaleHistory?.dailySaleHistory?.filter((item) =>

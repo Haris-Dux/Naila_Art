@@ -34,7 +34,6 @@ export const getBuyerForBranchAsync = createAsyncThunk("buyers/get", async (data
 export const getBuyerByIdAsync = createAsyncThunk("buyers/getById", async (id) => {
     try {
         const response = await axios.post(getBuyerById, id);
-        console.log(response.data);
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);

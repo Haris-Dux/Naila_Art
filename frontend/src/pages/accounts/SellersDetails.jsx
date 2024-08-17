@@ -27,7 +27,6 @@ const SellersDetails = () => {
     const dispatch = useDispatch();
 
     const { loading, SellerById } = useSelector((state) => state.Seller);
-    console.log('SellerById', SellerById);
 
     useEffect(() => {
         if (id) {

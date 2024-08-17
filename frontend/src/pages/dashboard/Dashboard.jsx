@@ -169,13 +169,13 @@ const Dashboard = () => {
 
                         {/* ---------------- NAVBAR - RIGHT ---------------- */}
                         <div className="flex items-center gap-2 lg:order-2">
-                            <button className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500">
+                            <Link to="/dashboard/generate-bill" className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500">
                                 Generate Bill
-                            </button>
+                            </Link>
 
-                            <button className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-4 py-2.5 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100">
+                            {/* <button className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-4 py-2.5 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100">
                                 Return
-                            </button>
+                            </button> */}
                             {/* <p className="text-xl capitalize mx-5 text-gray-900 dark:text-gray-100">{user?.name}</p> */}
 
                             <div className="relative inline-block text-left">
@@ -202,7 +202,7 @@ const Dashboard = () => {
                                     ref={menuRef}
                                 >
                                     <div className="py-1" role="none">
-                                        <button
+                                        {/* <button
                                             onClick={handleThemeChange}
                                             className="text-gray-700 block px-4 w-full py-2 hover:bg-gray-200"
                                             id="menu-item-1"
@@ -214,7 +214,7 @@ const Dashboard = () => {
                                             ) : (
                                                 <span className="flex text-md gap-2"><Sun size={20} />Light Mode</span>
                                             )}
-                                        </button>
+                                        </button> */}
                                         <button
                                             onClick={handleLogout}
                                             className="text-red-700 block w-full px-4 py-2 text-left hover:bg-gray-200"
@@ -424,7 +424,9 @@ const Dashboard = () => {
                 < main className="ml-0 md:ml-56 lg:ml-56 xl:ml-64 h-auto pt-16 pb-10 bg-white dark:bg-gray-900" >
                     <Outlet />
                 </ main>
-            </div >
+            </div>
+
+
         </>
     );
 };
