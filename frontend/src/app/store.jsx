@@ -14,6 +14,7 @@ import BuyerSlice from "../features/BuyerSlice";
 import GenerateBillSlice from "../features/GenerateBillSlice";
 import SellerSlice from "../features/SellerSlice";
 import CashInOutSlice from "../features/CashInOutSlice";
+import ProcessBillSlice from "../features/ProcessBillSlice";
 
 export const store = configureStore({
   reducer: {
@@ -32,5 +33,6 @@ export const store = configureStore({
     BuyerBills: GenerateBillSlice,
     Seller: SellerSlice,
     CashInOut: CashInOutSlice,
+    ProcessBill: ProcessBillSlice,
   },
 });
