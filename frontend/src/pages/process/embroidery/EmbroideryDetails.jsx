@@ -7,10 +7,14 @@ import {
 } from "../../../features/EmbroiderySlice";
 import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
+import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  
   const navigate = useNavigate();
 
   const { loading, SingleEmbroidery } = useSelector(
@@ -141,6 +145,8 @@ const EmbroideryDetails = () => {
     dispatch(UpdateEmbroidery(formData))
       .then(() => {
         dispatch(GETEmbroiderySIngle({ id }));
+        closeUpdateRecievedModal()
+
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -153,6 +159,7 @@ const EmbroideryDetails = () => {
     dispatch(UpdateEmbroidery({ project_status: "Completed",id }))
       .then(() => {
         dispatch(GETEmbroiderySIngle({ id }));
+        closeCompletedModal()
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -189,6 +196,32 @@ const EmbroideryDetails = () => {
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };
+
+
+  const handleCompletedClick = () => {
+    
+    setIsCompletedConfirmOpen(true);
+  };
+
+  const closeCompletedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleUpdateReceivedClick = () => {
+    console.log("Update Received button clicked");
+    setIsUpdateReceivedConfirmOpen(true);
+  };
+
+  const closeUpdateRecievedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+
+
 
   return (
     <>
@@ -252,7 +285,7 @@ const EmbroideryDetails = () => {
 
             <div className="box">
               <span className="font-medium">Received Suit:</span>
-              <span>{ SingleEmbroidery?.recieved_suit }</span>
+              <span>{ SingleEmbroidery?.recieved_suit } ---</span>
               
             </div>
             {/* THIRD ROW */}
@@ -346,15 +379,15 @@ const EmbroideryDetails = () => {
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color}
+                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
                     </p>
                    
 
 <input
-
+type="text"
   key={`shirt-${index}`}
-  name={`shirt-${index}`}
-  className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+
+  className="py-1  border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
   value={item.received}  // Ensure this is tied to the state
   onChange={(e) =>
     handleInputChange(
@@ -383,7 +416,7 @@ const EmbroideryDetails = () => {
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color}
+                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
                     </p>
                     <input
                       type="text"
@@ -417,7 +450,7 @@ const EmbroideryDetails = () => {
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color}
+                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
                     </p>
                     <input
   key={`trouser-${index}`}
@@ -446,7 +479,7 @@ const EmbroideryDetails = () => {
           {project_status !== "Completed" && 
         <button
           className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
-          onClick={handleSubmit}
+          onClick={handleUpdateReceivedClick}
         >
           Update Recived
         </button>
@@ -457,7 +490,7 @@ const EmbroideryDetails = () => {
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompleted}
+            onClick={handleCompletedClick}
           >
             Completed
           </button>
@@ -466,11 +499,12 @@ const EmbroideryDetails = () => {
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Bill
           </button>
+          </>
+        }
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Gate Pass
           </button>
-          </>
-}
+  
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -603,6 +637,30 @@ const EmbroideryDetails = () => {
             </div>
           </div>
         )}
+
+
+
+{isUpdateReceivedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Update"
+          message="Are you sure you want to update the received items?"
+          onConfirm={handleSubmit}
+          onClose={closeUpdateRecievedModal}
+        />
+      )}
+
+{isCompletedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Complete"
+          message="Are you sure you want to Complete ?"
+          onConfirm={handleCompleted}
+          onClose={closeCompletedModal}
+        />
+      )}
+
+
+
+
       </section>
     </>
   );

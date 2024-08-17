@@ -7,12 +7,17 @@ import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { createCutting } from "../../../features/CuttingSlice";
+import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CalendarDetails = () => {
   const { id } = useParams();
   const { loading, SingleCalender } = useSelector((state) => state.Calender);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  
+
 
   const [CuttingData, setCuttingData] = useState({
     serial_No: "",
@@ -33,7 +38,7 @@ const CalendarDetails = () => {
   };
 
   const [CalenderData, setCalenderData] = useState({
-    id,
+    id:id,
     r_quantity: "",
   });
 
@@ -51,6 +56,15 @@ const CalendarDetails = () => {
       date: SingleCalender?.date ? SingleCalender?.date?.split("T")[0] : "",
       partyName: SingleCalender?.partyName || "",
       embroidery_Id: SingleCalender?.id || "",
+    });
+  }, [SingleCalender]);
+
+
+  useEffect(() => {
+    setCalenderData({
+      id:id,
+      r_quantity: SingleCalender?.r_quantity || "",
+      
     });
   }, [SingleCalender]);
 
@@ -85,9 +99,8 @@ const CalendarDetails = () => {
     dispatch(UpdateCalenderAsync({ project_status: "Completed", id: id }))
       .then(() => {
         dispatch(GetSingleCalender(data));
-        setCalenderData({
-          id: id,
-        });
+        closeCompletedModal()
+       
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -101,9 +114,9 @@ const CalendarDetails = () => {
       id: id,
     };
 
-    dispatch(UpdateCalenderAsync(CalenderData))
-      .then(() => {
+    dispatch(UpdateCalenderAsync(CalenderData)).then(() => {
         dispatch(GetSingleCalender(data));
+        closeUpdateRecievedModal()
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -135,6 +148,32 @@ const CalendarDetails = () => {
       </section>
     );
   }
+
+
+  const handleCompletedClick = () => {
+    setIsCompletedConfirmOpen(true);
+  };
+
+  const closeCompletedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleUpdateReceivedClick = () => {
+    setIsUpdateReceivedConfirmOpen(true);
+  };
+
+  const closeUpdateRecievedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+
+
+
+
 
   console.log("selectedDetails", SingleCalender);
 
@@ -213,7 +252,7 @@ const CalendarDetails = () => {
           {SingleCalender?.project_status !== "Completed" && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
-              onClick={handleUpdateCalender}
+              onClick={handleUpdateReceivedClick}
             >
               Update Recived
             </button>
@@ -223,7 +262,7 @@ const CalendarDetails = () => {
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompleteCalender}
+            onClick={handleCompletedClick}
           >
             Completed
           </button>
@@ -232,11 +271,12 @@ const CalendarDetails = () => {
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Bill
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
+       
           </>
 )}
+   <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+            Generate Gate Pass
+          </button>
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -367,6 +407,25 @@ const CalendarDetails = () => {
             </div>
           </div>
         )}
+
+
+{isUpdateReceivedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Update"
+          message="Are you sure you want to update the received items?"
+          onConfirm={handleUpdateCalender}
+          onClose={closeUpdateRecievedModal}
+        />
+      )}
+
+{isCompletedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Complete"
+          message="Are you sure you want to Complete ?"
+          onConfirm={handleCompleteCalender}
+          onClose={closeCompletedModal}
+        />
+      )}
       </section>
     </>
   );
