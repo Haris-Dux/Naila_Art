@@ -178,13 +178,13 @@ const EmbroideryDetails = () => {
     e.preventDefault();
 
     dispatch(createCalender(CalenderData))
-      .then(() => {
+      .then((res) => {
+        if (res.payload.success === true) {
         closeModal(); // Close modal after submission
         navigate("/dashboard/calendar");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+     
   };
 
   const openModal = () => {

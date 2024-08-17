@@ -10,6 +10,7 @@ import {
 
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import {GetAllLaceForEmroidery} from  '../../../features/InStockSlice'
+import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -18,15 +19,12 @@ const StonesDetails = () => {
   // const { stitchingEmbroidery } = useSelector((state) => state.stitching);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
 
   console.log("SingleStone data", SingleStone);
 const navigate = useNavigate()
   const dispatch = useDispatch();
-
-
-
-
-
 
 
   useEffect(() => {
@@ -44,7 +42,7 @@ const navigate = useNavigate()
       };
       dispatch(GETEmbroiderySIngle(data));
     }
-  }, [SingleStone]);
+  }, [id,SingleStone]);
 
 
   const initialRow = { category: "", color: "", quantity_in_no: 0 };
@@ -65,7 +63,6 @@ const navigate = useNavigate()
 
   const [StoneData, setStoneData] = useState({
     id: SingleStone.id,
-    project_status: "Completed",
     category_quantity: SingleStone?.category_quantity || [
       {
         id: "",
@@ -80,7 +77,6 @@ const navigate = useNavigate()
     if (SingleStone) {
       setStoneData({
         id: SingleStone.id,
-        project_status: "Completed",
         category_quantity: SingleStone?.category_quantity?.map((item) => ({
           id: item.id,
           first: item.recieved_Data?.first?.quantity || 0,
@@ -205,6 +201,26 @@ const navigate = useNavigate()
           id: id,
         };
         dispatch(GetSingleStone(data));
+        closeUpdateRecievedModal()
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+
+  const handleCompleteStone = (e) => {
+    e.preventDefault();
+
+
+    dispatch(UpdateStoneAsync({  id: SingleStone?.id,
+      project_status: "Completed",}))
+      .then(() => {
+        const data = {
+          id: id,
+        };
+        dispatch(GetSingleStone(data));
+        closeCompletedModal()
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -238,6 +254,31 @@ const navigate = useNavigate()
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };
+
+
+  const handleCompletedClick = () => {
+    
+    setIsCompletedConfirmOpen(true);
+  };
+
+  const closeCompletedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleUpdateReceivedClick = () => {
+    console.log("Update Received button clicked");
+    setIsUpdateReceivedConfirmOpen(true);
+  };
+
+  const closeUpdateRecievedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+
 
 
   if (loading) {
@@ -379,13 +420,26 @@ const navigate = useNavigate()
         </div>
 
 
+
+        <div className="flex justify-center items-center">
+          {SingleStone?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              onClick={handleUpdateReceivedClick}
+            >
+              Update Recived
+            </button>
+          )}
+        </div>
+
+
         
 
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-text-black  dark:text-gray-800"
-            onClick={handleUpdateStone}
+            onClick={handleCompletedClick}
           >
             Completed
           </button>
@@ -753,6 +807,24 @@ const navigate = useNavigate()
             </div>
           </div>
         </div>
+      )}
+
+{isUpdateReceivedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Update"
+          message="Are you sure you want to update the received items?"
+          onConfirm={handleUpdateStone}
+          onClose={closeUpdateRecievedModal}
+        />
+      )}
+
+{isCompletedConfirmOpen && (
+        <ConfirmationModal
+          title="Confirm Complete"
+          message="Are you sure you want to Complete?"
+          onConfirm={handleCompleteStone}
+          onClose={closeCompletedModal}
+        />
       )}
     </>
   );

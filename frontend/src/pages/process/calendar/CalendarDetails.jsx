@@ -82,13 +82,13 @@ const CalendarDetails = () => {
     console.log("cutting", CuttingData);
 
     dispatch(createCutting(CuttingData))
-      .then(() => {
+      .then((res) => {
+        if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/cutting");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+     
   };
 
   const handleCompleteCalender = (e) => {
