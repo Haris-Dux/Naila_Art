@@ -6,6 +6,8 @@ import { DailySaleModel } from "../models/DailySaleModel.js";
 import { BuyersModel } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import generatePDF from "../utils/GeneratePdf.js";
+
 
 export const generateBuyersBillandAddBuyer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -153,7 +155,9 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         case total_credit === 0 && total_balance === total_debit:
           status = "Unpaid";
           break;
-      }
+      };
+
+      if(total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
       
       const virtualAccountData = {
         total_debit,
@@ -458,7 +462,10 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
         case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
-      }
+      };
+
+      if(new_total_balance < 0) throw new Error("Invalid Balance Amount For This Party");
+
       
       const virtualAccountData = {
         total_debit:new_total_debit,
@@ -519,6 +526,23 @@ export const generateBillForOldbuyer = async (req,res,nex) => {
     session.endSession();
   }
 };
+
+export const generatePdfFunction = async (req, res, next) => {
+  try {
+    const data = req.body;
+    const pdfBuffer = await generatePDF(data.modifiedBillData);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition',`attachment; filename="${data.modifiedBillData.name}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    return res.status(200).end(pdfBuffer);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 

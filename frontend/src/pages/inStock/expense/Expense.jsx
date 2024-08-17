@@ -4,31 +4,36 @@ import { Link, useSearchParams } from "react-router-dom";
 import { GetAllBranches, GetAllExpense } from "../../../features/InStockSlice";
 import { IoAdd } from "react-icons/io5";
 import ExpenseModal from "../../bills/Modals/ExpenseModal";
+
+
 const Expense = () => {
   const dispatch = useDispatch();
+
   const [search, setSearch] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [messageId, setMessageId] = useState();
   const [selectedBranchId, setSelectedBranchId] = useState(null);
-
+  console.log('selectedBranchId', selectedBranchId);
 
   const { user } = useSelector((state) => state.auth);
   let branchId = user?.user?.branchId;
 
   const { Branches } = useSelector((state) => state.InStock);
+  console.log('Branches', Branches);
   const { loading, Expense } = useSelector((state) => state.InStock);
+  console.log('Expense', Expense);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const [expenseModal, setexpenseModal] = useState(false);
 
 
-  console.log('expensemodal',expenseModal)
+  console.log('expensemodal', expenseModal)
 
 
   const handleTabClick = () => {
     setexpenseModal(!expenseModal);
-};
+  };
 
 
 
@@ -47,15 +52,22 @@ const Expense = () => {
 
   useEffect(() => {
     let id = user?.user?.id;
-    dispatch(GetAllBranches({ id }));
+    if (id) {
+      dispatch(GetAllBranches({ id }));
+    }
+  }, [dispatch]);
 
-    if (user?.user?.branchId) {
-      dispatch(GetAllExpense({ branchId, page }));
+
+  useEffect(() => {
+    if (Branches.length > 0) {
+      const payload = {
+        page: 1,
+        // branchId: user?.user?.branchId || Branches[0]?.id,
+      }
+      dispatch(GetAllExpense(payload));
     }
-    else {
-      dispatch(GetAllExpense({ page }));
-    }
-  }, [page, dispatch]);
+
+  }, [page, dispatch, Branches]);
 
   const openModal = (msgId) => {
     setMessageId(msgId);
@@ -136,40 +148,38 @@ const Expense = () => {
           </h1>
 
           {/* <!-- search bar --> */}
+          <div className="flex items-center gap-3">
+            <button type='button' onClick={handleTabClick} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+              <IoAdd size={22} className='text-white' />
+            </button>
 
-<div className="flex items-center gap-3"> 
+            <div className="search_bar mr-2">
+              <div className="relative mt-4 md:mt-0">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <svg
+                    className="w-5 h-5 text-gray-800 dark:text-gray-200"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                  </svg>
+                </span>
 
-          <button type='button' onClick={handleTabClick} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                        <IoAdd size={22} className='text-white' />
-                    </button>
-
-          <div className="search_bar mr-2">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by name"
-                value={search}
-                onChange={handleSearch}
-              />
+                <input
+                  type="text"
+                  className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                  placeholder="Search by name"
+                  value={search}
+                  onChange={handleSearch}
+                />
+              </div>
             </div>
-          </div>
           </div>
         </div>
 
@@ -183,7 +193,7 @@ const Expense = () => {
               <>
                 <Link
                   to={`/dashboard/expense?page=${1}`}
-                  className={`border border-gray-500   px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === ""
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === null || selectedBranchId === "all" || selectedBranchId === ""
                     ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
                     : ""
                     }`}
@@ -443,7 +453,7 @@ const Expense = () => {
         </div>
       )}
 
-{expenseModal && <ExpenseModal isOpen={expenseModal} closeModal={() => setexpenseModal(false)} />}
+      {expenseModal && <ExpenseModal isOpen={expenseModal} closeModal={() => setexpenseModal(false)} />}
 
 
 
