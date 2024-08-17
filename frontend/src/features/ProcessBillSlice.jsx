@@ -3,9 +3,22 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
 //API URL
+const generateProcessBill = "/api/processBillRouter/generateProcessBill";
 const getAllProcessBill = "/api/processBillRouter/getAllProcessBills";
 const getProcessBillById = "/api/processBillRouter/getProcessillById";
 
+
+
+// GENERATE PROCESS BILL ASYNC
+export const GenerateProcessBillAsync = createAsyncThunk("generate/processBills", async (data) => {
+    try {
+        const response = await axios.post(generateProcessBill, data);
+        return response.data;
+    } catch (error) {
+        console.log(error.response.data.error);
+    }
+}
+)
 
 // GET ALL PROCESS BILL ASYNC
 export const GetAllProcessBillAsync = createAsyncThunk("getAll/processBills", async (data) => {
@@ -39,6 +52,8 @@ export const GetProcessBillByIdAsync = createAsyncThunk("getById/processBills", 
 )
 
 
+
+
 const initialState = {
     ProcessBills: [],
     ProcessBillsDetails: [],
@@ -53,6 +68,14 @@ const ProcessBillSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+
+            // GENERATE PROCESS BILL
+            .addCase(GenerateProcessBillAsync.pending, (state, action) => {
+                state.loading = true;
+            })
+            .addCase(GenerateProcessBillAsync.fulfilled, (state, action) => {
+                state.loading = false;
+            })
 
             // GET ALL PROCESS BILL
             .addCase(GetAllProcessBillAsync.pending, (state, action) => {
