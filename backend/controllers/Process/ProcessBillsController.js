@@ -106,40 +106,42 @@ export const getProcessillById = async (req, res, next) => {
 };
 
 export const getAllProcessBills = async (req, res, next) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = 2;
-    let search = req.query.search || "";
-    let category = req.query.category || "";
 
-    let query = {};
+    try {
+      const page = parseInt(req.query.page) || 1;
+      let limit = 6;
+      let search = req.query.search || "";
+      let category = req.query.category || "";
+  
+      let query = {};
+  
+      if (category) {
+        query.process_Category = category
+      };
+  
+      if (search) {
+        query.serial_No = search
+      };
+  
+      const totalProcessBills = await processBillsModel.countDocuments(query);
+  
+      const processBills = await processBillsModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+  
+      const response = {
+        processBills,
+        page,
+        totalProcessBills,
+        totalPages: Math.ceil(totalProcessBills / limit)
+      };
+      
+      setMongoose();
+  
+      return res.status(200).json(response);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
 
-    if (category) {
-      query.process_Category = category
-    };
-
-    if (search) {
-      query.serial_No = { $regex: search }
-    };
-
-    const totalProcessBills = await processBillsModel.countDocuments(query);
-
-    const processBills = await processBillsModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-
-    const response = {
-      processBills,
-      page,
-      totalProcessBills,
-      totalPages: Math.ceil(totalProcessBills / limit)
-    };
-
-    setMongoose();
-
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
