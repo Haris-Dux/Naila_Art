@@ -16,7 +16,6 @@ const ProcessBills = () => {
     const page = parseInt(searchParams.get("page") || "1", 10);
 
     const { loading, ProcessBills } = useSelector((state) => state.ProcessBill);
-    console.log('ProcessBills', ProcessBills);
 
     useEffect(() => {
         const payload = {
@@ -40,10 +39,12 @@ const ProcessBills = () => {
 
     const handleSearch = (e) => {
         const value = e.target.value;
+        const searchValue = value.length > 0 ? Number(value) : null;
+
         setSearch(value);
 
         const payload = {
-            search: value.length > 0 ? value : null,
+            search: searchValue,
             category: selectedCategory,
             page: 1,
         };
@@ -192,35 +193,41 @@ const ProcessBills = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {ProcessBills?.processBills?.map((data, index) => (
-                                    <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                        <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                                            scope="row"
-                                        >
-                                            {data?.serial_No}
-                                        </th>
-                                        <td className="px-6 py-4">
-                                            {data?.partyName}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {data?.design_no}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {data?.date}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {data?.T_Quantity} Suits
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {data?.status}
-                                        </td>
-                                        <td className="pl-10 py-4">
-                                            <Link to={`/dashboard/process-details/${data?.id}`}>
-                                                <FaEye size={20} className='cursor-pointer' />
-                                            </Link>
-                                        </td>
+                                {ProcessBills && ProcessBills?.processBills?.length > 0 ? (
+                                    ProcessBills?.processBills?.map((data, index) => (
+                                        <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                                scope="row"
+                                            >
+                                                {data?.serial_No}
+                                            </th>
+                                            <td className="px-6 py-4">
+                                                {data?.partyName}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data?.design_no}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data?.date}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data?.T_Quantity} Suits
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {data?.status}
+                                            </td>
+                                            <td className="pl-10 py-4">
+                                                <Link to={`/dashboard/process-details/${data?.id}`}>
+                                                    <FaEye size={20} className='cursor-pointer' />
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="w-full flex justify-center items-center">
+                                        <td className='text-xl mt-3'>No Data Available</td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>

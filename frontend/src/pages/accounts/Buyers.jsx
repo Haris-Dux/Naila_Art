@@ -169,7 +169,7 @@ const Buyers = () => {
     const payload = {
       id: user?.user?.id,
       page: 1,
-      search: value || undefined,
+      search: value.length > 0 ? value : undefined,
       status: paymentStatus !== "All" ? paymentStatus : undefined,
       branchId: selectedBranchId
     };
