@@ -22,10 +22,12 @@ export const addExpense = async (req, res, next) => {
 
     const existingExpenseData = await ExpenseModel.findOne({ branchId });
     let expenseData = { name, reason, Date, rate, serial_no };
+    //UPDATING DAILY SALE
+    existingDailySaleData.saleData.totalExpense += rate;
+    existingDailySaleData.saleData.totalCash -= rate;
+    if(existingDailySaleData.saleData.totalCash < 0) throw new Error('Not Enough Cash')
     if (existingExpenseData) {
       existingExpenseData.brannchExpenses.push(expenseData);
-      existingDailySaleData.saleData.totalExpense += rate;
-      existingDailySaleData.saleData.totalSale += rate;
       await Promise.all([
         existingExpenseData.save(),
         existingDailySaleData.save(),
@@ -33,6 +35,7 @@ export const addExpense = async (req, res, next) => {
     } else {
       await Promise.all([
         ExpenseModel.create({ branchId, brannchExpenses: [expenseData] }),
+        existingDailySaleData.save(),
       ]);
     }
     return res.status(200).json({ success: true, message: "Expense Added" });

@@ -220,7 +220,7 @@ const DailySale = () => {
                                         Total Sale
                                     </th>
                                     <th className="px-6 py-3" scope="col">
-                                        Total Sale
+                                        Total Expense
                                     </th>
                                     <th className="px-6 py-3" scope="col">
                                         Date
