@@ -119,7 +119,7 @@ export const getAllProcessBills = async (req, res, next) => {
       };
   
       if (search) {
-        query.serial_No = { $regex: search }
+        query.serial_No = search
       };
   
       const totalProcessBills = await processBillsModel.countDocuments(query);
