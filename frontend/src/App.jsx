@@ -45,6 +45,7 @@ import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
 import PreviewBill from "./pages/generateBills/PreviewBill";
+import ProcessDetails from "./pages/bills/ProcessDetails";
 
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
             {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
             <Route path="processbills" element={<ProcessBills />} />
+            <Route path="process-details/:id" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
 
             {/* ACCOUNTS ROUTES */}
