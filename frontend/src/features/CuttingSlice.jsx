@@ -92,6 +92,23 @@ export const GetSingleCutting = createAsyncThunk(
   }
 );
 
+
+
+export const GetColorEmroidery = createAsyncThunk(
+  "Cutting/GetSingle",
+  async (id) => {
+    try {
+      const response = await axios.post(getSingleCutting, id);
+      // toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   Cutting: [],
