@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 //API URL
 const getaccessories = "/api/stock/accessories/getAllAccesoriesInStock";
+const updateaccessories = "/api/stock/accessories/updateAllAccesoriesInStock";
 const getBags = "/api/stock/bags/getAllBagsAndBox";
 const getBase = "/api/stock/base/getAllBases";
 const getBaseforEmroidery = '/api/stock/base/getAllBasesForEmbroidery'
@@ -84,7 +85,7 @@ export const GetAllBase = createAsyncThunk("Base/Get", async (data) => {
 });
 
 export const GetAllBaseforEmroidery = createAsyncThunk("BaseforEmroifery/Get", async (data) => {
-  
+
   try {
     const response = await axios.post(`${getBaseforEmroidery}`);
     // toast.success(response.data.message);
@@ -123,7 +124,7 @@ export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
 });
 
 export const GetAllLaceForEmroidery = createAsyncThunk("LaceForEmroidery/Get", async () => {
- 
+
   try {
     const response = await axios.post(GetLaceForEmroidery);
     // toast.success(response.data.message);
@@ -146,22 +147,32 @@ export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
   }
 });
 
-export const GetAllaccessories = createAsyncThunk(
-  "accessories/Get",
-  async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-    try {
-      const response = await axios.post(`${getaccessories}?&page=${data.page}${searchQuery}`);
-      // toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
-    }
+export const GetAllaccessories = createAsyncThunk("accessories/Get", async (data) => {
+  const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+  try {
+    const response = await axios.post(`${getaccessories}?&page=${data.page}${searchQuery}`);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
   }
+}
+);
+
+export const UpdateUsedAccessories = createAsyncThunk("usedAccessories/Get", async (data) => {
+  try {
+    const response = await axios.post(updateaccessories, data);
+    // toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data.error);
+    toast.error(error.response.data.error);
+  }
+}
 );
 
 export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
@@ -210,9 +221,11 @@ export const GetAllBranches = createAsyncThunk("Branches/GetAll", async (id) => 
 
 // INITIAL STATE
 const initialState = {
+  SuitLoading: false,
+  UsedAccessoriesLoading: false,
   Suit: [],
   Base: [],
-  BaseforEmroidery:[],
+  BaseforEmroidery: [],
   BaseCategories: [],
   SuitCategories: [],
   Lace: [],
@@ -241,6 +254,13 @@ const InStockSlic = createSlice({
       .addCase(GetAllaccessories.fulfilled, (state, action) => {
         state.loading = false;
         state.accessories = action.payload;
+      })
+
+      .addCase(UpdateUsedAccessories.pending, (state, action) => {
+        state.UsedAccessoriesLoading = true;
+      })
+      .addCase(UpdateUsedAccessories.fulfilled, (state, action) => {
+        state.UsedAccessoriesLoading = false;
       })
 
       .addCase(GetAllBags.pending, (state, action) => {
@@ -285,7 +305,7 @@ const InStockSlic = createSlice({
       })
 
 
-      
+
 
       .addCase(GetAllLace.pending, (state, action) => {
         state.loading = true;
@@ -319,11 +339,11 @@ const InStockSlic = createSlice({
       //   state.SingleBranchExpense = action.payload;
       // })
 
-      .addCase(AddSuit.pending, (state, action) => {
-        state.loading = true;
+      .addCase(AddSuit.pending, (state) => {
+        state.SuitLoading = true;
       })
       .addCase(AddSuit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.SuitLoading = false;
       })
 
       .addCase(GetAllBranches.pending, (state, action) => {
@@ -345,7 +365,7 @@ const InStockSlic = createSlice({
 
 
 
-      
+
   },
 });
 

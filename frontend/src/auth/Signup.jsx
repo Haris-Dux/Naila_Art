@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createuserAsync } from "../features/authSlice";
 
 const Signup = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   const { loading } = useSelector((state) => state.auth)
@@ -19,12 +20,15 @@ const Signup = () => {
     e.preventDefault();
     console.log(formData);
     dispatch(createuserAsync(formData))
-      .then(() => {
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-        });
+      .then((res) => {
+        if (res.payload.message === "Sign Up Successful!") {
+          setFormData({
+            name: "",
+            email: "",
+            password: "",
+          });
+          navigate("/")
+        }
       })
   };
 
