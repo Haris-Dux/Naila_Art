@@ -7,16 +7,19 @@ import {
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
-import { createStone } from "../../../features/stoneslice";
+import { GetColorEmroidery, createStone } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleCutting } = useSelector((state) => state.Cutting);
+  const {  color } = useSelector((state) => state.stone);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  const [serial_No,setserial_No] = useState('')
 
   const [cuttingData, setcuttingData] = useState({
     id,
@@ -44,6 +47,7 @@ const CuttingDetails = () => {
       embroidery_Id: SingleCutting?.id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
+   
   }, [SingleCutting]);
 
   useEffect(() => {
@@ -113,6 +117,14 @@ const CuttingDetails = () => {
     };
     dispatch(GetSingleCutting(data));
   }, [id, dispatch]);
+
+
+
+  useEffect(() => {
+    
+    dispatch(GetColorEmroidery({id:formData?.serial_No}));
+  }, [formData]);
+
 
   const handleInputChangeCutting = (e) => {
     const { name, value } = e.target;
@@ -212,6 +224,10 @@ const CuttingDetails = () => {
     setIsCompletedConfirmOpen(false);
     document.body.style.overflow = "auto";
   };
+
+
+
+
 
 
 
