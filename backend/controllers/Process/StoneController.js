@@ -1,5 +1,7 @@
 import { StoneModel } from "../../models/Process/StoneModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+
 
 export const addStone = async (req, res, next) => {
   try {
@@ -153,3 +155,18 @@ export const updateStone = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const getColorsForCurrentEmbroidery = async(req,res,next) => {
+  try {
+    const {serial_No} = req.body;
+    if(!serial_No) throw new Error("Serial No required");
+    const embroidery = await EmbroideryModel.findOne({serial_No});
+    if(embroidery.length == 0) throw new Error("No Data found On This serial Number");
+    const allItems = [...embroidery.shirt, ...embroidery.duppata, ...embroidery.trouser];
+   console.log(allItems);
+   const colors = [...new Set(allItems.map(item => item.color))];
+    return res.status(200).json({ success: true, colors: colors });
+  } catch (error) {
+    return res.status(500).json({error:error.message})
+  }
+}
