@@ -16,6 +16,7 @@ const financialDetails = new mongoose.Schema({
     status: {
       type: String,
       enum: ["Paid", "Unpaid", "Partially Paid"],
+      default: "Unpaid"
     },
   });
   
@@ -67,11 +68,6 @@ const processBillsSchema = new mongoose.Schema(
     },
     T_Quantity: {
       type: Number,
-    },
-    status: {
-      type: String,
-      enum: ["Paid", "Unpaid", "Partially Paid"],
-      default:"Unpaid"
     },
     rate: {
       type: Number,
