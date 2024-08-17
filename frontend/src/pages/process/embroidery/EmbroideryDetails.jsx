@@ -8,7 +8,6 @@ import {
 import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
 const EmbroideryDetails = () => {
-
   const { id } = useParams();
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
@@ -37,23 +36,6 @@ const EmbroideryDetails = () => {
       T_Quantity: SingleEmbroidery?.T_Quantity || "",
 
       embroidery_Id: SingleEmbroidery?.id || "",
-
-    const { id } = useParams();
-    const dispatch = useDispatch()
-    const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
-
-    const { loading, SingleEmbroidery } = useSelector((state) => state.Embroidery);
-
-    const [CalenderData, setCalenderData] = useState({
-        serial_No: '',
-        partyName: '',
-        design_no: '',
-        date: '',  // Ensure this is initialized correctly
-        T_Quantity: '',
-        rate: 0,
-        embroidery_Id: SingleEmbroidery?.embroidery_Id || "",
-
     });
   }, [SingleEmbroidery]);
 
@@ -67,58 +49,6 @@ const EmbroideryDetails = () => {
     trouser: [initialTrouserRow],
     id: id,
   });
-=======
-    useEffect(() => {
-        console.log(SingleEmbroidery.date);
-        setCalenderData({
-            serial_No: SingleEmbroidery?.serial_No || '',
-            design_no: SingleEmbroidery?.design_no || '',
-            date: SingleEmbroidery?.date ? SingleEmbroidery?.date?.split('T')[0] : '',
-            T_Quantity: SingleEmbroidery?.T_Quantity || '',
-
-            embroidery_Id: SingleEmbroidery?.id || "",
-        })
-    }, [SingleEmbroidery])
-
-
-    const initialShirtRow = { category: "", color: "", received: 0 };
-    const initialDupattaRow = { category: "", color: "", received: 0 };
-    const initialTrouserRow = { category: "", color: "", received: 0 };
-
-    const [formData, setFormData] = useState({
-        shirt: [initialShirtRow],
-        duppata: [initialDupattaRow],
-        trouser: [initialTrouserRow],
-        project_status: "Completed",
-        id: id
-    });
-
-    const handleInputChange = (category, color, received, index, section) => {
-        setFormData((prevState) => {
-            const updatedSection = prevState[section]?.map((item, idx) =>
-                idx === index ? { ...item, category, color, received } : item
-            );
-            return {
-                ...prevState,
-                [section]: updatedSection,
-            };
-        });
-    };
-
-
-    useEffect(() => {
-        const data = {
-            id: id
-        }
-        dispatch(GETEmbroiderySIngle(data))
-    }, [id, dispatch])
-
-
-
-    if (loading) {
-        return (
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
-
 
 
 
@@ -285,7 +215,6 @@ const EmbroideryDetails = () => {
             <div className="box">
               <span className="font-medium">Date:</span>
               <span>{new Date(date).toLocaleDateString()}</span>
-
 
             </div>
             <div className="box">
@@ -680,202 +609,4 @@ const EmbroideryDetails = () => {
 };
 
 export default EmbroideryDetails;
-
-                    </div>
-                </div>
-
-                {/* -------------- RECEIVED STOCK SECTION -------------- */}
-
-
-                <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
-                    <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
-                        <div className="box_1">
-                            <h3 className="mb-4 font-semibold text-lg">Received Shirts Colors</h3>
-                            <div className="details space-y-2">
-                                {shirt?.map((item, index) => (
-                                    <div key={index} className="details_box flex items-center gap-x-3">
-                                        <p>{item.category} - {item.color}</p>
-                                        <input
-                                            type="text"
-                                            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                                            value={item.received}
-                                            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'shirt')}
-                                            readOnly={project_status === 'Completed'}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="box_2">
-                            <h3 className="mb-4 font-semibold text-lg">Received Dupatta Colors</h3>
-                            <div className="details space-y-2">
-                                {duppata?.map((item, index) => (
-                                    <div key={index} className="details_box flex items-center gap-x-3">
-                                        <p>{item.category} - {item.color}</p>
-                                        <input
-                                            type="text"
-                                            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                                            value={item.received}
-                                            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'duppata')}
-                                            readOnly={project_status === 'Completed'}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="box_3">
-                            <h3 className="mb-4 font-semibold text-lg">Received Trousers Colors</h3>
-                            <div className="details space-y-2">
-                                {trouser?.map((item, index) => (
-                                    <div key={index} className="details_box flex items-center gap-x-3">
-                                        <p>{item.category} - {item.color}</p>
-                                        <input
-                                            type="text"
-                                            className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                                            value={item.received}
-                                            onChange={(e) => handleInputChange(item.category, item.color, e.target.value, index, 'trouser')}
-                                            readOnly={project_status === 'Completed'}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                {/* -------------- BUTTONS BAR -------------- */}
-                <div className="mt-10 flex justify-center items-center gap-x-5">
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={handleSubmit}>Completed</button>
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Bill</button>
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">Generate Gate Pass</button>
-                    <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" onClick={openModal}>Next Step</button>
-                </div>
-
-
-                {isOpen && (
-                    <div aria-hidden='true' className='fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50'>
-                        <div className='relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700'>
-                            <div className='flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600'>
-                                <h3 className='text-xl font-semibold text-gray-900 dark:text-white'>Calendar Details</h3>
-                                <button
-                                    onClick={closeModal}
-                                    className='end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white'
-                                    type='button'>
-                                    <svg
-                                        aria-hidden='true'
-                                        className='w-3 h-3'
-                                        fill='none'
-                                        viewBox='0 0 14 14'
-                                        xmlns='http://www.w3.org/2000/svg'>
-                                        <path d='m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' />
-                                    </svg>
-                                    <span className='sr-only'>Close modal</span>
-                                </button>
-                            </div>
-
-                            <div className='p-4 md:p-5'>
-                                <form className='space-y-4' onSubmit={handleSubmitCalender}>
-                                    <div className='mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5'>
-
-                                        <div>
-                                            <input
-                                                name='serialNo'
-                                                type='text'
-                                                placeholder='serial No'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.serial_No}
-                                                onChange={handleInputChangeCalender}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <input
-                                                name='partyName'
-                                                type='text'
-                                                placeholder='Party Name'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.partyName}
-                                                onChange={handleInputChangeCalender}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <input
-                                                name='design_no'
-                                                type='text'
-                                                placeholder='Design No'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.design_no}
-                                                onChange={handleInputChangeCalender}
-
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <input
-                                                name='date'
-                                                type='date'
-                                                placeholder='Date'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.date}
-                                                onChange={handleInputChangeCalender}
-                                                required
-                                            />
-
-
-                                        </div>
-
-                                        <div>
-                                            <input
-                                                name='quantity'
-                                                type='text'
-                                                placeholder='Quantity'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.T_Quantity}
-                                                onChange={handleInputChangeCalender}
-
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <input
-                                                name='rate'
-                                                type='number'
-                                                placeholder='rate'
-                                                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
-                                                value={CalenderData.rate}
-                                                onChange={handleInputChangeCalender}
-
-                                                required
-                                            />
-                                        </div>
-
-
-
-                                        {/* New input fields */}
-
-                                    </div>
-
-                                    <div className='flex justify-center pt-2'>
-                                        <button
-                                            type='submit'
-                                            className='inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500'>
-                                            Submit
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </section >
-        </>
-    )
-}
-
-export default EmbroideryDetails
 
