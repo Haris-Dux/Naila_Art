@@ -7,7 +7,7 @@ import {
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
-import { GetColorEmroidery, createStone } from "../../../features/stoneslice";
+import {  createStone, getColorsForCurrentEmbroidery } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
@@ -19,8 +19,6 @@ const CuttingDetails = () => {
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
-  const [serial_No,setserial_No] = useState('')
-
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
@@ -121,9 +119,8 @@ const CuttingDetails = () => {
 
 
   useEffect(() => {
-    
-    dispatch(GetColorEmroidery({id:formData?.serial_No}));
-  }, [formData]);
+    dispatch(getColorsForCurrentEmbroidery({serial_No:SingleCutting?.serial_No}));
+  }, [id]);
 
 
   const handleInputChangeCutting = (e) => {
@@ -140,13 +137,17 @@ const CuttingDetails = () => {
     console.log("frp", formData);
 
     dispatch(createStone(formData))
-      .then(() => {
+      .then((res) => {
+
+      if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/stones");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+   
+
+
+      
   };
 
   const  handleUpdateCutting = (e) => {
@@ -431,6 +432,7 @@ const CuttingDetails = () => {
                         required
                         value={formData.serial_No}
                         onChange={handleChange}
+                        readOnly
                       />
                     </div>
                     <div>
@@ -513,10 +515,12 @@ const CuttingDetails = () => {
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                             value={row.color}
                             onChange={(e) => handleColorChange(e, index)}
+                            name="color"
                           >
-                            <option selected>Select color</option>
-                            <option value="red">red</option>
-                            <option value="blue">blue</option>
+                          <option value={''} disabled>Select color</option>
+  {color?.colors?.map((data) => (
+    <option  value={data}>{data}</option>
+  ))}
                           </select>
                         </div>
 
