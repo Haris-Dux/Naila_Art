@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getPendingRequests, UpdateUser } from "../../features/authSlice";
 import { GetAllShop } from "../../features/ShopSlice";
+import toast from "react-hot-toast";
 
 const PendingRequest = () => {
   const dispatch = useDispatch();
@@ -24,7 +25,7 @@ const PendingRequest = () => {
         pendingRequest.map((user) => ({
           id: user.id,
           authenticated: user.authenticated,
-          branchId: user.branchId || "No Branch selected"
+          branchId: ""
         }))
       );
     }
@@ -60,16 +61,15 @@ const PendingRequest = () => {
   // Handle user update
   const handleUpdateUser = (index) => {
     const userData = editedUsers[index];
-    if (userData.branchId && userData.authenticated !== undefined) {
+    if (userData.branchId && userData.authenticated === true ) {
       dispatch(UpdateUser(userData))
         .then((res) => {
           if (res.payload.success === true) {
-            dispatch(getPendingRequests()); // Refresh the pending requests list
+            dispatch(getPendingRequests()); 
           }
         })
-        .catch((error) => console.error("Error updating user:", error));
     } else {
-      console.error("Branch ID or Authenticated status is missing.");
+      toast.error("Invalid Data to Authorize User");
     }
   };
 
@@ -116,7 +116,7 @@ const PendingRequest = () => {
               </tr>
             </thead>
             <tbody>
-              {editedUsers.map((data, index) => (
+              {editedUsers?.map((data, index) => (
                 <tr
                   key={index}
                   className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -125,9 +125,9 @@ const PendingRequest = () => {
                     className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                     scope="row"
                   >
-                    {pendingRequest[index].name}
+                    {pendingRequest[index]?.name}
                   </th>
-                  <td className="px-6 py-4">{pendingRequest[index].email}</td>
+                  <td className="px-6 py-4">{pendingRequest[index]?.email}</td>
                   <td className="px-6 py-4">
                     <select
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
@@ -141,10 +141,11 @@ const PendingRequest = () => {
                   <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
                     <select
                       name="branchId"
-                      value={data.branchId}
+                      value={data.branchId || "" }
                       onChange={(e) => handleBranchChange(e, index)}
                       className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
                     >
+                        <option value="">No branch selected</option>
                       {Shop?.map((shop) => (
                         <option key={shop?.id} value={shop?.id}>
                           {shop?.branchName}

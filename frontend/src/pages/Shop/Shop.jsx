@@ -50,13 +50,12 @@ const Shop = () => {
   const confirmDelete = () => {
     if (deleteId) {
       const data = { branchId: deleteId };
-      dispatch(DeleteShop(data))
-        .then((res) => {
-         if(res.payload.success === true){
+      dispatch(DeleteShop(data)).then((res) => {
+        if (res.payload.success === true) {
           dispatch(GetAllShop({ id: user?.user?.id }));
           setDeleteModal(false);
-         }
-        })
+        }
+      });
     }
   };
 
@@ -65,38 +64,34 @@ const Shop = () => {
     const data = { ...formData };
     if (editShop) {
       data.branchId = editShop.id;
-      dispatch(UpdateShopAsync(data))
-        .then((res) => {
-         if(res.payload.success === true){
+      dispatch(UpdateShopAsync(data)).then((res) => {
+        if (res.payload.success === true) {
           setFormData({ branchName: "" });
           setEditShop(null);
           closeModal();
           dispatch(GetAllShop({ id: user?.user?.id }));
-         }
-        })
-      
+        }
+      });
     } else {
-      dispatch(createShopAsync(data))
-        .then((res) => {
-          if(res.payload.success === true){
-            setFormData({ branchName: "" });
+      dispatch(createShopAsync(data)).then((res) => {
+        if (res.payload.success === true) {
+          setFormData({ branchName: "" });
           closeModal();
           dispatch(GetAllShop({ id: user?.user?.id }));
-          }
-        })
+        }
+      });
     }
   };
 
   //FETCH USERS FOR BRANCH
-  useEffect(()=>{
-    if(Shop.length > 0 && selectedShopId === null){
+  useEffect(() => {
+    if (Shop.length > 0 && selectedShopId === null) {
       const data = { branchId: Shop[0]?.id };
-      setSelectedShopId(Shop[0]?.id)
+      setSelectedShopId(Shop[0]?.id);
       dispatch(GetUserBYBranch(data));
     }
-  },[Shop,dispatch,selectedShopId]);
+  }, [Shop, dispatch, selectedShopId]);
 
- 
   const fetchBranchUser = (branchId) => {
     setSelectedShopId(branchId);
     const data = { branchId: branchId };
@@ -194,88 +189,15 @@ const Shop = () => {
             <button className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-4 py-2.5 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100">
               <Link to={"/dashboard/PendingRequest"}>Pending Request</Link>
             </button>
-
-            {/* <div className="search_bar mr-2">
-              <div className="relative mt-4 md:mt-0">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <svg
-                    className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                  placeholder="Search by Name"
-                />
-              </div>
-            </div> */}
           </div>
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
-        <div className="tabs flex justify-between items-start my-5">
-          <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-4">
-            {loading ? (
-              <div className="flex justify-center  items-center">
-                <div
-                  className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-                  role="status"
-                  aria-label="loading"
-                >
-                  <span className="sr-only">Loading...</span>
-                </div>
-              </div>
-            ) : (
-              Shop?.map((data) => (
-                <div className="w-full flex items-center gap-3 border border-gray-700 rounded-md p-2">
-                <button
-                  onClick={() => fetchBranchUser(data?.id)}
-                  className={`border w-56 border-gray-500 ${
-                    selectedShopId === data?.id 
-                      ? "bg-blue-800 text-white border-none"
-                      : "bg-white dark:bg-gray-700 text-black hover:bg-blue-800 hover:text-white dark:text-gray-100"
-                  } px-5 py-2 mx-2 text-sm rounded-md`}
-                  key={data?.id}
-                >
-                  {data?.branchName}
-                  </button>
-                  <IoPencilOutline
-                    size={22}
-                    className="text-black cursor-pointer  rounded-md"
-                    onClick={() => handleEdit(data)}
-                  />
-                  <IoTrash
-                    size={22}
-                    className="text-black cursor-pointer  rounded-md"
-                    onClick={() => handleDelete(data?.id)}
-                  />
-               </div>
-              ))
-            )}
-          </div>
-          <button
-            onClick={openModal}
-            className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-700 focus:outline-none active:bg-gray-500 text-white"
-          >
-            <IoAdd size={28} />
-          </button>
-        </div>
-
-        {selectedShopId && pendingloading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
+        {loading && selectedShopId && pendingloading ? (
+          <div className="flex justify-center pt-16 items-center">
             <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
               role="status"
               aria-label="loading"
             >
@@ -283,115 +205,154 @@ const Shop = () => {
             </div>
           </div>
         ) : (
-          <div className="request_list px-3">
-            <div className="overflow-x-auto">
-              <table className="min-w-full overflow-hidden rounded-md shadow-md">
-                <thead className="bg-gray-100 dark:bg-gray-800">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                    >
-                      <button className="flex items-center gap-x-3 focus:outline-none">
-                        <span>Full Name</span>
+          <>
+            <div className="tabs flex justify-between items-start my-5">
+              <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-4">
+                {Shop &&
+                  Shop?.map((data) => (
+                    <div className="w-full flex items-center gap-3 border border-gray-700 rounded-md p-2">
+                      <button
+                        onClick={() => fetchBranchUser(data?.id)}
+                        className={`border w-56 border-gray-500 ${
+                          selectedShopId === data?.id
+                            ? "bg-blue-800 text-white border-none"
+                            : "bg-white dark:bg-gray-700 text-black hover:bg-blue-800 hover:text-white dark:text-gray-100"
+                        } px-5 py-2 mx-2 text-sm rounded-md`}
+                        key={data?.id}
+                      >
+                        {data?.branchName}
                       </button>
-                    </th>
-
-                    <th
-                      scope="col"
-                      className="px-12 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                    >
-                      Email
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-12 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                    >
-                      Role
-                    </th>
-
-                    <th
-                      scope="col"
-                      className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                    >
-                      Authentication Status
-                    </th>
-
-                    <th
-                      scope="col"
-                      className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                    >
-                      Branch
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
-                  {getUsersForBranch.length > 0 ? (
-                    getUsersForBranch?.map((data, index) => (
-                      <tr key={data?.id}>
-                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                          {data?.name}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                          {data?.email}
-                        </td>
-                        <td className="px-12 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                          <select
-                            name="role"
-                            value={editedUsers[index]?.role || data?.role}
-                            onChange={(e) => handleRoleChange(e, index)}
-                            className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                            <option value="superadmin">Superadmin</option>
-                          </select>
-                        </td>
-                        <td className="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                          <select
-                            name="authenticated"
-                            value={
-                              editedUsers[index]?.authenticated?.toString() ||
-                              data?.authenticated?.toString()
-                            }
-                            onChange={(e) =>
-                              handleAuthenticatedChange(e, index)
-                            }
-                            className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
-                          >
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                          </select>
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                          <select
-                            name="branchId"
-                            value={
-                              editedUsers[index]?.branchId || data?.branchId
-                            }
-                            onChange={(e) => handleBranchChange(e, index)}
-                            className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
-                          >
-                            {Shop?.map((shop) => (
-                              <option key={shop?.id} value={shop?.id}>
-                                {shop?.branchName}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <div className="flex justify-center items-center mt-4">
-                      <h2 className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
-                        No Data Found
-                      </h2>
+                      <IoPencilOutline
+                        size={22}
+                        className="text-black cursor-pointer  rounded-md"
+                        onClick={() => handleEdit(data)}
+                      />
+                      <IoTrash
+                        size={22}
+                        className="text-black cursor-pointer  rounded-md"
+                        onClick={() => handleDelete(data?.id)}
+                      />
                     </div>
-                  )}
-                </tbody>
-              </table>
+                  ))}
+              </div>
+              <button
+                onClick={openModal}
+                className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-700 focus:outline-none active:bg-gray-500 text-white"
+              >
+                <IoAdd size={28} />
+              </button>
             </div>
-          </div>
+
+            <div className="request_list px-3">
+              <div className="overflow-x-auto">
+                <table className="min-w-full overflow-hidden rounded-md shadow-md">
+                  <thead className="bg-gray-100 dark:bg-gray-800">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
+                      >
+                        <button className="flex items-center gap-x-3 focus:outline-none">
+                          <span>Full Name</span>
+                        </button>
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="px-12 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
+                      >
+                        Email
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-12 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
+                      >
+                        Role
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
+                      >
+                        Authentication Status
+                      </th>
+
+                      <th
+                        scope="col"
+                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
+                      >
+                        Branch
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
+                    {getUsersForBranch.length > 0 ? (
+                      getUsersForBranch?.map((data, index) => (
+                        <tr key={data?.id}>
+                          <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            {data?.name}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            {data?.email}
+                          </td>
+                          <td className="px-12 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            <select
+                              name="role"
+                              value={editedUsers[index]?.role || data?.role}
+                              onChange={(e) => handleRoleChange(e, index)}
+                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                              <option value="superadmin">Superadmin</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            <select
+                              name="authenticated"
+                              value={
+                                editedUsers[index]?.authenticated?.toString() ||
+                                data?.authenticated?.toString()
+                              }
+                              onChange={(e) =>
+                                handleAuthenticatedChange(e, index)
+                              }
+                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
+                            >
+                              <option value="true">True</option>
+                              <option value="false">False</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                            <select
+                              name="branchId"
+                              value={
+                                editedUsers[index]?.branchId || data?.branchId
+                              }
+                              onChange={(e) => handleBranchChange(e, index)}
+                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
+                            >
+                              {Shop?.map((shop) => (
+                                <option key={shop?.id} value={shop?.id}>
+                                  {shop?.branchName}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <div className="flex justify-center items-center mt-4">
+                        <h2 className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
+                          No Data Found
+                        </h2>
+                      </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </section>
 

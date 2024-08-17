@@ -67,13 +67,17 @@ export const updateUser = async (req, res, next) => {
     if (!user) throw new Error("User not found");
     if (authenticated !== undefined) {
       updateQuery = { ...updateQuery, authenticated };
-    }
+    };
     if (role) {
       updateQuery = { ...updateQuery, role };
-    }
+    };
     if (branchId) {
       updateQuery = { ...updateQuery, branchId };
-    }
+    };
+    if(updateQuery.authenticated === false){
+      updateQuery.branchId = null;
+      updateQuery.role = "user";
+    };
     if (Object.keys(updateQuery).length === 0)
       throw new Error("No fields to update");
     await UserModel.findByIdAndUpdate(id, updateQuery);
