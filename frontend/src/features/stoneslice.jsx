@@ -7,7 +7,7 @@ const addStone = "/api/process/stone/addStone";
 const UpdateStone = "/api/process/stone/updateStone";
 const getAllStone = "/api/process/stone/getAllStone";
 const getSingleStone = "/api/process/stone/getStoneById";
-
+const getColor = '/api/process/stone/getColorsForCurrentEmbroidery'
 
 
 //CREATE ASYNC THUNK
@@ -75,10 +75,28 @@ export const GetSingleStone = createAsyncThunk("Stone/GetSingle", async (id) => 
 );
 
 
+export const GetColorEmroidery = createAsyncThunk(
+  "Stone/GetColor",
+  async (id) => {
+    try {
+      const response = await axios.post(getColor, id);
+      // toast.success(response.data.message);
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
+
 // INITIAL STATE
 const initialState = {
   Stone: [],
   SingleStone: {},
+  color:[],
   loading: false,
 };
 
@@ -126,6 +144,13 @@ const StoneSlice = createSlice({
         state.SingleStone = action.payload
       })
 
+      .addCase(GetColorEmroidery.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetColorEmroidery.fulfilled, (state, action) => {
+        state.loading = false;
+        state.color = action.payload
+      })
 
 
 

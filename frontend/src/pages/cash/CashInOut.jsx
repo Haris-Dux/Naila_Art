@@ -16,7 +16,7 @@ const CashInOut = () => {
     const [validatePartyName, setvalidatePartyName] = useState();
     const [selectedParty, setSelectedParty] = useState();
     const [selectedBranchId, setSelectedBranchId] = useState();
-
+    console.log('selectedBranchId', selectedBranchId);
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
     const { user } = useSelector((state) => state.auth);
@@ -107,6 +107,7 @@ const CashInOut = () => {
         dispatch(cashInAsync(modifiedFormData))
             .then((res) => {
                 if (res.payload.sucess === true) {
+                    dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
                     resetForm();
                 }
             });
@@ -128,6 +129,7 @@ const CashInOut = () => {
         dispatch(cashOutAsync(modifiedFormData))
             .then((res) => {
                 if (res.payload.sucess === true) {
+                    dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
                     resetForm();
                 }
             });

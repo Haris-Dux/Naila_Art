@@ -29,7 +29,7 @@ const Sellers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState();
+  const [search, setSearch] = useState("");
   const [paymentStatus, setPaymentStatus] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
