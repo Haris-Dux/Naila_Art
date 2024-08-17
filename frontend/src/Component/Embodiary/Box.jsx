@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Link } from "react-router-dom";
-import { CreateEmbroidery, GETEmbroidery } from "../../features/EmbroiderySlice";
+import {
+  CreateEmbroidery,
+  GETEmbroidery,
+} from "../../features/EmbroiderySlice";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,7 +12,7 @@ import {
   GetAllBaseforEmroidery,
 } from "../../features/InStockSlice";
 
-const Box = ({ formData1, setFormData1, closeModal,total }) => {
+const Box = ({ formData1, setFormData1, closeModal, total }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
 
   const dispatch = useDispatch();
@@ -38,8 +41,6 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
   useEffect(() => {
     dispatch(GetAllBaseforEmroidery());
   }, []);
-
- 
 
   const initialShirtRow = {
     category: "",
@@ -75,10 +76,10 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
         field === "shirt"
           ? initialShirtRow
           : field === "duppata"
-            ? initialDupattaRow
-            : field === "trouser"
-              ? initialTrouserRow
-              : initialTissueRow,
+          ? initialDupattaRow
+          : field === "trouser"
+          ? initialTrouserRow
+          : initialTissueRow,
       ],
     }));
   };
@@ -220,11 +221,9 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-  
-
     setFormData1((prevState) => ({
       ...prevState,
-      per_suit:total,
+      per_suit: total,
     }));
 
     // Merge updated formData1 (without per_suit) with formData
@@ -233,21 +232,33 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
       ...restFormData1,
       ...formData,
       per_suit: total.toFixed(2),
-      T_Quantity : formData.shirt.reduce((total, item) => total + item.quantity_in_no, 0) + formData.duppata.reduce((total, item) => total + item.quantity_in_no, 0) + formData.trouser.reduce((total, item) => total + item.quantity_in_no, 0),
-      T_Quantity_In_m : formData.shirt.reduce((total, item) => total + item.quantity_in_m, 0) + formData.duppata.reduce((total, item) => total + item.quantity_in_m, 0) + formData.trouser.reduce((total, item) => total + item.quantity_in_m, 0),
-
-
+      T_Quantity:
+        formData.shirt.reduce((total, item) => total + item.quantity_in_no, 0) +
+        formData.duppata.reduce(
+          (total, item) => total + item.quantity_in_no,
+          0
+        ) +
+        formData.trouser.reduce(
+          (total, item) => total + item.quantity_in_no,
+          0
+        ),
+      T_Quantity_In_m:
+        formData.shirt.reduce((total, item) => total + item.quantity_in_m, 0) +
+        formData.duppata.reduce(
+          (total, item) => total + item.quantity_in_m,
+          0
+        ) +
+        formData.trouser.reduce((total, item) => total + item.quantity_in_m, 0),
     };
 
     console.log("final result", meregdata);
 
-    dispatch(CreateEmbroidery(meregdata))
-      .then(() => {
+    dispatch(CreateEmbroidery(meregdata)).then((res) => {
+      if (res.payload.success === true) {
         dispatch(GETEmbroidery({ page: 1 }));
         closeModal();
-      }).catch((error) => {
-        console.error("Error:", error);
-      });
+      }
+    });
   };
 
   return (
@@ -270,12 +281,14 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleshirtCategory(newValue, index)}
+                placeholder="Select Category"
               />
             </div>
             <div>
               <Select
                 options={colorOptions}
                 onChange={(newValue) => handleshirtColor(newValue, index)}
+                placeholder="Select Color"
               />
             </div>
             <div>
@@ -342,12 +355,14 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleduppataCategorey(newValue, index)}
+                placeholder="Select Color"
               />
             </div>
             <div>
               <Select
                 options={colorOptions2}
                 onChange={(newValue) => handleduppataColor(newValue, index)}
+                placeholder="Select Color"
               />
             </div>
             <div>
@@ -415,12 +430,14 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleTrouserCategorey(newValue, index)}
+                placeholder="Select Category"
               />
             </div>
             <div>
               <Select
                 options={colorOptions3}
                 onChange={(newValue) => handleTrouserColor(newValue, index)}
+                placeholder="Select Color"
               />
             </div>
             <div>
@@ -444,7 +461,6 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
                 value={trouser.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
-
 
               {formData?.trouser?.length > 1 && (
                 <button
@@ -491,12 +507,14 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handletissueCategorey(newValue, index)}
+                placeholder="Select Category"
               />
             </div>
             <div>
               <Select
                 options={colorOptions4}
                 onChange={(newValue) => handletissueColor(newValue, index)}
+                placeholder="Select Color"
               />
             </div>
 
@@ -538,16 +556,16 @@ const Box = ({ formData1, setFormData1, closeModal,total }) => {
         ))}
       </div>
 
-      <div className="flex justify-center pt-2">
+      <div className="flex justify-center pt-6">
         <button
           onClick={handleSubmit}
           className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
         >
-          { "submit"}
+          {"submit"}
         </button>
       </div>
     </div>
   );
 };
 
-export default Box
+export default Box;

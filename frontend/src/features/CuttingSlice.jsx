@@ -92,6 +92,9 @@ export const GetSingleCutting = createAsyncThunk(
   }
 );
 
+
+
+
 // INITIAL STATE
 const initialState = {
   Cutting: [],
