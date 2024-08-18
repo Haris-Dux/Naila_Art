@@ -115,7 +115,7 @@ export const updateStone = async (req, res, next) => {
     if (project_status) {
       stone.project_status = project_status;
     };
-    if (category_quantity.length > 0) {
+    if (category_quantity && category_quantity.length > 0) {
       category_quantity.forEach((item) => {
         const { first, second, third, id } = item;
         const date = new Date().toLocaleString('en-PK');
@@ -149,7 +149,7 @@ export const updateStone = async (req, res, next) => {
     }
     await stone.save();
     return res
-      .status(500)
+      .status(200)
       .json({ success: true, message: "Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });

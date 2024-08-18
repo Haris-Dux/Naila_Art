@@ -6,17 +6,17 @@ import {
   UpdateStitchingAsync,
 } from "../../../features/stitching";
 
-
+import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 
 const StitchingDetails = () => {
   const { id } = useParams();
   const { SingleStitching, loading } = useSelector((state) => state.stitching);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({
     id: id,
-    project_status: "Completed",
     suits_category: [],
     dupatta_category: [],
   });
@@ -31,13 +31,13 @@ const StitchingDetails = () => {
       setFormData({
         ...formData,
         suits_category: SingleStitching.suits_category?.map((item) => ({
-          id: item.id,
-          return_quantity: item.recieved,
-        })) || [],
+            id: item.id,
+            return_quantity: item.recieved,
+          })) || [],
         dupatta_category: SingleStitching.dupatta_category?.map((item) => ({
-          id: item.id,
-          return_quantity: item.recieved,
-        })) || [],
+            id: item.id,
+            return_quantity: item.recieved,
+          })) || [],
       });
     }
   }, [SingleStitching]);
@@ -53,19 +53,45 @@ const StitchingDetails = () => {
 
   const handleSubmitstitching = (e) => {
     e.preventDefault();
+    dispatch(UpdateStitchingAsync(formData)).then((res) => {
+      if (res.payload.success === true) {
+        closeUpdateRecievedModal();
+      }
+    });
+  };
 
-    dispatch(UpdateStitchingAsync(formData))
-      .then(() => {
-        navigate("/dashboard/stitching");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+  const handleCompletestitching = (e) => {
+    e.preventDefault();
+    dispatch(UpdateStitchingAsync({ project_status: "Completed", id: id })).then((res) => {
+      if (res.payload.success === true) {
+        closeCompletedModal();
+      }
+    });
+  };
+
+  const handleCompletedClick = () => {
+    setIsCompletedConfirmOpen(true);
+  };
+
+  const closeCompletedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleUpdateReceivedClick = () => {
+    console.log("Update Received button clicked");
+    setIsUpdateReceivedConfirmOpen(true);
+  };
+
+  const closeUpdateRecievedModal = () => {
+    setIsUpdateReceivedConfirmOpen(false);
+    setIsCompletedConfirmOpen(false);
+    document.body.style.overflow = "auto";
   };
 
   if (loading) {
     return (
-
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
         <div className="pt-16 flex justify-center mt-12 items-center">
           <div
@@ -73,14 +99,12 @@ const StitchingDetails = () => {
             role="status"
             aria-label="loading"
           >
-
             <span className="sr-only">Loading...</span>
           </div>
         </div>
       </section>
     );
   }
-
 
   console.log("sitching", SingleStitching);
 
@@ -120,7 +144,10 @@ const StitchingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span> {new Date(SingleStitching?.date).toLocaleDateString()}</span>
+              <span>
+                {" "}
+                {new Date(SingleStitching?.date).toLocaleDateString()}
+              </span>
             </div>
             <div className="box">
               <span className="font-medium">Lace Quantity:</span>
@@ -206,17 +233,31 @@ const StitchingDetails = () => {
           </div>
         </div>
 
+        <div className="flex justify-center items-center">
+          {SingleStitching?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              onClick={handleUpdateReceivedClick}
+            >
+              Update Recived
+            </button>
+          )}
+        </div>
+
         {/* BUTTONS BAR */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleSubmitstitching}
+            onClick={handleCompletedClick}
           >
             Completed
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
+
+          {SingleStitching?.project_status === "Completed" && (
+            <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+              Generate Bill
+            </button>
+          )}
           <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
             Generate Gate Pass
           </button>
@@ -224,6 +265,24 @@ const StitchingDetails = () => {
             Next Step
           </button> */}
         </div>
+
+        {isUpdateReceivedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Update"
+            message="Are you sure you want to update the received items?"
+            onConfirm={handleSubmitstitching}
+            onClose={closeUpdateRecievedModal}
+          />
+        )}
+
+        {isCompletedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Complete"
+            message="Are you sure you want to Complete?"
+            onConfirm={handleCompletestitching}
+            onClose={closeCompletedModal}
+          />
+        )}
       </section>
     </>
   );

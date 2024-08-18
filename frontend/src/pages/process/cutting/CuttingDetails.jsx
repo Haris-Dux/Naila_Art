@@ -13,7 +13,7 @@ const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleCutting } = useSelector((state) => state.Cutting);
-  const {  color } = useSelector((state) => state.stone);
+  const {  color,loading:IsLoading} = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -23,6 +23,7 @@ const CuttingDetails = () => {
     id,
     r_quantity: "",
   });
+
 
   const initialRow = { category: "", color: "", quantity: 0 };
 
@@ -42,7 +43,7 @@ const CuttingDetails = () => {
       design_no: SingleCutting?.design_no || "",
       date: SingleCutting?.date ? SingleCutting?.date?.split("T")[0] : "",
       partyName: SingleCutting?.partyName || "",
-      embroidery_Id: SingleCutting?.id || "",
+      embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
    
@@ -119,8 +120,11 @@ const CuttingDetails = () => {
 
 
   useEffect(() => {
+    if(SingleCutting && SingleCutting?.serial_No )
+      {
     dispatch(getColorsForCurrentEmbroidery({serial_No:SingleCutting?.serial_No}));
-  }, [id]);
+      }
+  }, [id,SingleCutting]);
 
 
   const handleInputChangeCutting = (e) => {
@@ -572,7 +576,7 @@ const CuttingDetails = () => {
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                     >
-                      Submit
+                      {IsLoading ? "Submiting..." :"Submit" }
                     </button>
                   </div>
                 </form>

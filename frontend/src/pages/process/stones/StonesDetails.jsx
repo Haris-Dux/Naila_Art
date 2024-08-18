@@ -19,10 +19,11 @@ const StonesDetails = () => {
   // const { stitchingEmbroidery } = useSelector((state) => state.stitching);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
+  const { loading:IsLoading } = useSelector((state) => state.stitching);
+
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
 
-  console.log("SingleStone data", SingleStone);
 const navigate = useNavigate()
   const dispatch = useDispatch();
 
@@ -100,7 +101,7 @@ const navigate = useNavigate()
       design_no: SingleStone?.design_no || "",
       date: SingleStone?.date || "",
       Quantity: SingleStone?.quantity,
-      embroidery_Id: SingleStone?.id || "",
+      embroidery_Id: SingleStone?.embroidery_Id || "",
       suits_category: [initialRow], // You are setting category_quantity with initialRow
       dupatta_category: [initialRow], // You are setting category_quantity with initialRow
       lace_category: '',
@@ -171,13 +172,16 @@ const navigate = useNavigate()
     e.preventDefault();
 
     dispatch(createStitching(formData))
-      .then(() => {
+      .then((res) => {
+      if (res.payload.success === true) {
+
         closeModal();
         navigate("/dashboard/stitching");
+      
+      }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+  
+
   };
 
   const handleUpdateStone = (e) => {
@@ -323,6 +327,14 @@ const navigate = useNavigate()
               <span className="font-medium">Design No:</span>
               <span>{SingleStone?.design_no}</span>
             </div>
+
+
+            <div className="box">
+              <span className="font-medium">Total Quantity:</span>
+              <span>     {  SingleStone.category_quantity.reduce((total, item) => total + item.quantity, 0)}</span>
+            </div>
+
+       
 
             <div className="box">
               <span className="font-medium">Per Suit:</span>
@@ -669,7 +681,7 @@ const navigate = useNavigate()
                           placeholder="Enter Quantity In No"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
-                          value={row.quantity_in_no}
+                          value={row.quantity_in_no || ""}
                           onChange={(e) =>
                             handleQuantityChange(e, index, "suits_category")
                           }
@@ -761,7 +773,7 @@ const navigate = useNavigate()
                           placeholder="Enter Quantity In No"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
-                          value={row.quantity_in_no}
+                          value={row.quantity_in_no || ""}
                           onChange={(e) =>
                             handleQuantityChange(e, index, "dupatta_category")
                           }
@@ -800,7 +812,7 @@ const navigate = useNavigate()
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-                    Submit
+                    {IsLoading  ? "Submiting..." :"Submit" }
                   </button>
                 </div>
               </form>
