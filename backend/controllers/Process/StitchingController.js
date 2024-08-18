@@ -84,7 +84,7 @@ export const addStitching = async (req, res, next) => {
       .status(200)
       .json({ success: true, message: "Added Successfully" });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(200).json({ error: error.message });
   } finally {
     session.endSession();
   }
