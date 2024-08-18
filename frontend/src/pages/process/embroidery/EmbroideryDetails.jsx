@@ -14,12 +14,20 @@ const EmbroideryDetails = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+
+  const { loading:IsLoading } = useSelector(
+    (state) => state.Calender
+  );
+  
   
   const navigate = useNavigate();
 
   const { loading, SingleEmbroidery } = useSelector(
     (state) => state.Embroidery
   );
+
+
+  console.log('SingleEmbroidery',SingleEmbroidery)
 
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
@@ -28,7 +36,7 @@ const EmbroideryDetails = () => {
     date: "", // Ensure this is initialized correctly
     T_Quantity: "",
     rate: 0,
-    embroidery_Id: SingleEmbroidery?.embroidery_Id || "",
+    embroidery_Id: SingleEmbroidery?.id || "",
   });
 
   useEffect(() => {
@@ -178,13 +186,13 @@ const EmbroideryDetails = () => {
     e.preventDefault();
 
     dispatch(createCalender(CalenderData))
-      .then(() => {
+      .then((res) => {
+        if (res.payload.success === true) {
         closeModal(); // Close modal after submission
         navigate("/dashboard/calendar");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+     
   };
 
   const openModal = () => {
@@ -629,7 +637,7 @@ type="text"
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                     >
-                      Submit
+                    { IsLoading ?  "Submiting...":"Submit"}
                     </button>
                   </div>
                 </form>
