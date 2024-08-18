@@ -460,7 +460,7 @@ const CashInOut = () => {
                                                                 <button
                                                                     onClick={() => handleSelectParty(data)}
                                                                     className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                                                    <span>{data?.name}</span><span>{data?.phone}</span>
+                                                                    <span>{data?.name}</span><span>{data?.phone ? data.phone : data?.serial_No}</span>
                                                                 </button>
                                                             </li>
                                                         ))}
@@ -469,7 +469,7 @@ const CashInOut = () => {
                                                                 <button
                                                                     onClick={() => handleSelectParty(data)}
                                                                     className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                                                    <span>{data?.name}</span><span>{data?.phone}</span>
+                                                                    <span>{data?.name}</span><span>{data?.phone ? data.phone : data?.serial_No}</span>
                                                                 </button>
                                                             </li>
                                                         ))}
