@@ -21,6 +21,8 @@ export const createStone = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.log(error.response.data.error);
+      toast.error(error.response.data.error);
+
     }
   }
 );
@@ -75,7 +77,7 @@ export const GetSingleStone = createAsyncThunk("Stone/GetSingle", async (id) => 
 );
 
 
-export const GetColorEmroidery = createAsyncThunk(
+export const getColorsForCurrentEmbroidery = createAsyncThunk(
   "Stone/GetColor",
   async (id) => {
     try {
@@ -144,10 +146,10 @@ const StoneSlice = createSlice({
         state.SingleStone = action.payload
       })
 
-      .addCase(GetColorEmroidery.pending, (state, action) => {
+      .addCase(getColorsForCurrentEmbroidery.pending, (state, action) => {
         state.loading = true;
       })
-      .addCase(GetColorEmroidery.fulfilled, (state, action) => {
+      .addCase(getColorsForCurrentEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
         state.color = action.payload
       })

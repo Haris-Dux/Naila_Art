@@ -11,6 +11,8 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CalendarDetails = () => {
   const { id } = useParams();
   const { loading, SingleCalender } = useSelector((state) => state.Calender);
+  const { loading:IsLoading } = useSelector((state) => state.Cutting);
+
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ const CalendarDetails = () => {
       design_no: SingleCalender?.design_no || "",
       date: SingleCalender?.date ? SingleCalender?.date?.split("T")[0] : "",
       partyName: SingleCalender?.partyName || "",
-      embroidery_Id: SingleCalender?.id || "",
+      embroidery_Id: SingleCalender?.embroidery_Id || "",
     });
   }, [SingleCalender]);
 
@@ -82,13 +84,13 @@ const CalendarDetails = () => {
     console.log("cutting", CuttingData);
 
     dispatch(createCutting(CuttingData))
-      .then(() => {
+      .then((res) => {
+        if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/cutting");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+     
   };
 
   const handleCompleteCalender = (e) => {
@@ -399,7 +401,7 @@ const CalendarDetails = () => {
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
                     >
-                      Submit
+                     {IsLoading ? "Submiting..." : "Submit"}
                     </button>
                   </div>
                 </form>

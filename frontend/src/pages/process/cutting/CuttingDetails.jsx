@@ -7,24 +7,23 @@ import {
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
-import { GetColorEmroidery, createStone } from "../../../features/stoneslice";
+import {  createStone, getColorsForCurrentEmbroidery } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { loading, SingleCutting } = useSelector((state) => state.Cutting);
-  const {  color } = useSelector((state) => state.stone);
+  const {  color,loading:IsLoading} = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
-  const [serial_No,setserial_No] = useState('')
-
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
   });
+
 
   const initialRow = { category: "", color: "", quantity: 0 };
 
@@ -44,7 +43,7 @@ const CuttingDetails = () => {
       design_no: SingleCutting?.design_no || "",
       date: SingleCutting?.date ? SingleCutting?.date?.split("T")[0] : "",
       partyName: SingleCutting?.partyName || "",
-      embroidery_Id: SingleCutting?.id || "",
+      embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
    
@@ -121,9 +120,11 @@ const CuttingDetails = () => {
 
 
   useEffect(() => {
-    
-    dispatch(GetColorEmroidery({id:formData?.serial_No}));
-  }, [formData]);
+    if(SingleCutting && SingleCutting?.serial_No )
+      {
+    dispatch(getColorsForCurrentEmbroidery({serial_No:SingleCutting?.serial_No}));
+      }
+  }, [id,SingleCutting]);
 
 
   const handleInputChangeCutting = (e) => {
@@ -140,13 +141,17 @@ const CuttingDetails = () => {
     console.log("frp", formData);
 
     dispatch(createStone(formData))
-      .then(() => {
+      .then((res) => {
+
+      if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/stones");
+        }
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+   
+
+
+      
   };
 
   const  handleUpdateCutting = (e) => {
@@ -431,6 +436,7 @@ const CuttingDetails = () => {
                         required
                         value={formData.serial_No}
                         onChange={handleChange}
+                        readOnly
                       />
                     </div>
                     <div>
@@ -502,7 +508,7 @@ const CuttingDetails = () => {
                             <option value="Bazo">Bazo</option>
                             <option value="Duppata">Duppata</option>
                             <option value="Gala">Gala</option>
-                            <option value="Front patch">Front patch</option>
+                            <option value="Front Patch">Front patch</option> 
                             <option value="Trouser">Trouser</option>
                           </select>
                         </div>
@@ -513,10 +519,12 @@ const CuttingDetails = () => {
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                             value={row.color}
                             onChange={(e) => handleColorChange(e, index)}
+                            name="color"
                           >
-                            <option selected>Select color</option>
-                            <option value="red">red</option>
-                            <option value="blue">blue</option>
+                          <option value={''} disabled>Select color</option>
+  {color?.colors?.map((data) => (
+    <option  value={data}>{data}</option>
+  ))}
                           </select>
                         </div>
 
@@ -568,7 +576,7 @@ const CuttingDetails = () => {
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                     >
-                      Submit
+                      {IsLoading ? "Submiting..." :"Submit" }
                     </button>
                   </div>
                 </form>
