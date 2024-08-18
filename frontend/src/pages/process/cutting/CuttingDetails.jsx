@@ -508,7 +508,7 @@ const CuttingDetails = () => {
                             <option value="Bazo">Bazo</option>
                             <option value="Duppata">Duppata</option>
                             <option value="Gala">Gala</option>
-                            <option value="Front patch">Front patch</option>
+                            <option value="Front Patch">Front patch</option> 
                             <option value="Trouser">Trouser</option>
                           </select>
                         </div>
