@@ -66,7 +66,7 @@ const Stones = () => {
 
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Stones</h1>
@@ -159,7 +159,7 @@ const Stones = () => {
                                                     {new Date(data.date).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.quantity} y
+                                                    {  data.category_quantity.reduce((total, item) => total + item.quantity, 0)} y
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {data.r_quantity} y

@@ -14,6 +14,8 @@ import {
 
 const Box = ({ formData1, setFormData1, closeModal, total }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
+  const { loading:IsLoading } = useSelector((state) => state.Embroidery);
+
 
   const dispatch = useDispatch();
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -561,7 +563,7 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
           onClick={handleSubmit}
           className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
         >
-          {"submit"}
+          {IsLoading? "Submiting...":"Submit"}
         </button>
       </div>
     </div>
