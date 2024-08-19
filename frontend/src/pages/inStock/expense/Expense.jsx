@@ -54,13 +54,13 @@ const Expense = () => {
   useEffect(() => {
     if (Branches.length > 0) {
       const payload = {
-        page: 1,
-        // branchId: user?.user?.branchId || Branches[0]?.id,
+        page,
+        branchId: selectedBranchId,
       }
       dispatch(GetAllExpense(payload));
     }
 
-  }, [dispatch, Branches]);
+  }, [dispatch, Branches, page]);
 
   const openModal = (msgId) => {
     setMessageId(msgId);
