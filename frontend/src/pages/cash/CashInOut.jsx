@@ -311,7 +311,7 @@ const CashInOut = () => {
                                 placeholder="Select Party"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                 onClick={openModal}
-                                value={selectedParty?.name}
+                                value={selectedParty?.name ? selectedParty?.name : selectedParty?.partyName}
                                 required
                                 readOnly
                             />
@@ -460,7 +460,7 @@ const CashInOut = () => {
                                                                 <button
                                                                     onClick={() => handleSelectParty(data)}
                                                                     className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                                                    <span>{data?.name}</span><span>{data?.phone ? data.phone : data?.serial_No}</span>
+                                                                    <span>{data?.name}</span><span>{data?.phone}</span>
                                                                 </button>
                                                             </li>
                                                         ))}
@@ -469,7 +469,16 @@ const CashInOut = () => {
                                                                 <button
                                                                     onClick={() => handleSelectParty(data)}
                                                                     className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                                                    <span>{data?.name}</span><span>{data?.phone ? data.phone : data?.serial_No}</span>
+                                                                    <span>{data?.name}</span><span>{data?.phone}</span>
+                                                                </button>
+                                                            </li>
+                                                        ))}
+                                                        {mainBranchResponse?.Data[2].map((data) => (
+                                                            <li key={data?.id}>
+                                                                <button
+                                                                    onClick={() => handleSelectParty(data)}
+                                                                    className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
+                                                                    <span>{data?.partyName}</span><span>{data?.phone ? data.phone : "Sr # " + data?.serial_No}</span>
                                                                 </button>
                                                             </li>
                                                         ))}

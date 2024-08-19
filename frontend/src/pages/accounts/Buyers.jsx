@@ -74,18 +74,22 @@ const Buyers = () => {
     }
   }, [dispatch, user]);
 
+
+
+
   useEffect(() => {
     if (Branches?.length > 1) {
       const payload = {
         id: user?.user?.id,
-        branchId: user?.user?.branchId || Branches[0]?.id,
+        branchId: selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id,
+        status: paymentStatus !== "All" ? paymentStatus : undefined,
         page,
       };
       dispatch(getBuyerForBranchAsync(payload));
 
-      setSelectedBranchId(user?.user?.branchId || Branches[0]?.id)
+      setSelectedBranchId(selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id)
     }
-  }, [user, dispatch, Branches]);
+  }, [user, dispatch, Branches, page]);
 
 
   const filteredData = searchText ? Buyers?.buyers?.filter((item) =>
