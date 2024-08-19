@@ -29,11 +29,11 @@ const Employee = () => {
 
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ searchText, page: currentPage }));
+      dispatch(GetEmployeeActive({ searchText, page: page }));
     } else {
-      dispatch(GetEmployeePast({ searchText, page: currentPage }));
+      dispatch(GetEmployeePast({ searchText, page: page }));
     }
-  }, [currentPage, searchText, dispatch]);
+  }, [currentPage, searchText, dispatch, page]);
 
   const Employees = selectedCategory === 'Active Employee' ? ActiveEmployees : PastEmployees;
 
@@ -158,10 +158,16 @@ const Employee = () => {
   };
 
   const paginationLinkClick = (i) => {
+
+    const payload = {
+      // search: search.length > 0 ? search : null,
+      page: i
+    }
+
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ search, page: i }));
+      dispatch(GetEmployeeActive(payload));
     } else {
-      dispatch(GetEmployeePast({ search, page: i }));
+      dispatch(GetEmployeePast(payload));
     }
   }
 
