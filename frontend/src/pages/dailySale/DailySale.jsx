@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GetAllBranches, GetAllExpense } from "../../features/InStockSlice";
@@ -8,19 +8,20 @@ import { getDailySaleAsync } from "../../features/DailySaleSlice";
 const DailySale = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
     const [search, setSearch] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [messageId, setMessageId] = useState();
     const [searchText, setSearchText] = useState("");
-    console.log('search', search);
+    const [searchDate, setSearchDate] = useState('');
+    const [selectedBranchId, setSelectedBranchId] = useState();
+
     const { user } = useSelector((state) => state.auth);
     const { Branches } = useSelector((state) => state.InStock);
     const { loading, DailySaleHistory } = useSelector((state) => state.DailySale);
 
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const [selectedBranchId, setSelectedBranchId] = useState();
-    const [searchDate, setSearchDate] = useState('');
 
 
     const filteredData = searchText ? DailySaleHistory?.dailySaleHistory?.filter((item) =>
@@ -52,15 +53,16 @@ const DailySale = () => {
     }, [dispatch, user, Branches, page]);
 
 
-    const openModal = (msgId) => {
+    const openModal = useCallback((msgId) => {
         setMessageId(msgId);
         setIsOpen(true);
-    };
+    }, []);
 
-    const closeModal = () => {
+
+    const closeModal = useCallback(() => {
         setIsOpen(false);
         document.body.style.overflow = "auto";
-    };
+    }, []);
 
     const handlePaginationClick = (i) => {
         setSearchDate("");
@@ -125,10 +127,10 @@ const DailySale = () => {
         navigate(`/dashboard/dailySale?page=1`)
     };
 
-    const getBranchNameById = (branchId) => {
+    const getBranchNameById = useCallback((branchId) => {
         const branch = Branches.find(branch => branch.id === branchId);
         return branch ? branch.branchName : 'Unknown Branch';
-    };
+    }, [Branches]);
 
     const filteredMsgData = DailySaleHistory?.dailySaleHistory?.find((data) => data?.id === messageId);
 
