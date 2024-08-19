@@ -19,9 +19,12 @@ const StitchingDetails = () => {
     StitchingpdfLoading,
   } = useSelector((state) => state.stitching);
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
-    useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+
+
+
   const [formData, setFormData] = useState({
     id: id,
     suits_category: [],
@@ -130,6 +133,15 @@ const StitchingDetails = () => {
   }
 
   console.log("sitching", SingleStitching);
+
+  const handleOpenGatePassModal = () => {
+    setisGenerateGatePassOpen(true);
+  };
+
+  const closeGatepassModal = () => {
+    setisGenerateGatePassOpen(false);
+    document.body.style.overflow = "auto";
+  };
 
   return (
     <>
@@ -298,7 +310,7 @@ const StitchingDetails = () => {
             </button>
           ) : (
             <button
-              onClick={handleGenerateGatePassPDf}
+              onClick={handleOpenGatePassModal}
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             >
               Generate Gate Pass
@@ -321,6 +333,15 @@ const StitchingDetails = () => {
             message="Are you sure you want to Complete?"
             onConfirm={handleCompletestitching}
             onClose={closeCompletedModal}
+          />
+        )}
+
+        {isGenerateGatePassOpen && (
+          <ConfirmationModal
+            title="Confirmation"
+            message="Are you sure you want to generate gatepass?"
+            onConfirm={handleGenerateGatePassPDf}
+            onClose={closeGatepassModal}
           />
         )}
       </section>
