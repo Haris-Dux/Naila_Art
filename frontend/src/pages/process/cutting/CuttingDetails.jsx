@@ -27,9 +27,10 @@ const CuttingDetails = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
-    useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
@@ -229,6 +230,15 @@ const CuttingDetails = () => {
     dispatch(generateCuttingBillAsync(formData));
   };
 
+  const handleOpenGatePassModal = () => {
+    setisGenerateGatePassOpen(true);
+  };
+
+  const closeGatepassModal = () => {
+    setisGenerateGatePassOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -365,7 +375,7 @@ const CuttingDetails = () => {
             </button>
           ) : (
             <button
-              onClick={handleGenerateGatePassPDf}
+              onClick={handleOpenGatePassModal}
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             >
               Generate Gate Pass
@@ -601,6 +611,15 @@ const CuttingDetails = () => {
             message="Are you sure you want to Complete?"
             onConfirm={handleCompleteCutting}
             onClose={closeCompletedModal}
+          />
+        )}
+
+        {isGenerateGatePassOpen && (
+          <ConfirmationModal
+            title="Confirmation"
+            message="Are you sure you want to generate gatepass?"
+            onConfirm={handleGenerateGatePassPDf}
+            onClose={closeGatepassModal}
           />
         )}
       </section>
