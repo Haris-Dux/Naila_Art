@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { GetAllBranches, GetAllExpense } from "../../features/InStockSlice";
 import { FaEye } from 'react-icons/fa';
 import { getDailySaleAsync } from "../../features/DailySaleSlice";
 
 const DailySale = () => {
     const dispatch = useDispatch();
-    const [search, setSearch] = useState();
+    const navigate = useNavigate();
+    const [search, setSearch] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [messageId, setMessageId] = useState();
     const [searchText, setSearchText] = useState("");
-
+    console.log('search', search);
     const { user } = useSelector((state) => state.auth);
     const { Branches } = useSelector((state) => state.InStock);
     const { loading, DailySaleHistory } = useSelector((state) => state.DailySale);
@@ -19,7 +20,6 @@ const DailySale = () => {
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
     const [selectedBranchId, setSelectedBranchId] = useState();
-
     const [searchDate, setSearchDate] = useState('');
 
 
@@ -35,18 +35,21 @@ const DailySale = () => {
         }
     }, [dispatch, user]);
 
+
     useEffect(() => {
         if (Branches.length > 0) {
-            setSelectedBranchId(user?.user?.branchId || Branches[0].id)
-            const branchId = user?.user?.branchId || Branches[0].id;
 
-            if (searchDate) {
-                dispatch(getDailySaleAsync({ id: branchId, date: searchDate, page }));
-            } else {
-                dispatch(getDailySaleAsync({ id: branchId, page }));
-            }
+            const payload = {
+                date: searchDate || null,
+                id: selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id,
+                page,
+            };
+
+            dispatch(getDailySaleAsync(payload));
+
+            setSelectedBranchId(selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id)
         }
-    }, [dispatch, searchDate, user, Branches, page]);
+    }, [dispatch, user, Branches, page]);
 
 
     const openModal = (msgId) => {
@@ -60,13 +63,15 @@ const DailySale = () => {
     };
 
     const handlePaginationClick = (i) => {
-        const branchId = user?.user?.branchId || Branches[0].id;
+        setSearchDate("");
 
-        if (searchDate) {
-            dispatch(getDailySaleAsync({ id: branchId, date: searchDate, page: i }));
-        } else {
-            dispatch(getDailySaleAsync({ id: branchId, page: i }));
-        }
+        const payload = {
+            date: searchDate || null,
+            id: selectedBranchId,
+            page: i,
+        };
+
+        dispatch(getDailySaleAsync(payload));
     }
 
     const renderPaginationLinks = () => {
@@ -101,11 +106,23 @@ const DailySale = () => {
     const handleBranchClick = (branchId) => {
         const selectedBranch = branchId === "all" ? "" : branchId;
         setSelectedBranchId(selectedBranch);
-        dispatch(getDailySaleAsync({ id: branchId, page }));
+        setSearchDate("");
+        dispatch(getDailySaleAsync({ id: branchId, page: 1 }));
     }
 
     const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
         setSearchDate(e.target.value);
+
+        const payload = {
+            page: 1,
+            date: value,
+            id: selectedBranchId
+        };
+
+        dispatch(getDailySaleAsync(payload));
+        navigate(`/dashboard/dailySale?page=1`)
     };
 
     const getBranchNameById = (branchId) => {
