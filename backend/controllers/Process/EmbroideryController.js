@@ -188,7 +188,7 @@ export const getEmbroideryById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await EmbroideryModel.findById(id);
-    console.log('data in ',data)
+
     setMongoose();
     return res.status(200).json(data);
   } catch (error) {

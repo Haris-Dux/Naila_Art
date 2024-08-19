@@ -50,7 +50,7 @@ export const getAllAccesoriesInStock = async (req, res, next) => {
       .limit(limit)
       .sort({ createdAt: -1 });
 
-      console.log('data',data)
+  
  
     const total = await AccssoriesModel.countDocuments(query);
  

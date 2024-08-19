@@ -7,7 +7,8 @@ const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
 const getEmbroidery = "/api/process/embriodery/getAllEmbroidery";
 const getEmbroiderydetails = "/api/process/embriodery/getEmbroideryById";
 const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
-const deleteEmbroidery = "/api/process/embriodery/addEmbriodery";
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction"
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill"
 
 
 
@@ -83,12 +84,60 @@ export const UpdateEmbroidery = createAsyncThunk(
   }
 );
 
+// DOWNLOAD GATEPASS PDF file
+const downloadPDF = (response) => {
+  if (response.headers && response.data) {
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const contentDisposition = response.headers['content-disposition'];
+    const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+    const filename = filenameMatch ? filenameMatch[1] : 'invoice.pdf';
+
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    console.error('Invalid response format');
+  }
+};
+
+export const generateEmbroideryGatePssPdfAsync = createAsyncThunk("Embroidery/DownladPdf", async (data) => {
+  try {
+    const response = await axios.post(generatePdf, {data,category:'Embroidery'}, { responseType: 'arraybuffer' });
+    downloadPDF(response);
+    return response;
+  } catch (error) {
+    toast.error(error.response?.data?.error || 'Error downloading PDF');
+  }
+});
+
+//CREATE BILL FOR EMBROIDERY
+export const generateEmbroideryBillAsync = createAsyncThunk(
+  "Embroidery/generateProcessBil",
+  async (formData) => {
+    try {
+      const response = await axios.post(generateProcessBillURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+     toast.error(error.response.data.error);
+    }
+  }
+);
+
+
 
 // INITIAL STATE
 const initialState = {
   embroidery: [],
   SingleEmbroidery: {},
   loading: false,
+  EmroiderypdfLoading:false,
+  generateBillLoading:false
 };
 
 const EmbroiderySlice = createSlice({
@@ -108,6 +157,15 @@ const EmbroiderySlice = createSlice({
         state.loading = false;
 
       })
+
+        // EMBROIDERY BILL 
+        .addCase(generateEmbroideryBillAsync.pending, (state, action) => {
+          state.generateBillLoading = true;
+        })
+        .addCase(generateEmbroideryBillAsync.fulfilled, (state, action) => {
+          state.generateBillLoading = false;
+  
+        })
 
 
       .addCase(GETEmbroidery.pending, (state, action) => {
@@ -135,8 +193,15 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(UpdateEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
+      })
 
-
+         //DOWNLOAD PDF
+         .addCase(generateEmbroideryGatePssPdfAsync.pending, (state) => {
+          state.EmroiderypdfLoading = true;
+      })
+      .addCase(generateEmbroideryGatePssPdfAsync.fulfilled, (state, action) => {
+          state.EmroiderypdfLoading = false;
+          
       })
 
 

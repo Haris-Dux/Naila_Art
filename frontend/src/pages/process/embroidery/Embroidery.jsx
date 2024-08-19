@@ -257,7 +257,7 @@ const Embroidery = () => {
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
                         <td className="px-6 py-4">{new Date(data.date).toLocaleDateString()}</td>
-                        <td className="px-6 py-4">{data.quantity} Suit</td>
+                        <td className="px-6 py-4">{data.T_Quantity} Suit</td>
                         <td className="px-6 py-4">{data.project_status}</td>
                         <td className="pl-10 py-4">
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>

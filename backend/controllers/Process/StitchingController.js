@@ -152,7 +152,7 @@ export const updateStitching = async (req, res, next) => {
     const updateFunction = (data) => {
       for (const category in data) {
         const items = data[category];
-        items.forEach((item) => {
+        items && items.forEach((item) => {
           const { return_quantity, id } = item;
           let toUpdate = stitching[category].find((obj) => obj._id == id);
           let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
@@ -167,7 +167,7 @@ export const updateStitching = async (req, res, next) => {
     updateFunction({ dupatta_category });
     await stitching.save();
     return res
-      .status(500)
+      .status(200)
       .json({ success: true, message: "Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });

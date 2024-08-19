@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  generateStitchingBillAsync,
+  generateStitchingGatePssPdfAsync,
   GetSingleStitching,
   UpdateStitchingAsync,
 } from "../../../features/stitching";
@@ -10,10 +12,15 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 
 const StitchingDetails = () => {
   const { id } = useParams();
-  const { SingleStitching, loading } = useSelector((state) => state.stitching);
-  const navigate = useNavigate();
+  const {
+    SingleStitching,
+    loading,
+    StitchingBillLoading,
+    StitchingpdfLoading,
+  } = useSelector((state) => state.stitching);
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({
     id: id,
@@ -30,11 +37,13 @@ const StitchingDetails = () => {
     if (SingleStitching) {
       setFormData({
         ...formData,
-        suits_category: SingleStitching.suits_category?.map((item) => ({
+        suits_category:
+          SingleStitching.suits_category?.map((item) => ({
             id: item.id,
             return_quantity: item.recieved,
           })) || [],
-        dupatta_category: SingleStitching.dupatta_category?.map((item) => ({
+        dupatta_category:
+          SingleStitching.dupatta_category?.map((item) => ({
             id: item.id,
             return_quantity: item.recieved,
           })) || [],
@@ -55,6 +64,8 @@ const StitchingDetails = () => {
     e.preventDefault();
     dispatch(UpdateStitchingAsync(formData)).then((res) => {
       if (res.payload.success === true) {
+        const data = { id };
+        dispatch(GetSingleStitching(data));
         closeUpdateRecievedModal();
       }
     });
@@ -62,8 +73,12 @@ const StitchingDetails = () => {
 
   const handleCompletestitching = (e) => {
     e.preventDefault();
-    dispatch(UpdateStitchingAsync({ project_status: "Completed", id: id })).then((res) => {
+    dispatch(
+      UpdateStitchingAsync({ project_status: "Completed", id: id })
+    ).then((res) => {
       if (res.payload.success === true) {
+        const data = { id };
+        dispatch(GetSingleStitching(data));
         closeCompletedModal();
       }
     });
@@ -80,7 +95,6 @@ const StitchingDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 
@@ -88,6 +102,15 @@ const StitchingDetails = () => {
     setIsUpdateReceivedConfirmOpen(false);
     setIsCompletedConfirmOpen(false);
     document.body.style.overflow = "auto";
+  };
+
+  const handleGenerateGatePassPDf = () => {
+    dispatch(generateStitchingGatePssPdfAsync(SingleStitching));
+  };
+
+  const generateBill = () => {
+    const formData = { ...SingleStitching, process_Category: "Stitching" };
+    dispatch(generateStitchingBillAsync(formData));
   };
 
   if (loading) {
@@ -139,8 +162,8 @@ const StitchingDetails = () => {
               <span> {SingleStitching?.rate}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Project Status:</span>
-              <span> {SingleStitching?.project_status}</span>
+              <span className="font-medium ">Project Status:</span>
+              <span className="text-green-600 dark:text-green-300"> {SingleStitching?.project_status}</span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
@@ -254,16 +277,33 @@ const StitchingDetails = () => {
           </button>
 
           {SingleStitching?.project_status === "Completed" && (
-            <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-              Generate Bill
+            <>
+              {StitchingBillLoading ? (
+                <button disabled className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800">
+                  Generate Bill
+                </button>
+              ) : (
+                <button onClick={generateBill} className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+                  Generate Bill
+                </button>
+              )}
+            </>
+          )}
+          {StitchingpdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 text-sm rounded cursor-progress bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerateGatePassPDf}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
             </button>
           )}
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
-          {/* <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800" >
-            Next Step
-          </button> */}
         </div>
 
         {isUpdateReceivedConfirmOpen && (

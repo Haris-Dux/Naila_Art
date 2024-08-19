@@ -184,10 +184,10 @@ export const updateEmploye = async (req, res, next) => {
 };
 
 export const getEmployeDataById = async (req, res, next) => {
-  console.log("endpointhit");
+  
   try {
     const { id } = req.body;
-    console.log(id);
+
     if (!id) throw new Error("Employe Not Found");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -241,7 +241,7 @@ export const getAllPastEmploye = async (req, res, next) => {
       name: { $regex: search, $options: "i" },
       pastEmploye: true
     };
-    console.log(page);
+   
     const employData = await EmployeModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)

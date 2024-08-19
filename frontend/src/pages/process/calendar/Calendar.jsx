@@ -152,7 +152,7 @@ const Calendar = () => {
                         <td className='px-6 py-4'>{entry.partyName}</td>
                         <td className='px-6 py-4'>{entry.design_no}</td>
                         <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
-                        <td className='px-6 py-4'>{entry.T_Quantity} y</td>
+                        <td className='px-6 py-4'>{entry.T_Quantity} m</td>
                         <td className='px-6 py-4'>{entry.project_status}</td>
                         <td className='pl-10 py-4'>
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
