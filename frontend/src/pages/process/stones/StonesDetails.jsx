@@ -23,9 +23,10 @@ const StonesDetails = () => {
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
   const { loading: IsLoading } = useSelector((state) => state.stitching);
 
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
-    useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -189,7 +190,7 @@ const StonesDetails = () => {
         dispatch(GetSingleStone(data));
         closeUpdateRecievedModal();
       })
-   
+
   };
 
   const handleCompleteStone = (e) => {
@@ -264,12 +265,12 @@ const StonesDetails = () => {
   );
 
   const handleGenerateGatePassPDf = () => {
-    const data = {...SingleStone,T_Quantity};
+    const data = { ...SingleStone, T_Quantity };
     dispatch(generateStoneGatePssPdfAsync(data));
   };
 
   const generateBill = () => {
-    const formData = { ...SingleStone,T_Quantity , process_Category: "Stone" };
+    const formData = { ...SingleStone, T_Quantity, process_Category: "Stone" };
     dispatch(generateStoneBillAsync(formData));
   };
 
@@ -289,6 +290,15 @@ const StonesDetails = () => {
     );
   }
 
+
+  const handleOpenGatePassModal = () => {
+    setisGenerateGatePassOpen(true);
+  };
+
+  const closeGatepassModal = () => {
+    setisGenerateGatePassOpen(false);
+    document.body.style.overflow = "auto";
+  };
 
 
   return (
@@ -423,7 +433,7 @@ const StonesDetails = () => {
                   <span className="w-28 font-semibold">Recent Date</span>
                   <input
                     type="text"
-                    className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-black text-black  dark:text-gray-800"
+                    className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-black  dark:text-gray-800"
                     readOnly
                     value={new Date(item?.createdAt).toLocaleDateString()}
                   />
@@ -477,7 +487,7 @@ const StonesDetails = () => {
             </button>
           ) : (
             <button
-              onClick={handleGenerateGatePassPDf}
+              onClick={handleOpenGatePassModal}
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             >
               Generate Gate Pass
@@ -853,6 +863,15 @@ const StonesDetails = () => {
           message="Are you sure you want to Complete?"
           onConfirm={handleCompleteStone}
           onClose={closeCompletedModal}
+        />
+      )}
+
+      {isGenerateGatePassOpen && (
+        <ConfirmationModal
+          title="Confirmation"
+          message="Are you sure you want to generate gatepass?"
+          onConfirm={handleGenerateGatePassPDf}
+          onClose={closeGatepassModal}
         />
       )}
     </>
