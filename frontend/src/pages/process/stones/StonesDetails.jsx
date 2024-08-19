@@ -1,32 +1,34 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { GetSingleStone, UpdateStoneAsync } from "../../../features/stoneslice";
+import {
+  generateStoneBillAsync,
+  generateStoneGatePssPdfAsync,
+  GetSingleStone,
+  UpdateStoneAsync,
+} from "../../../features/stoneslice";
 import { useSelector, useDispatch } from "react-redux";
 import { FiPlus } from "react-icons/fi";
-import {
-  createStitching,
-  
-} from "../../../features/stitching";
+import { createStitching } from "../../../features/stitching";
 
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
-import {GetAllLaceForEmroidery} from  '../../../features/InStockSlice'
+import { GetAllLaceForEmroidery } from "../../../features/InStockSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-  const { loading, SingleStone } = useSelector((state) => state.stone);
+  const { loading, SingleStone, StnoneBillLoading, StonerpdfLoading } =
+    useSelector((state) => state.stone);
   const { LaceForEmroidery } = useSelector((state) => state.InStock);
-  // const { stitchingEmbroidery } = useSelector((state) => state.stitching);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
-  const { loading:IsLoading } = useSelector((state) => state.stitching);
+  const { loading: IsLoading } = useSelector((state) => state.stitching);
 
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
 
-const navigate = useNavigate()
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-
 
   useEffect(() => {
     const data = {
@@ -43,8 +45,7 @@ const navigate = useNavigate()
       };
       dispatch(GETEmbroiderySIngle(data));
     }
-  }, [id,SingleStone]);
-
+  }, [id, SingleStone]);
 
   const initialRow = { category: "", color: "", quantity_in_no: 0 };
 
@@ -63,7 +64,7 @@ const navigate = useNavigate()
   });
 
   const [StoneData, setStoneData] = useState({
-    id: SingleStone.id,
+    id: SingleStone?.id,
     category_quantity: SingleStone?.category_quantity || [
       {
         id: "",
@@ -83,35 +84,24 @@ const navigate = useNavigate()
           first: item.recieved_Data?.first?.quantity || 0,
           second: item.recieved_Data?.second?.quantity || 0,
           third: item.recieved_Data?.third?.quantity || 0,
-          category:item.category
-        }))
-
+          category: item.category,
+        })),
       });
     }
   }, [SingleStone]);
-
-
-
-
-
 
   useEffect(() => {
     setFormData({
       serial_No: SingleStone?.serial_No || "",
       design_no: SingleStone?.design_no || "",
       date: SingleStone?.date || "",
-      Quantity: SingleStone?.quantity,
+      Quantity: SingleStone?.r_quantity || "",
       embroidery_Id: SingleStone?.embroidery_Id || "",
       suits_category: [initialRow], // You are setting category_quantity with initialRow
       dupatta_category: [initialRow], // You are setting category_quantity with initialRow
-      lace_category: '',
+      lace_category: "",
     });
   }, [SingleStone]);
-
-
-
-
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -128,15 +118,12 @@ const navigate = useNavigate()
     }));
   };
 
-
-
   const removeRow = (categoryType) => {
     setFormData((prevState) => ({
       ...prevState,
       [categoryType]: prevState[categoryType].slice(0, -1),
     }));
   };
-  
 
   const handleCategoryChange = (e, index, categoryType) => {
     const { value } = e.target;
@@ -171,17 +158,12 @@ const navigate = useNavigate()
   const handleSubmitstitching = (e) => {
     e.preventDefault();
 
-    dispatch(createStitching(formData))
-      .then((res) => {
+    dispatch(createStitching(formData)).then((res) => {
       if (res.payload.success === true) {
-
         closeModal();
         navigate("/dashboard/stitching");
-      
       }
-      })
-  
-
+    });
   };
 
   const handleUpdateStone = (e) => {
@@ -198,33 +180,30 @@ const navigate = useNavigate()
       ...StoneData,
       category_quantity: updatedCategoryQuantity,
     };
-    console.log("stone", updatedStoneData);
+
     dispatch(UpdateStoneAsync(updatedStoneData))
       .then(() => {
         const data = {
           id: id,
         };
         dispatch(GetSingleStone(data));
-        closeUpdateRecievedModal()
+        closeUpdateRecievedModal();
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+   
   };
-
 
   const handleCompleteStone = (e) => {
     e.preventDefault();
 
-
-    dispatch(UpdateStoneAsync({  id: SingleStone?.id,
-      project_status: "Completed",}))
+    dispatch(
+      UpdateStoneAsync({ id: SingleStone?.id, project_status: "Completed" })
+    )
       .then(() => {
         const data = {
           id: id,
         };
         dispatch(GetSingleStone(data));
-        closeCompletedModal()
+        closeCompletedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -237,7 +216,7 @@ const navigate = useNavigate()
         if (i === index) {
           return {
             ...item,
-            [field]: parseInt(value, 10), // Ensure the value is an integer
+            [field]: parseInt(value, 10),
           };
         }
         return item;
@@ -259,9 +238,7 @@ const navigate = useNavigate()
     document.body.style.overflow = "auto";
   };
 
-
   const handleCompletedClick = () => {
-    
     setIsCompletedConfirmOpen(true);
   };
 
@@ -272,7 +249,6 @@ const navigate = useNavigate()
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 
@@ -282,24 +258,38 @@ const navigate = useNavigate()
     document.body.style.overflow = "auto";
   };
 
+  const T_Quantity = SingleStone?.category_quantity?.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
+  const handleGenerateGatePassPDf = () => {
+    const data = {...SingleStone,T_Quantity};
+    dispatch(generateStoneGatePssPdfAsync(data));
+  };
 
+  const generateBill = () => {
+    const formData = { ...SingleStone,T_Quantity , process_Category: "Stone" };
+    dispatch(generateStoneBillAsync(formData));
+  };
 
   if (loading) {
-    return (    
-        <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+    return (
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
+        <div className="pt-16 flex justify-center mt-12 items-center">
+          <div
+            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+            role="status"
+            aria-label="loading"
+          >
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-    <div className="pt-16 flex justify-center mt-12 items-center">
-    <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
-        <span className="sr-only">Loading...</span>
-    </div>
-</div>
-</section>
-);
 
-}
-
-  console.log("selectedDetails", SingleStone);
 
   return (
     <>
@@ -328,13 +318,25 @@ const navigate = useNavigate()
               <span>{SingleStone?.design_no}</span>
             </div>
 
-
             <div className="box">
               <span className="font-medium">Total Quantity:</span>
-              <span>     {  SingleStone.category_quantity.reduce((total, item) => total + item.quantity, 0)}</span>
+              <span>
+                {" "}
+                {SingleStone?.category_quantity?.reduce(
+                  (total, item) => total + item.quantity,
+                  0
+                )}{" "}
+                suits
+              </span>
             </div>
 
-       
+            <div className="box">
+              <span className="font-medium">R Quantity:</span>
+              <span>
+                {" "}
+                {SingleStone?.r_quantity ? SingleStone?.r_quantity : "--"}
+              </span>
+            </div>
 
             <div className="box">
               <span className="font-medium">Per Suit:</span>
@@ -403,7 +405,7 @@ const navigate = useNavigate()
                     <input
                       type="text"
                       className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
-                      value={sum}
+                      value={isNaN(sum) ? 0 : sum}
                       readOnly
                     />
                   </div>
@@ -431,8 +433,6 @@ const navigate = useNavigate()
           </div>
         </div>
 
-
-
         <div className="flex justify-center items-center">
           {SingleStone?.project_status !== "Completed" && (
             <button
@@ -444,23 +444,45 @@ const navigate = useNavigate()
           )}
         </div>
 
-
-        
-
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-text-black  dark:text-gray-800"
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white  dark:text-gray-800"
             onClick={handleCompletedClick}
           >
             Completed
           </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
+          {SingleStone?.project_status === "Completed" && (
+            <>
+              {StnoneBillLoading ? (
+                <button
+                  disabled
+                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              ) : (
+                <button onClick={generateBill} className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+                  Generate Bill
+                </button>
+              )}
+            </>
+          )}
+          {StonerpdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerateGatePassPDf}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          )}
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -479,7 +501,7 @@ const navigate = useNavigate()
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
-                Stitching 
+                Stitching
               </h3>
               <button
                 onClick={closeModal}
@@ -558,7 +580,6 @@ const navigate = useNavigate()
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={new Date(formData?.date).toLocaleDateString()}
-                
                     />
                   </div>
 
@@ -605,22 +626,18 @@ const navigate = useNavigate()
 
                   <div>
                     <select
-                       name="lace_category"
-                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      name="lace_category"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                       value={formData?.lace_category}
                       onChange={handleChange}
                     >
-                            <option selected>Select Value</option>
+                      <option selected>Select Value</option>
 
                       {LaceForEmroidery?.map((item, index) => (
                         <option value={item.category}>{item.category}</option>
                       ))}
                     </select>
                   </div>
-
-
-
-
                 </div>
 
                 <div className="box">
@@ -647,7 +664,7 @@ const navigate = useNavigate()
                             handleCategoryChange(e, index, "suits_category")
                           }
                         >
-                            <option selected>Select Value</option>
+                          <option selected>Select Value</option>
 
                           {SingleEmbroidery?.shirt?.map((item, index) => (
                             <option value={item?.category}>
@@ -666,7 +683,7 @@ const navigate = useNavigate()
                             handleColorChange(e, index, "suits_category")
                           }
                         >
-                            <option selected>Select Value</option>
+                          <option selected>Select Value</option>
 
                           {SingleEmbroidery?.shirt?.map((item, index) => (
                             <option value={item?.color}>{item?.color}</option>
@@ -686,30 +703,30 @@ const navigate = useNavigate()
                             handleQuantityChange(e, index, "suits_category")
                           }
                         />
-                             {formData?.suits_category?.length > 1 && (
-                <button
-                onClick={() => removeRow('suits_category')}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+                        {formData?.suits_category?.length > 1 && (
+                          <button
+                            onClick={() => removeRow("suits_category")}
+                            className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            type="button"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              className="w-3 h-3"
+                              fill="none"
+                              viewBox="0 0 14 14"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                            <span className="sr-only">Close modal</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -739,7 +756,7 @@ const navigate = useNavigate()
                             handleCategoryChange(e, index, "dupatta_category")
                           }
                         >
-                            <option selected>Select Value</option>
+                          <option selected>Select Value</option>
 
                           {SingleEmbroidery?.duppata?.map((item, index) => (
                             <option value={item?.category}>
@@ -758,7 +775,7 @@ const navigate = useNavigate()
                             handleColorChange(e, index, "dupatta_category")
                           }
                         >
-                            <option selected>Select Value</option>
+                          <option selected>Select Value</option>
 
                           {SingleEmbroidery?.duppata?.map((item, index) => (
                             <option value={item?.color}>{item?.color}</option>
@@ -778,30 +795,30 @@ const navigate = useNavigate()
                             handleQuantityChange(e, index, "dupatta_category")
                           }
                         />
-                         {formData?.dupatta_category?.length > 1 && (
-                <button
-                onClick={() => removeRow('dupatta_category')}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+                        {formData?.dupatta_category?.length > 1 && (
+                          <button
+                            onClick={() => removeRow("dupatta_category")}
+                            className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            type="button"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              className="w-3 h-3"
+                              fill="none"
+                              viewBox="0 0 14 14"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                            <span className="sr-only">Close modal</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -812,7 +829,7 @@ const navigate = useNavigate()
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
-                    {IsLoading  ? "Submiting..." :"Submit" }
+                    {IsLoading ? "Submiting..." : "Submit"}
                   </button>
                 </div>
               </form>
@@ -821,7 +838,7 @@ const navigate = useNavigate()
         </div>
       )}
 
-{isUpdateReceivedConfirmOpen && (
+      {isUpdateReceivedConfirmOpen && (
         <ConfirmationModal
           title="Confirm Update"
           message="Are you sure you want to update the received items?"
@@ -830,7 +847,7 @@ const navigate = useNavigate()
         />
       )}
 
-{isCompletedConfirmOpen && (
+      {isCompletedConfirmOpen && (
         <ConfirmationModal
           title="Confirm Complete"
           message="Are you sure you want to Complete?"

@@ -159,10 +159,10 @@ const Stones = () => {
                                                     {new Date(data.date).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {  data.category_quantity.reduce((total, item) => total + item.quantity, 0)} y
+                                                    {  data.category_quantity.reduce((total, item) => total + item.quantity, 0)} m
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.r_quantity} y
+                                                    {data.r_quantity ? `${data.r_quantity} m` : '--'}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {data.project_status}

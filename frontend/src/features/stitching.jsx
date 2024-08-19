@@ -8,6 +8,8 @@ const UpdateStitching = "/api/process/Stitching/updateStitching";
 const getAllStitching = "/api/process/Stitching/getAllStitching";
 const getSingleStitching = "/api/process/Stitching/getStitchingById";
 const getStitchingByEmbroideryId = '/api/process/stitching/getStitchingByEmbroideryId'
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction"
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill"
 
 
 //CREATE ASYNC THUNK
@@ -91,6 +93,61 @@ export const getStitchingByEmbroidery = createAsyncThunk(
   }
 );
 
+// DOWNLOAD GATEPASS PDF file
+const downloadPDF = (response) => {
+  if (response.headers && response.data) {
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const contentDisposition = response.headers["content-disposition"];
+    const filenameMatch =
+      contentDisposition && contentDisposition.match(/filename="(.+)"/);
+    const filename = filenameMatch ? filenameMatch[1] : "invoice.pdf";
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    console.error("Invalid response format");
+  }
+};
+
+export const generateStitchingGatePssPdfAsync = createAsyncThunk(
+  "Stitching/DownladPdf",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        generatePdf,
+        { data, category: "Stitching" },
+        { responseType: "arraybuffer" }
+      );
+      downloadPDF(response);
+      return response;
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Error downloading PDF");
+    }
+  }
+);
+
+//CREATE BILL FOR STITCHING
+export const generateStitchingBillAsync = createAsyncThunk(
+  "Stitching/generateProcessBil",
+  async (formData) => {
+    try {
+      const response = await axios.post(generateProcessBillURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 
 // INITIAL STATE
 const initialState = {
@@ -99,6 +156,9 @@ const initialState = {
   SingleStitching: {},
   stitchingEmbroidery: {},
   loading: false,
+  StitchingpdfLoading:false,
+  StitchingBillLoading:false
+
 };
 
 const StitchingSlice = createSlice({
@@ -109,6 +169,22 @@ const StitchingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+       // CALENDER BILL
+       .addCase(generateStitchingBillAsync.pending, (state, action) => {
+        state.StitchingBillLoading = true;
+      })
+      .addCase(generateStitchingBillAsync.fulfilled, (state, action) => {
+        state.StitchingBillLoading = false;
+      })
+
+      //DOWNLOAD PDF
+      .addCase(generateStitchingGatePssPdfAsync.pending, (state) => {
+        state.StitchingpdfLoading = true;
+      })
+      .addCase(generateStitchingGatePssPdfAsync.fulfilled, (state, action) => {
+        state.StitchingpdfLoading = false;
+      })
 
       // Shop Add ADD CASE
       .addCase(createStitching.pending, (state, action) => {

@@ -2,6 +2,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
+  generateEmbroideryBillAsync,
+  generateEmbroideryGatePssPdfAsync,
   GETEmbroiderySIngle,
   UpdateEmbroidery,
 } from "../../../features/EmbroiderySlice";
@@ -12,28 +14,25 @@ const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
 
-  const { loading:IsLoading } = useSelector(
-    (state) => state.Calender
-  );
-  
-  
+  const { loading: IsLoading } = useSelector((state) => state.Calender);
+
   const navigate = useNavigate();
 
-  const { loading, SingleEmbroidery } = useSelector(
+  const { loading, SingleEmbroidery, EmroiderypdfLoading ,generateBillLoading } = useSelector(
     (state) => state.Embroidery
   );
 
-
-  console.log('SingleEmbroidery',SingleEmbroidery)
+  console.log("SingleEmbroidery", SingleEmbroidery);
 
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
     partyName: "",
     design_no: "",
-    date: "", // Ensure this is initialized correctly
+    date: "",
     T_Quantity: "",
     rate: 0,
     embroidery_Id: SingleEmbroidery?.id || "",
@@ -62,38 +61,36 @@ const EmbroideryDetails = () => {
     id: id,
   });
 
-
-
   useEffect(() => {
     if (SingleEmbroidery) {
       setFormData({
-        shirt: SingleEmbroidery.shirt || [{ category: '', color: '', received: 0 }],
-        duppata: SingleEmbroidery.duppata || [{ category: '', color: '', received: 0 }],
-        trouser: SingleEmbroidery.trouser || [{ category: '', color: '', received: 0}],
+        shirt: SingleEmbroidery.shirt || [
+          { category: "", color: "", received: 0 },
+        ],
+        duppata: SingleEmbroidery.duppata || [
+          { category: "", color: "", received: 0 },
+        ],
+        trouser: SingleEmbroidery.trouser || [
+          { category: "", color: "", received: 0 },
+        ],
         id: id,
       });
     }
   }, [SingleEmbroidery, id]);
-  
-
-  
-
 
   const handleInputChange = (category, color, received, index, section) => {
-    console.log('Received:', received);
+    console.log("Received:", received);
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
         idx === index ? { ...item, category, color, received } : item
       );
-      console.log('Updated Section:', updatedSection); // Log the updated section
-      console.log('Updated Item:', updatedSection[index]); // Log the specific updated item
+
       return {
         ...prevState,
         [section]: updatedSection,
       };
     });
   };
-  
 
   useEffect(() => {
     const data = {
@@ -153,8 +150,7 @@ const EmbroideryDetails = () => {
     dispatch(UpdateEmbroidery(formData))
       .then(() => {
         dispatch(GETEmbroiderySIngle({ id }));
-        closeUpdateRecievedModal()
-
+        closeUpdateRecievedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -164,14 +160,14 @@ const EmbroideryDetails = () => {
   const handleCompleted = (event) => {
     event.preventDefault();
 
-    dispatch(UpdateEmbroidery({ project_status: "Completed",id }))
-      .then(() => {
-        dispatch(GETEmbroiderySIngle({ id }));
-        closeCompletedModal()
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    dispatch(UpdateEmbroidery({ project_status: "Completed", id })).then(
+      (res) => {
+        if (res.payload.success === true) {
+          dispatch(GETEmbroiderySIngle({ id }));
+          closeCompletedModal();
+        }
+      }
+    );
   };
 
   const handleInputChangeCalender = (e) => {
@@ -185,14 +181,12 @@ const EmbroideryDetails = () => {
   const handleSubmitCalender = (e) => {
     e.preventDefault();
 
-    dispatch(createCalender(CalenderData))
-      .then((res) => {
-        if (res.payload.success === true) {
+    dispatch(createCalender(CalenderData)).then((res) => {
+      if (res.payload.success === true) {
         closeModal(); // Close modal after submission
         navigate("/dashboard/calendar");
-        }
-      })
-     
+      }
+    });
   };
 
   const openModal = () => {
@@ -205,9 +199,7 @@ const EmbroideryDetails = () => {
     document.body.style.overflow = "auto";
   };
 
-
   const handleCompletedClick = () => {
-    
     setIsCompletedConfirmOpen(true);
   };
 
@@ -228,8 +220,14 @@ const EmbroideryDetails = () => {
     document.body.style.overflow = "auto";
   };
 
+  const handleGenerateGatePassPDf = () => {
+    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery));
+  };
 
-
+  const generateBill = () => {
+    const formData = {...SingleEmbroidery,process_Category:'Embroidery'}
+    dispatch(generateEmbroideryBillAsync(formData));
+  };
 
   return (
     <>
@@ -256,7 +254,6 @@ const EmbroideryDetails = () => {
             <div className="box">
               <span className="font-medium">Date:</span>
               <span>{new Date(date).toLocaleDateString()}</span>
-
             </div>
             <div className="box">
               <span className="font-medium">Per Suit:</span>
@@ -293,8 +290,7 @@ const EmbroideryDetails = () => {
 
             <div className="box">
               <span className="font-medium">Received Suit:</span>
-              <span>{ SingleEmbroidery?.recieved_suit } ---</span>
-              
+              <span> {SingleEmbroidery?.recieved_suit ?SingleEmbroidery?.recieved_suit : '---' } </span>
             </div>
             {/* THIRD ROW */}
             <div className="box">
@@ -387,28 +383,26 @@ const EmbroideryDetails = () => {
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
+                      {item.category} - {item.color} ({item?.quantity_in_no}) (
+                      {item?.quantity_in_m}m)
                     </p>
-                   
 
-<input
-type="text"
-  key={`shirt-${index}`}
-
-  className="py-1  border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-  value={item.received}  // Ensure this is tied to the state
-  onChange={(e) =>
-    handleInputChange(
-      item.category,
-      item.color,
-      e.target.value,  // Ensure the correct value is passed
-      index,
-      "shirt"  // Update this accordingly for different sections
-    )
-  }
-  readOnly={project_status === "Completed"}
-/>
-
+                    <input
+                      type="text"
+                      key={`shirt-${index}`}
+                      className="py-1  border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+                      value={item.received} // Ensure this is tied to the state
+                      onChange={(e) =>
+                        handleInputChange(
+                          item.category,
+                          item.color,
+                          e.target.value, // Ensure the correct value is passed
+                          index,
+                          "shirt" // Update this accordingly for different sections
+                        )
+                      }
+                      readOnly={project_status === "Completed"}
+                    />
                   </div>
                 ))}
               </div>
@@ -424,12 +418,12 @@ type="text"
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
+                      {item.category} - {item.color} ({item?.quantity_in_no}) (
+                      {item?.quantity_in_m}m)
                     </p>
                     <input
                       type="text"
-  key={`duppata-${index}`}
-
+                      key={`duppata-${index}`}
                       className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
                       value={item.received}
                       onChange={(e) =>
@@ -458,11 +452,11 @@ type="text"
                     className="details_box flex items-center gap-x-3"
                   >
                     <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) ({item?.quantity_in_m}m)
+                      {item.category} - {item.color} ({item?.quantity_in_no}) (
+                      {item?.quantity_in_m}m)
                     </p>
                     <input
-  key={`trouser-${index}`}
-
+                      key={`trouser-${index}`}
                       type="text"
                       className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
                       value={item.received}
@@ -483,16 +477,15 @@ type="text"
             </div>
           </div>
         </div>
-        <div className="flex justify-center items-center">   
-          {project_status !== "Completed" && 
-        <button
-          className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
-          onClick={handleUpdateReceivedClick}
-        >
-          Update Recived
-        </button>
-}
-
+        <div className="flex justify-center items-center">
+          {project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              onClick={handleUpdateReceivedClick}
+            >
+              Update Recived
+            </button>
+          )}
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
@@ -502,17 +495,35 @@ type="text"
           >
             Completed
           </button>
-          {project_status === "Completed" && 
-          <>  
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
-          </>
-        }
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
-  
+          {project_status === "Completed" && (
+            <>
+              {generateBillLoading ? (
+                <button disabled className="px-4 py-2.5 hover:cursor-progress text-sm rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800">
+                  Generate Bill
+                </button>
+              ) : (
+                <button onClick={generateBill} className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+                  Generate Bill
+                </button>
+              )}
+            </>
+          )}
+          {EmroiderypdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 hover:cursor-progress text-sm rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerateGatePassPDf}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          )}
+
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -637,7 +648,7 @@ type="text"
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                     >
-                    { IsLoading ?  "Submiting...":"Submit"}
+                      {IsLoading ? "Submiting..." : "Submit"}
                     </button>
                   </div>
                 </form>
@@ -646,33 +657,26 @@ type="text"
           </div>
         )}
 
+        {isUpdateReceivedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Update"
+            message="Are you sure you want to update the received items?"
+            onConfirm={handleSubmit}
+            onClose={closeUpdateRecievedModal}
+          />
+        )}
 
-
-{isUpdateReceivedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Update"
-          message="Are you sure you want to update the received items?"
-          onConfirm={handleSubmit}
-          onClose={closeUpdateRecievedModal}
-        />
-      )}
-
-{isCompletedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Complete"
-          message="Are you sure you want to Complete ?"
-          onConfirm={handleCompleted}
-          onClose={closeCompletedModal}
-        />
-      )}
-
-
-
-
+        {isCompletedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Complete"
+            message="Are you sure you want to Complete ?"
+            onConfirm={handleCompleted}
+            onClose={closeCompletedModal}
+          />
+        )}
       </section>
     </>
   );
 };
 
 export default EmbroideryDetails;
-

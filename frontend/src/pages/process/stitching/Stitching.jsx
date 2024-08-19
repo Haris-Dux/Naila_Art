@@ -10,7 +10,6 @@ import { GetAllStitching } from '../../../features/stitching';
 const Stitching = () => {
     const dispatch = useDispatch();
     const { Stitching, loading } = useSelector((state) => state.stitching);
-    const [currentPage, setCurrentPage] = useState(1);
     const [searchText, setSearchText] = useState('');
 
     const [search, setSearch] = useState('');
@@ -21,16 +20,6 @@ const Stitching = () => {
     useEffect(() => {
         dispatch(GetAllStitching({ search, page }));
     }, [page, dispatch]);
-
-
-
-
-    const totalPages = Stitching?.totalPages || 1;
-
-
-    // const handleSearch = (e) => {
-    //     setSearchText(e.target.value);
-    // };
 
     const filteredData = Stitching?.data?.filter((data) =>
         data.partyName.toLowerCase().includes(searchText.toLowerCase())
@@ -196,10 +185,10 @@ const Stitching = () => {
                                                     {new Date(data.date).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.Quantity} y
+                                                    {data.Quantity} suit
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.r_quantity} y
+                                                    {data.r_quantity ? `${data.r_quantity} suit` : '--'}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {data.project_status}

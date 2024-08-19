@@ -163,7 +163,7 @@ export const getColorsForCurrentEmbroidery = async(req,res,next) => {
     const embroidery = await EmbroideryModel.findOne({serial_No});
     if(embroidery.length == 0) throw new Error("No Data found On This serial Number");
     const allItems = [...embroidery.shirt, ...embroidery.duppata, ...embroidery.trouser];
-   console.log(allItems);
+ 
    const colors = [...new Set(allItems.map(item => item.color))];
     return res.status(200).json({ success: true, colors: colors });
   } catch (error) {

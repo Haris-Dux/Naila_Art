@@ -3,27 +3,37 @@ import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import {
+  generateCuttingBillAsync,
+  generateCuttingGatePssPdfAsync,
   GetSingleCutting,
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
-import {  createStone, getColorsForCurrentEmbroidery } from "../../../features/stoneslice";
+import {
+  createStone,
+  getColorsForCurrentEmbroidery,
+} from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-  const { loading, SingleCutting } = useSelector((state) => state.Cutting);
-  const {  color,loading:IsLoading} = useSelector((state) => state.stone);
+  const {
+    loading,
+    SingleCutting,
+    generateCuttingBillLoading,
+    CuttingpdfLoading,
+  } = useSelector((state) => state.Cutting);
+  const { color, loading: IsLoading } = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
   });
-
 
   const initialRow = { category: "", color: "", quantity: 0 };
 
@@ -46,14 +56,12 @@ const CuttingDetails = () => {
       embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
-   
   }, [SingleCutting]);
 
   useEffect(() => {
     setcuttingData({
-      id:id,
+      id: id,
       r_quantity: SingleCutting?.r_quantity || "",
-      
     });
   }, [SingleCutting]);
 
@@ -75,10 +83,11 @@ const CuttingDetails = () => {
   const deleteRow = (index) => {
     setFormData((prevState) => ({
       ...prevState,
-      category_quantity: prevState.category_quantity.filter((_, i) => i !== index),
+      category_quantity: prevState.category_quantity.filter(
+        (_, i) => i !== index
+      ),
     }));
   };
-  
 
   const handleCategoryChange = (e, index) => {
     const { value } = e.target;
@@ -117,15 +126,13 @@ const CuttingDetails = () => {
     dispatch(GetSingleCutting(data));
   }, [id, dispatch]);
 
-
-
   useEffect(() => {
-    if(SingleCutting && SingleCutting?.serial_No )
-      {
-    dispatch(getColorsForCurrentEmbroidery({serial_No:SingleCutting?.serial_No}));
-      }
-  }, [id,SingleCutting]);
-
+    if (SingleCutting && SingleCutting?.serial_No) {
+      dispatch(
+        getColorsForCurrentEmbroidery({ serial_No: SingleCutting?.serial_No })
+      );
+    }
+  }, [id, SingleCutting]);
 
   const handleInputChangeCutting = (e) => {
     const { name, value } = e.target;
@@ -140,21 +147,15 @@ const CuttingDetails = () => {
 
     console.log("frp", formData);
 
-    dispatch(createStone(formData))
-      .then((res) => {
-
+    dispatch(createStone(formData)).then((res) => {
       if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/stones");
-        }
-      })
-   
-
-
-      
+      }
+    });
   };
 
-  const  handleUpdateCutting = (e) => {
+  const handleUpdateCutting = (e) => {
     e.preventDefault();
 
     const data = {
@@ -163,17 +164,13 @@ const CuttingDetails = () => {
 
     dispatch(Updatecuttingasync(cuttingData))
       .then(() => {
-   
-
         dispatch(GetSingleCutting(data));
-        closeUpdateRecievedModal()
-    
+        closeUpdateRecievedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
-
 
   const handleCompleteCutting = (e) => {
     e.preventDefault();
@@ -182,19 +179,15 @@ const CuttingDetails = () => {
       id: id,
     };
 
-   
-    dispatch(Updatecuttingasync({ project_status: "Completed",  id: id,}))
+    dispatch(Updatecuttingasync({ project_status: "Completed", id: id }))
       .then(() => {
         dispatch(GetSingleCutting(data));
-      closeCompletedModal()
+        closeCompletedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
-
-
-  
 
   const openModal = () => {
     setIsOpen(true);
@@ -206,10 +199,7 @@ const CuttingDetails = () => {
     document.body.style.overflow = "auto";
   };
 
-
-
   const handleCompletedClick = () => {
-    
     setIsCompletedConfirmOpen(true);
   };
 
@@ -230,12 +220,14 @@ const CuttingDetails = () => {
     document.body.style.overflow = "auto";
   };
 
+  const handleGenerateGatePassPDf = () => {
+    dispatch(generateCuttingGatePssPdfAsync(SingleCutting));
+  };
 
-
-
-
-
-
+  const generateBill = () => {
+    const formData = { ...SingleCutting, process_Category: "Cutting" };
+    dispatch(generateCuttingBillAsync(formData));
+  };
 
   if (loading) {
     return (
@@ -294,7 +286,6 @@ const CuttingDetails = () => {
             <div className="box">
               <span className="font-medium">Date:</span>
               <span>{new Date(SingleCutting?.date).toLocaleDateString()}</span>
-
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>
@@ -325,8 +316,6 @@ const CuttingDetails = () => {
           />
         </div>
 
-
-
         <div className="flex justify-center items-center">
           {SingleCutting?.project_status !== "Completed" && (
             <button
@@ -338,10 +327,6 @@ const CuttingDetails = () => {
           )}
         </div>
 
-
-        
-
-
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
           <button
@@ -352,21 +337,40 @@ const CuttingDetails = () => {
           </button>
 
           {SingleCutting?.project_status === "Completed" && (
-<> 
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
-         
-          </>
-
+            <>
+              {generateCuttingBillLoading ? (
+                <button
+                  disabled
+                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              ) : (
+                <button
+                  onClick={generateBill}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              )}
+            </>
           )}
 
-<button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
-
-
-
+          {CuttingpdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerateGatePassPDf}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          )}
 
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
@@ -508,7 +512,7 @@ const CuttingDetails = () => {
                             <option value="Bazo">Bazo</option>
                             <option value="Duppata">Duppata</option>
                             <option value="Gala">Gala</option>
-                            <option value="Front Patch">Front patch</option> 
+                            <option value="Front Patch">Front patch</option>
                             <option value="Trouser">Trouser</option>
                           </select>
                         </div>
@@ -521,54 +525,51 @@ const CuttingDetails = () => {
                             onChange={(e) => handleColorChange(e, index)}
                             name="color"
                           >
-                          <option value={''} disabled>Select color</option>
-  {color?.colors?.map((data) => (
-    <option  value={data}>{data}</option>
-  ))}
+                            <option value={""} disabled>
+                              Select color
+                            </option>
+                            {color?.colors?.map((data) => (
+                              <option value={data}>{data}</option>
+                            ))}
                           </select>
                         </div>
 
                         {/* ENTER QUANITY */}
                         <div className="flex items-center">
-        <input
-          type="text"
-          placeholder="Enter Quantity"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-          required
-          value={row.quantity}
-          onChange={(e) => handleQuantityChange(e, index)}
-        />
-      
+                          <input
+                            type="text"
+                            placeholder="Enter Quantity"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                            value={row.quantity}
+                            onChange={(e) => handleQuantityChange(e, index)}
+                          />
 
-        {formData?.category_quantity?.length > 1 && (
-                <button
-                onClick={() => deleteRow(index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
-      </div>
-
-
-
-
+                          {formData?.category_quantity?.length > 1 && (
+                            <button
+                              onClick={() => deleteRow(index)}
+                              className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                              type="button"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                  stroke="currentColor"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                />
+                              </svg>
+                              <span className="sr-only">Close modal</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   <div className="flex justify-center pt-2">
@@ -576,7 +577,7 @@ const CuttingDetails = () => {
                       type="submit"
                       className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                     >
-                      {IsLoading ? "Submiting..." :"Submit" }
+                      {IsLoading ? "Submiting..." : "Submit"}
                     </button>
                   </div>
                 </form>
@@ -585,25 +586,23 @@ const CuttingDetails = () => {
           </div>
         )}
 
+        {isUpdateReceivedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Update"
+            message="Are you sure you want to update the received items?"
+            onConfirm={handleUpdateCutting}
+            onClose={closeUpdateRecievedModal}
+          />
+        )}
 
-
-{isUpdateReceivedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Update"
-          message="Are you sure you want to update the received items?"
-          onConfirm={handleUpdateCutting}
-          onClose={closeUpdateRecievedModal}
-        />
-      )}
-
-{isCompletedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Complete"
-          message="Are you sure you want to Complete?"
-          onConfirm={handleCompleteCutting}
-          onClose={closeCompletedModal}
-        />
-      )}
+        {isCompletedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Complete"
+            message="Are you sure you want to Complete?"
+            onConfirm={handleCompleteCutting}
+            onClose={closeCompletedModal}
+          />
+        )}
       </section>
     </>
   );
