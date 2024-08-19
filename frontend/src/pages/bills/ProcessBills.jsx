@@ -214,7 +214,7 @@ const ProcessBills = () => {
                                                 {data?.T_Quantity} Suits
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data?.status}
+                                                {data?.virtual_account?.status}
                                             </td>
                                             <td className="pl-10 py-4">
                                                 <Link to={`/dashboard/process-details/${data?.id}`}>
