@@ -75,10 +75,9 @@ const Buyers = () => {
   }, [dispatch, user]);
 
 
-
-
   useEffect(() => {
-    if (Branches?.length > 1) {
+    if (Branches?.length > 0) {
+
       const payload = {
         id: user?.user?.id,
         branchId: selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id,
