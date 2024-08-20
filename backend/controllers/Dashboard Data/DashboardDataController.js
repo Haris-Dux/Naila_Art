@@ -436,7 +436,7 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
       //yearly sale data
       const yearlySaleData = {
         currentyearSale: currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale,
-        differenceFromLastMonth:
+        differenceFromLastYear:
           currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale -
           previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale,
       };
