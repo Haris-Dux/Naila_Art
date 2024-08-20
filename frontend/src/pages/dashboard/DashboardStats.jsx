@@ -107,17 +107,6 @@ const DashboardStats = () => {
     },
   ];
 
-  const calculatePercentageChange = (currentValue, difference) => {
-    const previousValue = currentValue - difference;
-    if (previousValue === 0) return 0; // Avoid division by zero
-    return (difference / previousValue) * 100;
-  };
-
-  const percentageChange = useMemo(() =>
-    calculatePercentageChange(DashboardData?.dailySale?.today, DashboardData?.dailySale?.differenceFromYesterday),
-    [DashboardData?.dailySale?.today, DashboardData?.dailySale?.differenceFromYesterday]
-  );
-
   const handleShowSuits = () => {
     navigate(`/dashboard/suits`)
     window.scrollTo({
@@ -125,6 +114,49 @@ const DashboardStats = () => {
       behavior: "smooth"
     })
   }
+
+  const calculatePercentageChange = (currentValue, difference) => {
+    console.log('Calculating percentage change:', { currentValue, difference });
+    const previousValue = currentValue - difference;
+
+    if (previousValue === 0) return 0; // Avoid division by zero
+
+    const percentageChange = (difference / previousValue) * 100;
+    console.log('Calculated percentage:', percentageChange);
+    return Math.round(percentageChange);
+  };
+
+  const dailySalePercentage = useMemo(() => calculatePercentageChange(
+    DashboardData?.dailySale?.today,
+    DashboardData?.dailySale?.differenceFromYesterday
+  ), [DashboardData?.dailySale?.today, DashboardData?.dailySale?.differenceFromYesterday]);
+
+  const monthlySalePercentage = useMemo(() => calculatePercentageChange(
+    DashboardData?.monthlysale?.currentMonthSale,
+    DashboardData?.monthlysale?.differenceFromLastMonth
+  ), [DashboardData?.monthlysale?.currentMonthSale, DashboardData?.monthlysale?.differenceFromLastMonth]);
+
+  const grossSalePercentage = useMemo(() => calculatePercentageChange(
+    DashboardData?.grossSale?.currentyearSale,
+    DashboardData?.grossSale?.differenceFromLastYear
+  ), [DashboardData?.grossSale?.currentyearSale, DashboardData?.grossSale?.differenceFromLastYear]);
+
+  const grossProfitPercentage = useMemo(() => calculatePercentageChange(
+    DashboardData?.grossProfit?.currentYearGrossProfit,
+    DashboardData?.grossProfit?.differenceFromLastyear
+  ), [DashboardData?.grossProfit?.currentYearGrossProfit, DashboardData?.grossProfit?.differenceFromLastyear]);
+
+
+  const todaySale = DashboardData?.dailySale?.today;
+  const differenceFromYesterday = DashboardData?.dailySale?.differenceFromYesterday;
+
+  // Calculate percentage change
+  const percentageChange = todaySale && differenceFromYesterday
+    ? ((todaySale - differenceFromYesterday) / differenceFromYesterday) * 100
+    : 0;
+
+
+
   return (
     <>
       {loading ? (
@@ -156,7 +188,7 @@ const DashboardStats = () => {
                 <CircularProgress
                   identifier="development6"
                   startValue={0}
-                  endValue={22}
+                  endValue={11}
                   speed={20}
                   circleColor="#434343"
                 />
@@ -181,7 +213,7 @@ const DashboardStats = () => {
                 <CircularProgress
                   identifier="development6"
                   startValue={0}
-                  endValue={88}
+                  endValue={11}
                   speed={20}
                   circleColor="#434343"
                 />
@@ -206,7 +238,7 @@ const DashboardStats = () => {
                 <CircularProgress
                   identifier="development6"
                   startValue={0}
-                  endValue={54}
+                  endValue={11}
                   speed={20}
                   circleColor="#434343"
                 />
@@ -231,7 +263,7 @@ const DashboardStats = () => {
                 <CircularProgress
                   identifier="development6"
                   startValue={0}
-                  endValue={35}
+                  endValue={11}
                   speed={20}
                   circleColor="#434343"
                 />
@@ -285,13 +317,13 @@ const DashboardStats = () => {
                         {DashboardData && DashboardData?.totalSuits?.length > 0 ? (
                           DashboardData?.totalSuits?.slice(0, 4).map((data, index) => (
                             <tr key={index} onClick={handleShowSuits} className="bg-white border-b cursor-pointer text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-3">
                                 {data.category}
                               </td>
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-3">
                                 {data.color}
                               </td>
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-3">
                                 {data.quantity}
                               </td>
                             </tr>
@@ -338,18 +370,20 @@ const DashboardStats = () => {
                       </h3>
                     </div>
                   </div>
-                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                    <div className="stat_data pl-4">
-                      <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
-                        Payable
-                      </h3>
-                      <h3 className="mt-1 text-gray-900 dark:text-gray-100">
-                        <span className="text-xl font-semibold mr-2">
-                          Rs {DashboardData?.payable}
-                        </span>
-                      </h3>
+                  {user?.user?.role === "superadmin" ? (
+                    <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                      <div className="stat_data pl-4">
+                        <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
+                          Payable
+                        </h3>
+                        <h3 className="mt-1 text-gray-900 dark:text-gray-100">
+                          <span className="text-xl font-semibold mr-2">
+                            Rs {DashboardData?.payable}
+                          </span>
+                        </h3>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
             </div>
