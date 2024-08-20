@@ -172,10 +172,14 @@ export const cashOut = async (req, res, next) => {
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
         totalCash: (dailySaleForToday.saleData.totalCash -= cash),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] -= cash),
       };
 
       if (updatedSaleData.totalCash < 0)
         throw new Error("Not Enough Total Cash");
+
+      if (updatedSaleData.payment_Method < 0)
+        throw new Error("Not Enough Cash In PaymentMethod");
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });

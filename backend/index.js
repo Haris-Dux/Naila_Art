@@ -25,6 +25,7 @@ import buyerRouter from "./routes/BuyersRoutes.js";
 import cashInOutRouter from "./routes/CashInOutRoutes.js";
 import sellerRouter from "./routes/Sellers/SellerRoutes.js";
 import processBillRouter from "./routes/Process/ProcessBillRoutes.js";
+import dashboardRouter from "./routes/Dashboard Data/DashboardRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -73,6 +74,7 @@ app.use(session({
   app.use("/api/cashInOut",cashInOutRouter);
   app.use("/api/sellerRouter",sellerRouter);
   app.use("/api/processBillRouter",processBillRouter);
+  app.use("/api/dashboardRouter",dashboardRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));
