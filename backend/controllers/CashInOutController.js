@@ -278,24 +278,32 @@ corn.schedule(
       const branchData = await BranchModel.find({});
       const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
       const dailyCashInOutPromises = branchData?.map(async (branch) => {
+      try {
         const verifyDuplicateData = await CashInOutModel.findOne({
           branchId: branch._id,
           date: today,
         });
-        if (verifyDuplicateData)
-          throw new Error(
-            `Cash In Out Data Already Exists for ${verifyDuplicateData.date}`
+        if (verifyDuplicateData){
+          console.error(
+            `Cash In Out Already Exists for ${branch.branchName} on ${today}`
           );
+          return null;}
         return await CashInOutModel.create({
           branchId: branch._id,
           date: today,
           todayCashIn: 0,
           todayCashOut: 0,
         });
+      } catch (error) {
+        console.error(
+          `Failed to process branch ${branch.branchName}: ${error.message}`
+        );
+        return null;
+      }
       });
-      await Promise.all(dailyCashInOutPromises);
+      await Promise.allSettled(dailyCashInOutPromises);
     } catch (error) {
-      throw new Error({ error: error.message });
+      console.error(`Error in scheduled task: ${error.message}`);
     }
   },
   {
