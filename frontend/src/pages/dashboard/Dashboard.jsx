@@ -12,6 +12,7 @@ import { logoutUserAsync } from "../../features/authSlice";
 import toast from "react-hot-toast";
 
 
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -99,17 +100,14 @@ const Dashboard = () => {
         localStorage.setItem("theme", theme);
     }, [theme]);
 
-    // HANDLE THEME CHANGE
     const handleThemeChange = () => {
         setTheme(theme === "dark" ? "light" : "dark");
         toggleMenu();
     };
 
-    // HANDLE LOGOUT
     const handleLogout = () => {
         dispatch(logoutUserAsync())
     }
-
 
     const handleMoveTop = () => {
         window.scrollTo({
@@ -321,7 +319,7 @@ const Dashboard = () => {
                                         <li>
                                             <Link to="/dashboard/stitching" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stitching" || location.pathname.includes("stitching-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stitching</Link>
                                         </li>
-                                      
+
                                     </ul>
                                 )}
                             </li>
@@ -426,8 +424,6 @@ const Dashboard = () => {
                     <Outlet />
                 </ main>
             </div>
-
-
         </>
     );
 };
