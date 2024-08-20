@@ -16,7 +16,6 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     const user = await UserModel.findById({ _id: id });
     if(!user.branchId) throw new Error("No branch Data For Authorized User")
     const branch = await BranchModel.findById({ _id: user.branchId });
-  console.log(branch);
     if (!branch) {
       return res
         .status(404)
@@ -183,7 +182,7 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     //yearly sale data
     const yearlySaleData = {
       currentyearSale:currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0,
-      differenceFromLastyear:
+      differenceFromLastYear:
        (currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0) -
         (previousMonthAndYearlysale[0].yearlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale : 0),
     };
@@ -493,7 +492,7 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
 
     //cash in hand data
     const cashInHandData = todaySalesResult.totalCash[0].totalCash;
-    console.log(cashInHandData);
+   
 
     //MOTHLY SALES DATA FOR GRAPH
     const salesForEveryMonth = await DailySaleModel.aggregate([
