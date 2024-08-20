@@ -1,5 +1,87 @@
+import { Doughnut, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+} from "chart.js";
+import CircularProgress from "./Changing";
+
 
 const DashboardStats = () => {
+  const orderProgress = [{}]
+  const monthlyOrdersData = [{}]
+
+  ChartJS.register(
+    ArcElement,
+    Tooltip,
+    Legend,
+    BarElement,
+    CategoryScale,
+    LinearScale
+  );
+
+  const chartData = {
+    labels: ["Pending", "Delivered", "Dispatched", "Cancelled"],
+    datasets: [
+      {
+        label: "%",
+        data: [
+          orderProgress?.Pending || 0,
+          orderProgress?.Delivered || 0,
+          orderProgress?.Dispatched || 0,
+          orderProgress?.Cancelled || 0,
+        ],
+        backgroundColor: [
+          "rgb(205, 120, 3)",
+          "rgb(74, 165, 123)",
+          "rgb(63, 131, 248)",
+          "rgb(242, 82, 82)",
+        ],
+        borderColor: [
+          "rgb(205, 120, 3)",
+          "rgb(74, 165, 123)",
+          "rgb(63, 131, 248)",
+          "rgb(242, 82, 82)",
+        ],
+        borderWidth: 1,
+        borderRadius: 5,
+        spacing: 5,
+        cutout: 0,
+      },
+    ],
+  };
+
+  const barChartData = {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    datasets: [
+      {
+        label: "Orders",
+        data: monthlyOrdersData ? Object.values(monthlyOrdersData) : [],
+        backgroundColor: "#252525",
+        borderColor: "rgb(97, 79, 201)",
+        borderWidth: 1,
+        borderRadius: 3,
+      },
+    ],
+  };
+
   const citiesStats = [
     {
       id: 1,
@@ -43,8 +125,8 @@ const DashboardStats = () => {
       <section className="bg-white dark:bg-gray-900 mt-7 mb-0 mx-6 px-2 pt-6 pb-16 min-h-screen rounded-lg">
         {/* ------------ FIRST STATS BAR ------------*/}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-4">
-          <div className="h-40 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-            <div className="stat_data pl-4">
+          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+            <div className="stat_data">
               <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
                 Gross Sale
               </h3>
@@ -54,58 +136,100 @@ const DashboardStats = () => {
               <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
                 +1.5k
               </p>
+            </div>
+
+            <div>
+              <CircularProgress
+                identifier="development6"
+                startValue={0}
+                endValue={76}
+                speed={20}
+                circleColor="#252525"
+              />
+            </div>
+          </div>
+          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+            <div className="stat_data">
+              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                Gross Sale
+              </h3>
+              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
+                232,789
+              </h2>
+              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
+                +1.5k
+              </p>
+            </div>
+
+            <div>
+              <CircularProgress
+                identifier="development6"
+                startValue={0}
+                endValue={88}
+                speed={20}
+                circleColor="#252525"
+              />
+            </div>
+          </div>
+          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+            <div className="stat_data">
+              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                Gross Sale
+              </h3>
+              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
+                232,789
+              </h2>
+              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
+                +1.5k
+              </p>
+            </div>
+
+            <div>
+              <CircularProgress
+                identifier="development6"
+                startValue={0}
+                endValue={54}
+                speed={20}
+                circleColor="#252525"
+              />
+            </div>
+          </div>
+          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+            <div className="stat_data">
+              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                Gross Sale
+              </h3>
+              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
+                232,789
+              </h2>
+              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
+                +1.5k
+              </p>
+            </div>
+
+            <div>
+              <CircularProgress
+                identifier="development6"
+                startValue={0}
+                endValue={35}
+                speed={20}
+                circleColor="#252525"
+              />
             </div>
           </div>
 
-          <div className="h-40 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-            <div className="stat_data pl-4">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Gross Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
-                232,789
-              </h2>
-              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
-                +1.5k
-              </p>
-            </div>
-          </div>
 
-          <div className="h-40 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-            <div className="stat_data pl-4">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Gross Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
-                232,789
-              </h2>
-              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
-                +1.5k
-              </p>
-            </div>
-          </div>
-
-          <div className="h-40 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-            <div className="stat_data pl-4">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Gross Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 text-2xl font-semibold">
-                232,789
-              </h2>
-              <p className="text-gray-900 mt-1.5 bg-gray-200 px-3 py-1 w-16 rounded-lg">
-                +1.5k
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* ------------ SECOND STATS BAR ------------*/}
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4">
           <div className="rounded-lg md:col-span-1 lg:col-span-4 xl:col-span-3">
             {/* BAR CHARTS */}
-            <div className="h-72 rounded-lg text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 w-full p-4">
-              Bar Chart
+            <div className="h-[22rem] rounded-lg text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 w-full p-4">
+              <Bar
+                data={barChartData}
+                options={{ responsive: true, maintainAspectRatio: false }}
+              />
             </div>
 
             {/* TOTAL SUITES && ACCOUNTS */}
