@@ -144,7 +144,7 @@ const DashboardStats = () => {
                 startValue={0}
                 endValue={76}
                 speed={20}
-                circleColor="#252525"
+                circleColor="#434343"
               />
             </div>
           </div>
@@ -167,7 +167,7 @@ const DashboardStats = () => {
                 startValue={0}
                 endValue={88}
                 speed={20}
-                circleColor="#252525"
+                circleColor="#434343"
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ const DashboardStats = () => {
                 startValue={0}
                 endValue={54}
                 speed={20}
-                circleColor="#252525"
+                circleColor="#434343"
               />
             </div>
           </div>
@@ -213,7 +213,7 @@ const DashboardStats = () => {
                 startValue={0}
                 endValue={35}
                 speed={20}
-                circleColor="#252525"
+                circleColor="#434343"
               />
             </div>
           </div>
