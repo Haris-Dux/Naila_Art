@@ -4,12 +4,26 @@ import toast from "react-hot-toast";
 
 //API URL
 const getDashboardDataForSuperAdmin = "/api/dashboardRouter/getDashBoardDataForSuperAdmin";
+const getDashboardDataForBranch = "/api/dashboardRouter/getDashBoardDataForBranch";
 
 
 // GET DATA FOR SUPER ADMIN THUNK
 export const getDataForSuperAdminAsync = createAsyncThunk("dashboard/superAdmin", async () => {
     try {
         const response = await axios.post(getDashboardDataForSuperAdmin);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+        console.log(error?.response?.data?.error);
+    }
+}
+);
+
+
+// GET DATA FOR OTHER THUNK
+export const getDataForOtherBranchAsync = createAsyncThunk("dashboard/user", async () => {
+    try {
+        const response = await axios.post(getDashboardDataForBranch);
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -36,6 +50,15 @@ const DashboardSlice = createSlice({
                 state.loading = true;
             })
             .addCase(getDataForSuperAdminAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.DashboardData = action.payload
+            })
+
+            // GET DATA FOR OTHER
+            .addCase(getDataForOtherBranchAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getDataForOtherBranchAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.DashboardData = action.payload
             })
