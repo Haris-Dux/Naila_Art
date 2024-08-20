@@ -44,7 +44,6 @@ import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
-import PreviewBill from "./pages/generateBills/PreviewBill";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 
 
@@ -54,6 +53,16 @@ function App() {
   useEffect(() => {
     dispatch(authUserAsync());
   }, [dispatch]);
+
+  // In your main component or a useEffect hook
+useEffect(() => {
+  window.addEventListener('beforeunload', () => {
+    localStorage.setItem('lastPath', window.location.pathname);
+  });
+  return () => {
+    window.removeEventListener('beforeunload', () => {});
+  };
+}, []);
 
   return (
     <>
@@ -65,8 +74,6 @@ function App() {
           <Route path="/forget" element={<ForgetPassword />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/otp" element={<OtpChecker />} />
-
-          {/* <Route path="/previewBill" element={<PreviewBill />} /> */}
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>

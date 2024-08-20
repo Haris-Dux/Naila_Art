@@ -140,12 +140,17 @@ export const UpdateUser = createAsyncThunk(
   }
 );
 
-export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async () => {
+// AUTH USER ASYNC THUNK - UPDATED
+export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async (_, thunkAPI) => {
+  thunkAPI.dispatch(setLoading(true));
   try {
     const response = await axios.get(authUserSessionUrl);
     return response.data;
   } catch (error) {
+    thunkAPI.dispatch(RemoveUserData());
     console.log(error.response.data.message);
+  } finally {
+    thunkAPI.dispatch(setLoading(false));
   }
 });
 
@@ -168,6 +173,9 @@ const authSlice = createSlice({
   name: "authSlice",
   initialState,
   reducers: {
+    setLoading(state, action) {
+      state.loading = action.payload;
+    },
     RemoveUserData: (state) => {
       state.user = null;
     },
@@ -280,6 +288,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { reset } = authSlice.actions;
+export const {setLoading, reset } = authSlice.actions;
 
 export default authSlice.reducer;
