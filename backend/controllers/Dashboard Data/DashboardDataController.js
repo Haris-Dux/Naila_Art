@@ -183,7 +183,7 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     //yearly sale data
     const yearlySaleData = {
       currentyearSale:currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0,
-      differenceFromLastMonth:
+      differenceFromLastyear:
        (currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0) -
         (previousMonthAndYearlysale[0].yearlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale : 0),
     };
