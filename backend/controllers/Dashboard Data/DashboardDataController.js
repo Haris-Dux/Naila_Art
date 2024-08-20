@@ -16,6 +16,7 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     const user = await UserModel.findById({ _id: id });
     if(!user.branchId) throw new Error("No branch Data For Authorized User")
     const branch = await BranchModel.findById({ _id: user.branchId });
+  console.log(branch);
     if (!branch) {
       return res
         .status(404)
@@ -55,16 +56,16 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     const previousDaySale = await DailySaleModel.findOne({
       branchId: user.branchId,
       date: yesterday,
-    });
+    } );
     const dailySaleForToday = await DailySaleModel.findOne({
       branchId: user.branchId,
       date: today,
     });
     const dailySaleData = {
-      today: dailySaleForToday.saleData.totalSale,
+      today: dailySaleForToday ? dailySaleForToday.saleData.totalSale : 0,
       differenceFromYesterday:
-        dailySaleForToday.saleData.totalSale -
-        previousDaySale.saleData.totalSale,
+        (dailySaleForToday ? dailySaleForToday.saleData.totalSale : 0) -
+        (previousDaySale ? previousDaySale.saleData.totalSale : 0),
     };
 
     //monthly and yearly sale and difference from previous month and year
@@ -173,38 +174,38 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     //monthly sale data
     const monthlySaleData = {
       currentMonthSale:
-        currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale,
+      currentMonthAndYearSale[0].monthlyGrossSale.length > 0 ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale : 0,
       differenceFromLastMonth:
-        currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale -
-        previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale,
+       (currentMonthAndYearSale[0].monthlyGrossSale.length > 0 ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale : 0) -
+        (previousMonthAndYearlysale[0].monthlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale : 0),
     };
 
     //yearly sale data
     const yearlySaleData = {
-      currentyearSale: currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale,
+      currentyearSale:currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0,
       differenceFromLastMonth:
-        currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale -
-        previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale,
+       (currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0) -
+        (previousMonthAndYearlysale[0].yearlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale : 0),
     };
 
     //yearly gross profit
     const yearlyGrossProfitData = {
       currentYearGrossProfit:
-        currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit,
+      currentMonthAndYearSale[0].yearlyGrossProfit.length > 0 ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit : 0,
       differenceFromLastyear:
-        currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit -
-        previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit,
+        (currentMonthAndYearSale[0].yearlyGrossProfit > 0 ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit : 0) -
+        (previousMonthAndYearlysale[0].yearlyGrossProfit.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit : 0),
     };
 
     //banks data
     const banksData = {
-      Meezan_Bank: dailySaleForToday.saleData.cashInMeezanBank,
-      JazzCash: dailySaleForToday.saleData.cashInJazzCash,
-      EasyPaisa: dailySaleForToday.saleData.cashInEasyPaisa,
+      Meezan_Bank: dailySaleForToday.saleData.cashInMeezanBank || 0,
+      JazzCash: dailySaleForToday.saleData.cashInJazzCash || 0,
+      EasyPaisa: dailySaleForToday.saleData.cashInEasyPaisa || 0,
     };
 
     //cash in hand data
-    const cashInHandData = dailySaleForToday.saleData.totalCash;
+    const cashInHandData = dailySaleForToday.saleData.totalCash || 0;
 
     //MOTHLY SALES DATA FOR GRAPH
     const salesForEveryMonth = await DailySaleModel.aggregate([
