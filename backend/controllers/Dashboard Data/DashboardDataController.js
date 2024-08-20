@@ -491,7 +491,8 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     };
 
     //cash in hand data
-    const cashInHandData = todaySalesResult.totalSale[0].totalCash;
+    const cashInHandData = todaySalesResult.totalCash[0].totalCash;
+    console.log(cashInHandData);
 
     //MOTHLY SALES DATA FOR GRAPH
     const salesForEveryMonth = await DailySaleModel.aggregate([
