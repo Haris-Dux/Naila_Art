@@ -18,6 +18,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
     Date: "",
     reason: "",
     serial_no: "",
+    payment_Method: "",
   });
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
           Date: "",
           reason: "",
           serial_no: "",
+          payment_Method: "",
         });
         closeModal();
       }
@@ -173,6 +175,31 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                       required
                     />
                   </div>
+
+                  {user?.user?.role === "superadmin" ? (
+                    <div className="col-span-2">
+                      <select
+                        id="payment-method"
+                        name="payment_Method"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={formData.payment_Method}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            payment_Method: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="" disabled>
+                          Select Payment Method
+                        </option>
+                        <option value="cashInMeezanBank">Meezan Bank</option>
+                        <option value="cashInJazzCash">Jazz Cash</option>
+                        <option value="cashInEasyPaisa">EasyPaisa</option>
+                        <option value="cashSale">Cash Sale</option>
+                      </select>
+                    </div>
+                  ) : null}
 
                   {user?.user?.role === "superadmin" ||
                     user?.user?.role === "admin" ? (
