@@ -1,18 +1,36 @@
 import { BranchModel } from "../models/Branch.Model.js";
+import { CashInOutModel } from "../models/CashInOutModel.js";
+import { DailySaleModel } from "../models/DailySaleModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import moment from "moment-timezone";
+
 
 export const createBranch = async (req, res) => {
   try {
     const { branchName } = req.body;
     if (!branchName) throw new Error("Invalid branch name");
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
     const existingBranch = await BranchModel.findOne({
       branchName:{$regex: new RegExp(branchName ,'i')},
     });
     if (existingBranch) {
       throw new Error("This branch already exists");
     }
-    await BranchModel.create({ branchName });
+    const branchData = await BranchModel.create({ branchName });
+    await CashInOutModel.create({
+      branchId: branchData._id,
+      date: today,
+      todayCashIn: 0,
+      todayCashOut: 0,
+    });
+    await DailySaleModel.create({
+      branchId: branchData._id,
+      date: today,
+      saleData: {},
+    });
+    
     return res.status(201).json({success:true, message: "Success" });
   } catch (error) {
     return res.status(404).json({ error: error.message });
