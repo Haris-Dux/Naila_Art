@@ -15,9 +15,11 @@ import GenerateBillSlice from "../features/GenerateBillSlice";
 import SellerSlice from "../features/SellerSlice";
 import CashInOutSlice from "../features/CashInOutSlice";
 import ProcessBillSlice from "../features/ProcessBillSlice";
+import DashboardSlice from "../features/DashboardSlice";
 
 export const store = configureStore({
   reducer: {
+    dashboard: DashboardSlice,
     auth: authSlice,
     Shop: ShopSlice,
     PurchaseBills: PurchaseBillsSlice,
