@@ -286,43 +286,45 @@ const Dashboard = () => {
                             </li>
 
                             {/* PROCESS DROPDOWN */}
-                            <li className="relative">
-                                <button
-                                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium ${location.pathname.includes("embroidery") || location.pathname.includes("calendar") || location.pathname.includes("cutting") || location.pathname.includes("stitching") || location.pathname.includes("stones") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}
-                                    onClick={toggleProcessDropdown}
-                                >
-                                    <span className="ml-3">Process</span>
-                                    <svg
-                                        className={`ml-auto w-4 h-4 transform ${isProcessDropdownOpen ? 'rotate-180' : ''} transition-transform`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
+                            {user?.user?.role !== "user" ? (
+                                <li className="relative">
+                                    <button
+                                        className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium ${location.pathname.includes("embroidery") || location.pathname.includes("calendar") || location.pathname.includes("cutting") || location.pathname.includes("stitching") || location.pathname.includes("stones") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}
+                                        onClick={toggleProcessDropdown}
                                     >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                {isProcessDropdownOpen && (
-                                    <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                                        <span className="ml-3">Process</span>
+                                        <svg
+                                            className={`ml-auto w-4 h-4 transform ${isProcessDropdownOpen ? 'rotate-180' : ''} transition-transform`}
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    {isProcessDropdownOpen && (
+                                        <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
 
-                                        <li>
-                                            <Link to="/dashboard/embroidery" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/embroidery" || location.pathname.includes("embroidery-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Embroidery</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/dashboard/calendar" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/calendar" || location.pathname.includes("calendar-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Calendar</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/dashboard/cutting" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/cutting" || location.pathname.includes("cutting-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Cutting</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/dashboard/stones" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stones" || location.pathname.includes("stones-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stones</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/dashboard/stitching" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stitching" || location.pathname.includes("stitching-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stitching</Link>
-                                        </li>
+                                            <li>
+                                                <Link to="/dashboard/embroidery" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/embroidery" || location.pathname.includes("embroidery-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Embroidery</Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/dashboard/calendar" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/calendar" || location.pathname.includes("calendar-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Calendar</Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/dashboard/cutting" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/cutting" || location.pathname.includes("cutting-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Cutting</Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/dashboard/stones" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stones" || location.pathname.includes("stones-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stones</Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/dashboard/stitching" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/stitching" || location.pathname.includes("stitching-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Stitching</Link>
+                                            </li>
 
-                                    </ul>
-                                )}
-                            </li>
+                                        </ul>
+                                    )}
+                                </li>
+                            ) : null}
 
                             {/* ACCOUNTS DROPDOWN */}
                             <li className="relative">
@@ -383,12 +385,16 @@ const Dashboard = () => {
                                         <li>
                                             <Link to="/dashboard/buyers" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/buyers" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Naila Arts Buyer</Link>
                                         </li>
-                                        <li>
-                                            <Link to="/dashboard/processbills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/processbills" || location.pathname.includes("process-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Process Bills</Link>
-                                        </li>
-                                        <li>
-                                            <Link to="/dashboard/purchasebills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/purchasebills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Purchase Bills</Link>
-                                        </li>
+                                        {user?.user?.role !== "user" ? (
+                                            <li>
+                                                <Link to="/dashboard/processbills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/processbills" || location.pathname.includes("process-details") ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Process Bills</Link>
+                                            </li>
+                                        ) : null}
+                                        {user?.user?.role !== "user" ? (
+                                            <li>
+                                                <Link to="/dashboard/purchasebills" onClick={handleMoveTop} className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${location.pathname === "/dashboard/purchasebills" ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400" : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"} group`}>Purchase Bills</Link>
+                                            </li>
+                                        ) : null}
                                     </ul>
                                 )}
                             </li>
