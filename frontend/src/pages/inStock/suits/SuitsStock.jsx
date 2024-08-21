@@ -19,6 +19,7 @@ const SuitsStock = () => {
 
     const { Suit, GetSuitloading, SuitLoading } = useSelector((state) => state.InStock);
     const { SuitCategories } = useSelector((state) => state.InStock);
+    const { user } = useSelector((state) => state.auth);
 
 
     // State variables to hold form data
@@ -157,9 +158,9 @@ const SuitsStock = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
-                        <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                       {user?.user?.role === "superadmin" || user?.user?.role === "admin" && <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                             <IoAdd size={22} className='text-white' />
-                        </button>
+                        </button>}
 
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">

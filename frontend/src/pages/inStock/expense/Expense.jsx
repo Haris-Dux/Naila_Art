@@ -46,9 +46,13 @@ const Expense = () => {
   useEffect(() => {
     let id = user?.user?.id;
     if (id) {
-      dispatch(GetAllBranches({ id }));
+      dispatch(GetAllBranches({ id })).then(() => {
+        setSelectedBranchId(Branches && Branches[0]?.id)
+      })
     }
   }, [dispatch]);
+
+  console.log('branches',Branches);
 
 
   useEffect(() => {
