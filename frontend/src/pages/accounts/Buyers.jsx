@@ -7,26 +7,7 @@ import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
 import { GetAllBranches } from '../../features/InStockSlice';
 import { validateOldBuyerAsync } from '../../features/GenerateBillSlice';
 
-const data = [
-  {
-    id: 1,
-    name: "M Amir",
-    phone: '0324700802',
-    credit: 10000,
-    debit: 12000,
-    balance: 435135,
-    status: "Paid",
-  },
-  {
-    id: 2,
-    name: "M Amir",
-    phone: '0324700802',
-    credit: 10000,
-    debit: 12000,
-    balance: 435135,
-    status: "Partially Paid",
-  },
-]
+
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -112,17 +93,6 @@ const Buyers = () => {
       ...prevState,
       [name]: value
     }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Dispatch action with form data
-    // dispatch(AddSuit(formData)).then(() => {
-    //   dispatch(GetAllSuit())
-    //   closeModal();
-    // }).catch((error) => {
-    //   console.error("Error adding suit:", error);
-    // });
   };
 
   const openModal = () => {
@@ -224,7 +194,7 @@ const Buyers = () => {
 
   return (
     <>
-      {loading && branchesLoading ? (
+      {loading || branchesLoading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
           <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
             role="status"
