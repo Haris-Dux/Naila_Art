@@ -54,7 +54,7 @@ function App() {
     dispatch(authUserAsync());
   }, [dispatch]);
 
-  // In your main component or a useEffect hook
+
 useEffect(() => {
   window.addEventListener('beforeunload', () => {
     localStorage.setItem('lastPath', window.location.pathname);
@@ -70,10 +70,10 @@ useEffect(() => {
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forget" element={<ForgetPassword />} />
-          <Route path="/reset" element={<ResetPassword />} />
-          <Route path="/otp" element={<OtpChecker />} />
+          <Route path="/signup" element={<LoginProtected><Signup /></LoginProtected>} />
+          <Route path="/forget" element={<LoginProtected><ForgetPassword /></LoginProtected>} />
+          <Route path="/reset" element={<LoginProtected><ResetPassword /></LoginProtected>} />
+          <Route path="/otp" element={<LoginProtected><OtpChecker /></LoginProtected>} />
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>
