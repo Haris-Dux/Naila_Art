@@ -52,7 +52,6 @@ const Expense = () => {
     }
   }, [dispatch]);
 
-  console.log('branches',Branches);
 
 
   useEffect(() => {
@@ -117,7 +116,6 @@ const Expense = () => {
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "all" ? "" : branchId;
-    console.log('selectedBranch', selectedBranch);
 
     setSelectedBranchId(selectedBranch);
 

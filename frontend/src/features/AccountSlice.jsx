@@ -18,10 +18,9 @@ export const CreateEmployee = createAsyncThunk(
     try {
       const response = await axios.post(addEmployee, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );
@@ -33,11 +32,9 @@ export const GetEmployeeActive = createAsyncThunk("Employee/GetActiveEmployee", 
       : "";
   try {
     const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
+    throw new Error(error.response.data.error);
   }
 }
 )
@@ -51,11 +48,9 @@ export const GetEmployeePast = createAsyncThunk(
         : "";
     try {
       const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
-      // toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 )
@@ -66,10 +61,9 @@ export const GetEmployeeById = createAsyncThunk(
     try {
       const response = await axios.post(EmployeeByID, id);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );
@@ -80,10 +74,9 @@ export const UpdateEmployee = createAsyncThunk(
     try {
       const response = await axios.post(Update, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );
@@ -94,10 +87,9 @@ export const AddCreditDebit = createAsyncThunk(
     try {
       const response = await axios.post(Debitcredit, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+     toast.error(error.response.data.error);
     }
   }
 );
@@ -108,10 +100,10 @@ export const CreditSalary = createAsyncThunk(
     try {
       const response = await axios.post(creditEmployeeeSalary, formData);
       toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
   }
 );

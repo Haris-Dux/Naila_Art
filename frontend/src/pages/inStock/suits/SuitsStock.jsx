@@ -130,7 +130,6 @@ const SuitsStock = () => {
     };
 
     const handleCategoryClick = (category) => {
-        console.log('category', category);
         const selectedCategory = category === "all" ? "" : category;
         setuserSelectedCategory(selectedCategory);
 

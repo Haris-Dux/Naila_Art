@@ -50,7 +50,6 @@ const Accessories = () => {
     };
 
     const filteredData = accessories?.data?.filter((data) => data.id === accessoriesId);
-    console.log('filteredData', filteredData);
 
     const renderPaginationLinks = () => {
         const totalPages = accessories?.totalPages;
@@ -88,7 +87,6 @@ const Accessories = () => {
         setSelectedTab(tab);
     };
 
-    console.log('selectedTab', selectedTab);
 
     return (
         <>

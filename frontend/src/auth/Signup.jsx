@@ -18,7 +18,7 @@ const Signup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+
     dispatch(createuserAsync(formData))
       .then((res) => {
         if (res.payload.message === "Sign Up Successful!") {

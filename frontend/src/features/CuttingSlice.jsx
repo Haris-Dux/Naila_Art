@@ -19,10 +19,9 @@ export const createCutting = createAsyncThunk(
     try {
       const response = await axios.post(addCutting, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
   }
 );
@@ -34,10 +33,8 @@ export const Updatecuttingasync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateCutting, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -50,10 +47,8 @@ export const DeleteShop = createAsyncThunk(
     try {
       const response = await axios.post(DeletShop, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -67,12 +62,11 @@ export const GetAllCutting = createAsyncThunk("Cutting/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getAllCutting}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    // console.log(response.data);
+ 
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+  
+    throw new Error(error.response.data.error);
   }
 }
 );
@@ -83,12 +77,11 @@ export const GetSingleCutting = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleCutting, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+   
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      
+      throw new Error(error.response.data.error);
     }
   }
 );

@@ -133,7 +133,6 @@ const StitchingDetails = () => {
     );
   }
 
-  console.log("sitching", SingleStitching);
 
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);

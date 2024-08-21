@@ -29,7 +29,6 @@ const OldBuyerGenerateBill = () => {
 
 
 
-  // console.log('BuyerById', BuyerById);
 
   const [billData, setBillData] = useState({
     buyerId: id,
@@ -57,7 +56,6 @@ const OldBuyerGenerateBill = () => {
   const [suitOptions, setSuitOptions] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
 
-  console.log("billData", billData);
 
   const handlePreviewClick = () => {
     setShowPreview(true);

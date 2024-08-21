@@ -55,9 +55,6 @@ export const getAllExpenses = async (req, res, next) => {
     const limit = 10;
     let search = req.query.search || "";
     let branchId = req.query.branchId || "";
-
-    console.log("branchId",branchId);
-
     const matchStage = {
       $match: {
         branchId: branchId ? new mongoose.Types.ObjectId(branchId) : { $exists: true },

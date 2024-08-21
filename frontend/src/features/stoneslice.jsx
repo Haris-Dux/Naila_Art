@@ -19,10 +19,8 @@ export const createStone = createAsyncThunk(
     try {
       const response = await axios.post(addStone, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
 
     }
@@ -36,10 +34,9 @@ export const UpdateStoneAsync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateStone, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+
       toast.error(error.response.data.error);
     }
   }
@@ -52,14 +49,11 @@ export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
       ? `&search=${data?.search}`
       : "";
   try {
-    // const response = await axios.post(getAllStone, formData);
     const response = await axios.post(`${getAllStone}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -68,12 +62,10 @@ export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
 export const GetSingleStone = createAsyncThunk("Stone/GetSingle", async (id) => {
   try {
     const response = await axios.post(getSingleStone, id);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -139,11 +131,9 @@ export const getColorsForCurrentEmbroidery = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getColor, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
