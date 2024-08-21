@@ -159,6 +159,7 @@ export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime"
 const initialState = {
   createUser: null,
   user: null,
+  routingLoading:false,
   loading: false,
   userId: null,
   forgetPasswordEmail: null,
@@ -174,7 +175,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setLoading(state, action) {
-      state.loading = action.payload;
+      state.routingLoading = action.payload;
     },
     RemoveUserData: (state) => {
       state.user = null;
@@ -252,10 +253,10 @@ const authSlice = createSlice({
       })
 
       .addCase(authUserAsync.pending, (state) => {
-        state.loading = true;
+        state.routingLoading = true;
       })
       .addCase(authUserAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.routingLoading = false;
         state.user = action.payload;
       })
 
