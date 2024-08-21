@@ -115,45 +115,6 @@ const DashboardStats = () => {
     })
   }
 
-  const calculatePercentageChange = (currentValue, difference) => {
-    console.log('Calculating percentage change:', { currentValue, difference });
-    const previousValue = currentValue - difference;
-
-    if (previousValue === 0) return 0; // Avoid division by zero
-
-    const percentageChange = (difference / previousValue) * 100;
-    console.log('Calculated percentage:', percentageChange);
-    return Math.round(percentageChange);
-  };
-
-  const dailySalePercentage = useMemo(() => calculatePercentageChange(
-    DashboardData?.dailySale?.today,
-    DashboardData?.dailySale?.differenceFromYesterday
-  ), [DashboardData?.dailySale?.today, DashboardData?.dailySale?.differenceFromYesterday]);
-
-  const monthlySalePercentage = useMemo(() => calculatePercentageChange(
-    DashboardData?.monthlysale?.currentMonthSale,
-    DashboardData?.monthlysale?.differenceFromLastMonth
-  ), [DashboardData?.monthlysale?.currentMonthSale, DashboardData?.monthlysale?.differenceFromLastMonth]);
-
-  const grossSalePercentage = useMemo(() => calculatePercentageChange(
-    DashboardData?.grossSale?.currentyearSale,
-    DashboardData?.grossSale?.differenceFromLastYear
-  ), [DashboardData?.grossSale?.currentyearSale, DashboardData?.grossSale?.differenceFromLastYear]);
-
-  const grossProfitPercentage = useMemo(() => calculatePercentageChange(
-    DashboardData?.grossProfit?.currentYearGrossProfit,
-    DashboardData?.grossProfit?.differenceFromLastyear
-  ), [DashboardData?.grossProfit?.currentYearGrossProfit, DashboardData?.grossProfit?.differenceFromLastyear]);
-
-
-  const todaySale = DashboardData?.dailySale?.today;
-  const differenceFromYesterday = DashboardData?.dailySale?.differenceFromYesterday;
-
-  // Calculate percentage change
-  const percentageChange = todaySale && differenceFromYesterday
-    ? ((todaySale - differenceFromYesterday) / differenceFromYesterday) * 100
-    : 0;
 
 
 
@@ -180,7 +141,7 @@ const DashboardStats = () => {
                   {DashboardData?.dailySale?.today}
                 </h2>
                 <span className="text-gray-900 bg-gray-200 px-3 py-1 rounded-lg">
-                  {DashboardData?.dailySale?.differenceFromYesterday}
+                  {DashboardData?.dailySale?.differenceFromYesterday > 0 ? "+" + DashboardData?.dailySale?.differenceFromYesterday : DashboardData?.dailySale?.differenceFromYesterday}
                 </span>
               </div>
 
@@ -205,7 +166,7 @@ const DashboardStats = () => {
                   {DashboardData?.monthlysale?.currentMonthSale}
                 </h2>
                 <span className="text-gray-900 bg-gray-200 px-3 py-1 rounded-lg">
-                  {DashboardData?.monthlysale?.differenceFromLastMonth}
+                  {DashboardData?.monthlysale?.differenceFromLastMonth > 0 ? "+" + DashboardData?.monthlysale?.differenceFromLastMonth : DashboardData?.monthlysale?.differenceFromLastMonth}
                 </span>
               </div>
 
@@ -230,7 +191,7 @@ const DashboardStats = () => {
                   {DashboardData?.grossSale?.currentyearSale}
                 </h2>
                 <span className="text-gray-900 bg-gray-200 px-3 py-1 rounded-lg">
-                  {DashboardData?.grossSale?.differenceFromLastYear}
+                  {DashboardData?.grossSale?.differenceFromLastYear > 0 ? "+" + DashboardData?.grossSale?.differenceFromLastYear : DashboardData?.grossSale?.differenceFromLastYear}
                 </span>
               </div>
 
@@ -255,7 +216,7 @@ const DashboardStats = () => {
                   {DashboardData?.grossProfit?.currentYearGrossProfit}
                 </h2>
                 <span className="text-gray-900 bg-gray-200 px-3 py-1 rounded-lg">
-                  {DashboardData?.grossProfit?.differenceFromLastyear}
+                  {DashboardData?.grossProfit?.differenceFromLastyear > 0 ? "+" + DashboardData?.grossProfit?.differenceFromLastyear : DashboardData?.grossProfit?.differenceFromLastyear}
                 </span>
               </div>
 
@@ -358,7 +319,7 @@ const DashboardStats = () => {
                       </h3>
                     </div>
                   </div>
-                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-green-400 dark:border-green-700 flex justify-start items-center">
                     <div className="stat_data pl-4">
                       <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
                         Receivable
@@ -371,7 +332,7 @@ const DashboardStats = () => {
                     </div>
                   </div>
                   {user?.user?.role === "superadmin" ? (
-                    <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                    <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-red-400 dark:border-gray-700 flex justify-start items-center">
                       <div className="stat_data pl-4">
                         <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
                           Payable
