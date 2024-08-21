@@ -183,7 +183,9 @@ const CalendarDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateCalenderGatePssPdfAsync(SingleCalender));
+    dispatch(generateCalenderGatePssPdfAsync(SingleCalender))
+      closeGatepassModal();
+  
   };
 
   const generateBill = () => {

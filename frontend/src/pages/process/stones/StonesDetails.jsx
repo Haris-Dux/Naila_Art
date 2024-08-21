@@ -266,7 +266,8 @@ const StonesDetails = () => {
 
   const handleGenerateGatePassPDf = () => {
     const data = { ...SingleStone, T_Quantity };
-    dispatch(generateStoneGatePssPdfAsync(data));
+    dispatch(generateStoneGatePssPdfAsync(data))
+    closeGatepassModal();
   };
 
   const generateBill = () => {

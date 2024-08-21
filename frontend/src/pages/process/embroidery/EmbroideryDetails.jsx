@@ -231,7 +231,9 @@ const EmbroideryDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery));
+    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery))
+      closeGatepassModal();
+  
   };
 
   const generateBill = () => {

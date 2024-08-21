@@ -222,7 +222,8 @@ const CuttingDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateCuttingGatePssPdfAsync(SingleCutting));
+    dispatch(generateCuttingGatePssPdfAsync(SingleCutting))
+    closeGatepassModal();
   };
 
   const generateBill = () => {

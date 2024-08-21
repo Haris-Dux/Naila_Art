@@ -4,7 +4,6 @@ import { SellersModel } from "../../models/sellers/SellersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { UserModel } from "../../models/User.Model.js";
-
 import moment from "moment-timezone";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
@@ -14,7 +13,7 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
       return res.status(403).send({ message: "Please Login Again" });
     }
     const user = await UserModel.findById({ _id: id });
-    if(!user.branchId) throw new Error("No branch Data For Authorized User")
+    if (!user.branchId) throw new Error("No branch Data For Authorized User");
     const branch = await BranchModel.findById({ _id: user.branchId });
     if (!branch) {
       return res
@@ -55,16 +54,26 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     const previousDaySale = await DailySaleModel.findOne({
       branchId: user.branchId,
       date: yesterday,
-    } );
+    });
     const dailySaleForToday = await DailySaleModel.findOne({
       branchId: user.branchId,
       date: today,
     });
+    const sumoftodaysale = dailySaleForToday
+      ? dailySaleForToday.saleData.totalSale
+      : 0;
+    const sumofyesterdaysale = previousDaySale
+      ? previousDaySale.saleData.totalSale
+      : 0;
     const dailySaleData = {
-      today: dailySaleForToday ? dailySaleForToday.saleData.totalSale : 0,
-      differenceFromYesterday:
-        (dailySaleForToday ? dailySaleForToday.saleData.totalSale : 0) -
-        (previousDaySale ? previousDaySale.saleData.totalSale : 0),
+      today: sumoftodaysale,
+      differenceFromYesterday: sumoftodaysale - sumofyesterdaysale,
+      percentage:
+        sumofyesterdaysale === 0
+          ? sumoftodaysale === 0
+            ? 0
+            : 100
+          : Math.round(((sumoftodaysale - sumofyesterdaysale) / sumofyesterdaysale) * 100),
     };
 
     //monthly and yearly sale and difference from previous month and year
@@ -171,29 +180,70 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     ]);
 
     //monthly sale data
+
+    const currentMonthSale =
+      currentMonthAndYearSale[0].monthlyGrossSale.length > 0
+        ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale
+        : 0;
+
+    const lastMonthSale =
+      previousMonthAndYearlysale[0].monthlyGrossSale.length > 0
+        ? previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale
+        : 0;
+
     const monthlySaleData = {
-      currentMonthSale:
-      currentMonthAndYearSale[0].monthlyGrossSale.length > 0 ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale : 0,
-      differenceFromLastMonth:
-       (currentMonthAndYearSale[0].monthlyGrossSale.length > 0 ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale : 0) -
-        (previousMonthAndYearlysale[0].monthlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale : 0),
+      currentMonthSale: currentMonthSale,
+      differenceFromLastMonth: currentMonthSale - lastMonthSale,
+      percentage:
+        lastMonthSale === 0
+          ? currentMonthSale === 0
+            ? 0
+            : 100
+          : Math.round(((currentMonthSale - lastMonthSale) / lastMonthSale) * 100),
     };
 
     //yearly sale data
+
+    const currentYearData =
+      currentMonthAndYearSale[0].yearlyGrossSale.length > 0
+        ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale
+        : 0;
+
+    const previousYearData =
+      previousMonthAndYearlysale[0].yearlyGrossSale.length > 0
+        ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale
+        : 0;
+
     const yearlySaleData = {
-      currentyearSale:currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0,
-      differenceFromLastYear:
-       (currentMonthAndYearSale[0].yearlyGrossSale.length > 0 ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale : 0) -
-        (previousMonthAndYearlysale[0].yearlyGrossSale.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale : 0),
+      currentyearSale: currentYearData,
+      differenceFromLastYear: currentYearData - previousYearData,
+      percentage:
+        previousYearData === 0
+          ? currentYearData === 0
+            ? 0
+            : 100
+          : Math.round(((currentYearData - previousYearData) / previousYearData) * 100),
     };
 
     //yearly gross profit
+
+    const currentYearProfit =
+      currentMonthAndYearSale[0].yearlyGrossProfit.length > 0
+        ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit
+        : 0;
+
+    const lastYearProfit =
+      previousMonthAndYearlysale[0].yearlyGrossProfit.length > 0
+        ? previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit
+        : 0;
+
     const yearlyGrossProfitData = {
-      currentYearGrossProfit:
-      currentMonthAndYearSale[0].yearlyGrossProfit.length > 0 ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit : 0,
-      differenceFromLastyear:
-        (currentMonthAndYearSale[0].yearlyGrossProfit > 0 ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit : 0) -
-        (previousMonthAndYearlysale[0].yearlyGrossProfit.length > 0 ? previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit : 0),
+      currentYearGrossProfit: currentYearProfit,
+      differenceFromLastyear: currentYearProfit - lastYearProfit,
+      percentage:
+        lastYearProfit !== 0
+          ? Math.round(((currentYearProfit - lastYearProfit) / lastYearProfit) * 100)
+          : 0,
     };
 
     //banks data
@@ -352,11 +402,23 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
       { $group: { _id: null, totalSale: { $sum: "$saleData.totalSale" } } },
     ]);
 
+    const todaySaleData =
+      todaySalesResult.totalSale.length > 0
+        ? todaySalesResult.totalSale[0].totalSale
+        : 0;
+    const yesterdaySaleData = yesterdaySalesResult
+      ? yesterdaySalesResult.totalSale
+      : 0;
+
     const dailySaleData = {
-      today: todaySalesResult.totalSale[0].totalSale,
-      differenceFromYesterday:
-        todaySalesResult.totalSale[0].totalSale -
-        yesterdaySalesResult.totalSale,
+      today: todaySaleData,
+      differenceFromYesterday: todaySaleData - yesterdaySaleData,
+      percentage:
+        yesterdaySaleData === 0
+          ? todaySaleData === 0
+            ? 0
+            : 100
+          : Math.round(((todaySaleData - yesterdaySaleData) / yesterdaySaleData) * 100),
     };
 
     //monthly and yearly sale and difference from previous month and year
@@ -458,29 +520,69 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     ]);
 
     //monthly sale data
+
+    const currentMonthData =
+      currentMonthAndYearSale[0].monthlyGrossSale.length > 0
+        ? currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale
+        : 0;
+    const lastMonthData =
+      previousMonthAndYearlysale[0].monthlyGrossSale.length > 0
+        ? previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale
+        : 0;
+
     const monthlySaleData = {
-      currentMonthSale:
-        currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale,
-      differenceFromLastMonth:
-        currentMonthAndYearSale[0].monthlyGrossSale[0].totalSale -
-        previousMonthAndYearlysale[0].monthlyGrossSale[0].totalSale,
+      currentMonthSale: currentMonthData,
+      differenceFromLastMonth: currentMonthData - lastMonthData,
+      percentage:
+        lastMonthData === 0
+          ? currentMonthData === 0
+            ? 0
+            : 100
+          : Math.round(((currentMonthData - lastMonthData) / lastMonthData) * 100),
     };
 
     //yearly sale data
+
+    const currentYearData =
+      currentMonthAndYearSale[0].yearlyGrossSale.length > 0
+        ? currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale
+        : 0;
+    const lastYearData =
+      previousMonthAndYearlysale[0].yearlyGrossSale.length > 0
+        ? previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale
+        : 0;
+
     const yearlySaleData = {
-      currentyearSale: currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale,
-      differenceFromLastYear:
-        currentMonthAndYearSale[0].yearlyGrossSale[0].totalSale -
-        previousMonthAndYearlysale[0].yearlyGrossSale[0].totalSale,
+      currentyearSale: currentYearData,
+      differenceFromLastYear: currentYearData - lastYearData,
+      percentage:
+        lastYearData === 0
+          ? currentYearData === 0
+            ? 0
+            : 100
+          : Math.round(((currentYearData - lastYearData) / lastYearData) * 100),
     };
 
     //yearly gross profit
-    const yearlyGrossProfitData = {
-      currentYearGrossProfit:
-        currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit,
-      differenceFromLastyear:
-        currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit -
-        previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit,
+
+    const currentYearGrossData =
+      currentMonthAndYearSale[0].yearlyGrossProfit.length > 0
+        ? currentMonthAndYearSale[0].yearlyGrossProfit[0].totalProfit
+        : 0;
+    const lastYearGrossData =
+      previousMonthAndYearlysale[0].yearlyGrossProfit.length > 0
+        ? previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit
+        : 0;
+        
+    const yearlyGrossProfitData = { 
+      currentYearGrossProfit: currentYearGrossData,
+      differenceFromLastyear: currentYearGrossData - lastYearGrossData,
+      percentage:
+      lastYearGrossData === 0
+        ? currentYearGrossData === 0
+          ? 0
+          : 100
+        : Math.round(((currentYearGrossData - lastYearGrossData) / lastYearGrossData) * 100),
     };
 
     //banks data
@@ -492,7 +594,6 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
 
     //cash in hand data
     const cashInHandData = todaySalesResult.totalCash[0].totalCash;
-   
 
     //MOTHLY SALES DATA FOR GRAPH
     const salesForEveryMonth = await DailySaleModel.aggregate([
