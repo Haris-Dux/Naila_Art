@@ -136,7 +136,7 @@ const DailySale = () => {
 
     return (
         <>
-            {loading && branchesLoading ? (
+            {loading || branchesLoading ? (
                 <div className="min-h-[90vh] flex justify-center items-center">
                     <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
                         role="status"
