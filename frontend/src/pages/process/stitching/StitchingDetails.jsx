@@ -108,7 +108,8 @@ const StitchingDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateStitchingGatePssPdfAsync(SingleStitching));
+    dispatch(generateStitchingGatePssPdfAsync(SingleStitching))
+    closeGatepassModal();
   };
 
   const generateBill = () => {
