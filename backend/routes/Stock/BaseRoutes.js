@@ -10,10 +10,10 @@ import { superAdminAndAdminOnly, verifyUser } from "../../middleware/Auth.js";
 const baseRouter = express.Router();
 
 baseRouter.post("/addBaseInStock", superAdminAndAdminOnly, addBaseInStock);
-baseRouter.post("/getAllBases", superAdminAndAdminOnly, getAllBases);
+baseRouter.post("/getAllBases", verifyUser, getAllBases);
 baseRouter.post(
   "/getAllCategoriesForbase",
-  superAdminAndAdminOnly,
+  verifyUser,
   getAllCategoriesForbase
 );
 baseRouter.post(

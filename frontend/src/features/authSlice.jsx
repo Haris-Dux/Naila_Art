@@ -160,6 +160,7 @@ const initialState = {
   createUser: null,
   user: null,
   routingLoading:false,
+  logoutLoading:false,
   loading: false,
   userId: null,
   forgetPasswordEmail: null,
@@ -279,10 +280,10 @@ const authSlice = createSlice({
 
 
       .addCase(logoutUserAsync.pending, (state) => {
-        state.loading = true;
+        state.logoutLoading = true;
       })
       .addCase(logoutUserAsync.fulfilled, (state) => {
-        state.loading = false;
+        state.logoutLoading = false;
         state.user = null;
       });
 
