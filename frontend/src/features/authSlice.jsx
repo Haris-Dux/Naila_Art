@@ -147,8 +147,8 @@ export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime"
     const response = await axios.get(authUserSessionUrl);
     return response.data;
   } catch (error) {
+    throw new Error(error)
     thunkAPI.dispatch(RemoveUserData());
-    console.log(error.response.data.message);
   } finally {
     thunkAPI.dispatch(setLoading(false));
   }

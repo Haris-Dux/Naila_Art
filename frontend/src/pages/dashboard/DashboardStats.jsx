@@ -24,7 +24,6 @@ const DashboardStats = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { loading, DashboardData } = useSelector((state) => state.dashboard);
-  console.log("DashboardData", DashboardData);
 
   useEffect(() => {
     if (user?.user?.role === "superadmin") {

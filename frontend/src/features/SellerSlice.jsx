@@ -27,8 +27,8 @@ export const getAllSellerForPurchasingAsync = createAsyncThunk("get/allSellers",
         const response = await axios.post(`${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}`);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+
     }
 }
 );
@@ -39,8 +39,8 @@ export const GetSellerByIdAsync = createAsyncThunk("getSeller/id", async (id) =>
         const response = await axios.post(getSellerByIdURL, id);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+
     }
 }
 );
@@ -52,7 +52,7 @@ export const AddSellerDetailsFromAsync = createAsyncThunk("addSeller/details", a
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        
     }
 }
 );
@@ -64,7 +64,7 @@ export const AddOldSellerDetailsFromAsync = createAsyncThunk("addOldSeller/detai
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        
     }
 }
 );
@@ -84,8 +84,8 @@ export const getAllPurchasingHistoryAsync = createAsyncThunk("getAll/PurchasingH
         const response = await axios.post(`${purchasingHistory}?&page=${data.page}${category}${searchQuery}`);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+
     }
 }
 );
@@ -97,7 +97,7 @@ export const validateOldSellerAsync = createAsyncThunk("Seller/validate", async 
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+       
     }
 }
 );

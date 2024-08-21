@@ -8,8 +8,6 @@ import { GetAllCalender } from '../../../features/CalenderSlice';
 const Calendar = () => {
   const dispatch = useDispatch();
   const { loading, Calender } = useSelector((state) => state.Calender);
-  console.log('Calender', Calender);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
 
   const [search, setSearch] = useState('');
@@ -17,10 +15,6 @@ const Calendar = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-
-  // const handleSearch = (event) => {
-  //   setSearchText(event.target.value);
-  // };
 
   const filteredCalender = Calender?.data?.filter((entry) =>
     entry.partyName.toLowerCase().includes(searchText.toLowerCase())

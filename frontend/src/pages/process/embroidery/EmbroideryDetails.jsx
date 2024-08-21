@@ -26,7 +26,6 @@ const EmbroideryDetails = () => {
     (state) => state.Embroidery
   );
 
-  console.log("SingleEmbroidery", SingleEmbroidery);
 
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
@@ -39,7 +38,6 @@ const EmbroideryDetails = () => {
   });
 
   useEffect(() => {
-    console.log(SingleEmbroidery.date);
     setCalenderData({
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
@@ -79,7 +77,6 @@ const EmbroideryDetails = () => {
   }, [SingleEmbroidery, id]);
 
   const handleInputChange = (category, color, received, index, section) => {
-    console.log("Received:", received);
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
         idx === index ? { ...item, category, color, received } : item
@@ -145,7 +142,6 @@ const EmbroideryDetails = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    console.log("formdata", formData);
 
     dispatch(UpdateEmbroidery(formData))
       .then(() => {
@@ -210,7 +206,6 @@ const EmbroideryDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 

@@ -17,7 +17,7 @@ export const generateBuyerBillAsync = createAsyncThunk("buyerBill/generate", asy
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+       
     }
 }
 );
@@ -30,7 +30,7 @@ export const generateBillForOlderBuyerAsync = createAsyncThunk("OldbuyerBill/gen
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+       
     }
 }
 );
@@ -41,8 +41,8 @@ export const getSuitFromDesignAsync = createAsyncThunk("buyerBill/getSuit", asyn
         const response = await axios.post(getSuitFromDesignUrl, name);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+     
     }
 }
 );
@@ -54,7 +54,7 @@ export const validateOldBuyerAsync = createAsyncThunk("buyer/validate", async (n
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+       
     }
 }
 );

@@ -13,8 +13,8 @@ export const getDataForSuperAdminAsync = createAsyncThunk("dashboard/superAdmin"
         const response = await axios.post(getDashboardDataForSuperAdmin);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+   
     }
 }
 );
@@ -26,8 +26,7 @@ export const getDataForOtherBranchAsync = createAsyncThunk("dashboard/user", asy
         const response = await axios.post(getDashboardDataForBranch);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error (error.response.data.error);
     }
 }
 );

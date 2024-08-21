@@ -48,7 +48,6 @@ const CuttingDetails = () => {
   });
 
   useEffect(() => {
-    console.log(SingleCutting);
     setFormData({
       serial_No: SingleCutting?.serial_No || "",
       design_no: SingleCutting?.design_no || "",
@@ -146,7 +145,6 @@ const CuttingDetails = () => {
   const handleSubmitstome = (e) => {
     e.preventDefault();
 
-    console.log("frp", formData);
 
     dispatch(createStone(formData)).then((res) => {
       if (res.payload.success === true) {
@@ -211,7 +209,6 @@ const CuttingDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 

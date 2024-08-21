@@ -215,8 +215,6 @@ const GenerateBill = () => {
       return;
     }
 
-    console.log(pdfLoading);
-
     dispatch(generateBuyerBillAsync(modifiedBillData)).then((res) => {
       if (res.payload.succes === true) {
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {

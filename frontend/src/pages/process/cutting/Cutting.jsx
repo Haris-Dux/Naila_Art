@@ -10,7 +10,6 @@ const Cutting = () => {
   const [filteredData, setFilteredData] = useState([]);
   const { loading, Cutting } =
     useSelector((state) => state.Cutting);
-  console.log("Cutting", Cutting);
 
   const [search, setSearch] = useState("");
 

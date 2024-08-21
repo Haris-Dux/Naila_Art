@@ -85,7 +85,6 @@ const CalendarDetails = () => {
   const handleSubmitCutting = (e) => {
     e.preventDefault();
 
-    console.log("cutting", CuttingData);
 
     dispatch(createCutting(CuttingData)).then((res) => {
       if (res.payload.success === true) {

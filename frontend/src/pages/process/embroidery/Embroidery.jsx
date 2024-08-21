@@ -20,7 +20,6 @@ const Embroidery = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  console.log('embroidery', embroidery);
 
   const [currentPage, setCurrentPage] = useState(1);
   const dispatch = useDispatch();
