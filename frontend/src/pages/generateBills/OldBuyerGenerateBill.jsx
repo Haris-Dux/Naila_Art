@@ -54,6 +54,7 @@ const OldBuyerGenerateBill = () => {
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
   });
 
+  const [colorOptions, setColorOptions] = useState([[]]);
   const [suitOptions, setSuitOptions] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -110,6 +111,8 @@ const OldBuyerGenerateBill = () => {
       });
     }
   }, [BuyerById, user]);
+
+  console.log('billData', billData);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -172,6 +175,7 @@ const OldBuyerGenerateBill = () => {
         { id: "", quantity: "", d_no: "", color: "", price: "" },
       ],
     }));
+    setColorOptions((prevOptions) => [...prevOptions, []]); // Add an empty color options array for the new row
   };
 
   const handleSuitDataChange = (index, e) => {
@@ -184,12 +188,20 @@ const OldBuyerGenerateBill = () => {
     }));
   };
 
+
   const removeRow = (index) => {
     setBillData((prevData) => ({
       ...prevData,
       suits_data: prevData.suits_data.filter((_, i) => i !== index),
     }));
+
+    setColorOptions((prevOptions) => {
+      const newColorOptions = prevOptions.filter((_, i) => i !== index);
+      return newColorOptions;
+    });
   };
+
+
 
   const handleSuitChange = (index, e) => {
     const { name, value } = e.target;
@@ -198,12 +210,14 @@ const OldBuyerGenerateBill = () => {
 
     if (name === "d_no") {
       dispatch(getSuitFromDesignAsync({ d_no: value })).then((response) => {
-        if (Array.isArray(response)) {
-          const colors = response.map((item) => item.color);
-          setSuitOptions(colors);
-        } else {
-          setSuitOptions([]);
-        }
+        const colors = response.payload.map((item) => item.color);
+
+        // Update color options for this specific row
+        setColorOptions((prevOptions) => {
+          const newColorOptions = [...prevOptions];
+          newColorOptions[index] = colors;
+          return newColorOptions;
+        });
       });
     }
 
@@ -213,17 +227,12 @@ const OldBuyerGenerateBill = () => {
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
 
-    const selectedSuit = SuitFromDesign.find(
-      (suit) => suit.color === selectedColor
-    );
+    const selectedDesign = SuitFromDesign.find((design) => design.color === selectedColor);
 
     setBillData((prevState) => {
       const updatedSuitsData = [...prevState.suits_data];
-      updatedSuitsData[index] = {
-        ...updatedSuitsData[index],
-        color: selectedColor,
-        id: selectedSuit?.id || "",
-      };
+      updatedSuitsData[index].color = selectedColor;
+      updatedSuitsData[index].id = selectedDesign?.id || "";
 
       return {
         ...prevState,
@@ -258,7 +267,6 @@ const OldBuyerGenerateBill = () => {
       toast.error("Please Select Branch");
       return;
     }
-
     // Uncomment and use this once ready to dispatch the action
     dispatch(generateBillForOlderBuyerAsync(modifiedBillData)).then((res) => {
       if (res.payload.succes === true) {
@@ -476,11 +484,10 @@ const OldBuyerGenerateBill = () => {
 
                   {/* FORTH ROW */}
                   <div
-                    className={`mb-4 grid items-start grid-cols-2 gap-5 ${
-                      user?.user?.role === "superadmin"
-                        ? "lg:grid-cols-4"
-                        : "lg:grid-cols-3"
-                    }`}
+                    className={`mb-4 grid items-start grid-cols-2 gap-5 ${user?.user?.role === "superadmin"
+                      ? "lg:grid-cols-4"
+                      : "lg:grid-cols-3"
+                      }`}
                   >
                     <div>
                       <input
@@ -556,7 +563,7 @@ const OldBuyerGenerateBill = () => {
                   <div className="mb-5 pt-3 space-y-5">
                     {billData.suits_data.map((suit, index) => (
                       <div
-                        key={index}
+                        key={suit.id || index}
                         className="flex items-center justify-between gap-x-4"
                       >
                         <div className="grid items-start grid-cols-1 lg:grid-cols-4 gap-5 w-full">
@@ -579,12 +586,10 @@ const OldBuyerGenerateBill = () => {
                               value={suit.color}
                               onChange={(e) => handleColorChange(index, e)}
                             >
-                              <option value="" disabled>
-                                Choose Color
-                              </option>
-                              {SuitFromDesign?.map((item, idx) => (
-                                <option key={idx} value={item.color}>
-                                  {item.color}
+                              <option value="" disabled>Choose Color</option>
+                              {colorOptions[index]?.map((color, idx) => (
+                                <option key={idx} value={color}>
+                                  {color}
                                 </option>
                               ))}
                             </select>
