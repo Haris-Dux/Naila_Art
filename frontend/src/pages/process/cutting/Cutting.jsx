@@ -68,6 +68,17 @@ const Cutting = () => {
     });
   };
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -174,7 +185,7 @@ const Cutting = () => {
                         <td className="px-6 py-4">
                           {data.r_quantity ? `${data.r_quantity} m` : "--"} 
                         </td>
-                        <td className="px-6 py-4">{data.project_status}</td>
+                        <td className="px-6 py-4">{setStatusColor(data.project_status)}</td>
                         <td className="pl-10 py-4">
                           <Link to={`/dashboard/cutting-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />

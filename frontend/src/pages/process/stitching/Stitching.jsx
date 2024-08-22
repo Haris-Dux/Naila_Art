@@ -62,6 +62,17 @@ const Stitching = () => {
         });
     };
 
+    const setStatusColor = (status) => {
+        switch (status) {
+          case "Pending":
+            return <span className="text-[#FFC107]">{status}</span>;
+          case "Completed":
+            return <span className="text-[#2ECC40]">{status}</span>;
+          default:
+            return "";
+        }
+      };
+
 
     return (
         <>
@@ -191,7 +202,7 @@ const Stitching = () => {
                                                     {data.r_quantity ? `${data.r_quantity} suit` : '--'}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.project_status}
+                                                    {setStatusColor(data.project_status)}
                                                 </td>
                                                 <td className="pl-10 py-4">
                                                     <Link to={`/dashboard/stitching-details/${data.id}`}>

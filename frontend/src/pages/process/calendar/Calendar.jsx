@@ -63,6 +63,17 @@ const Calendar = () => {
     });
   };
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg'>
@@ -147,7 +158,7 @@ const Calendar = () => {
                         <td className='px-6 py-4'>{entry.design_no}</td>
                         <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
                         <td className='px-6 py-4'>{entry.T_Quantity} m</td>
-                        <td className='px-6 py-4'>{entry.project_status}</td>
+                        <td className='px-6 py-4'>{setStatusColor(entry.project_status)}</td>
                         <td className='pl-10 py-4'>
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
                             <FaEye size={20} className='cursor-pointer' />
