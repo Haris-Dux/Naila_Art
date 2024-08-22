@@ -8,7 +8,6 @@ import {
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  GetAllBase,
   GetAllBaseforEmroidery,
 } from "../../features/InStockSlice";
 

@@ -125,7 +125,7 @@ const DashboardStats = () => {
                 </span>
               </div>
 
-              <div className="size-32">
+              <div className="size-28">
                 <CircularProgressbar
                   value={Math.abs(DashboardData?.dailySale?.percentage)}
                   text={`${DashboardData?.dailySale?.percentage}%`}
@@ -171,7 +171,7 @@ const DashboardStats = () => {
                 </span>
               </div>
 
-              <div className="size-32">
+              <div className="size-28">
                 <CircularProgressbar
                   value={Math.abs(DashboardData?.monthlysale?.percentage)}
                   text={`${DashboardData?.monthlysale?.percentage}%`}
@@ -218,7 +218,7 @@ const DashboardStats = () => {
                 </span>
               </div>
 
-              <div className="size-32">
+              <div className="size-28">
                 <CircularProgressbar
                   value={Math.abs(DashboardData?.grossSale?.percentage)}
                   text={`${DashboardData?.grossSale?.percentage}%`}
@@ -265,7 +265,7 @@ const DashboardStats = () => {
                 </span>
               </div>
 
-              <div className="size-32">
+              <div className="size-28">
                 <CircularProgressbar
                   value={Math.abs(DashboardData?.grossProfit?.percentage)}
                   text={`${DashboardData?.grossProfit?.percentage}%`}

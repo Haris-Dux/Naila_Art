@@ -236,6 +236,17 @@ const EmbroideryDetails = () => {
     dispatch(generateEmbroideryBillAsync(formData));
   };
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -268,7 +279,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="text-green-600"> {project_status}</span>
+              <span className=""> {setStatusColor(project_status)}</span>
             </div>
             {/* SECOND ROW */}
             <div className="box">
@@ -495,12 +506,13 @@ const EmbroideryDetails = () => {
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
+        {project_status !== "Completed" && (
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={handleCompletedClick}
           >
             Completed
-          </button>
+          </button>)}
           {project_status === "Completed" && (
             <>
               {generateBillLoading ? (

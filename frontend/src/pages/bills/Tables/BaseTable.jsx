@@ -82,34 +82,7 @@ const BaseTable = () => {
 
     return (
         <>
-            {/* <p className='w-full bg-gray-300 h-px mt-5'></p> */}
-
-            {/* -------------- TABS -------------- */}
-            {/* <div className="tabs flex justify-between items-center my-5">
-                <div className="tabs_button">
-                    <Link
-                        to={`/dashboard/purchasebills?page=${1}`}
-                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${userSelectedCategory === ""
-                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                            : ""
-                            }`}
-                        onClick={() => handleCategoryClick("all")}
-                    >
-                        All
-                    </Link>
-                    {BaseCategories?.map(category => (
-                        <Link
-                            key={category}
-                            className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${userSelectedCategory === category ? 'bg-[#252525] text-white dark:bg-white dark:text-black' : ''}`}
-                            onClick={() => handleCategoryClick(category)}
-                            to={`/dashboard/purchasebills?page=${1}`}
-                        >
-                            {category}
-                        </Link>
-                    ))}
-                </div>
-            </div> */}
-
+            
 
             <section>
                 {loading ? (

@@ -192,6 +192,19 @@ const Buyers = () => {
     dispatch(getBuyerForBranchAsync(payload));
   }
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       {loading || branchesLoading ? (
@@ -374,7 +387,7 @@ const Buyers = () => {
                           {data.virtual_account.total_balance} Rs
                         </td>
                         <td className="px-6 py-4 font-medium">
-                          {data.virtual_account.status}
+                          {setStatusColor(data.virtual_account.status)}
                         </td>
                         <td className="pl-10 py-4">
                           <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/buyers-details/${data.id}`}>

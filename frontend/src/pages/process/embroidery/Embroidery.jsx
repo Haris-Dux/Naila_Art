@@ -9,7 +9,6 @@ import Box from "../../../Component/Embodiary/Box";
 import { GETEmbroidery } from "../../../features/EmbroiderySlice";
 import { useDispatch } from "react-redux";
 
-
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown1, setdropdown1] = useState(false);
@@ -20,8 +19,6 @@ const Embroidery = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-
-  const [currentPage, setCurrentPage] = useState(1);
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     partyName: "",
@@ -42,7 +39,6 @@ const Embroidery = () => {
     D_Patch_Stitch: { value: 0, head: 0 },
     F_Patch_Stitch: { value: 0, head: 0 },
     project_status: "Pending",
-   
   });
   const [total, setTotal] = useState(0);
 
@@ -53,14 +49,29 @@ const Embroidery = () => {
   const calculateTotal = (formData1) => {
     const rate = parseFloat(formData1.rATE_per_stitching) || 450;
     const stitches = [
-      { value: formData1.Front_Stitch.value, head: formData1.Front_Stitch.head },
+      {
+        value: formData1.Front_Stitch.value,
+        head: formData1.Front_Stitch.head,
+      },
       { value: formData1.Bazo_Stitch.value, head: formData1.Bazo_Stitch.head },
       { value: formData1.Gala_Stitch.value, head: formData1.Gala_Stitch.head },
       { value: formData1.Back_Stitch.value, head: formData1.Back_Stitch.head },
-      { value: formData1.Pallu_Stitch.value, head: formData1.Pallu_Stitch.head },
-      { value: formData1.Trouser_Stitch.value, head: formData1.Trouser_Stitch.head },
-      { value: formData1.D_Patch_Stitch.value, head: formData1.D_Patch_Stitch.head },
-      { value: formData1.F_Patch_Stitch.value, head: formData1.F_Patch_Stitch.head },
+      {
+        value: formData1.Pallu_Stitch.value,
+        head: formData1.Pallu_Stitch.head,
+      },
+      {
+        value: formData1.Trouser_Stitch.value,
+        head: formData1.Trouser_Stitch.head,
+      },
+      {
+        value: formData1.D_Patch_Stitch.value,
+        head: formData1.D_Patch_Stitch.head,
+      },
+      {
+        value: formData1.F_Patch_Stitch.value,
+        head: formData1.F_Patch_Stitch.head,
+      },
     ];
 
     const total = stitches.reduce((sum, stitch) => {
@@ -72,7 +83,7 @@ const Embroidery = () => {
 
     return total;
   };
-  
+
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -107,7 +118,6 @@ const Embroidery = () => {
       }));
     }
 
-
     setTotal(calculateTotal(formData));
   };
 
@@ -121,11 +131,11 @@ const Embroidery = () => {
     document.body.style.overflow = "auto";
   };
 
-  const filteredData = searchText ? embroidery?.data?.filter((item) =>
-    item.partyName.toLowerCase().includes(searchText.toLowerCase())
-  )
+  const filteredData = searchText
+    ? embroidery?.data?.filter((item) =>
+        item.partyName.toLowerCase().includes(searchText.toLowerCase())
+      )
     : embroidery?.data;
-
 
   const renderPaginationLinks = () => {
     const totalPages = embroidery?.totalPages;
@@ -135,13 +145,14 @@ const Embroidery = () => {
         <li key={i} onClick={ToDown}>
           <Link
             to={`/dashboard/embroidery?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-              }`}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
+              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+            }`}
             onClick={() => dispatch(GETEmbroidery({ page: i }))}
           >
             {i}
           </Link>
-        </li >
+        </li>
       );
     }
     return paginationLinks;
@@ -152,6 +163,17 @@ const Embroidery = () => {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
   };
 
   return (
@@ -255,18 +277,23 @@ const Embroidery = () => {
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
-                        <td className="px-6 py-4">{new Date(data.date).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          {new Date(data.date).toLocaleDateString()}
+                        </td>
                         <td className="px-6 py-4">{data.T_Quantity} Suit</td>
-                        <td className="px-6 py-4">{data.project_status}</td>
+                        <td className="px-6 py-4">
+                          {setStatusColor(data.project_status)}
+                        </td>
                         <td className="pl-10 py-4">
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
                         </td>
                       </tr>
-                    ))) : (
+                    ))
+                  ) : (
                     <tr className="w-full flex justify-center items-center">
-                      <td className='text-xl mt-3'>No Data Available</td>
+                      <td className="text-xl mt-3">No Data Available</td>
                     </tr>
                   )}
                 </tbody>
@@ -274,10 +301,10 @@ const Embroidery = () => {
             </div>
           </>
         )}
-      </section >
+      </section>
 
       {/* -------- PAGINATION -------- */}
-      <section section className="flex justify-center" >
+      <section section className="flex justify-center">
         <nav aria-label="Page navigation example">
           <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
             <li>
@@ -377,9 +404,9 @@ const Embroidery = () => {
                 </button>
               )}
             </li>
-          </ul >
-        </nav >
-      </section >
+          </ul>
+        </nav>
+      </section>
 
       {isOpen && (
         <div
@@ -485,7 +512,6 @@ const Embroidery = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Front_Stitch.head || ""}
-
                       onChange={handleInputChange}
                     />
                   </div>
@@ -497,7 +523,6 @@ const Embroidery = () => {
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Back_Stitch.value || ""}
-
                       onChange={handleInputChange}
                     />
                     <input
@@ -506,8 +531,7 @@ const Embroidery = () => {
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={formData.Back_Stitch.head || ""} 
-
+                      value={formData.Back_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -519,7 +543,6 @@ const Embroidery = () => {
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Bazo_Stitch.value || ""}
-
                       onChange={handleInputChange}
                     />
                     <input
@@ -529,7 +552,6 @@ const Embroidery = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Bazo_Stitch.head || ""}
-
                       onChange={handleInputChange}
                     />
                   </div>
@@ -541,7 +563,6 @@ const Embroidery = () => {
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Gala_Stitch.value || ""}
-
                       onChange={handleInputChange}
                     />
                     <input
@@ -551,7 +572,6 @@ const Embroidery = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Gala_Stitch.head || ""}
-
                       onChange={handleInputChange}
                     />
                   </div>
@@ -565,7 +585,6 @@ const Embroidery = () => {
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.D_Patch_Stitch.value || ""}
-
                       onChange={handleInputChange}
                     />
                     <input
@@ -575,7 +594,6 @@ const Embroidery = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.D_Patch_Stitch.head || ""}
-
                       onChange={handleInputChange}
                     />
                   </div>
@@ -587,7 +605,6 @@ const Embroidery = () => {
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Pallu_Stitch.value || ""}
-
                       onChange={handleInputChange}
                     />
                     <input
@@ -597,7 +614,6 @@ const Embroidery = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.Pallu_Stitch.head || ""}
-
                       onChange={handleInputChange}
                     />
                   </div>
@@ -657,21 +673,24 @@ const Embroidery = () => {
                   </div>
 
                   <div>
-                  
-                      <input
-        type="text"
-        value={total.toFixed(2)}
-        readOnly
-          name="per_suit"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-          
-      />
+                    <input
+                      type="text"
+                      value={total.toFixed(2)}
+                      readOnly
+                      name="per_suit"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    />
                   </div>
                 </div>
 
                 {/* SUIT DESCRIPION */}
 
-                <Box formData1={formData} setFormData1={setFormData} closeModal={closeModal} total={total} />
+                <Box
+                  formData1={formData}
+                  setFormData1={setFormData}
+                  closeModal={closeModal}
+                  total={total}
+                />
               </div>
             </div>
           </div>
