@@ -168,8 +168,7 @@ const PurchaseBills = () => {
 
 
             {searchModal && (
-                <div aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+                <div className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
                 >
                     <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
                         {/* ------------- HEADER ------------- */}
@@ -184,8 +183,8 @@ const PurchaseBills = () => {
                         {/* ------------- BODY ------------- */}
                         <div className="p-3">
                             <div className="flex justify-center items-center gap-x-4">
-                                <button onClick={swapModal} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">New Seller</button>
-                                <button onClick={() => setSearchUser(!searchUser)} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Old Seller</button>
+                                <button type='button' onClick={swapModal} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">New Seller</button>
+                                <button type='button' onClick={() => setSearchUser(!searchUser)} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Old Seller</button>
                             </div>
 
                             {searchUser && (

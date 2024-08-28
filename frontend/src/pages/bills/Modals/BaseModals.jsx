@@ -10,6 +10,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
+    const [discountState, setDiscountState] = useState(false);
+
 
     const { addSellerLoading } = useSelector((state) => state.Seller);
 
@@ -22,9 +24,13 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         category: "",
         quantity: "",
         rate: "",
+        subtotal: "",
+        discountType: "number",
+        discount: "",
         total: "",
         seller_stock_category: "Base",
     });
+
 
     useEffect(() => {
         if (sellerDetails) {
@@ -36,30 +42,57 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         }
     }, [sellerDetails]);
 
+    const handleDiscountTypeChange = (e) => {
+        const discountType = e.target.value;
+        setFormData((prevState) => {
+            const discountValue = discountType === "percentage"
+                ? (prevState.subtotal * prevState.discount) / 100
+                : prevState.discount;
+
+            return {
+                ...prevState,
+                discountType,
+                total: Number(prevState.subtotal) - Number(discountValue),
+            };
+        });
+    };
+
 
     // Function to handle changes in form inputs
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevState) => ({
-            ...prevState,
-            [name]: name === "quantity" ? Number(value) : value,
-        }));
+        let newFormData = { ...formData, [name]: value };
+
+        if (name === "discount" || name === "subtotal" || name === "discountType") {
+            const discountValue = newFormData.discountType === "percentage"
+                ? (newFormData.subtotal * newFormData.discount) / 100
+                : newFormData.discount;
+
+            newFormData.total = Number(newFormData.subtotal) - Number(discountValue);
+        }
+
+        setFormData(newFormData);
     };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        const { discount, discountType, subtotal, ...filteredFormData } = formData;
+
         const modifiedFormData = {
-            ...formData,
-            total: Number(formData.total),
-            rate: Number(formData.rate),
-            quantity: Number(formData.quantity),
-            bill_no: Number(formData.bill_no),
+            ...filteredFormData,
+            total: Number(filteredFormData.total),
+            rate: Number(filteredFormData.rate),
+            quantity: Number(filteredFormData.quantity),
+            bill_no: Number(filteredFormData.bill_no),
         };
 
         if (sellerDetails && sellerDetails?.id) {
             modifiedFormData.sellerId = sellerDetails?.id;
         }
+
+        console.log('modifiedFormData', modifiedFormData);
 
         if (sellerDetails) {
             dispatch(AddOldSellerDetailsFromAsync(modifiedFormData)).then((res) => {
@@ -94,16 +127,42 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         });
     };
 
+    const handleCheckboxChange = (e) => {
+        const isChecked = e.target.checked;
+        setDiscountState(isChecked);
+
+        setFormData((prevState) => {
+            let updatedTotal = prevState.subtotal;
+
+            if (isChecked) {
+                const discount = Number(prevState.discount) || 0;
+
+                if (prevState.discountType === "percentage") {
+                    updatedTotal = updatedTotal - (updatedTotal * discount) / 100;
+                } else {
+                    updatedTotal = updatedTotal - discount;
+                }
+            } else {
+                updatedTotal = prevState.subtotal;
+            }
+
+            return {
+                ...prevState,
+                discount: isChecked ? prevState.discount : "",
+                discountType: isChecked ? prevState.discountType : "number",
+                total: updatedTotal,
+            };
+        });
+    };
+
 
 
     return (
         <>
             {isOpen && (
-                <div
-                    aria-hidden="true"
-                    className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+                <div className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-lg max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -134,9 +193,9 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         </div>
 
                         {/* ------------- BODY ------------- */}
-                        <div className="p-4 md:p-5">
+                        <div className="p-4 md:p-3">
                             <form onSubmit={handleSubmit}>
-                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-3">
 
                                     {/* BILL */}
                                     <div>
@@ -206,6 +265,19 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                         />
                                     </div>
 
+                                    {/* SUB TOTAL */}
+                                    <div>
+                                        <input
+                                            name="subtotal"
+                                            type="number"
+                                            placeholder="Sub Total"
+                                            value={formData.subtotal}
+                                            onChange={handleChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            required
+                                        />
+                                    </div>
+
                                     {/* TOTAL */}
                                     <div>
                                         <input
@@ -215,6 +287,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                             value={formData.total}
                                             onChange={handleChange}
                                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                            readOnly
                                             required
                                         />
                                     </div>
@@ -233,7 +306,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                     </div>
 
                                     {/* PHONE NUMBER */}
-                                    <div className='col-span-2'>
+                                    <div className=''>
                                         <input
                                             name="phone"
                                             type="number"
@@ -246,6 +319,66 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                                         />
                                     </div>
 
+                                    {/* CHECKBOX */}
+                                    <div className='col-span-2'>
+                                        <div className="flex items-center pl-1">
+                                            <input
+                                                id="default-checkbox"
+                                                type="checkbox"
+                                                checked={discountState}
+                                                onChange={handleCheckboxChange}
+                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-transparent"
+                                            />
+                                            <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 cursor-pointer dark:text-gray-300">
+                                                Discount
+                                            </label>
+                                        </div>
+                                    </div>
+
+
+                                    {discountState && (
+                                        <>
+                                            {/* DISCOUNT TYPE */}
+                                            <div className="flex items-center pl-1">
+                                                <div className="flex items-center me-4">
+                                                    <input
+                                                        id="inline-radio"
+                                                        type="radio"
+                                                        value="number"
+                                                        name="discountType"
+                                                        checked={formData.discountType === "number"}
+                                                        onChange={handleDiscountTypeChange}
+                                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor="inline-radio" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Number</label>
+                                                </div>
+                                                <div className="flex items-center me-4">
+                                                    <input
+                                                        id="inline-2-radio"
+                                                        type="radio"
+                                                        value="percentage"
+                                                        name="discountType"
+                                                        checked={formData.discountType === "percentage"}
+                                                        onChange={handleDiscountTypeChange}
+                                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor="inline-2-radio" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Percentage</label>
+                                                </div>
+                                            </div>
+
+                                            {/* DISCOUNT */}
+                                            <div>
+                                                <input
+                                                    name="discount"
+                                                    type="number"
+                                                    placeholder="Discount"
+                                                    value={formData.discount}
+                                                    onChange={handleChange}
+                                                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 <div className="flex justify-center mt-6">
