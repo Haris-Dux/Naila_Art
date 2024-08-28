@@ -12,7 +12,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
     const [discountState, setDiscountState] = useState(false);
 
-
     const { addSellerLoading } = useSelector((state) => state.Seller);
 
     // State variables to hold form data
@@ -30,7 +29,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         total: "",
         seller_stock_category: "Base",
     });
-
 
     useEffect(() => {
         if (sellerDetails) {
@@ -74,7 +72,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         setFormData(newFormData);
     };
 
-
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -100,6 +97,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                     dispatch(getAllPurchasingHistoryAsync({ category: 'Base', page }));
                     resetFormData();
                     closeModal();
+                    setDiscountState(false);
                 }
             });
         } else {
@@ -122,8 +120,11 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
             category: "",
             quantity: "",
             rate: "",
+            subtotal: "",
+            discountType: "number",
+            discount: "",
             total: "",
-            seller_stock_category: "",
+            seller_stock_category: "Base",
         });
     };
 
@@ -154,7 +155,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
             };
         });
     };
-
 
 
     return (
