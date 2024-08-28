@@ -19,11 +19,9 @@ export const createStitching = createAsyncThunk(
     try {
       const response = await axios.post(addStitching, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
-      console.log(error.response.data.error);
     }
   }
 );
@@ -35,10 +33,8 @@ export const UpdateStitchingAsync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateStitching, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -53,12 +49,10 @@ export const GetAllStitching = createAsyncThunk("Stitching/Get", async (data) =>
   try {
     // const response = await axios.post(getAllStitching, formData);
     const response = await axios.post(`${getAllStitching}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -68,12 +62,11 @@ export const GetSingleStitching = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleStitching, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+    
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
+
     }
   }
 );
@@ -83,12 +76,11 @@ export const getStitchingByEmbroidery = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getStitchingByEmbroideryId, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
+
     }
   }
 );

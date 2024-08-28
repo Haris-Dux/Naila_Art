@@ -17,10 +17,9 @@ export const createCalender = createAsyncThunk(
     try {
       const response = await axios.post(addCalender, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
   }
 );
@@ -49,12 +48,9 @@ export const GetAllCalender = createAsyncThunk("Calender/Get", async (data) => {
     const response = await axios.post(
       `${getAllCalender}?&page=${data.page}${searchQuery}`
     );
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
   }
 });
 
@@ -64,12 +60,10 @@ export const GetSingleCalender = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleCalender, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+ 
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
     }
   }
 );

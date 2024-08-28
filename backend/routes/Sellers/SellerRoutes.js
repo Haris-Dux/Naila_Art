@@ -7,16 +7,16 @@ import {
   getSelleForPurchasingById,
   validateAndGetOldSellerData,
 } from "../../controllers/sellers/SellersController.js";
-import { superAdminOnly } from "../../middleware/Auth.js";
+import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 
 
 const sellerRouter = express.Router();
 
-sellerRouter.post("/addInStockAndGeneraeSellerData_NEW", superAdminOnly, addInStockAndGeneraeSellerData_NEW);
-sellerRouter.post("/getAllSellersForPurchasing", superAdminOnly, getAllSellersForPurchasing);
-sellerRouter.post("/getSelleForPurchasingById", superAdminOnly, getSelleForPurchasingById);
-sellerRouter.post("/validateAndGetOldSellerData", superAdminOnly, validateAndGetOldSellerData);
-sellerRouter.post("/addInStockAndGeneraeSellerData_OLD", superAdminOnly, addInStockAndGeneraeSellerData_OLD);
-sellerRouter.post("/getAllPurchasingHistory", superAdminOnly, getAllPurchasingHistory);
+sellerRouter.post("/addInStockAndGeneraeSellerData_NEW", superAdminAndAdminOnly, addInStockAndGeneraeSellerData_NEW);
+sellerRouter.post("/getAllSellersForPurchasing", superAdminAndAdminOnly, getAllSellersForPurchasing);
+sellerRouter.post("/getSelleForPurchasingById", superAdminAndAdminOnly, getSelleForPurchasingById);
+sellerRouter.post("/validateAndGetOldSellerData", superAdminAndAdminOnly, validateAndGetOldSellerData);
+sellerRouter.post("/addInStockAndGeneraeSellerData_OLD", superAdminAndAdminOnly, addInStockAndGeneraeSellerData_OLD);
+sellerRouter.post("/getAllPurchasingHistory", superAdminAndAdminOnly, getAllPurchasingHistory);
 
 export default sellerRouter;

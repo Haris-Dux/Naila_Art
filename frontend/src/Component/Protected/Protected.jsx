@@ -1,29 +1,45 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 
 const UserProtected = ({ children }) => {
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, routingLoading } = useSelector((state) => state.auth);
+  const lastPath = localStorage.getItem("lastPath");
 
+  useEffect(() => {
+    if (user && user.login && lastPath) {
+      localStorage.removeItem("lastPath");
+    }
+  }, [user, lastPath]);
+
+  if (routingLoading) {
+    return <div></div>;
+  }
 
   if (user && user.login) {
-    // User is authenticated: render children
     return children;
   } else {
-    // User is not authenticated: redirect to login page
-    return <Navigate to="/" replace={true} />;
+    return <Navigate to={lastPath || "/"} replace={true} />;
   }
 };
 
 const LoginProtected = ({ children }) => {
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, routingLoading } = useSelector((state) => state.auth);
+  const lastPath = localStorage.getItem("lastPath");
 
+  useEffect(() => {
+    if (user && user.login && lastPath) {
+      localStorage.removeItem("lastPath");
+    }
+  }, [user, lastPath]);
+
+  if (routingLoading) {
+    return <div></div>;
+  }
 
   if (user && user.login) {
-    // User is authenticated: redirect to dashboard
-    return <Navigate to="/dashboard" replace={true} />;
+    return <Navigate to={lastPath || "/dashboard"} replace={true} />;
   } else {
-    // User is not authenticated: render children
     return children;
   }
 };

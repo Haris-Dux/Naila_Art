@@ -26,7 +26,6 @@ const EmbroideryDetails = () => {
     (state) => state.Embroidery
   );
 
-  console.log("SingleEmbroidery", SingleEmbroidery);
 
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
@@ -39,7 +38,6 @@ const EmbroideryDetails = () => {
   });
 
   useEffect(() => {
-    console.log(SingleEmbroidery.date);
     setCalenderData({
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
@@ -79,7 +77,6 @@ const EmbroideryDetails = () => {
   }, [SingleEmbroidery, id]);
 
   const handleInputChange = (category, color, received, index, section) => {
-    console.log("Received:", received);
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
         idx === index ? { ...item, category, color, received } : item
@@ -145,7 +142,6 @@ const EmbroideryDetails = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    console.log("formdata", formData);
 
     dispatch(UpdateEmbroidery(formData))
       .then(() => {
@@ -210,7 +206,6 @@ const EmbroideryDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 
@@ -231,12 +226,25 @@ const EmbroideryDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery));
+    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery))
+      closeGatepassModal();
+  
   };
 
   const generateBill = () => {
     const formData = { ...SingleEmbroidery, process_Category: 'Embroidery' }
     dispatch(generateEmbroideryBillAsync(formData));
+  };
+
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
   };
 
   return (
@@ -271,7 +279,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="text-green-600"> {project_status}</span>
+              <span className=""> {setStatusColor(project_status)}</span>
             </div>
             {/* SECOND ROW */}
             <div className="box">
@@ -498,12 +506,13 @@ const EmbroideryDetails = () => {
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
+        {project_status !== "Completed" && (
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={handleCompletedClick}
           >
             Completed
-          </button>
+          </button>)}
           {project_status === "Completed" && (
             <>
               {generateBillLoading ? (

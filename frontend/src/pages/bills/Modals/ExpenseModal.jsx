@@ -199,8 +199,8 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     </div>
                   ) : null}
 
-                  {user?.user?.role === "superadmin" ||
-                    user?.user?.role === "admin" ? (
+                  {user?.user?.role === "superadmin" 
+                     ? (
                     <div className="col-span-2">
                       <select
                         id="branches"

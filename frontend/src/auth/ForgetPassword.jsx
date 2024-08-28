@@ -16,7 +16,6 @@ const ForgetPassword = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(formData);
         dispatch(forgetuserAsync(formData))
             .then(() => {
                 navigate('/otp')

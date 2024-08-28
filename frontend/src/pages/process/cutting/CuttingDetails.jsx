@@ -48,7 +48,6 @@ const CuttingDetails = () => {
   });
 
   useEffect(() => {
-    console.log(SingleCutting);
     setFormData({
       serial_No: SingleCutting?.serial_No || "",
       design_no: SingleCutting?.design_no || "",
@@ -146,7 +145,6 @@ const CuttingDetails = () => {
   const handleSubmitstome = (e) => {
     e.preventDefault();
 
-    console.log("frp", formData);
 
     dispatch(createStone(formData)).then((res) => {
       if (res.payload.success === true) {
@@ -211,7 +209,6 @@ const CuttingDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 
@@ -222,7 +219,8 @@ const CuttingDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateCuttingGatePssPdfAsync(SingleCutting));
+    dispatch(generateCuttingGatePssPdfAsync(SingleCutting))
+    closeGatepassModal();
   };
 
   const generateBill = () => {
@@ -237,6 +235,17 @@ const CuttingDetails = () => {
   const closeGatepassModal = () => {
     setisGenerateGatePassOpen(false);
     document.body.style.overflow = "auto";
+  };
+
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
   };
 
   if (loading) {
@@ -288,9 +297,9 @@ const CuttingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="text-green-600 dark:text-green-300">
+              <span className="">
                 {" "}
-                {SingleCutting?.project_status}
+                {setStatusColor(SingleCutting?.project_status)}
               </span>
             </div>
             <div className="box">
@@ -339,12 +348,13 @@ const CuttingDetails = () => {
 
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
+        {SingleCutting?.project_status !== "Completed" && (
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={handleCompletedClick}
           >
             Completed
-          </button>
+          </button>)}
 
           {SingleCutting?.project_status === "Completed" && (
             <>

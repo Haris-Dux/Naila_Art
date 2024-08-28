@@ -8,7 +8,6 @@ const EmployeeDetails = () => {
   const { loading, Employee } = useSelector((state) => state.Account);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  console.log('data', Employee)
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [formData, setFormData] = useState({

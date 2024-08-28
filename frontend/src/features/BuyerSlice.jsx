@@ -25,7 +25,6 @@ export const getBuyerForBranchAsync = createAsyncThunk("buyers/get", async (data
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );
@@ -37,7 +36,6 @@ export const getBuyerByIdAsync = createAsyncThunk("buyers/getById", async (id) =
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );

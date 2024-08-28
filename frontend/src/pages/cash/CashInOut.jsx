@@ -173,7 +173,7 @@ const CashInOut = () => {
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
-                {loading && branchesLoading ? (
+                {loading || branchesLoading ? (
                     <div className="min-h-[25vh] flex justify-center items-center">
                         <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
                             role="status"
@@ -230,9 +230,7 @@ const CashInOut = () => {
                                         <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
                                             {TodayCashInOutData?.data?.todayCashIn}
                                         </span>
-                                        {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
+                                     
                                     </div>
                                 </div>
                             </div>
@@ -245,34 +243,26 @@ const CashInOut = () => {
                                         <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
                                             {TodayCashInOutData?.data?.todayCashOut}
                                         </span>
-                                        {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
+                                      
                                     </div>
                                 </div>
                             </div>
                             <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
                                 <div className="stat_data pl-4">
                                     <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                        Today Cash In Hand
+                                        Total Cash In Hand
                                     </h3>
                                     <div className="mt-3 flex justify-start items-center gap-3">
                                         <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
                                             {TodayCashInOutData?.data?.saleData?.totalCash}
                                         </span>
-                                        {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
+                                 
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </>
-                )}
 
-
-                {/* -------------- HEADER -------------- */}
-                <div className="mt-4 header flex justify-between items-center pt-6 mx-2">
+                        <div className="mt-4 header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Cash In/Out</h1>
                 </div>
 
@@ -395,6 +385,10 @@ const CashInOut = () => {
                         ) : null}
                     </div>
                 </div>
+                    </>
+                )}
+
+
             </section >
 
 

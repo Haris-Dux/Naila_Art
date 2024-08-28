@@ -10,7 +10,6 @@ const Cutting = () => {
   const [filteredData, setFilteredData] = useState([]);
   const { loading, Cutting } =
     useSelector((state) => state.Cutting);
-  console.log("Cutting", Cutting);
 
   const [search, setSearch] = useState("");
 
@@ -67,6 +66,17 @@ const Cutting = () => {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
   };
 
   return (
@@ -175,7 +185,7 @@ const Cutting = () => {
                         <td className="px-6 py-4">
                           {data.r_quantity ? `${data.r_quantity} m` : "--"} 
                         </td>
-                        <td className="px-6 py-4">{data.project_status}</td>
+                        <td className="px-6 py-4">{setStatusColor(data.project_status)}</td>
                         <td className="pl-10 py-4">
                           <Link to={`/dashboard/cutting-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />

@@ -20,10 +20,10 @@ export const CreateEmbroidery = createAsyncThunk(
     try {
       const response = await axios.post(AddEmbroidery, formData);
       toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+
       toast.error(error.response.data.error);
 
     }
@@ -37,13 +37,10 @@ export const GETEmbroidery = createAsyncThunk("Embroidery/GET", async (data) => 
       : "";
   try {
     const response = await axios.post(`${getEmbroidery}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
+    
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
-    // Assuming you want to re-throw the error to handle it elsewhere
+    
     throw error;
   }
 }
@@ -54,15 +51,10 @@ export const GETEmbroiderySIngle = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getEmbroiderydetails, id);
-
-
-      // toast.success(response.data.message);
-      console.log(response.data);
-
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+    
+      throw new Error(error.response.data.error);
 
     }
   }
@@ -74,10 +66,10 @@ export const UpdateEmbroidery = createAsyncThunk(
     try {
       const response = await axios.post(editEmbroidery, formData);
       toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      
       toast.error(error.response.data.error);
 
     }

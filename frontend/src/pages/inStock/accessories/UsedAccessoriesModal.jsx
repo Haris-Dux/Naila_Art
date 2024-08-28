@@ -15,7 +15,6 @@ const UsedAccessoriesModal = ({ isOpen, closeModal, selectedUsedAccessories }) =
         date: "",
     });
 
-    console.log('formData', formData);
 
 
     const handleChange = (e) => {

@@ -8,7 +8,6 @@ const DailySaleDetail = () => {
     const dispatch = useDispatch();
 
     const { loading, DailySaleById } = useSelector((state) => state.DailySale);
-    console.log('DailySaleById', DailySaleById);
 
     useEffect(() => {
         if (id) {

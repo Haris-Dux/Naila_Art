@@ -1,5 +1,5 @@
 import express from "express";
-import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
+import { superAdminAndAdminOnly, verifyUser } from "../../middleware/Auth.js";
 import {
   addAccesoriesInStock,
   getAllAccesoriesInStock,
@@ -15,12 +15,12 @@ accessoriesRouter.post(
 );
 accessoriesRouter.post(
   "/getAllAccesoriesInStock",
-  superAdminAndAdminOnly,
+  verifyUser,
   getAllAccesoriesInStock
 );
 accessoriesRouter.post(
   "/updateAllAccesoriesInStock",
-  superAdminAndAdminOnly,
+  verifyUser,
   updateAllAccesoriesInStock
 );
 

@@ -108,7 +108,8 @@ const StitchingDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateStitchingGatePssPdfAsync(SingleStitching));
+    dispatch(generateStitchingGatePssPdfAsync(SingleStitching))
+    closeGatepassModal();
   };
 
   const generateBill = () => {
@@ -132,7 +133,6 @@ const StitchingDetails = () => {
     );
   }
 
-  console.log("sitching", SingleStitching);
 
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);
@@ -281,12 +281,13 @@ const StitchingDetails = () => {
 
         {/* BUTTONS BAR */}
         <div className="mt-10 flex justify-center items-center gap-x-5">
+        {SingleStitching?.project_status !== "Completed" && (
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={handleCompletedClick}
           >
             Completed
-          </button>
+          </button>)}
 
           {SingleStitching?.project_status === "Completed" && (
             <>

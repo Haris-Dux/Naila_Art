@@ -8,8 +8,6 @@ import { GetAllCalender } from '../../../features/CalenderSlice';
 const Calendar = () => {
   const dispatch = useDispatch();
   const { loading, Calender } = useSelector((state) => state.Calender);
-  console.log('Calender', Calender);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
 
   const [search, setSearch] = useState('');
@@ -17,10 +15,6 @@ const Calendar = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-
-  // const handleSearch = (event) => {
-  //   setSearchText(event.target.value);
-  // };
 
   const filteredCalender = Calender?.data?.filter((entry) =>
     entry.partyName.toLowerCase().includes(searchText.toLowerCase())
@@ -67,6 +61,17 @@ const Calendar = () => {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
   };
 
   return (
@@ -153,7 +158,7 @@ const Calendar = () => {
                         <td className='px-6 py-4'>{entry.design_no}</td>
                         <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
                         <td className='px-6 py-4'>{entry.T_Quantity} m</td>
-                        <td className='px-6 py-4'>{entry.project_status}</td>
+                        <td className='px-6 py-4'>{setStatusColor(entry.project_status)}</td>
                         <td className='pl-10 py-4'>
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
                             <FaEye size={20} className='cursor-pointer' />

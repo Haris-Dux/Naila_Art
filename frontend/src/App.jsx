@@ -44,7 +44,6 @@ import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
-import PreviewBill from "./pages/generateBills/PreviewBill";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 
 
@@ -55,18 +54,26 @@ function App() {
     dispatch(authUserAsync());
   }, [dispatch]);
 
+
+useEffect(() => {
+  window.addEventListener('beforeunload', () => {
+    localStorage.setItem('lastPath', window.location.pathname);
+  });
+  return () => {
+    window.removeEventListener('beforeunload', () => {});
+  };
+}, []);
+
   return (
     <>
       <BrowserRouter>
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forget" element={<ForgetPassword />} />
-          <Route path="/reset" element={<ResetPassword />} />
-          <Route path="/otp" element={<OtpChecker />} />
-
-          {/* <Route path="/previewBill" element={<PreviewBill />} /> */}
+          <Route path="/signup" element={<LoginProtected><Signup /></LoginProtected>} />
+          <Route path="/forget" element={<LoginProtected><ForgetPassword /></LoginProtected>} />
+          <Route path="/reset" element={<LoginProtected><ResetPassword /></LoginProtected>} />
+          <Route path="/otp" element={<LoginProtected><OtpChecker /></LoginProtected>} />
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>

@@ -34,7 +34,7 @@ const Shop = () => {
 
   useEffect(() => {
     dispatch(GetAllShop({ id: user?.user?.id }));
-  }, [dispatch, user]);
+  }, [dispatch, user?.user?.id]);
 
   const handleEdit = (shop) => {
     setEditShop(shop);
@@ -194,7 +194,7 @@ const Shop = () => {
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
-        {loading && selectedShopId && pendingloading ? (
+        {loading || selectedShopId === null || pendingloading ? (
           <div className="flex justify-center pt-16 items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
@@ -342,11 +342,11 @@ const Shop = () => {
                         </tr>
                       ))
                     ) : (
-                      <div className="flex justify-center items-center mt-4">
-                        <h2 className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
+                      <tr className="flex justify-center items-center mt-4">
+                        <td className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
                           No Data Found
-                        </h2>
-                      </div>
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>

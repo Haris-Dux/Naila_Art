@@ -19,7 +19,7 @@ const OtpChecker = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(formData);
+
         dispatch(verifyOtpAsync(formData))
             .then((res) => {
                 if (res?.payload?.message === "OTP Verified Successfully") {

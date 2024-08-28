@@ -7,26 +7,7 @@ import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
 import { GetAllBranches } from '../../features/InStockSlice';
 import { validateOldBuyerAsync } from '../../features/GenerateBillSlice';
 
-const data = [
-  {
-    id: 1,
-    name: "M Amir",
-    phone: '0324700802',
-    credit: 10000,
-    debit: 12000,
-    balance: 435135,
-    status: "Paid",
-  },
-  {
-    id: 2,
-    name: "M Amir",
-    phone: '0324700802',
-    credit: 10000,
-    debit: 12000,
-    balance: 435135,
-    status: "Partially Paid",
-  },
-]
+
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -112,17 +93,6 @@ const Buyers = () => {
       ...prevState,
       [name]: value
     }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Dispatch action with form data
-    // dispatch(AddSuit(formData)).then(() => {
-    //   dispatch(GetAllSuit())
-    //   closeModal();
-    // }).catch((error) => {
-    //   console.error("Error adding suit:", error);
-    // });
   };
 
   const openModal = () => {
@@ -222,9 +192,22 @@ const Buyers = () => {
     dispatch(getBuyerForBranchAsync(payload));
   }
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
-      {loading && branchesLoading ? (
+      {loading || branchesLoading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
           <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
             role="status"
@@ -404,7 +387,7 @@ const Buyers = () => {
                           {data.virtual_account.total_balance} Rs
                         </td>
                         <td className="px-6 py-4 font-medium">
-                          {data.virtual_account.status}
+                          {setStatusColor(data.virtual_account.status)}
                         </td>
                         <td className="pl-10 py-4">
                           <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/buyers-details/${data.id}`}>

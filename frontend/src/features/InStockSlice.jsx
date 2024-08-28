@@ -24,10 +24,9 @@ export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
   try {
     const response = await axios.post(AddSuits, formData);
     toast.success(response.data.message);
-    console.log(response);
+   
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
     toast.error(error.response.data.error);
   }
 });
@@ -44,22 +43,21 @@ export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getSuits}?&page=${data.page}${category}${searchQuery}`);
-    // toast.success(response.data.message);
-    // console.log(response.data);
+  
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
 export const GetAllCategoriesForSuits = createAsyncThunk("SuitsCategories/Get", async () => {
   try {
     const response = await axios.post(getAllCategoryForSuitsUrl);
-    // toast.success(response.data.message);
+
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
+
     toast.error(error.response.data.error);
   }
 });
@@ -76,11 +74,11 @@ export const GetAllBase = createAsyncThunk("Base/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getBase}?&page=${data.page}${category}${searchQuery}`);
-    // toast.success(response.data.message);
+
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    
+    throw new Error(error.response.data.error);
   }
 });
 
@@ -88,21 +86,18 @@ export const GetAllBaseforEmroidery = createAsyncThunk("BaseforEmroifery/Get", a
 
   try {
     const response = await axios.post(`${getBaseforEmroidery}`);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
 export const GetAllCategoriesForBase = createAsyncThunk("BaseCategories/Get", async () => {
   try {
     const response = await axios.post(getAllCategoryForBaseUrl);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
     toast.error(error.response.data.error);
   }
 });
@@ -114,12 +109,11 @@ export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getLace}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
 
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
@@ -127,23 +121,21 @@ export const GetAllLaceForEmroidery = createAsyncThunk("LaceForEmroidery/Get", a
 
   try {
     const response = await axios.post(GetLaceForEmroidery);
-    // toast.success(response.data.message);
 
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
 export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
   try {
     const response = await axios.post(getBags);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
@@ -154,11 +146,10 @@ export const GetAllaccessories = createAsyncThunk("accessories/Get", async (data
       : "";
   try {
     const response = await axios.post(`${getaccessories}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -166,10 +157,8 @@ export const GetAllaccessories = createAsyncThunk("accessories/Get", async (data
 export const UpdateUsedAccessories = createAsyncThunk("usedAccessories/Get", async (data) => {
   try {
     const response = await axios.post(updateaccessories, data);
-    // toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
     toast.error(error.response.data.error);
   }
 }
@@ -186,36 +175,23 @@ export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(`${getExpense}?&page=${data.page}${branchId}${searchQuery}`);;
-    // toast.success(response.data.message);
 
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    // toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 
-// export const GetAllExpenseForBranch = createAsyncThunk("ExpenseForBranch/Get", async (fromData) => {
-//   try {
-//     const response = await axios.post(getExpenseForBranchUrl, fromData);
-//     // toast.success(response.data.message);
-//     console.log(response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.log(error.response.data.error);
-//     // toast.error(error.response.data.error);
-//   }
-// });
 
 export const GetAllBranches = createAsyncThunk("Branches/GetAll", async (id) => {
   try {
     const response = await axios.post(getAllBranches, id);
-    // toast.success(response.data.message);
-    // console.log(response.data);
+   
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 });
 

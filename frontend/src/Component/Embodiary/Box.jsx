@@ -8,7 +8,6 @@ import {
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  GetAllBase,
   GetAllBaseforEmroidery,
 } from "../../features/InStockSlice";
 
@@ -38,7 +37,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
     }
   }, [loading, BaseforEmroidery]);
 
-  console.log(BaseforEmroidery);
 
   useEffect(() => {
     dispatch(GetAllBaseforEmroidery());
@@ -112,7 +110,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
-    console.log("selected value:", newValue);
 
     // Perform a case-insensitive comparison
     const selectedCategory = BaseforEmroidery.filter(
@@ -252,8 +249,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         ) +
         formData.trouser.reduce((total, item) => total + item.quantity_in_m, 0),
     };
-
-    console.log("final result", meregdata);
 
     dispatch(CreateEmbroidery(meregdata)).then((res) => {
       if (res.payload.success === true) {

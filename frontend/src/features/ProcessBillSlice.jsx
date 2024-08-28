@@ -15,7 +15,7 @@ export const GenerateProcessBillAsync = createAsyncThunk("generate/processBills"
         const response = await axios.post(generateProcessBill, data);
         return response.data;
     } catch (error) {
-        console.log(error.response.data.error);
+        toast.error(error.response.data.error);
     }
 }
 )
@@ -34,7 +34,8 @@ export const GetAllProcessBillAsync = createAsyncThunk("getAll/processBills", as
         const response = await axios.post(`${getAllProcessBill}?&page=${data.page}${searchQuery}${category}`);
         return response.data;
     } catch (error) {
-        console.log(error.response.data.error);
+        throw new Error(error.response.data.error);
+
     }
 }
 )
@@ -46,7 +47,8 @@ export const GetProcessBillByIdAsync = createAsyncThunk("getById/processBills", 
         const response = await axios.post(getProcessBillById, data);
         return response.data;
     } catch (error) {
-        console.log(error.response.data.error);
+        throw new Error(error.response.data.error);
+
     }
 }
 )

@@ -1,13 +1,13 @@
 
 import express from "express";
-import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
+import { superAdminAndAdminOnly,verifyUser } from "../../middleware/Auth.js";
 import { addLaceInStock, getAllLaceForEmbroidery, getAllLaceStock } from "../../controllers/Stock/LaceController.js";
 
 
 const laceRouter = express.Router();
 
 laceRouter.post("/addLaceInStock",superAdminAndAdminOnly, addLaceInStock);
-laceRouter.post("/getAllLaceStock",superAdminAndAdminOnly, getAllLaceStock);
-laceRouter.post("/getAllLaceForEmbroidery",superAdminAndAdminOnly, getAllLaceForEmbroidery);
+laceRouter.post("/getAllLaceStock",verifyUser, getAllLaceStock);
+laceRouter.post("/getAllLaceForEmbroidery",verifyUser, getAllLaceForEmbroidery);
 
 export default laceRouter;

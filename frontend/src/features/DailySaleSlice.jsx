@@ -10,12 +10,10 @@ const getDailySaleById = "/api/dailysale/getDailySaleById";
 export const getDailySaleAsync = createAsyncThunk("dailysale/history", async (data) => {
     const date = data?.date ? `&search=${data.date}` : "";
     try {
-        // const response = await axios.post(`${getDailySale}?&page=${data.page}${date}`, id);
         const response = await axios.post(`${getDailySale}?&page=${data.page}${date}`, { id: data.id });
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
     }
 }
 );
@@ -27,8 +25,8 @@ export const getDailySaleByIdAsync = createAsyncThunk("dailysale/byId", async (i
         const response = await axios.post(getDailySaleById, id);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error.response.data.error);
+   
     }
 }
 );

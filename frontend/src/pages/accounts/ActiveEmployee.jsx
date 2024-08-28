@@ -9,7 +9,6 @@ const ActiveEmployee = ({ selectedCategory }) => {
     const dispatch = useDispatch();
 
     const { loading, ActiveEmployees } = useSelector((state) => state.Account);
-    console.log('ActiveEmployees', ActiveEmployees);
 
     const [baseId, setBaseId] = useState();
     const [userSelectedCategory, setuserSelectedCategory] = useState("");
