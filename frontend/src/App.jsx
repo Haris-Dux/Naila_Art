@@ -45,6 +45,8 @@ import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
 import PreviewBill from "./pages/generateBills/PreviewBill";
+import AssignSuits from "./pages/inStock/assignstocks/AssignStock";
+import AssignStock from "./pages/inStock/assignstocks/AssignStock";
 
 
 function App() {
@@ -77,6 +79,8 @@ function App() {
             <Route path="bag" element={<Bag />} />
             <Route path="accessories" element={<Accessories />} />
             <Route path="expense" element={<Expense />} />
+            <Route path="assignstocks" element={<AssignStock />} />
+
 
             {/* GENERATE BILL */}
             <Route path="generate-bill" element={<GenerateBill />} />
