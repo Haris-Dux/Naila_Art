@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
-
+import { LuGitBranchPlus } from "react-icons/lu";
 const SuitsStock = () => {
     const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
@@ -31,6 +31,24 @@ const SuitsStock = () => {
         sale_price: "",
         d_no: ""
     });
+  const [selectedSuits, setSelectedSuits] = useState([]);
+
+  // Fetch selected suits from localStorage on component mount
+  useEffect(() => {
+    const storedSuits = JSON.parse(localStorage.getItem("selectedSuits")) || [];
+    setSelectedSuits(storedSuits);
+  }, []);
+
+  const handleCheckboxChange = (suit) => {
+    let updatedSelection;
+    if (selectedSuits.some((item) => item._id === suit._id)) {
+      updatedSelection = selectedSuits.filter((item) => item._id !== suit._id);
+    } else {
+      updatedSelection = [...selectedSuits, suit];
+    }
+    setSelectedSuits(updatedSelection);
+    localStorage.setItem("selectedSuits", JSON.stringify(updatedSelection));
+  };
 
     useEffect(() => {
         dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
@@ -159,6 +177,25 @@ const SuitsStock = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
+          {user?.user?.role === "superadmin" && (
+  selectedSuits?.length > 0 ? (
+    <Link
+      to={'/dashboard/assignstocks'}
+      className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+    >
+      <LuGitBranchPlus className="dark:text-white text-black" />
+    </Link>
+  ) : (
+    <span
+      className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 cursor-not-allowed text-gray-400"
+      title="No items selected"
+    >
+      <LuGitBranchPlus className="dark:text-white text-black" />
+    </span>
+  )
+)}
+
+
                         <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                             <IoAdd size={22} className='text-white' />
                         </button>
@@ -231,6 +268,8 @@ const SuitsStock = () => {
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                             <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
+                <th className="px-6 py-3">
+          </th>
                                     <th
                                         className="px-6 py-3"
                                         scope="col"
@@ -279,7 +318,19 @@ const SuitsStock = () => {
                                 {Suit && Suit?.data?.length > 0 ? (
                                     Suit?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium"
+                                            <td className="px-6 py-4">
+                      {data.quantity > 0 && (
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
+              checked={selectedSuits.some(
+                (selected) => selected?._id === data?._id
+              )}
+              onChange={() => handleCheckboxChange(data)}
+            />
+          )}
+              </td>
+                      <th className="px-6 py-4 font-medium"
                                                 scope="row"
                                             >
                                                 {data.d_no}

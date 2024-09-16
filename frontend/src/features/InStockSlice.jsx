@@ -15,6 +15,7 @@ const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
 const getExpenseForBranchUrl = "/api/stock/expense/getExpensesForBranch";
 const AddSuits = "/api/stock/suits/addBaseInStock";
+const assignStock = '/api/branches/assignStockToBranch'
 
 // GET ALL BRANCHES API
 const getAllBranches = "/api/branches/getAllBranches";
@@ -31,6 +32,18 @@ export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
   }
 });
 
+
+
+export const AssginStocktoBranch = createAsyncThunk("AssginStocktoBranch/Create", async (formData) => {
+  try {
+    const response = await axios.post(assignStock, formData);
+    toast.success(response.data.message);
+   
+    return response.data;
+  } catch (error) {
+    toast.error(error.response.data.error);
+  }
+});
 export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
   const searchQuery =
     data?.search !== undefined && data?.search !== null
@@ -326,6 +339,13 @@ const InStockSlic = createSlice({
         state.loading = false;
       })
 
+
+      .addCase(AssginStocktoBranch.pending, (state) => {
+        state.SuitLoading = true;
+      })
+      .addCase(AssginStocktoBranch.fulfilled, (state, action) => {
+        state.SuitLoading = false;
+      })
       .addCase(GetAllBranches.pending, (state, action) => {
         state.loading = true;
       })
