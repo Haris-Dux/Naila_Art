@@ -60,7 +60,6 @@ export const GetEmployeeById = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(EmployeeByID, id);
-      toast.success(response.data.message);
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
@@ -121,6 +120,7 @@ const initialState = {
   PastEmployees: [],
   Employee: {},
   loading: false,
+  employeEditLoading:false
 };
 
 const AccountSlice = createSlice({
@@ -133,10 +133,10 @@ const AccountSlice = createSlice({
     builder
 
       .addCase(CreateEmployee.pending, (state, action) => {
-        state.loading = true;
+        state.employeEditLoading = true;
       })
       .addCase(CreateEmployee.fulfilled, (state, action) => {
-        state.loading = false;
+        state.employeEditLoading = false;
 
       })
 
@@ -167,26 +167,26 @@ const AccountSlice = createSlice({
 
 
       .addCase(UpdateEmployee.pending, (state, action) => {
-        state.loading = true;
+        state.employeEditLoading = true;
       })
       .addCase(UpdateEmployee.fulfilled, (state, action) => {
-        state.loading = false;
+        state.employeEditLoading = false;
       })
 
 
       .addCase(AddCreditDebit.pending, (state, action) => {
-        state.loading = true;
+        state.employeEditLoading = true;
       })
       .addCase(AddCreditDebit.fulfilled, (state, action) => {
-        state.loading = false;
+        state.employeEditLoading = false;
       })
 
 
       .addCase(CreditSalary.pending, (state, action) => {
-        state.loading = true;
+        state.employeEditLoading = true;
       })
       .addCase(CreditSalary.fulfilled, (state, action) => {
-        state.loading = false;
+        state.employeEditLoading = false;
       })
   },
 });

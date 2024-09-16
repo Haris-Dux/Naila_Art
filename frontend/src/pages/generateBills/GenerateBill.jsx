@@ -17,10 +17,11 @@ const GenerateBill = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
-  const { Bags } = useSelector((state) => state.InStock);
+  const PackagingData = useSelector((state) => state.InStock?.Bags);
   const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
+  const Bags = PackagingData.data.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const [billData, setBillData] = useState({
@@ -45,10 +46,8 @@ const GenerateBill = () => {
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
   });
 
-  console.log('billData', billData);
 
   const [colorOptions, setColorOptions] = useState([[]]);
-  const [suitOptions, setSuitOptions] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
 
   const handlePreviewClick = () => {
@@ -95,7 +94,7 @@ const GenerateBill = () => {
     const { name, value } = e.target;
 
     if (name === "packagingType") {
-      const selectedOption = Bags.data.find((bag) => bag.id === value);
+      const selectedOption = Bags.find((bag) => bag.id === value);
       setBillData((prevState) => ({
         ...prevState,
         packaging: {
@@ -393,10 +392,8 @@ const GenerateBill = () => {
                     value={billData.packaging.id}
                     onChange={handlePackagingChange}
                   >
-                    <option value="" disabled>
-                      Select Packaging
-                    </option>
-                    {Bags?.data?.map((bag) => (
+                 
+                    {Bags?.map((bag) => (
                       <option key={bag.id} value={bag.id}>
                         {bag.name}
                       </option>

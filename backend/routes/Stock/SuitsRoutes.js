@@ -6,7 +6,7 @@ import { addSuitsInStock, getAllCategoriesForSuits, getAllSuits } from "../../co
 const suitsRouter = express.Router();
 
 suitsRouter.post("/addBaseInStock",superAdminAndAdminOnly, addSuitsInStock);
-suitsRouter.post("/getAllSuits",verifyUser, getAllSuits);
-suitsRouter.post("/getAllCategoriesForSuits",verifyUser, getAllCategoriesForSuits);
+suitsRouter.post("/getAllSuits",superAdminAndAdminOnly, getAllSuits);
+suitsRouter.post("/getAllCategoriesForSuits",superAdminAndAdminOnly, getAllCategoriesForSuits);
 
 export default suitsRouter;

@@ -10,11 +10,13 @@ import {
 import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import toast from "react-hot-toast";
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
 
@@ -22,17 +24,20 @@ const EmbroideryDetails = () => {
 
   const navigate = useNavigate();
 
-  const { loading, SingleEmbroidery, EmroiderypdfLoading, generateBillLoading } = useSelector(
-    (state) => state.Embroidery
-  );
-
+  const {
+    loading,
+    UpdatEmbroideryloading,
+    SingleEmbroidery,
+    EmroiderypdfLoading,
+    generateBillLoading,
+  } = useSelector((state) => state.Embroidery);
 
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
     partyName: "",
     design_no: "",
     date: "",
-    T_Quantity: "",
+    recieved_suit: "",
     rate: 0,
     embroidery_Id: SingleEmbroidery?.id || "",
   });
@@ -42,7 +47,7 @@ const EmbroideryDetails = () => {
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
       date: SingleEmbroidery?.date ? SingleEmbroidery?.date?.split("T")[0] : "",
-      T_Quantity: SingleEmbroidery?.T_Quantity || "",
+      T_Quantity: SingleEmbroidery?.T_Recieved_Suit * 3 || "",
 
       embroidery_Id: SingleEmbroidery?.id || "",
     });
@@ -77,9 +82,12 @@ const EmbroideryDetails = () => {
   }, [SingleEmbroidery, id]);
 
   const handleInputChange = (category, color, received, index, section) => {
+    const validReceived = isNaN(received) || received === "" ? 0 : received;
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
-        idx === index ? { ...item, category, color, received } : item
+        idx === index
+          ? { ...item, category, color, received: validReceived }
+          : item
       );
 
       return {
@@ -142,15 +150,12 @@ const EmbroideryDetails = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-
-    dispatch(UpdateEmbroidery(formData))
-      .then(() => {
+    dispatch(UpdateEmbroidery(formData)).then((res) => {
+      if (res.payload.success === true) {
         dispatch(GETEmbroiderySIngle({ id }));
         closeUpdateRecievedModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      }
+    });
   };
 
   const handleCompleted = (event) => {
@@ -209,7 +214,6 @@ const EmbroideryDetails = () => {
     setIsUpdateReceivedConfirmOpen(true);
   };
 
-
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);
   };
@@ -226,13 +230,12 @@ const EmbroideryDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery))
-      closeGatepassModal();
-  
+    dispatch(generateEmbroideryGatePssPdfAsync(SingleEmbroidery));
+    closeGatepassModal();
   };
 
   const generateBill = () => {
-    const formData = { ...SingleEmbroidery, process_Category: 'Embroidery' }
+    const formData = { ...SingleEmbroidery, process_Category: "Embroidery" };
     dispatch(generateEmbroideryBillAsync(formData));
   };
 
@@ -246,6 +249,7 @@ const EmbroideryDetails = () => {
         return "";
     }
   };
+
 
   return (
     <>
@@ -286,29 +290,37 @@ const EmbroideryDetails = () => {
               <span className="font-medium">Design No:</span>
               <span> {design_no}</span>
             </div>
-            {shirt?.map((item, index) => (
-              <div key={index} className="box">
-                <span className="font-medium">Shirt M: {index + 1}:</span>
-                <span> {item.quantity_in_m} m</span>
-              </div>
-            ))}
+            {shirt &&
+              shirt?.map((item, index) => (
+                <div key={index} className="box">
+                  <span className="font-medium">Shirt M: {index + 1}:</span>
+                  <span> {item.quantity_in_m} m</span>
+                </div>
+              ))}
 
-            {duppata?.map((item, index) => (
-              <div key={index} className="box">
-                <span className="font-medium">Dupatta M: {index + 1}:</span>
-                <span> {item.quantity_in_m} m</span>
-              </div>
-            ))}
-            {trouser?.map((item, index) => (
-              <div key={index} className="box">
-                <span className="font-medium">Trouser M {index + 1}:</span>
-                <span> {item.quantity_in_m} m</span>
-              </div>
-            ))}
+            {duppata &&
+              duppata?.map((item, index) => (
+                <div key={index} className="box">
+                  <span className="font-medium">Dupatta M: {index + 1}:</span>
+                  <span> {item.quantity_in_m} m</span>
+                </div>
+              ))}
+            {trouser &&
+              trouser?.map((item, index) => (
+                <div key={index} className="box">
+                  <span className="font-medium">Trouser M {index + 1}:</span>
+                  <span> {item.quantity_in_m} m</span>
+                </div>
+              ))}
 
             <div className="box">
-              <span className="font-medium">Received Suit:</span>
-              <span> {SingleEmbroidery?.recieved_suit ? SingleEmbroidery?.recieved_suit : '---'} </span>
+              <span className="font-medium">T Received :</span>
+              <span>
+                {" "}
+                {SingleEmbroidery?.recieved_suit
+                  ? SingleEmbroidery?.recieved_suit
+                  : "---"}{" "}
+              </span>
             </div>
             {/* THIRD ROW */}
             <div className="box">
@@ -317,7 +329,27 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">T Quantity:</span>
-              <span> {T_Quantity} Suit</span>
+              <span> {T_Quantity}</span>
+            </div>
+            <div className="box">
+              <span className="font-medium">T Suit:</span>
+              <span>
+                {" "}
+                {SingleEmbroidery?.T_Suit
+                  ? SingleEmbroidery?.T_Suit
+                  : "--"}{" "}
+                Suit
+              </span>
+            </div>
+            <div className="box">
+              <span className="font-medium">T Recieved Suit:</span>
+              <span>
+                {" "}
+                {SingleEmbroidery?.T_Recieved_Suit
+                  ? SingleEmbroidery?.T_Recieved_Suit
+                  : "--"}{" "}
+                Suit
+              </span>
             </div>
             <div className="box">
               <span className="font-medium">Front Stitch:</span>
@@ -389,115 +421,121 @@ const EmbroideryDetails = () => {
         {/* -------------- RECEIVED STOCK SECTION -------------- */}
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
-            <div className="box_1">
-              <h3 className="mb-4 font-semibold text-lg">
-                Received Shirts Colors
-              </h3>
-              <div className="details space-y-2">
-                {formData?.shirt?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="details_box flex items-center gap-x-3"
-                  >
-                    <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) (
-                      {item?.quantity_in_m}m)
-                    </p>
+            {formData?.shirt.length > 0 && (
+              <div className="box_1">
+                <h3 className="mb-4 font-semibold text-lg">
+                  Received Shirts Colors
+                </h3>
+                <div className="details space-y-2">
+                  {formData?.shirt?.map((item, index) => (
+                    <div
+                      key={index}
+                      className="details_box flex items-center gap-x-3"
+                    >
+                      <p className="w-[13rem]">
+                        {item.category} - {item.color} ({item?.quantity_in_no})
+                        ({item?.quantity_in_m}m)
+                      </p>
 
-                    <input
-                      type="text"
-                      key={`shirt-${index}`}
-                      className="py-1  border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                      value={item.received} // Ensure this is tied to the state
-                      onChange={(e) =>
-                        handleInputChange(
-                          item.category,
-                          item.color,
-                          e.target.value, // Ensure the correct value is passed
-                          index,
-                          "shirt" // Update this accordingly for different sections
-                        )
-                      }
-                      readOnly={project_status === "Completed"}
-                    />
-                  </div>
-                ))}
+                      <input
+                        type="text"
+                        key={`shirt-${index}`}
+                        className="py-1  border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+                        value={item.received} // Ensure this is tied to the state
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.category,
+                            item.color,
+                            parseInt(e.target.value), // Ensure the correct value is passed
+                            index,
+                            "shirt" // Update this accordingly for different sections
+                          )
+                        }
+                        readOnly={project_status === "Completed"}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="box_2">
-              <h3 className="mb-4 font-semibold text-lg">
-                Received Dupatta Colors
-              </h3>
-              <div className="details space-y-2">
-                {formData?.duppata?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="details_box flex items-center gap-x-3"
-                  >
-                    <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) (
-                      {item?.quantity_in_m}m)
-                    </p>
-                    <input
-                      type="text"
-                      key={`duppata-${index}`}
-                      className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                      value={item.received}
-                      onChange={(e) =>
-                        handleInputChange(
-                          item.category,
-                          item.color,
-                          e.target.value,
-                          index,
-                          "duppata"
-                        )
-                      }
-                      readOnly={project_status === "Completed"}
-                    />
-                  </div>
-                ))}
+            )}
+            {formData?.duppata.length > 0 && (
+              <div className="box_2">
+                <h3 className="mb-4 font-semibold text-lg">
+                  Received Dupatta Colors
+                </h3>
+                <div className="details space-y-2">
+                  {formData?.duppata?.map((item, index) => (
+                    <div
+                      key={index}
+                      className="details_box flex items-center gap-x-3"
+                    >
+                      <p className="w-[13rem]">
+                        {item.category} - {item.color} ({item?.quantity_in_no})
+                        ({item?.quantity_in_m}m)
+                      </p>
+                      <input
+                        type="text"
+                        key={`duppata-${index}`}
+                        className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+                        value={item.received}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.category,
+                            item.color,
+                            parseInt(e.target.value),
+                            index,
+                            "duppata"
+                          )
+                        }
+                        readOnly={project_status === "Completed"}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="box_3">
-              <h3 className="mb-4 font-semibold text-lg">
-                Received Trousers Colors
-              </h3>
-              <div className="details space-y-2">
-                {formData.trouser?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="details_box flex items-center gap-x-3"
-                  >
-                    <p>
-                      {item.category} - {item.color} ({item?.quantity_in_no}) (
-                      {item?.quantity_in_m}m)
-                    </p>
-                    <input
-                      key={`trouser-${index}`}
-                      type="text"
-                      className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
-                      value={item.received}
-                      onChange={(e) =>
-                        handleInputChange(
-                          item.category,
-                          item.color,
-                          e.target.value,
-                          index,
-                          "trouser"
-                        )
-                      }
-                      readOnly={project_status === "Completed"}
-                    />
-                  </div>
-                ))}
+            )}
+            {formData?.trouser.length > 0 && (
+              <div className="box_3">
+                <h3 className="mb-4 font-semibold text-lg">
+                  Received Trousers Colors
+                </h3>
+                <div className="details space-y-2">
+                  {formData.trouser?.map((item, index) => (
+                    <div
+                      key={index}
+                      className="details_box flex items-center gap-x-3"
+                    >
+                      <p className="w-[13rem]">
+                        {item.category} - {item.color} ({item?.quantity_in_no})
+                        ({item?.quantity_in_m}m)
+                      </p>
+                      <input
+                        key={`trouser-${index}`}
+                        type="text"
+                        className="py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black dark:text-black"
+                        value={item.received}
+                        onChange={(e) =>
+                          handleInputChange(
+                            item.category,
+                            item.color,
+                            parseInt(e.target.value),
+                            index,
+                            "trouser"
+                          )
+                        }
+                        readOnly={project_status === "Completed"}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         <div className="flex justify-center items-center">
           {project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-2 mt-2 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -505,22 +543,29 @@ const EmbroideryDetails = () => {
           )}
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-        {project_status !== "Completed" && (
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>)}
+        <div className="mt-6 flex justify-center items-center gap-x-3">
+          {project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
+          )}
           {project_status === "Completed" && (
             <>
               {generateBillLoading ? (
-                <button disabled className="px-4 py-2.5 hover:cursor-progress text-sm rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800">
+                <button
+                  disabled
+                  className="px-4 py-2.5 hover:cursor-progress text-sm rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
+                >
                   Generate Bill
                 </button>
               ) : (
-                <button onClick={generateBill} className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+                <button
+                  onClick={generateBill}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
                   Generate Bill
                 </button>
               )}
@@ -593,9 +638,10 @@ const EmbroideryDetails = () => {
                         type="text"
                         placeholder="serial No"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={CalenderData.serial_No}
+                        value={CalenderData?.serial_No}
                         onChange={handleInputChangeCalender}
                         required
+                        readOnly
                       />
                     </div>
                     <div>
@@ -619,6 +665,7 @@ const EmbroideryDetails = () => {
                         value={CalenderData.design_no}
                         onChange={handleInputChangeCalender}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -637,7 +684,7 @@ const EmbroideryDetails = () => {
                     <div>
                       <input
                         name="quantity"
-                        type="text"
+                        type="number"
                         placeholder="Quantity"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CalenderData.T_Quantity}
@@ -662,12 +709,22 @@ const EmbroideryDetails = () => {
                   </div>
 
                   <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                    >
-                      {IsLoading ? "Submiting..." : "Submit"}
-                    </button>
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submit
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -677,6 +734,7 @@ const EmbroideryDetails = () => {
 
         {isUpdateReceivedConfirmOpen && (
           <ConfirmationModal
+          UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Update"
             message="Are you sure you want to update the received items?"
             onConfirm={handleSubmit}
@@ -686,6 +744,7 @@ const EmbroideryDetails = () => {
 
         {isCompletedConfirmOpen && (
           <ConfirmationModal
+          UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Complete"
             message="Are you sure you want to Complete ?"
             onConfirm={handleCompleted}

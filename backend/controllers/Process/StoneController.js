@@ -1,6 +1,7 @@
 import { StoneModel } from "../../models/Process/StoneModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { addBPair } from "./B_PairController.js";
 
 
 export const addStone = async (req, res, next) => {
@@ -108,7 +109,7 @@ export const getStoneByEmbroideryId = async (req, res, next) => {
 
 export const updateStone = async (req, res, next) => {
   try {
-    const { id, category_quantity, project_status } = req.body;
+    const { id, category_quantity, project_status,T_Quantity } = req.body;
     if (!id) throw new Error("Id not Found");
     const stone = await StoneModel.findById(id);
     if (!stone) throw new Error("Stone not Found");
@@ -146,7 +147,21 @@ export const updateStone = async (req, res, next) => {
         toUpdate.recieved_Data.r_date = date;
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
       });
-    }
+    };
+    if (stone.project_status === "Completed") {
+      const quantity = T_Quantity - stone.r_quantity;
+      const rate = quantity * stone.rate;
+      const data = {
+        design_no: stone.design_no,
+        serial_No: stone.serial_No,
+        partyName: stone.partyName,
+        quantity,
+        rate,
+        b_PairCategory: "Stone",
+      };
+      const response = await addBPair(data);
+      if (response.error) throw new Error(response.error);
+    }  
     await stone.save();
     return res
       .status(200)

@@ -4,7 +4,14 @@ import { SellersModel } from "../../models/sellers/SellersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { UserModel } from "../../models/User.Model.js";
+import { OtpModel } from "../../models/Otp.Model.js";
 import moment from "moment-timezone";
+import {
+  validateOneMinuteExpiry,
+  validateOtp,
+} from "../../middleware/ValidateOtp.js";
+import { sendEmail } from "../../utils/nodemailer.js";
+import jwt from "jsonwebtoken";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -73,7 +80,9 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
           ? sumoftodaysale === 0
             ? 0
             : 100
-          : Math.round(((sumoftodaysale - sumofyesterdaysale) / sumofyesterdaysale) * 100),
+          : Math.round(
+              ((sumoftodaysale - sumofyesterdaysale) / sumofyesterdaysale) * 100
+            ),
     };
 
     //monthly and yearly sale and difference from previous month and year
@@ -199,7 +208,9 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
           ? currentMonthSale === 0
             ? 0
             : 100
-          : Math.round(((currentMonthSale - lastMonthSale) / lastMonthSale) * 100),
+          : Math.round(
+              ((currentMonthSale - lastMonthSale) / lastMonthSale) * 100
+            ),
     };
 
     //yearly sale data
@@ -222,7 +233,9 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
           ? currentYearData === 0
             ? 0
             : 100
-          : Math.round(((currentYearData - previousYearData) / previousYearData) * 100),
+          : Math.round(
+              ((currentYearData - previousYearData) / previousYearData) * 100
+            ),
     };
 
     //yearly gross profit
@@ -242,7 +255,9 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
       differenceFromLastyear: currentYearProfit - lastYearProfit,
       percentage:
         lastYearProfit !== 0
-          ? Math.round(((currentYearProfit - lastYearProfit) / lastYearProfit) * 100)
+          ? Math.round(
+              ((currentYearProfit - lastYearProfit) / lastYearProfit) * 100
+            )
           : 0,
     };
 
@@ -418,7 +433,9 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
           ? todaySaleData === 0
             ? 0
             : 100
-          : Math.round(((todaySaleData - yesterdaySaleData) / yesterdaySaleData) * 100),
+          : Math.round(
+              ((todaySaleData - yesterdaySaleData) / yesterdaySaleData) * 100
+            ),
     };
 
     //monthly and yearly sale and difference from previous month and year
@@ -538,7 +555,9 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
           ? currentMonthData === 0
             ? 0
             : 100
-          : Math.round(((currentMonthData - lastMonthData) / lastMonthData) * 100),
+          : Math.round(
+              ((currentMonthData - lastMonthData) / lastMonthData) * 100
+            ),
     };
 
     //yearly sale data
@@ -573,16 +592,19 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
       previousMonthAndYearlysale[0].yearlyGrossProfit.length > 0
         ? previousMonthAndYearlysale[0].yearlyGrossProfit[0].totalProfit
         : 0;
-        
-    const yearlyGrossProfitData = { 
+
+    const yearlyGrossProfitData = {
       currentYearGrossProfit: currentYearGrossData,
       differenceFromLastyear: currentYearGrossData - lastYearGrossData,
       percentage:
-      lastYearGrossData === 0
-        ? currentYearGrossData === 0
-          ? 0
-          : 100
-        : Math.round(((currentYearGrossData - lastYearGrossData) / lastYearGrossData) * 100),
+        lastYearGrossData === 0
+          ? currentYearGrossData === 0
+            ? 0
+            : 100
+          : Math.round(
+              ((currentYearGrossData - lastYearGrossData) / lastYearGrossData) *
+                100
+            ),
     };
 
     //banks data
@@ -649,3 +671,71 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const sendDashBoardAccessOTP = async (req, res, next) => {
+  try {
+    const id = req.session.userId;
+    if (!id) {
+      return res.status(403).send({ message: "Please Login Again" });
+    }
+    const user = await UserModel.findById({ _id: id });
+    if (!user) throw new Error("User not found");
+    const g_Otp = Math.floor(1000 + Math.random() * 9000);
+    const oldOtpData = await OtpModel.findOne({ userId: user._id });
+    if (oldOtpData) {
+      const sendNewOtp = await validateOneMinuteExpiry(oldOtpData.timestamp);
+      if (!sendNewOtp) throw new Error("Please Try Again After 1 Minute");
+    }
+    const currentDate = new Date();
+    if (oldOtpData) {
+      await OtpModel.updateOne(
+        { userId: user._id },
+        { otp: g_Otp, timestamp: new Date(currentDate.getTime()) }
+      );
+    } else {
+      await OtpModel.create({
+        userId: user.id,
+        otp: g_Otp,
+        timestamp: new Date(currentDate.getTime()),
+      });
+    };
+    await sendEmail({ email:"harissaeed583@gamil.com", g_Otp });
+    console.log(g_Otp);
+    return res
+      .status(200)
+      .json({ message: "OTP has been sent to your email", success: true , userId: user._id});
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const verifyOtpForDasboardData = async (req, res, next) => {
+  try {
+    const { otp, userId } = req.body;
+    const otpData = await OtpModel.findOne({ otp: otp, userId: userId });
+    if (!otpData) {
+      throw new Error("Invalid OTP");
+    }
+    const verifyOtp = await validateOtp(otpData.timestamp);
+    if (verifyOtp) {
+      throw new Error("OTP Expired");
+    }
+    const token = jwt.sign({ userId }, process.env.TOEKN_SECRET, {
+      expiresIn: 60 * 10,
+    });
+    res.cookie("D_Token", token, {
+      httpOnly: true,
+      secure: 'auto',
+      maxAge: 60 * 10 * 1000,
+    });
+    res
+      .status(200)
+      .json({
+        message: "OTP Verified Successfully",
+        OtpVerified: true,
+      });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+

@@ -1,5 +1,6 @@
 import { CalenderModel } from "../../models/Process/CalenderModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { addBPair } from "./B_PairController.js";
 
 export const addCalender = async (req, res, next) => {
   try {
@@ -53,7 +54,22 @@ export const updateCalender = async (req, res, next) => {
     if (project_status) {
       updateQuery = { ...updateQuery, project_status };
     };
-    await CalenderModel.findByIdAndUpdate(id, updateQuery);
+    const result = await CalenderModel.findByIdAndUpdate(id, updateQuery,{ new: true });
+    if (result.project_status === "Completed") {
+      const quantity = result.T_Quantity - result.r_quantity;
+      const rate = quantity * result.rate;
+      const data = {
+        design_no: result.design_no,
+        serial_No: result.serial_No,
+        partyName: result.partyName,
+        quantity,
+        rate,
+        b_PairCategory: "Calender",
+      };
+      const response = await addBPair(data);
+      console.log(response);
+      if (response.error) throw new Error(response.error);
+    }
     return res.status(200).json({ success: true, message: "Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });

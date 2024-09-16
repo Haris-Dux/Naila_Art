@@ -128,6 +128,7 @@ const initialState = {
   embroidery: [],
   SingleEmbroidery: {},
   loading: false,
+  UpdatEmbroideryloading: false,
   EmroiderypdfLoading:false,
   generateBillLoading:false
 };
@@ -181,10 +182,10 @@ const EmbroiderySlice = createSlice({
 
 
       .addCase(UpdateEmbroidery.pending, (state, action) => {
-        state.loading = true;
+        state.UpdatEmbroideryloading = true;
       })
       .addCase(UpdateEmbroidery.fulfilled, (state, action) => {
-        state.loading = false;
+        state.UpdatEmbroideryloading = false;
       })
 
          //DOWNLOAD PDF

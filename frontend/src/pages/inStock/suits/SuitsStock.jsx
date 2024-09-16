@@ -170,14 +170,14 @@ const SuitsStock = () => {
           {/* <!-- search bar --> */}
           <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
             {(user?.user?.role === "superadmin" ||
-            user?.user?.role === "admin")  &&
-              (<button
+              user?.user?.role === "admin") && (
+              <button
                 onClick={openModal}
                 className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
               >
                 <IoAdd size={22} className="text-white" />
-              </button>)
-            }
+              </button>
+            )}
 
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -291,7 +291,7 @@ const SuitsStock = () => {
                       </th>
                       <td className="px-6 py-4">{data.category}</td>
                       <td className="px-6 py-4">{data.color}</td>
-                      <td className="px-6 py-4">{data.quantity}</td>
+                      <td className="px-6 py-4">{data.quantity}/T-{data.TotalQuantity}</td>
                       <td className="px-6 py-4">{data.cost_price}</td>
                       <td className="px-6 py-4">{data.sale_price}</td>
                       <td className="pl-10 py-4">
@@ -604,51 +604,61 @@ const SuitsStock = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3" scope="col">
+                    <th className=" px-6 py-3 text-center" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className= " px-6 py-3 text-center" scope="col">
                       Cost Price
-                    </th>
-                    <th className="px-6 py-3" scope="col">
+                      </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
                       Sale Price
                     </th>
-
-                    <th className="px-6 py-3" scope="col">
+                    <th className=" px-6 py-3 text-center" scope="col">
                       Quantity
                     </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {filteredSuitData && filteredSuitData.length > 0 ? (
-                    filteredSuitData?.map((item, index) =>
-                      item?.all_records?.map((data, subIndex) => (
-                        <tr
-                          key={`${index}-${subIndex}`}
-                          className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                          <td className="px-6 py-4" scope="row">
-                            {new Date(data?.date).toLocaleDateString()}
-                          </td>
-                          <th className="px-6 py-4 font-medium">
-                            {data?.cost_price}
-                          </th>
-                          <td className="px-6 py-4">{data?.sale_price}</td>
-
-                          <td className="px-6 py-4">{data?.quantity} m</td>
-                        </tr>
-                      ))
-                    )
-                  ) : (
-                    <tr className="w-full flex justify-center items-center">
-                      <td className="text-xl mt-3">No Data Available</td>
-                    </tr>
-                  )}
-                </tbody>
               </table>
+
+              <div className="scrollable-content h-[50vh] overflow-y-auto">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <tbody>
+                    {filteredSuitData && filteredSuitData.length > 0 ? (
+                      filteredSuitData?.map((item, index) =>
+                        item?.all_records?.map((data, subIndex) => (
+                          <tr
+                            key={`${index}-${subIndex}`}
+                            className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                          >
+                            <td
+                              className=" px-6 py-3 text-center"
+                              scope="row"
+                            >
+                              {new Date(data?.date).toLocaleDateString()}
+                            </td>
+                            <td className=" px-6 py-3 text-center">
+                              {data?.cost_price}
+                            </td>
+                            <td className="px-6 py-3 text-center">
+                              {data?.sale_price}
+                            </td>
+                            <td className=" px-6 py-3 text-center">
+                              {data?.quantity}
+                            </td>
+                          </tr>
+                        ))
+                      )
+                    ) : (
+                      <tr className="w-full flex justify-center items-center">
+                        <td className="text-xl mt-3">No Data Available</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

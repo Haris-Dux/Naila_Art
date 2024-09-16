@@ -23,7 +23,8 @@ const CalendarDetails = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
 
@@ -61,8 +62,9 @@ const CalendarDetails = () => {
     setCuttingData({
       serial_No: SingleCalender?.serial_No || "",
       design_no: SingleCalender?.design_no || "",
-      date: SingleCalender?.date ? SingleCalender?.date?.split("T")[0] : "",
-      partyName: SingleCalender?.partyName || "",
+      T_Quantity: SingleCalender?.r_quantity || 0,
+      date: "",
+      partyName: "",
       embroidery_Id: SingleCalender?.embroidery_Id || "",
     });
   }, [SingleCalender]);
@@ -84,7 +86,6 @@ const CalendarDetails = () => {
 
   const handleSubmitCutting = (e) => {
     e.preventDefault();
-
 
     dispatch(createCutting(CuttingData)).then((res) => {
       if (res.payload.success === true) {
@@ -182,9 +183,8 @@ const CalendarDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateCalenderGatePssPdfAsync(SingleCalender))
-      closeGatepassModal();
-  
+    dispatch(generateCalenderGatePssPdfAsync(SingleCalender));
+    closeGatepassModal();
   };
 
   const generateBill = () => {
@@ -277,7 +277,7 @@ const CalendarDetails = () => {
         <div className="flex justify-center items-center">
           {SingleCalender?.project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-2 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -285,14 +285,15 @@ const CalendarDetails = () => {
           )}
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-        {SingleCalender?.project_status !== "Completed" && (
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>)}
+        <div className="mt-6 flex justify-center items-center gap-x-5">
+          {SingleCalender?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
+          )}
           {SingleCalender?.project_status === "Completed" && (
             <>
               {generateCAlenderBillLoading ? (
@@ -381,6 +382,7 @@ const CalendarDetails = () => {
                         value={CuttingData.serial_No}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
                     <div>
@@ -404,6 +406,7 @@ const CalendarDetails = () => {
                         value={CuttingData.design_no}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -428,6 +431,7 @@ const CalendarDetails = () => {
                         value={CuttingData.T_Quantity}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -445,12 +449,22 @@ const CalendarDetails = () => {
                   </div>
 
                   <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
-                    >
-                      {IsLoading ? "Submiting..." : "Submit"}
-                    </button>
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                      >
+                        Submit
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>

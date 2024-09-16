@@ -12,6 +12,10 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer; /* Changes the cursor to a pointer */
+}
+
 
 body {
   font-family: "Poppins", sans-serif;
@@ -36,6 +40,7 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
   background: var(--sb-thumb-color);
   border-radius: 4px;
+  cursor: pointer;
 
 }
 
@@ -56,6 +61,7 @@ body::-webkit-scrollbar-thumb {
 .scrollable-content::-webkit-scrollbar-thumb {
   background-color: black; 
   border-radius: 4px;
+  cursor: pointer;
 }
 
 .scrollable-content::-webkit-scrollbar-thumb:hover {

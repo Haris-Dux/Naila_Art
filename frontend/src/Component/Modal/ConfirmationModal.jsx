@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ConfirmationModal = ({ onClose, onConfirm, message, title }) => {
+const ConfirmationModal = ({ onClose, onConfirm, message, title,updateStitchingLoading ,UpdatEmbroideryloading}) => {
 
   return (
     <div
@@ -23,12 +23,19 @@ const ConfirmationModal = ({ onClose, onConfirm, message, title }) => {
           >
             Cancel
           </button>
-          <button
+        {UpdatEmbroideryloading || updateStitchingLoading ? <button
+           disabled
+            className="px-4 py-2.5 cursor-not-allowed text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          >
+            Confirm
+          </button> 
+          :
+           <button
             onClick={onConfirm}
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
           >
             Confirm
-          </button>
+          </button>}
         </div>
 
 

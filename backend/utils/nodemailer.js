@@ -4,7 +4,7 @@ export async function sendEmail(to, from) {
   const { email,g_Otp } = to;
   let output = `
   <h3>Password Reset Code</h3>
-  <p>This link will expire in 15 minutes</p>
+  <p>This link will expire in 10 minutes</p>
   <p> ${g_Otp}</p>
 `;
 

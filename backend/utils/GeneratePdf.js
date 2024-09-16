@@ -830,7 +830,7 @@ async function generatePDF(data) {
           </div>
           `
           )
-        }.join('')
+        }
       
         </div>
       </section>

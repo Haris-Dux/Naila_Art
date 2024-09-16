@@ -45,6 +45,8 @@ import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
 import ProcessDetails from "./pages/bills/ProcessDetails";
+import B_Pair from "./pages/process/b_pair/B_Pair";
+import VerifyOTP from "./pages/dashboard/VerifyOTP";
 
 
 function App() {
@@ -120,6 +122,12 @@ useEffect(() => {
             <Route path="stitching-details/:id" element={<StitchingDetails />} />
             <Route path="stones" element={<Stones />} />
             <Route path="stones-details/:id" element={<StonesDetails />} />
+
+            {/* Bpair */}
+            <Route path="bpair" element={<B_Pair />} />
+
+            {/* OTP */}
+            <Route path="verifyOtp" element={<VerifyOTP />} />
 
             {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />

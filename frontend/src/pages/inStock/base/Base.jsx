@@ -113,9 +113,9 @@ const Base = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="search_bar mr-2 flex items-center gap-x-3">
-                        {user?.user?.role === "superadmin" || user?.user?.role === "admin" && <button onClick={addBaseModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                        {(user?.user?.role === "superadmin" || user?.user?.role === "admin") && (<button onClick={addBaseModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                             <IoAdd size={22} className='text-white' />
-                        </button>}
+                        </button>)}
 
 
                         <div className="relative mt-4 md:mt-0">

@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-// import data from './SuitsStockData';
-import { FiPlus } from "react-icons/fi";
 import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
@@ -22,7 +20,6 @@ const Embroidery = () => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     partyName: "",
-    serial_No: "",
     date: "",
     per_suit: 0,
     rATE_per_stitching: "",
@@ -47,7 +44,7 @@ const Embroidery = () => {
   }, [page, dispatch]);
 
   const calculateTotal = (formData1) => {
-    const rate = parseFloat(formData1.rATE_per_stitching) || 450;
+    const rate = parseFloat(formData.rATE_per_stitching) || 0;
     const stitches = [
       {
         value: formData1.Front_Stitch.value,
@@ -81,7 +78,9 @@ const Embroidery = () => {
       return sum + stitchTotal;
     }, 0);
 
-    return total;
+    const roundedTotal = Math.round(total * 10000) / 10000;
+
+    return roundedTotal;
   };
 
   const handleSearch = (e) => {
@@ -108,18 +107,24 @@ const Embroidery = () => {
         ...prevState,
         [field]: {
           ...prevState[field],
-          [subField]: parseFloat(value), // Convert string to float
+          [subField]: parseFloat(value), 
         },
       }));
     } else {
       setFormData((prevState) => ({
         ...prevState,
-        [name]: value, // Convert string to float
+        [name]: value, 
       }));
     }
 
-    setTotal(calculateTotal(formData));
   };
+
+  useEffect(() => {
+    if (formData.rATE_per_stitching) {
+      const totalAmount = calculateTotal(formData);
+      setTotal(totalAmount);
+    }
+  }, [formData.rATE_per_stitching]); 
 
   const openModal = () => {
     setIsOpen(true);
@@ -273,14 +278,14 @@ const Embroidery = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          {index + 1}
+                          {data.serial_No}
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
                         <td className="px-6 py-4">
                           {new Date(data.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4">{data.T_Quantity} Suit</td>
+                        <td className="px-6 py-4">{data.T_Quantity}</td>
                         <td className="px-6 py-4">
                           {setStatusColor(data.project_status)}
                         </td>
@@ -462,17 +467,6 @@ const Embroidery = () => {
                   </div>
                   <div>
                     <input
-                      name="serial_No"
-                      type="text"
-                      placeholder="Serial No"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.serial_No}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <input
                       name="date"
                       type="date"
                       placeholder="Date"
@@ -496,12 +490,12 @@ const Embroidery = () => {
 
                   {/* SECOND ROW */}
                   <div className="grid items-start grid-cols-3 gap-2">
+                    {/* 1 */}
                     <input
                       name="Front_Stitch.value"
                       type="number"
                       placeholder="Front Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Front_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -510,18 +504,17 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Front_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+                  {/* 2 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="Back_Stitch.value"
                       type="number"
                       placeholder="Back Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Back_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -530,18 +523,17 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Back_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+                  {/* 3 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="Bazo_Stitch.value"
                       type="number"
                       placeholder="Bazu Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Bazo_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -550,18 +542,17 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Bazo_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+                  {/* 4 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="Gala_Stitch.value"
                       type="number"
                       placeholder="Gala Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Gala_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -570,20 +561,19 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Gala_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
 
                   {/* THIRD ROW */}
+                  {/* 5 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="D_Patch_Stitch.value"
                       type="number"
                       placeholder="Dupatta Patch Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.D_Patch_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -592,18 +582,17 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.D_Patch_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+                  {/* 6 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="Pallu_Stitch.value"
                       type="number"
                       placeholder="Pallu Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Pallu_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -612,18 +601,17 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Pallu_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+                  {/* 7 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="F_Patch_Stitch.value"
                       type="number"
                       placeholder="Front Patch Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.F_Patch_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -632,20 +620,18 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.F_Patch_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
 
-                  {/* FORTH ROW */}
+                  {/* 8 */}
                   <div className="grid items-start grid-cols-3 gap-2">
                     <input
                       name="Trouser_Stitch.value"
                       type="number"
                       placeholder="Trouser Stitch"
                       className="col-span-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Trouser_Stitch.value || ""}
                       onChange={handleInputChange}
                     />
@@ -654,11 +640,12 @@ const Embroidery = () => {
                       type="number"
                       placeholder="Head"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                       value={formData.Trouser_Stitch.head || ""}
                       onChange={handleInputChange}
                     />
                   </div>
+
+                  {/* FOURTH ROW */}
 
                   <div>
                     <input
@@ -675,10 +662,10 @@ const Embroidery = () => {
                   <div>
                     <input
                       type="text"
-                      value={total.toFixed(2)}
+                      value={formData.rATE_per_stitching ? total : 0}
                       readOnly
                       name="per_suit"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      className="bg-gray-50 border-2 border-green-600  text-gray-900 text-sm rounded-md focus:ring-0 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
                   </div>
                 </div>
