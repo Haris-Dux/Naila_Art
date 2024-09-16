@@ -13,6 +13,7 @@ import { createStitching } from "../../../features/stitching";
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import { GetAllLaceForEmroidery } from "../../../features/InStockSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import toast from "react-hot-toast";
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -23,10 +24,10 @@ const StonesDetails = () => {
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
   const { loading: IsLoading } = useSelector((state) => state.stitching);
 
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
-
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -59,9 +60,9 @@ const StonesDetails = () => {
     embroidery_Id: "",
     suits_category: [initialRow],
     dupatta_category: [initialRow],
-    Quantity: "",
     lace_quantity: "",
     lace_category: "",
+    Quantity: "",
   });
 
   const [StoneData, setStoneData] = useState({
@@ -95,12 +96,11 @@ const StonesDetails = () => {
     setFormData({
       serial_No: SingleStone?.serial_No || "",
       design_no: SingleStone?.design_no || "",
-      date: SingleStone?.date || "",
-      Quantity: SingleStone?.r_quantity || "",
       embroidery_Id: SingleStone?.embroidery_Id || "",
-      suits_category: [initialRow], // You are setting category_quantity with initialRow
-      dupatta_category: [initialRow], // You are setting category_quantity with initialRow
+      suits_category: [initialRow],
+      dupatta_category: [initialRow],
       lace_category: "",
+      date: "",
     });
   }, [SingleStone]);
 
@@ -113,16 +113,20 @@ const StonesDetails = () => {
   };
 
   const addNewRow = (categoryType) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [categoryType]: [...prevState[categoryType], initialRow],
-    }));
+    setFormData((prevState) => {
+      const updatedCategory = prevState[categoryType] || [];
+      const newCategoryArray = [...updatedCategory, initialRow];
+      return {
+        ...prevState,
+        [categoryType]: newCategoryArray,
+      };
+    });
   };
 
-  const removeRow = (categoryType) => {
+  const removeRow = (categoryType, index) => {
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType].slice(0, -1),
+      [categoryType]: prevState[categoryType].filter((_, idx) => idx !== index),
     }));
   };
 
@@ -156,15 +160,88 @@ const StonesDetails = () => {
     }));
   };
 
+  //CALCULAATE TOTAL QUANTITY FOR STITCHING DATA
+  const validateValue = (value) => {
+    return isNaN(value) || value === undefined || value === null
+      ? 0
+      : parseInt(value);
+  };
+  const calculateTotalQuantity = () => {
+    let totalQuantity = 0;
+    if(formData.suits_category && formData.dupatta_category){
+      formData.suits_category.forEach((item) => {
+        totalQuantity += validateValue(item.quantity_in_no);
+      })
+    }  else if(formData.suits_category ){
+      formData.suits_category.forEach((item) => {
+        totalQuantity += validateValue(item.quantity_in_no);
+      });
+    } else if (formData.dupatta_category){
+      formData.dupatta_category.forEach((item) => {
+        totalQuantity += validateValue(item.quantity_in_no);
+      });
+    }
+
+  return totalQuantity;
+  };
+
+  //VALIDATE DUPATTA DATA
+  const validateDupattaData = () => {
+    if (formData.dupatta_category && formData.dupatta_category.length >= 0) {
+      formData.dupatta_category = formData.dupatta_category.filter((item) => {
+        return !(
+          item.category === "" &&
+          item.color === "" &&
+          item.quantity_in_no === 0
+        );
+      });
+      if (formData.dupatta_category.length === 0) {
+        delete formData.dupatta_category;
+      }
+    } else if (
+      formData.dupatta_category &&
+      formData.dupatta_category.length === 0
+    ) {
+      delete formData.dupatta_category;
+    }
+  };
+
+  //VALIDATE SUITS DATA
+  const validateSuitData = () => {
+    if (formData.suits_category && formData.suits_category.length >= 0) {
+      formData.suits_category = formData.suits_category.filter((item) => {
+        return !(
+          item.category === "" &&
+          item.color === "" &&
+          item.quantity_in_no === 0
+        );
+      });
+      if (formData.suits_category.length === 0) {
+        delete formData.suits_category;
+      }
+    } else if (
+      formData.suits_category &&
+      formData.suits_category.length === 0
+    ) {
+      delete formData.suits_category;
+    }
+  };
+
   const handleSubmitstitching = (e) => {
     e.preventDefault();
-
-    dispatch(createStitching(formData)).then((res) => {
-      if (res.payload.success === true) {
-        closeModal();
-        navigate("/dashboard/stitching");
-      }
-    });
+    validateDupattaData();
+    validateSuitData();
+    if (!formData.dupatta_category && !formData.suits_category) {
+      toast.error("Please add Duppata or Shirt Data");
+    } else {
+      calculateTotalQuantity();
+      dispatch(createStitching({...formData, Quantity: calculateTotalQuantity()})).then((res) => {
+        if (res.payload.success === true) {
+          closeModal();
+          navigate("/dashboard/stitching");
+        }
+      });
+    }
   };
 
   const handleUpdateStone = (e) => {
@@ -182,33 +259,34 @@ const StonesDetails = () => {
       category_quantity: updatedCategoryQuantity,
     };
 
-    dispatch(UpdateStoneAsync(updatedStoneData))
-      .then(() => {
-        const data = {
-          id: id,
-        };
-        dispatch(GetSingleStone(data));
-        closeUpdateRecievedModal();
-      })
-
+    dispatch(UpdateStoneAsync(updatedStoneData)).then(() => {
+      const data = {
+        id: id,
+      };
+      dispatch(GetSingleStone(data));
+      closeUpdateRecievedModal();
+    });
   };
 
   const handleCompleteStone = (e) => {
     e.preventDefault();
 
     dispatch(
-      UpdateStoneAsync({ id: SingleStone?.id, project_status: "Completed" })
-    )
-      .then(() => {
-        const data = {
-          id: id,
-        };
-        dispatch(GetSingleStone(data));
-        closeCompletedModal();
+      UpdateStoneAsync({
+        id: SingleStone?.id,
+        T_Quantity: SingleStone?.category_quantity?.reduce(
+          (total, item) => total + item.quantity,
+          0
+        ),
+        project_status: "Completed",
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    ).then(() => {
+      const data = {
+        id: id,
+      };
+      dispatch(GetSingleStone(data));
+      closeCompletedModal();
+    });
   };
 
   const handlstoneChange = (index, field, value) => {
@@ -266,7 +344,7 @@ const StonesDetails = () => {
 
   const handleGenerateGatePassPDf = () => {
     const data = { ...SingleStone, T_Quantity };
-    dispatch(generateStoneGatePssPdfAsync(data))
+    dispatch(generateStoneGatePssPdfAsync(data));
     closeGatepassModal();
   };
 
@@ -302,7 +380,6 @@ const StonesDetails = () => {
     );
   }
 
-
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);
   };
@@ -311,7 +388,6 @@ const StonesDetails = () => {
     setisGenerateGatePassOpen(false);
     document.body.style.overflow = "auto";
   };
-
 
   return (
     <>
@@ -348,7 +424,6 @@ const StonesDetails = () => {
                   (total, item) => total + item.quantity,
                   0
                 )}{" "}
-                suits
               </span>
             </div>
 
@@ -458,7 +533,7 @@ const StonesDetails = () => {
         <div className="flex justify-center items-center">
           {SingleStone?.project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -467,14 +542,15 @@ const StonesDetails = () => {
         </div>
 
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-        {SingleStone?.project_status !== "Completed" && (
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white  dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>)}
+        <div className="mt-6 flex justify-center items-center gap-x-5">
+          {SingleStone?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white  dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
+          )}
           {SingleStone?.project_status === "Completed" && (
             <>
               {StnoneBillLoading ? (
@@ -485,7 +561,10 @@ const StonesDetails = () => {
                   Generate Bill
                 </button>
               ) : (
-                <button onClick={generateBill} className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
+                <button
+                  onClick={generateBill}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
                   Generate Bill
                 </button>
               )}
@@ -520,7 +599,7 @@ const StonesDetails = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative scrollable-content h-[90vh] py-4 px-3 w-full max-w-5xl bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
@@ -565,6 +644,7 @@ const StonesDetails = () => {
                       required
                       value={formData.serial_No}
                       onChange={handleChange}
+                      readOnly
                     />
                   </div>
 
@@ -578,19 +658,7 @@ const StonesDetails = () => {
                       required
                       value={formData.design_no}
                       onChange={handleChange}
-                    />
-                  </div>
-
-                  {/* QUANTITY */}
-                  <div>
-                    <input
-                      name="Quantity"
-                      type="text"
-                      placeholder="Quantity"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.Quantity}
-                      onChange={handleChange}
+                      readOnly
                     />
                   </div>
 
@@ -598,11 +666,12 @@ const StonesDetails = () => {
                   <div>
                     <input
                       name="date"
-                      type="text"
+                      type="date"
                       placeholder="Date"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      value={new Date(formData?.date).toLocaleDateString()}
+                      value={formData.date}
+                      onChange={handleChange}
                     />
                   </div>
 
@@ -676,6 +745,8 @@ const StonesDetails = () => {
                     </p>
                   </div>
 
+                  {/* SUITS DATA */}
+
                   {formData?.suits_category?.map((row, index) => (
                     <div className="my-5 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                       {/* SELECT CATEGORY */}
@@ -720,7 +791,6 @@ const StonesDetails = () => {
                           type="text"
                           placeholder="Enter Quantity In No"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          required
                           value={row.quantity_in_no || ""}
                           onChange={(e) =>
                             handleQuantityChange(e, index, "suits_category")
@@ -728,7 +798,7 @@ const StonesDetails = () => {
                         />
                         {formData?.suits_category?.length > 1 && (
                           <button
-                            onClick={() => removeRow("suits_category")}
+                            onClick={() => removeRow("suits_category", index)}
                             className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             type="button"
                           >
@@ -812,7 +882,6 @@ const StonesDetails = () => {
                           type="text"
                           placeholder="Enter Quantity In No"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          required
                           value={row.quantity_in_no || ""}
                           onChange={(e) =>
                             handleQuantityChange(e, index, "dupatta_category")
@@ -820,7 +889,7 @@ const StonesDetails = () => {
                         />
                         {formData?.dupatta_category?.length > 1 && (
                           <button
-                            onClick={() => removeRow("dupatta_category")}
+                            onClick={() => removeRow("dupatta_category", index)}
                             className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             type="button"
                           >
@@ -848,12 +917,22 @@ const StonesDetails = () => {
                 </div>
 
                 <div className="flex justify-center pt-2">
-                  <button
-                    type="submit"
-                    className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                  >
-                    {IsLoading ? "Submiting..." : "Submit"}
-                  </button>
+                  {IsLoading ? (
+                    <button
+                      disabled
+                      type="submit"
+                      className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                    >
+                      Submiting...
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                    >
+                      Submit
+                    </button>
+                  )}
                 </div>
               </form>
             </div>

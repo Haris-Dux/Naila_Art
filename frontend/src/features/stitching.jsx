@@ -14,7 +14,7 @@ const generateProcessBillURL = "/api/processBillRouter/generateProcessBill"
 
 //CREATE ASYNC THUNK
 export const createStitching = createAsyncThunk(
-  "Shop/create",
+  "Stitching/create",
   async (formData) => {
     try {
       const response = await axios.post(addStitching, formData);
@@ -148,6 +148,7 @@ const initialState = {
   SingleStitching: {},
   stitchingEmbroidery: {},
   loading: false,
+  updateStitchingLoading: false,
   StitchingpdfLoading:false,
   StitchingBillLoading:false
 
@@ -162,7 +163,7 @@ const StitchingSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-       // CALENDER BILL
+       
        .addCase(generateStitchingBillAsync.pending, (state, action) => {
         state.StitchingBillLoading = true;
       })
@@ -170,7 +171,7 @@ const StitchingSlice = createSlice({
         state.StitchingBillLoading = false;
       })
 
-      //DOWNLOAD PDF
+   
       .addCase(generateStitchingGatePssPdfAsync.pending, (state) => {
         state.StitchingpdfLoading = true;
       })
@@ -178,7 +179,7 @@ const StitchingSlice = createSlice({
         state.StitchingpdfLoading = false;
       })
 
-      // Shop Add ADD CASE
+      
       .addCase(createStitching.pending, (state, action) => {
         state.loading = true;
       })
@@ -187,7 +188,7 @@ const StitchingSlice = createSlice({
 
       })
 
-      // LOGIN ADD CASE
+      
       .addCase(GetAllStitching.pending, (state, action) => {
         state.loading = true;
       })
@@ -196,12 +197,12 @@ const StitchingSlice = createSlice({
         state.Stitching = action.payload;
       })
 
-      // FORGET PASSWORD ADD CASE
+      
       .addCase(UpdateStitchingAsync.pending, (state, action) => {
-        state.loading = true;
+        state.updateStitchingLoading = true;
       })
       .addCase(UpdateStitchingAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.updateStitchingLoading = false;
       })
 
 

@@ -54,7 +54,7 @@ export const getAllBases = async (req, res, next) => {
     const data = await BaseModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ updatedAt: -1 });
 
     const total = await BaseModel.countDocuments(query);
 

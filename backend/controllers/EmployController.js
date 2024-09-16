@@ -1,5 +1,6 @@
 import { EmployeModel } from "../models/EmployModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import moment from "moment-timezone"
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -47,7 +48,7 @@ export const addEmploye = async (req, res, next) => {
       salary,
       joininig_date,
     });
-    return res.status(200).json({ success: true, message: "Success" });
+    return res.status(200).json({ success: true, message: "Employe Added Sucessfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -55,7 +56,10 @@ export const addEmploye = async (req, res, next) => {
 
 export const creditDebitBalance = async (req, res, next) => {
   try {
-    const { id, credit, debit, date, particular } = req.body;
+    const { id, date, particular } = req.body;
+    const credit = parseInt(req.body.credit, 10);
+    const debit = parseInt(req.body.debit, 10);
+    
     if (!id) throw new Error("Employ Id Fequired");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -99,6 +103,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Employ Id Not Found");
     const employe = await EmployeModel.findById(id);
+    const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
     if (!employe) throw new Error("Employe Not Found");
 
     let newBalance =
@@ -109,10 +114,10 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
     newBalance += employe.salary;
     employe.financeData.push({
       credit: employe.salary,
-      debit: employe.financeData[employe.financeData.length - 1].balance < 0 ? employe.salary - newBalance : 0,
+      debit: employe.financeData[employe.financeData.length - 1]?.balance < 0 ? employe.salary - newBalance : 0,
       balance: newBalance,
       particular: "Salary Credit Transaction",
-      date: Date.now(),
+      date:today,
     });
 
     await employe.save();
@@ -177,7 +182,7 @@ export const updateEmploye = async (req, res, next) => {
     };
     const updatedEmployee = await EmployeModel.findByIdAndUpdate(id, updateQuery);
     if (!updatedEmployee) throw new Error("Employee not found");
-    res.status(200).json({ success: true, message: "Employe Updated Successfully" });
+   return res.status(200).json({ success: true, message: "Employe Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

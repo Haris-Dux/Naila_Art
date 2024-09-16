@@ -14,9 +14,10 @@ import {
   getDataForOtherBranchAsync,
   getDataForSuperAdminAsync,
 } from "../../features/DashboardSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import SendOTP from "./SendOTP";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -24,14 +25,42 @@ const DashboardStats = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { loading, DashboardData } = useSelector((state) => state.dashboard);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
-      dispatch(getDataForSuperAdminAsync());
+      dispatch(getDataForSuperAdminAsync()).then((res) => {
+        if (res?.error) {
+          setHasError(true);
+          localStorage.removeItem("dashboardAccessTime");
+        }
+      });
     } else {
-      dispatch(getDataForOtherBranchAsync());
+      dispatch(getDataForOtherBranchAsync()).then((res) => {
+        if (res?.error) {
+          setHasError(true);
+          localStorage.removeItem("dashboardAccessTime");
+        }
+      });
     }
   }, [user]);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const endTime = localStorage.getItem("dashboardAccessTime");
+      if (endTime) {
+        const now = new Date().getTime();
+        const timeLeft = Math.max(endTime - now, 0);
+        if (timeLeft === 0) {
+          localStorage.removeItem("dashboardAccessTime");
+          setHasError(true);
+        }
+      }
+    };
+    const interval = setInterval(updateTime, 60000);
+    updateTime();
+    return () => clearInterval(interval);
+  }, []);
 
   ChartJS.register(
     ArcElement,
@@ -85,6 +114,10 @@ const DashboardStats = () => {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  if (hasError) {
+    return <SendOTP />;
   };
 
   return (
@@ -418,9 +451,7 @@ const DashboardStats = () => {
                       className="my-4 px-3 city flex justify-between items-center border-b"
                     >
                       <span>{data?.city?.name}</span>
-                      <span className="font-semibold">
-                        {data?.city?.value}
-                      </span>
+                      <span className="font-semibold">{data?.city?.value}</span>
                     </div>
                   ))}
                 </div>

@@ -17,7 +17,7 @@ export const generateProcessBill = async (req, res, next) => {
         rate,
         per_suit,
         r_quantity,
-        recieved_suit,
+        T_Recieved_Suit
       } = req.body;
 
       // Validate required fields
@@ -30,7 +30,7 @@ export const generateProcessBill = async (req, res, next) => {
       ) {
         throw new Error("Required fields are missing");
       }
-      if (process_Category === "Embroidery" && !recieved_suit) {
+      if (process_Category === "Embroidery"  && !T_Recieved_Suit) {
         throw new Error("Required fields are missing");
       }
       if (process_Category !== "Embroidery" && !r_quantity) {
@@ -40,7 +40,7 @@ export const generateProcessBill = async (req, res, next) => {
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
       if (process_Category === "Embroidery" ) {
-        amount = per_suit * recieved_suit;
+        amount = per_suit * T_Recieved_Suit;
       } else {
         amount = rate * r_quantity;
       }
@@ -48,8 +48,8 @@ export const generateProcessBill = async (req, res, next) => {
       if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
 
       //DATA FOR VIRTUAL ACCOUNT
-      const total_credit = amount;
-      const total_balance = amount;
+      const total_credit = amount.toFixed(0);
+      const total_balance = amount.toFixed(0);
 
       const virtualAccountData = {
         total_credit,
@@ -61,8 +61,8 @@ export const generateProcessBill = async (req, res, next) => {
         {
           date,
           particular: `Serial No ${serial_No}`,
-          credit: amount,
-          balance: amount,
+          credit: amount.toFixed(0),
+          balance: amount.toFixed(0),
         },
       ];
 
@@ -77,8 +77,7 @@ export const generateProcessBill = async (req, res, next) => {
             T_Quantity,
             rate: process_Category === "Embroidery" ? per_suit : rate,
             r_quantity:
-              process_Category === "Embroidery" ? recieved_suit : r_quantity,
-            recieved_suit,
+              process_Category === "Embroidery" ? T_Recieved_Suit : r_quantity,
             credit_debit_history: credit_debit_history_details,
             virtual_account: virtualAccountData,
           },

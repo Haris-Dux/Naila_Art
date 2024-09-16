@@ -18,7 +18,7 @@ export const validateOneMinuteExpiry = async (timestamp) => {
       const currentTime = new Date();
       var difference = (timestamp - currentTime.getTime())/1000;
       difference /= 60;
-      if(Math.abs(difference) > 15){
+      if(Math.abs(difference) > 10){
           return true;
       }
       return false;

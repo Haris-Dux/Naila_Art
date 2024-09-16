@@ -27,7 +27,8 @@ const CuttingDetails = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
 
@@ -41,7 +42,7 @@ const CuttingDetails = () => {
   const [formData, setFormData] = useState({
     partyName: "",
     serial_No: "",
-    DesignNo: "",
+    design_no: "",
     date: "",
     rate: "",
     category_quantity: [initialRow],
@@ -51,8 +52,8 @@ const CuttingDetails = () => {
     setFormData({
       serial_No: SingleCutting?.serial_No || "",
       design_no: SingleCutting?.design_no || "",
-      date: SingleCutting?.date ? SingleCutting?.date?.split("T")[0] : "",
-      partyName: SingleCutting?.partyName || "",
+      date: "",
+      partyName: "",
       embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
@@ -145,7 +146,6 @@ const CuttingDetails = () => {
   const handleSubmitstome = (e) => {
     e.preventDefault();
 
-
     dispatch(createStone(formData)).then((res) => {
       if (res.payload.success === true) {
         closeModal();
@@ -219,7 +219,7 @@ const CuttingDetails = () => {
   };
 
   const handleGenerateGatePassPDf = () => {
-    dispatch(generateCuttingGatePssPdfAsync(SingleCutting))
+    dispatch(generateCuttingGatePssPdfAsync(SingleCutting));
     closeGatepassModal();
   };
 
@@ -338,7 +338,7 @@ const CuttingDetails = () => {
         <div className="flex justify-center items-center">
           {SingleCutting?.project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -347,14 +347,15 @@ const CuttingDetails = () => {
         </div>
 
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-        {SingleCutting?.project_status !== "Completed" && (
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>)}
+        <div className="mt-6 flex justify-center items-center gap-x-5">
+          {SingleCutting?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
+          )}
 
           {SingleCutting?.project_status === "Completed" && (
             <>
@@ -405,7 +406,7 @@ const CuttingDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="relative scrollable-content max-h-[90vh] py-4 px-3 w-full max-w-3xl bg-white rounded-md shadow dark:bg-gray-700">
               {/* ------------- HEADER ------------- */}
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -442,7 +443,7 @@ const CuttingDetails = () => {
                   <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
                     <div>
                       <input
-                        name="PartyName"
+                        name="partyName"
                         type="text"
                         placeholder="Party Name"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
@@ -470,8 +471,9 @@ const CuttingDetails = () => {
                         placeholder="Design No"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
-                        value={formData.DesignNo}
+                        value={formData.design_no}
                         onChange={handleChange}
+                        readOnly
                       />
                     </div>
                   </div>
@@ -593,12 +595,22 @@ const CuttingDetails = () => {
                       </div>
                     ))}
                   <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                    >
-                      {IsLoading ? "Submiting..." : "Submit"}
-                    </button>
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submit
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>

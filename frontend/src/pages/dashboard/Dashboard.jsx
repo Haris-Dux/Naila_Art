@@ -190,7 +190,7 @@ const Dashboard = () => {
                     <>
                       {logoutLoading ? (
                         <button
-                        disabled
+                          disabled
                           className="text-red-400 cursor-not-allowed block w-full px-4 py-2 text-left hover:bg-gray-200"
                           id="menu-item-3"
                           role="menuitem"
@@ -230,8 +230,8 @@ const Dashboard = () => {
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           } bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700`}
         >
-          <div className="overflow-y-auto py-5 h-full bg-[#FAFAFA] dark:bg-gray-800">
-            <ul className="pt-10">
+          <div className="scrollable-content py-5 h-full bg-[#FAFAFA] dark:bg-gray-800">
+            <ul className="pt-2">
               {/* DASHBOARD */}
               <li>
                 <Link
@@ -256,8 +256,7 @@ const Dashboard = () => {
                     location.pathname.includes("base") ||
                     location.pathname.includes("lace") ||
                     location.pathname.includes("bag") ||
-                    location.pathname.includes("accessories") ||
-                    location.pathname.includes("expense")
+                    location.pathname.includes("accessories")
                       ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
                       : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
                   }`}
@@ -295,45 +294,51 @@ const Dashboard = () => {
                         Suits
                       </Link>
                     </li>
-                    <li>
-                      <Link
-                        to="/dashboard/base"
-                        onClick={handleMoveTop}
-                        className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/base"
-                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                        } group`}
-                      >
-                        Base
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/dashboard/lace"
-                        onClick={handleMoveTop}
-                        className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/lace"
-                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                        } group`}
-                      >
-                        Lace
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/dashboard/bag"
-                        onClick={handleMoveTop}
-                        className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/bag"
-                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                        } group`}
-                      >
-                        Bag
-                      </Link>
-                    </li>
+
+                    {user?.user?.role !== "user" ? (
+                      <>
+                        <li>
+                          <Link
+                            to="/dashboard/base"
+                            onClick={handleMoveTop}
+                            className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                              location.pathname === "/dashboard/base"
+                                ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                                : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                            } group`}
+                          >
+                            Base
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/dashboard/lace"
+                            onClick={handleMoveTop}
+                            className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                              location.pathname === "/dashboard/lace"
+                                ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                                : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                            } group`}
+                          >
+                            Lace
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="/dashboard/bag"
+                            onClick={handleMoveTop}
+                            className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                              location.pathname === "/dashboard/bag"
+                                ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                                : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                            } group`}
+                          >
+                            Bag
+                          </Link>
+                        </li>
+                      </>
+                    ) : null}
+
                     <li>
                       <Link
                         to="/dashboard/accessories"
@@ -345,19 +350,6 @@ const Dashboard = () => {
                         } group`}
                       >
                         Accessories
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/dashboard/expense"
-                        onClick={handleMoveTop}
-                        className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/expense"
-                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                        } group`}
-                      >
-                        Expense
                       </Link>
                     </li>
                   </ul>
@@ -540,20 +532,22 @@ const Dashboard = () => {
                         </Link>
                       </li>
                     ) : null}
-                 {user?.user?.role === "superadmin" && <li>
-                      <Link
-                        to="/dashboard/employee"
-                        onClick={handleMoveTop}
-                        className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/employee" ||
-                          location.pathname.includes("employee-details")
-                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                        } group`}
-                      >
-                        Employee
-                      </Link>
-                    </li>}
+                    {user?.user?.role === "superadmin" && (
+                      <li>
+                        <Link
+                          to="/dashboard/employee"
+                          onClick={handleMoveTop}
+                          className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                            location.pathname === "/dashboard/employee" ||
+                            location.pathname.includes("employee-details")
+                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                          } group`}
+                        >
+                          Employee
+                        </Link>
+                      </li>
+                    )}
                   </ul>
                 )}
               </li>
@@ -645,6 +639,38 @@ const Dashboard = () => {
                   </ul>
                 )}
               </li>
+
+              {/* Expense  */}
+              <li>
+                <Link
+                  to="/dashboard/expense"
+                  onClick={handleMoveTop}
+                  className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
+                    location.pathname === "/dashboard/expense"
+                      ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                      : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                  } group`}
+                >
+                  <span className="ml-3">Expense</span>
+                </Link>
+              </li>
+
+              {/* B PAir */}
+              {user?.user?.role !== "user" ? (
+                <li>
+                  <Link
+                    to="/dashboard/bpair"
+                    onClick={handleMoveTop}
+                    className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
+                      location.pathname === "/dashboard/bpair"
+                        ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                        : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                    } group`}
+                  >
+                    <span className="ml-3">B Pair</span>
+                  </Link>
+                </li>
+              ) : null}
 
               {/* CASH IN/OUT */}
               <li>
