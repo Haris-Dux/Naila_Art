@@ -20,6 +20,8 @@ const SuitsStock = () => {
     console.log('Suit', Suit);
 
     const { SuitCategories } = useSelector((state) => state.InStock);
+    const { user } = useSelector((state) => state.auth);
+
 
 
     // State variables to hold form data
