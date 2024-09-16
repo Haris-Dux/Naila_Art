@@ -7,8 +7,8 @@ const addCalender = "/api/process/calender/addCalender";
 const UpdateCalender = "/api/process/calender/updateCalender";
 const getAllCalender = "/api/process/calender/getAllCalender";
 const getSingleCalender = "/api/process/calender/getCalenderById";
-
-
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 
 // CREATE CALENDER THUNK
 export const createCalender = createAsyncThunk(
@@ -17,10 +17,9 @@ export const createCalender = createAsyncThunk(
     try {
       const response = await axios.post(addCalender, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      toast.error(error.response.data.error);
     }
   }
 );
@@ -46,16 +45,14 @@ export const GetAllCalender = createAsyncThunk("Calender/Get", async (data) => {
       ? `&search=${data?.search}`
       : "";
   try {
-    const response = await axios.post(`${getAllCalender}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
+    const response = await axios.post(
+      `${getAllCalender}?&page=${data.page}${searchQuery}`
+    );
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
   }
-}
-);
+});
 
 // GET SINGLE CALENDER THUNK
 export const GetSingleCalender = createAsyncThunk(
@@ -63,23 +60,76 @@ export const GetSingleCalender = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleCalender, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+ 
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
+// DOWNLOAD GATEPASS PDF file
+const downloadPDF = (response) => {
+  if (response.headers && response.data) {
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const contentDisposition = response.headers["content-disposition"];
+    const filenameMatch =
+      contentDisposition && contentDisposition.match(/filename="(.+)"/);
+    const filename = filenameMatch ? filenameMatch[1] : "invoice.pdf";
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    console.error("Invalid response format");
+  }
+};
+
+export const generateCalenderGatePssPdfAsync = createAsyncThunk(
+  "Calender/DownladPdf",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        generatePdf,
+        { data, category: "Calender" },
+        { responseType: "arraybuffer" }
+      );
+      downloadPDF(response);
+      return response;
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Error downloading PDF");
+    }
+  }
+);
+
+//CREATE BILL FOR CALENDER
+export const generateCalenderBillAsync = createAsyncThunk(
+  "Embroidery/generateProcessBil",
+  async (formData) => {
+    try {
+      const response = await axios.post(generateProcessBillURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
       toast.error(error.response.data.error);
     }
   }
 );
 
-
 // INITIAL STATE
 const initialState = {
-
   Calender: [],
   SingleCalender: {},
   loading: false,
+  CalenderpdfLoading: false,
+  generateCAlenderBillLoading: false,
 };
 
 const CalenderSlice = createSlice({
@@ -91,13 +141,28 @@ const CalenderSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
+      // CALENDER BILL
+      .addCase(generateCalenderBillAsync.pending, (state, action) => {
+        state.generateCAlenderBillLoading = true;
+      })
+      .addCase(generateCalenderBillAsync.fulfilled, (state, action) => {
+        state.generateCAlenderBillLoading = false;
+      })
+
+      //DOWNLOAD PDF
+      .addCase(generateCalenderGatePssPdfAsync.pending, (state) => {
+        state.CalenderpdfLoading = true;
+      })
+      .addCase(generateCalenderGatePssPdfAsync.fulfilled, (state, action) => {
+        state.CalenderpdfLoading = false;
+      })
+
       // Shop Add ADD CASE
       .addCase(createCalender.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(createCalender.fulfilled, (state, action) => {
         state.loading = false;
-
       })
 
       // LOGIN ADD CASE
@@ -117,14 +182,13 @@ const CalenderSlice = createSlice({
         state.loading = false;
       })
 
-
       .addCase(GetSingleCalender.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(GetSingleCalender.fulfilled, (state, action) => {
         state.loading = false;
-        state.SingleCalender = action.payload
-      })
+        state.SingleCalender = action.payload;
+      });
   },
 });
 

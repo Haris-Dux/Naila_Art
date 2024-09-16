@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createBaseAsync } from '../../../features/PurchaseBillsSlice';
 import { useSearchParams } from 'react-router-dom';
 import moment from "moment-timezone";
-import { GetAllBase } from '../../../features/InStockSlice';
+import { GetAllBase, GetAllCategoriesForBase } from '../../../features/InStockSlice';
 
 const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
     const dispatch = useDispatch();
@@ -11,7 +11,7 @@ const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
-    const { searchLoading } = useSelector((state) => state.Seller);
+    const { baseLoading } = useSelector((state) => state.PurchaseBills);
 
     // State variables to hold form data
     const [formData, setFormData] = useState({
@@ -42,6 +42,7 @@ const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
         dispatch(createBaseAsync(modifiedFormData)).then((res) => {
             if (res.payload.message === "Successfully Added") {
                 dispatch(GetAllBase({ page: 1 }));
+                dispatch(GetAllCategoriesForBase());
                 resetFormData();
                 closeBaseModal();
             }
@@ -152,7 +153,7 @@ const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
                                 </div>
 
                                 <div className="flex justify-center mt-6">
-                                    {searchLoading ? (
+                                    {baseLoading ? (
                                         <button disabled="" type="button" class="text-white border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center">
                                             <svg aria-hidden="true" role="status" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"></path>

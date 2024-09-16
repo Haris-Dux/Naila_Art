@@ -8,20 +8,20 @@ const UpdateStitching = "/api/process/Stitching/updateStitching";
 const getAllStitching = "/api/process/Stitching/getAllStitching";
 const getSingleStitching = "/api/process/Stitching/getStitchingById";
 const getStitchingByEmbroideryId = '/api/process/stitching/getStitchingByEmbroideryId'
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction"
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill"
 
 
 //CREATE ASYNC THUNK
 export const createStitching = createAsyncThunk(
-  "Shop/create",
+  "Stitching/create",
   async (formData) => {
     try {
       const response = await axios.post(addStitching, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
-      console.log(error.response.data.error);
     }
   }
 );
@@ -33,10 +33,8 @@ export const UpdateStitchingAsync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateStitching, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -51,12 +49,10 @@ export const GetAllStitching = createAsyncThunk("Stitching/Get", async (data) =>
   try {
     // const response = await axios.post(getAllStitching, formData);
     const response = await axios.post(`${getAllStitching}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -66,12 +62,11 @@ export const GetSingleStitching = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleStitching, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+    
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
-      toast.error(error.response.data.error);
+      throw new Error(error.response.data.error);
+
     }
   }
 );
@@ -81,11 +76,65 @@ export const getStitchingByEmbroidery = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getStitchingByEmbroideryId, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+      throw new Error(error.response.data.error);
+
+    }
+  }
+);
+
+// DOWNLOAD GATEPASS PDF file
+const downloadPDF = (response) => {
+  if (response.headers && response.data) {
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const contentDisposition = response.headers["content-disposition"];
+    const filenameMatch =
+      contentDisposition && contentDisposition.match(/filename="(.+)"/);
+    const filename = filenameMatch ? filenameMatch[1] : "invoice.pdf";
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    console.error("Invalid response format");
+  }
+};
+
+export const generateStitchingGatePssPdfAsync = createAsyncThunk(
+  "Stitching/DownladPdf",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        generatePdf,
+        { data, category: "Stitching" },
+        { responseType: "arraybuffer" }
+      );
+      downloadPDF(response);
+      return response;
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Error downloading PDF");
+    }
+  }
+);
+
+//CREATE BILL FOR STITCHING
+export const generateStitchingBillAsync = createAsyncThunk(
+  "Stitching/generateProcessBil",
+  async (formData) => {
+    try {
+      const response = await axios.post(generateProcessBillURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
       toast.error(error.response.data.error);
     }
   }
@@ -99,6 +148,10 @@ const initialState = {
   SingleStitching: {},
   stitchingEmbroidery: {},
   loading: false,
+  updateStitchingLoading: false,
+  StitchingpdfLoading:false,
+  StitchingBillLoading:false
+
 };
 
 const StitchingSlice = createSlice({
@@ -110,7 +163,23 @@ const StitchingSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // Shop Add ADD CASE
+       
+       .addCase(generateStitchingBillAsync.pending, (state, action) => {
+        state.StitchingBillLoading = true;
+      })
+      .addCase(generateStitchingBillAsync.fulfilled, (state, action) => {
+        state.StitchingBillLoading = false;
+      })
+
+   
+      .addCase(generateStitchingGatePssPdfAsync.pending, (state) => {
+        state.StitchingpdfLoading = true;
+      })
+      .addCase(generateStitchingGatePssPdfAsync.fulfilled, (state, action) => {
+        state.StitchingpdfLoading = false;
+      })
+
+      
       .addCase(createStitching.pending, (state, action) => {
         state.loading = true;
       })
@@ -119,7 +188,7 @@ const StitchingSlice = createSlice({
 
       })
 
-      // LOGIN ADD CASE
+      
       .addCase(GetAllStitching.pending, (state, action) => {
         state.loading = true;
       })
@@ -128,12 +197,12 @@ const StitchingSlice = createSlice({
         state.Stitching = action.payload;
       })
 
-      // FORGET PASSWORD ADD CASE
+      
       .addCase(UpdateStitchingAsync.pending, (state, action) => {
-        state.loading = true;
+        state.updateStitchingLoading = true;
       })
       .addCase(UpdateStitchingAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.updateStitchingLoading = false;
       })
 
 

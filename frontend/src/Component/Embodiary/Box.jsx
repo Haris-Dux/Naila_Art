@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
-import { Link } from "react-router-dom";
 import {
   CreateEmbroidery,
   GETEmbroidery,
 } from "../../features/EmbroiderySlice";
-import { FiPlus, FiTrash } from "react-icons/fi";
+import { FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  GetAllBase,
-  GetAllBaseforEmroidery,
-} from "../../features/InStockSlice";
+import { GetAllBaseforEmroidery } from "../../features/InStockSlice";
+import toast from "react-hot-toast";
 
 const Box = ({ formData1, setFormData1, closeModal, total }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
-  const { loading:IsLoading } = useSelector((state) => state.Embroidery);
-
+  const { loading: IsLoading } = useSelector((state) => state.Embroidery);
 
   const dispatch = useDispatch();
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -37,8 +33,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
       setCategoryOptions(categoryOptions);
     }
   }, [loading, BaseforEmroidery]);
-
-  console.log(BaseforEmroidery);
 
   useEffect(() => {
     dispatch(GetAllBaseforEmroidery());
@@ -112,7 +106,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         idx === index ? { ...item, category: newValue.value } : item
       ),
     }));
-    console.log("selected value:", newValue);
 
     // Perform a case-insensitive comparison
     const selectedCategory = BaseforEmroidery.filter(
@@ -220,6 +213,56 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
     }));
   };
 
+  //REMOVE EIGHT FIELDS
+  const validateEightFields = (data) => {
+    for (let key in data) {
+      if (data[key]?.head === 0 && data[key]?.value === 0) {
+        delete data[key];
+      }
+    }
+    return data;
+  };
+
+  //VALIDATE SUTIT DUPATTA TROUSER TISSUE DATA
+  const validateData = (meregdata) => {
+    const categories = ["shirt", "duppata", "trouser"];
+    categories.forEach((category) => {
+      if (meregdata[category] && meregdata[category].length >= 0) {
+        meregdata[category] = meregdata[category].filter((item) => {
+          return !(
+            item.category === "" &&
+            item.color === "" &&
+            (item.quantity_in_m === 0 || isNaN(item.quantity_in_m)) &&
+            (item.quantity_in_no === 0 || isNaN(item.quantity_in_no))
+          );
+        });
+        if (meregdata[category].length === 0) {
+          delete meregdata[category];
+        }
+      } else if (meregdata[category].length === 0) {
+        delete meregdata[category];
+      }
+    });
+  };
+
+  //VALIDATE TISSUE DATA
+  const validateTissueData = (meregdata) => {
+    if (meregdata.tissue.length >= 0) {
+      meregdata.tissue = meregdata.tissue.filter((item) => {
+        return !(
+          item.category === "" &&
+          item.color === "" &&
+          item.quantity_in_m === 0
+        );
+      });
+      if (meregdata.tissue.length === 0) {
+        delete meregdata.tissue;
+      }
+    } else if (meregdata.tissue.length === 0) {
+      delete meregdata.tissue;
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -228,39 +271,90 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
       per_suit: total,
     }));
 
+    //REMOVING FIELDS FROM TABLE WITH ZERO VALUES
+
+    let updateFormData = { ...formData1 };
+    updateFormData = validateEightFields(updateFormData);
     // Merge updated formData1 (without per_suit) with formData
-    const { per_suit, ...restFormData1 } = formData1;
+    const { per_suit, ...restFormData1 } = updateFormData;
+
+    const toValidNumber = (value) => {
+      return isNaN(value) || value === undefined || value === null
+        ? 0
+        : Number(value);
+    };
+
     const meregdata = {
       ...restFormData1,
       ...formData,
-      per_suit: total.toFixed(2),
+      per_suit: total.toFixed(3),
+      T_Suit: formData.shirt.reduce(
+        (total, item) => total + toValidNumber(item.quantity_in_no),
+        0
+      ),
+
       T_Quantity:
-        formData.shirt.reduce((total, item) => total + item.quantity_in_no, 0) +
+        formData.shirt.reduce(
+          (total, item) => total + toValidNumber(item.quantity_in_no),
+          0
+        ) +
         formData.duppata.reduce(
-          (total, item) => total + item.quantity_in_no,
+          (total, item) => total + toValidNumber(item.quantity_in_no),
           0
         ) +
         formData.trouser.reduce(
-          (total, item) => total + item.quantity_in_no,
+          (total, item) => total + toValidNumber(item.quantity_in_no),
           0
         ),
+
+      // Safely sum quantity_in_m for each category
       T_Quantity_In_m:
-        formData.shirt.reduce((total, item) => total + item.quantity_in_m, 0) +
-        formData.duppata.reduce(
-          (total, item) => total + item.quantity_in_m,
+        formData.shirt.reduce(
+          (total, item) => total + toValidNumber(item.quantity_in_m),
           0
         ) +
-        formData.trouser.reduce((total, item) => total + item.quantity_in_m, 0),
+        formData.duppata.reduce(
+          (total, item) => total + toValidNumber(item.quantity_in_m),
+          0
+        ) +
+        formData.trouser.reduce(
+          (total, item) => total + toValidNumber(item.quantity_in_m),
+          0
+        ),
     };
 
-    console.log("final result", meregdata);
+    validateData(meregdata);
+    validateTissueData(meregdata);
 
-    dispatch(CreateEmbroidery(meregdata)).then((res) => {
-      if (res.payload.success === true) {
-        dispatch(GETEmbroidery({ page: 1 }));
-        closeModal();
-      }
-    });
+    const suitFields = [meregdata.shirt, meregdata.duppata, meregdata.trouser];
+    const stitchFields = [
+      meregdata.Front_Stitch,
+      meregdata.Bazo_Stitch,
+      meregdata.Gala_Stitch,
+      meregdata.Back_Stitch,
+      meregdata.Pallu_Stitch,
+      meregdata.Trouser_Stitch,
+      meregdata.D_Patch_Stitch,
+      meregdata.F_Patch_Stitch,
+    ];
+
+    if (
+      suitFields.every((field) => !field) ||
+      stitchFields.every((field) => !field)
+    ) {
+      toast.error(
+        "Please Enter data for suit,duppata or trouser and one head and it's value"
+      );
+    } else {
+      console.log(meregdata);
+
+      dispatch(CreateEmbroidery(meregdata)).then((res) => {
+        if (res.payload.success === true) {
+          dispatch(GETEmbroidery({ page: 1 }));
+          closeModal();
+        }
+      });
+    }
   };
 
   return (
@@ -283,6 +377,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleshirtCategory(newValue, index)}
+                value={categoryOptions.find(
+                  (item) => item.value === shirt.category
+                )}
                 placeholder="Select Category"
               />
             </div>
@@ -290,6 +387,7 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={colorOptions}
                 onChange={(newValue) => handleshirtColor(newValue, index)}
+                value={colorOptions.find((item) => item.value === shirt.color)}
                 placeholder="Select Color"
               />
             </div>
@@ -300,8 +398,8 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
                 placeholder="Enter Quantity In No"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 required
-                value={shirt.quantity_in_no || ""} // Accessing the quantity_in_no property of the shirt object
-                onChange={(e) => handleInputChange(e, index, "shirt")} // Passing index and type to handleInputChange
+                value={shirt.quantity_in_no || ""}
+                onChange={(e) => handleInputChange(e, index, "shirt")}
               />
             </div>
             <div className="flex items-center">
@@ -357,6 +455,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleduppataCategorey(newValue, index)}
+                value={categoryOptions.find(
+                  (item) => item.value === duppata.category
+                )}
                 placeholder="Select Color"
               />
             </div>
@@ -364,6 +465,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={colorOptions2}
                 onChange={(newValue) => handleduppataColor(newValue, index)}
+                value={colorOptions2.find(
+                  (item) => item.value === duppata.color
+                )}
                 placeholder="Select Color"
               />
             </div>
@@ -432,6 +536,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handleTrouserCategorey(newValue, index)}
+                value={categoryOptions.find(
+                  (item) => item.value === trouser.category
+                )}
                 placeholder="Select Category"
               />
             </div>
@@ -439,6 +546,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={colorOptions3}
                 onChange={(newValue) => handleTrouserColor(newValue, index)}
+                value={colorOptions3.find(
+                  (item) => item.value === trouser.color
+                )}
                 placeholder="Select Color"
               />
             </div>
@@ -504,11 +614,17 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         </div>
 
         {formData?.tissue?.map((tissue, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+          <div
+            key={index}
+            className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+          >
             <div>
               <Select
                 options={categoryOptions}
                 onChange={(newValue) => handletissueCategorey(newValue, index)}
+                value={categoryOptions.find(
+                  (option) => option.value === tissue.category
+                )}
                 placeholder="Select Category"
               />
             </div>
@@ -516,6 +632,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <Select
                 options={colorOptions4}
                 onChange={(newValue) => handletissueColor(newValue, index)}
+                value={colorOptions4.find(
+                  (option) => option.value === tissue.color
+                )}
                 placeholder="Select Color"
               />
             </div>
@@ -524,6 +643,7 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
               <input
                 name="tissue.quantity_in_m"
                 type="number"
+                required
                 placeholder="Quantity In M"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 value={tissue.quantity_in_m || ""}
@@ -559,12 +679,21 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
       </div>
 
       <div className="flex justify-center pt-6">
-        <button
-          onClick={handleSubmit}
-          className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-        >
-          {IsLoading? "Submiting...":"Submit"}
-        </button>
+        {IsLoading ? (
+          <button
+            disabled
+            className="inline-block cursor-progress rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indgrayigo-500"
+          >
+            Submiting...
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+          >
+            Submit
+          </button>
+        )}
       </div>
     </div>
   );

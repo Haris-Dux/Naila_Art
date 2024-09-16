@@ -8,8 +8,6 @@ import { GetAllCalender } from '../../../features/CalenderSlice';
 const Calendar = () => {
   const dispatch = useDispatch();
   const { loading, Calender } = useSelector((state) => state.Calender);
-  console.log('Calender', Calender);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
 
   const [search, setSearch] = useState('');
@@ -17,10 +15,6 @@ const Calendar = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-
-  // const handleSearch = (event) => {
-  //   setSearchText(event.target.value);
-  // };
 
   const filteredCalender = Calender?.data?.filter((entry) =>
     entry.partyName.toLowerCase().includes(searchText.toLowerCase())
@@ -69,9 +63,20 @@ const Calendar = () => {
     });
   };
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg'>
         {/* -------------- HEADER -------------- */}
         <div className='header flex justify-between items-center pt-6 mx-2'>
           <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Calendar</h1>
@@ -152,8 +157,8 @@ const Calendar = () => {
                         <td className='px-6 py-4'>{entry.partyName}</td>
                         <td className='px-6 py-4'>{entry.design_no}</td>
                         <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
-                        <td className='px-6 py-4'>{entry.T_Quantity} y</td>
-                        <td className='px-6 py-4'>{entry.project_status}</td>
+                        <td className='px-6 py-4'>{entry.T_Quantity} m</td>
+                        <td className='px-6 py-4'>{setStatusColor(entry.project_status)}</td>
                         <td className='pl-10 py-4'>
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
                             <FaEye size={20} className='cursor-pointer' />

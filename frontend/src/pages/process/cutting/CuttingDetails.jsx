@@ -3,57 +3,66 @@ import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import {
+  generateCuttingBillAsync,
+  generateCuttingGatePssPdfAsync,
   GetSingleCutting,
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
 import { FiPlus } from "react-icons/fi";
-import {  createStone, getColorsForCurrentEmbroidery } from "../../../features/stoneslice";
+import {
+  createStone,
+  getColorsForCurrentEmbroidery,
+} from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-  const { loading, SingleCutting } = useSelector((state) => state.Cutting);
-  const {  color,loading:IsLoading} = useSelector((state) => state.stone);
+  const {
+    loading,
+    SingleCutting,
+    generateCuttingBillLoading,
+    CuttingpdfLoading,
+  } = useSelector((state) => state.Cutting);
+  const { color, loading: IsLoading } = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
+  const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
   });
-
 
   const initialRow = { category: "", color: "", quantity: 0 };
 
   const [formData, setFormData] = useState({
     partyName: "",
     serial_No: "",
-    DesignNo: "",
+    design_no: "",
     date: "",
     rate: "",
     category_quantity: [initialRow],
   });
 
   useEffect(() => {
-    console.log(SingleCutting);
     setFormData({
       serial_No: SingleCutting?.serial_No || "",
       design_no: SingleCutting?.design_no || "",
-      date: SingleCutting?.date ? SingleCutting?.date?.split("T")[0] : "",
-      partyName: SingleCutting?.partyName || "",
+      date: "",
+      partyName: "",
       embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
-   
   }, [SingleCutting]);
 
   useEffect(() => {
     setcuttingData({
-      id:id,
+      id: id,
       r_quantity: SingleCutting?.r_quantity || "",
-      
     });
   }, [SingleCutting]);
 
@@ -75,10 +84,11 @@ const CuttingDetails = () => {
   const deleteRow = (index) => {
     setFormData((prevState) => ({
       ...prevState,
-      category_quantity: prevState.category_quantity.filter((_, i) => i !== index),
+      category_quantity: prevState.category_quantity.filter(
+        (_, i) => i !== index
+      ),
     }));
   };
-  
 
   const handleCategoryChange = (e, index) => {
     const { value } = e.target;
@@ -117,15 +127,13 @@ const CuttingDetails = () => {
     dispatch(GetSingleCutting(data));
   }, [id, dispatch]);
 
-
-
   useEffect(() => {
-    if(SingleCutting && SingleCutting?.serial_No )
-      {
-    dispatch(getColorsForCurrentEmbroidery({serial_No:SingleCutting?.serial_No}));
-      }
-  }, [id,SingleCutting]);
-
+    if (SingleCutting && SingleCutting?.serial_No) {
+      dispatch(
+        getColorsForCurrentEmbroidery({ serial_No: SingleCutting?.serial_No })
+      );
+    }
+  }, [id, SingleCutting]);
 
   const handleInputChangeCutting = (e) => {
     const { name, value } = e.target;
@@ -138,23 +146,15 @@ const CuttingDetails = () => {
   const handleSubmitstome = (e) => {
     e.preventDefault();
 
-    console.log("frp", formData);
-
-    dispatch(createStone(formData))
-      .then((res) => {
-
+    dispatch(createStone(formData)).then((res) => {
       if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/stones");
-        }
-      })
-   
-
-
-      
+      }
+    });
   };
 
-  const  handleUpdateCutting = (e) => {
+  const handleUpdateCutting = (e) => {
     e.preventDefault();
 
     const data = {
@@ -163,17 +163,13 @@ const CuttingDetails = () => {
 
     dispatch(Updatecuttingasync(cuttingData))
       .then(() => {
-   
-
         dispatch(GetSingleCutting(data));
-        closeUpdateRecievedModal()
-    
+        closeUpdateRecievedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
-
 
   const handleCompleteCutting = (e) => {
     e.preventDefault();
@@ -182,19 +178,15 @@ const CuttingDetails = () => {
       id: id,
     };
 
-   
-    dispatch(Updatecuttingasync({ project_status: "Completed",  id: id,}))
+    dispatch(Updatecuttingasync({ project_status: "Completed", id: id }))
       .then(() => {
         dispatch(GetSingleCutting(data));
-      closeCompletedModal()
+        closeCompletedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
-
-
-  
 
   const openModal = () => {
     setIsOpen(true);
@@ -206,10 +198,7 @@ const CuttingDetails = () => {
     document.body.style.overflow = "auto";
   };
 
-
-
   const handleCompletedClick = () => {
-    
     setIsCompletedConfirmOpen(true);
   };
 
@@ -220,7 +209,6 @@ const CuttingDetails = () => {
   };
 
   const handleUpdateReceivedClick = () => {
-    console.log("Update Received button clicked");
     setIsUpdateReceivedConfirmOpen(true);
   };
 
@@ -230,12 +218,35 @@ const CuttingDetails = () => {
     document.body.style.overflow = "auto";
   };
 
+  const handleGenerateGatePassPDf = () => {
+    dispatch(generateCuttingGatePssPdfAsync(SingleCutting));
+    closeGatepassModal();
+  };
 
+  const generateBill = () => {
+    const formData = { ...SingleCutting, process_Category: "Cutting" };
+    dispatch(generateCuttingBillAsync(formData));
+  };
 
+  const handleOpenGatePassModal = () => {
+    setisGenerateGatePassOpen(true);
+  };
 
+  const closeGatepassModal = () => {
+    setisGenerateGatePassOpen(false);
+    document.body.style.overflow = "auto";
+  };
 
-
-
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
 
   if (loading) {
     return (
@@ -286,15 +297,14 @@ const CuttingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="text-green-600 dark:text-green-300">
+              <span className="">
                 {" "}
-                {SingleCutting?.project_status}
+                {setStatusColor(SingleCutting?.project_status)}
               </span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
               <span>{new Date(SingleCutting?.date).toLocaleDateString()}</span>
-
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>
@@ -325,12 +335,10 @@ const CuttingDetails = () => {
           />
         </div>
 
-
-
         <div className="flex justify-center items-center">
           {SingleCutting?.project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -338,35 +346,52 @@ const CuttingDetails = () => {
           )}
         </div>
 
-
-        
-
-
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>
-
-          {SingleCutting?.project_status === "Completed" && (
-<> 
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
-         
-          </>
-
+        <div className="mt-6 flex justify-center items-center gap-x-5">
+          {SingleCutting?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
           )}
 
-<button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
+          {SingleCutting?.project_status === "Completed" && (
+            <>
+              {generateCuttingBillLoading ? (
+                <button
+                  disabled
+                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              ) : (
+                <button
+                  onClick={generateBill}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              )}
+            </>
+          )}
 
-
-
+          {CuttingpdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleOpenGatePassModal}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          )}
 
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
@@ -381,7 +406,7 @@ const CuttingDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="relative scrollable-content max-h-[90vh] py-4 px-3 w-full max-w-3xl bg-white rounded-md shadow dark:bg-gray-700">
               {/* ------------- HEADER ------------- */}
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -418,7 +443,7 @@ const CuttingDetails = () => {
                   <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
                     <div>
                       <input
-                        name="PartyName"
+                        name="partyName"
                         type="text"
                         placeholder="Party Name"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
@@ -446,8 +471,9 @@ const CuttingDetails = () => {
                         placeholder="Design No"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
-                        value={formData.DesignNo}
+                        value={formData.design_no}
                         onChange={handleChange}
+                        readOnly
                       />
                     </div>
                   </div>
@@ -508,7 +534,7 @@ const CuttingDetails = () => {
                             <option value="Bazo">Bazo</option>
                             <option value="Duppata">Duppata</option>
                             <option value="Gala">Gala</option>
-                            <option value="Front Patch">Front patch</option> 
+                            <option value="Front Patch">Front patch</option>
                             <option value="Trouser">Trouser</option>
                           </select>
                         </div>
@@ -521,63 +547,70 @@ const CuttingDetails = () => {
                             onChange={(e) => handleColorChange(e, index)}
                             name="color"
                           >
-                          <option value={''} disabled>Select color</option>
-  {color?.colors?.map((data) => (
-    <option  value={data}>{data}</option>
-  ))}
+                            <option value={""} disabled>
+                              Select color
+                            </option>
+                            {color?.colors?.map((data) => (
+                              <option value={data}>{data}</option>
+                            ))}
                           </select>
                         </div>
 
                         {/* ENTER QUANITY */}
                         <div className="flex items-center">
-        <input
-          type="text"
-          placeholder="Enter Quantity"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-          required
-          value={row.quantity}
-          onChange={(e) => handleQuantityChange(e, index)}
-        />
-      
+                          <input
+                            type="text"
+                            placeholder="Enter Quantity"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                            value={row.quantity}
+                            onChange={(e) => handleQuantityChange(e, index)}
+                          />
 
-        {formData?.category_quantity?.length > 1 && (
-                <button
-                onClick={() => deleteRow(index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
-      </div>
-
-
-
-
+                          {formData?.category_quantity?.length > 1 && (
+                            <button
+                              onClick={() => deleteRow(index)}
+                              className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                              type="button"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                  stroke="currentColor"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                />
+                              </svg>
+                              <span className="sr-only">Close modal</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                    >
-                      {IsLoading ? "Submiting..." :"Submit" }
-                    </button>
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submit
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -585,25 +618,32 @@ const CuttingDetails = () => {
           </div>
         )}
 
+        {isUpdateReceivedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Update"
+            message="Are you sure you want to update the received items?"
+            onConfirm={handleUpdateCutting}
+            onClose={closeUpdateRecievedModal}
+          />
+        )}
 
+        {isCompletedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Complete"
+            message="Are you sure you want to Complete?"
+            onConfirm={handleCompleteCutting}
+            onClose={closeCompletedModal}
+          />
+        )}
 
-{isUpdateReceivedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Update"
-          message="Are you sure you want to update the received items?"
-          onConfirm={handleUpdateCutting}
-          onClose={closeUpdateRecievedModal}
-        />
-      )}
-
-{isCompletedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Complete"
-          message="Are you sure you want to Complete?"
-          onConfirm={handleCompleteCutting}
-          onClose={closeCompletedModal}
-        />
-      )}
+        {isGenerateGatePassOpen && (
+          <ConfirmationModal
+            title="Confirmation"
+            message="Are you sure you want to generate gatepass?"
+            onConfirm={handleGenerateGatePassPDf}
+            onClose={closeGatepassModal}
+          />
+        )}
       </section>
     </>
   );

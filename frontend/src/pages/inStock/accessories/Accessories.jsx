@@ -3,22 +3,27 @@ import { Link, useSearchParams } from "react-router-dom";
 import { GetAllaccessories } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEye } from "react-icons/fa";
+import { MdEdit } from "react-icons/md";
+import UsedAccessoriesModal from './UsedAccessoriesModal';
 
 
 const Accessories = () => {
     const dispatch = useDispatch();
+
     const [isOpen, setIsOpen] = useState(false);
+    const [accessoriesModal, setAccessoriesModal] = useState();
+    const [selectedUsedAccessories, setSelectedUsedAccessories] = useState();
+
+    const [selectedTab, setSelectedTab] = useState("all_Records");
     const [accessoriesId, setAccessoriesId] = useState();
     const [search, setSearch] = useState();
     const { loading, accessories } = useSelector((state) => state.InStock);
-    console.log('accessories', accessories);
 
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
         dispatch(GetAllaccessories({ search, page }))
-        // console.log('data accesseries', accessories)
     }, [search, page, dispatch]);
 
 
@@ -30,6 +35,17 @@ const Accessories = () => {
 
     const closeModal = () => {
         setIsOpen(false);
+        document.body.style.overflow = 'auto';
+    };
+
+    const openAccessoriesModal = (id) => {
+        setAccessoriesModal(true);
+        setSelectedUsedAccessories(id);
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeAccessoriesModal = () => {
+        setAccessoriesModal(false);
         document.body.style.overflow = 'auto';
     };
 
@@ -66,9 +82,15 @@ const Accessories = () => {
         setSearch(e.target.value);
     }
 
+
+    const handleTabClick = (tab) => {
+        setSelectedTab(tab);
+    };
+
+
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Accessories</h1>
@@ -102,6 +124,8 @@ const Accessories = () => {
                         </div>
                     </div>
                 </div>
+
+
 
                 <p className='w-full bg-gray-300 h-px mt-5'></p>
 
@@ -151,7 +175,7 @@ const Accessories = () => {
                                         className="px-6 py-4 text-md"
                                         scope="col"
                                     >
-                                        History
+                                        History / Update
                                     </th>
                                 </tr>
                             </thead>
@@ -176,10 +200,9 @@ const Accessories = () => {
                                             <td className="px-6 py-4">
                                                 {data.recently}
                                             </td>
-                                            <td className="pl-10 py-4">
-                                                <span onClick={() => openModal(data?.id)}>
-                                                    <FaEye size={20} className='cursor-pointer' />
-                                                </span>
+                                            <td className="pl-10 py-4 flex items-center gap-8">
+                                                <FaEye onClick={() => openModal(data?.id)} size={20} className='cursor-pointer' />
+                                                <MdEdit onClick={() => openAccessoriesModal(data?.id)} size={20} className='cursor-pointer' />
                                             </td>
                                         </tr>
                                     ))
@@ -299,12 +322,14 @@ const Accessories = () => {
                 </nav>
             </section>
 
+            {accessoriesModal && <UsedAccessoriesModal isOpen={openAccessoriesModal} closeModal={closeAccessoriesModal} selectedUsedAccessories={selectedUsedAccessories} />}
+
             {isOpen && (
                 <div
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -334,65 +359,141 @@ const Accessories = () => {
                             </button>
                         </div>
 
-                        {/* ------------- BODY ------------- */}
-                        <div className="p-4 md:p-5">
-                            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                                    <tr>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Serial No
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Date
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Name
-                                        </th>
-                                        <th
-                                            className="px-6 py-3"
-                                            scope="col"
-                                        >
-                                            Quantity
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredData && filteredData.length > 0 ? (
-                                        filteredData?.map((item, index) => (
-                                            item?.all_Records?.map((data, subIndex) => (
-                                                <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                                    <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                                        {data.serial_No}
-                                                    </th>
-                                                    <td className="px-6 py-4">
-                                                        {new Date(data?.date).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {data.name}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {data.quantity} m
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ))
-                                    ) : (
-                                        <tr className="w-full flex justify-center items-center">
-                                            <td className='text-xl mt-3'>No Data Available</td>
-                                        </tr>
-                                    )}
+                        <div className="tabs flex justify-between items-center my-4">
+                            <div className="tabs_button">
+                                <button
+                                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedTab === "all_Records"
+                                        ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                        : ""}`}
+                                    onClick={() => handleTabClick("all_Records")}
+                                >
+                                    Stock In
+                                </button>
+                                <button
+                                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedTab === "accessoriesUsed_Records"
+                                        ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                        : ""}`}
+                                    onClick={() => handleTabClick("accessoriesUsed_Records")}
+                                >
+                                    Stock Used
+                                </button>
+                            </div>
+                        </div>
 
-                                </tbody>
-                            </table>
+                        {/* ------------- BODY ------------- */}
+                        <div className="pb-7 pt-0 px-2">
+                            {selectedTab === "all_Records" && (
+                                <>
+                                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                            <tr>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Serial No
+                                                </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Date
+                                                </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Name
+                                                </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Quantity
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredData && filteredData.length > 0 ? (
+                                                filteredData?.map((item, index) => (
+                                                    item?.all_Records?.map((data, subIndex) => (
+                                                        <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                                                {data.serial_No}
+                                                            </th>
+                                                            <td className="px-6 py-4">
+                                                                {new Date(data?.date).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {data.name}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {data.quantity} m
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ))
+                                            ) : (
+                                                <tr className="w-full flex justify-center items-center">
+                                                    <td className='text-xl mt-3'>No Data Available</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </>
+                            )}
+
+                            {selectedTab === "accessoriesUsed_Records" && (
+                                <>
+                                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                        <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                            <tr>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Date
+                                                </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Name
+                                                </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Note
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredData && filteredData.length > 0 ? (
+                                                filteredData?.map((item, index) => (
+                                                    item?.accessoriesUsed_Records?.map((data, subIndex) => (
+                                                        <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                                            <td className="px-6 py-4">
+                                                                {new Date(data?.date).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {data?.name}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {data?.note}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ))
+                                            ) : (
+                                                <tr className="w-full flex justify-center items-center">
+                                                    <td className='text-xl mt-3'>No Data Available</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div >
@@ -401,4 +502,4 @@ const Accessories = () => {
     )
 }
 
-export default Accessories
+export default Accessories;

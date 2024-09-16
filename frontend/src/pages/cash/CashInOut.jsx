@@ -16,11 +16,10 @@ const CashInOut = () => {
     const [validatePartyName, setvalidatePartyName] = useState();
     const [selectedParty, setSelectedParty] = useState();
     const [selectedBranchId, setSelectedBranchId] = useState();
-
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
     const { user } = useSelector((state) => state.auth);
-    const { Branches } = useSelector((state) => state.InStock);
+    const { loading: branchesLoading, Branches } = useSelector((state) => state.InStock);
     const { loading, cashInLoading, cashOutLoading, mainBranchResponse, otherBranchResponse, TodayCashInOutData } = useSelector((state) => state.CashInOut);
 
     const [formData, setFormData] = useState({
@@ -107,6 +106,7 @@ const CashInOut = () => {
         dispatch(cashInAsync(modifiedFormData))
             .then((res) => {
                 if (res.payload.sucess === true) {
+                    dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
                     resetForm();
                 }
             });
@@ -128,6 +128,7 @@ const CashInOut = () => {
         dispatch(cashOutAsync(modifiedFormData))
             .then((res) => {
                 if (res.payload.sucess === true) {
+                    dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
                     resetForm();
                 }
             });
@@ -172,94 +173,96 @@ const CashInOut = () => {
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
-                {/* UPPER TABS */}
-                <div className="mb-5 upper_tabs flex justify-start items-center">
-                    <div className="tabs_button">
-                        {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
-                        {user?.user?.role === "superadmin" ? (
-                            <>
-                                {Branches?.map((branch) => (
-                                    <button
-                                        key={branch?.id}
-                                        className={`border border-gray-500 px-5 py-2 mr-4 text-sm rounded-md ${selectedBranchId === branch?.id
-                                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                                            : ""
-                                            }`}
-                                        onClick={() => handleBranchClick(branch?.id)}
-                                    >
-                                        {branch?.branchName}
-                                    </button>
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                {/* THIS SHOWS TO ADMIN & USER */}
-                                {Branches?.map((branch) => (
-                                    <button
-                                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${user?.user?.branchId === branch?.id
-                                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                                            : ""
-                                            }`}
-                                    >
-                                        {branch?.branchName}
-                                    </button>
-                                ))}
-                            </>
-                        )}
-                    </div>
-                </div>
-
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash In
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    {TodayCashInOutData?.data?.todayCashIn}
-                                </span>
-                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
+                {loading || branchesLoading ? (
+                    <div className="min-h-[25vh] flex justify-center items-center">
+                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                            role="status"
+                            aria-label="loading"
+                        >
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div >
+                ) : (
+                    <>
+                        <div className="mb-5 upper_tabs flex justify-start items-center">
+                            <div className="tabs_button">
+                                {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
+                                {user?.user?.role === "superadmin" ? (
+                                    <>
+                                        {Branches?.map((branch) => (
+                                            <button
+                                                key={branch?.id}
+                                                className={`border border-gray-500 px-5 py-2 mr-4 text-sm rounded-md ${selectedBranchId === branch?.id
+                                                    ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                                    : ""
+                                                    }`}
+                                                onClick={() => handleBranchClick(branch?.id)}
+                                            >
+                                                {branch?.branchName}
+                                            </button>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* THIS SHOWS TO ADMIN & USER */}
+                                        {Branches?.map((branch) => (
+                                            <button
+                                                className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${user?.user?.branchId === branch?.id
+                                                    ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                                                    : ""
+                                                    }`}
+                                            >
+                                                {branch?.branchName}
+                                            </button>
+                                        ))}
+                                    </>
+                                )}
                             </div>
                         </div>
-                    </div>
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash Out
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    {TodayCashInOutData?.data?.todayCashOut}
-                                </span>
-                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                        <div className="stat_data pl-4">
-                            <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                                Today Cash In Hand
-                            </h3>
-                            <div className="mt-3 flex justify-start items-center gap-3">
-                                <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                                    {TodayCashInOutData?.data?.saleData?.totalCash}
-                                </span>
-                                {/* <span className="text-gray-900 bg-gray-200 text-sm px-3 py-1 w-16 rounded-md">
-                                    +1.5k
-                                </span> */}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                {/* -------------- HEADER -------------- */}
-                <div className="mt-4 header flex justify-between items-center pt-6 mx-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Today Cash In
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            {TodayCashInOutData?.data?.todayCashIn}
+                                        </span>
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Today Cash Out
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            {TodayCashInOutData?.data?.todayCashOut}
+                                        </span>
+                                      
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                                <div className="stat_data pl-4">
+                                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                                        Total Cash In Hand
+                                    </h3>
+                                    <div className="mt-3 flex justify-start items-center gap-3">
+                                        <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                                            {TodayCashInOutData?.data?.saleData?.totalCash}
+                                        </span>
+                                 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Cash In/Out</h1>
                 </div>
 
@@ -309,7 +312,7 @@ const CashInOut = () => {
                                 placeholder="Select Party"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                 onClick={openModal}
-                                value={selectedParty?.name}
+                                value={selectedParty?.name ? selectedParty?.name : selectedParty?.partyName}
                                 required
                                 readOnly
                             />
@@ -382,6 +385,10 @@ const CashInOut = () => {
                         ) : null}
                     </div>
                 </div>
+                    </>
+                )}
+
+
             </section >
 
 
@@ -468,6 +475,15 @@ const CashInOut = () => {
                                                                     onClick={() => handleSelectParty(data)}
                                                                     className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
                                                                     <span>{data?.name}</span><span>{data?.phone}</span>
+                                                                </button>
+                                                            </li>
+                                                        ))}
+                                                        {mainBranchResponse?.Data[2].map((data) => (
+                                                            <li key={data?.id}>
+                                                                <button
+                                                                    onClick={() => handleSelectParty(data)}
+                                                                    className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
+                                                                    <span>{data?.partyName}</span><span>{data?.phone ? data.phone : "Sr # " + data?.serial_No}</span>
                                                                 </button>
                                                             </li>
                                                         ))}

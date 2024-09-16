@@ -47,6 +47,9 @@ import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
 import PreviewBill from "./pages/generateBills/PreviewBill";
 import AssignSuits from "./pages/inStock/assignstocks/AssignStock";
 import AssignStock from "./pages/inStock/assignstocks/AssignStock";
+import ProcessDetails from "./pages/bills/ProcessDetails";
+import B_Pair from "./pages/process/b_pair/B_Pair";
+import VerifyOTP from "./pages/dashboard/VerifyOTP";
 
 
 function App() {
@@ -56,18 +59,26 @@ function App() {
     dispatch(authUserAsync());
   }, [dispatch]);
 
+
+useEffect(() => {
+  window.addEventListener('beforeunload', () => {
+    localStorage.setItem('lastPath', window.location.pathname);
+  });
+  return () => {
+    window.removeEventListener('beforeunload', () => {});
+  };
+}, []);
+
   return (
     <>
       <BrowserRouter>
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forget" element={<ForgetPassword />} />
-          <Route path="/reset" element={<ResetPassword />} />
-          <Route path="/otp" element={<OtpChecker />} />
-
-          {/* <Route path="/previewBill" element={<PreviewBill />} /> */}
+          <Route path="/signup" element={<LoginProtected><Signup /></LoginProtected>} />
+          <Route path="/forget" element={<LoginProtected><ForgetPassword /></LoginProtected>} />
+          <Route path="/reset" element={<LoginProtected><ResetPassword /></LoginProtected>} />
+          <Route path="/otp" element={<LoginProtected><OtpChecker /></LoginProtected>} />
 
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>
@@ -89,6 +100,7 @@ function App() {
             {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
             <Route path="processbills" element={<ProcessBills />} />
+            <Route path="process-details/:id" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
 
             {/* ACCOUNTS ROUTES */}
@@ -115,6 +127,12 @@ function App() {
             <Route path="stitching-details/:id" element={<StitchingDetails />} />
             <Route path="stones" element={<Stones />} />
             <Route path="stones-details/:id" element={<StonesDetails />} />
+
+            {/* Bpair */}
+            <Route path="bpair" element={<B_Pair />} />
+
+            {/* OTP */}
+            <Route path="verifyOtp" element={<VerifyOTP />} />
 
             {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />

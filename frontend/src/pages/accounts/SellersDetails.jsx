@@ -3,31 +3,12 @@ import { GetSellerByIdAsync } from '../../features/SellerSlice';
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
-const data = [
-    {
-        id: 1,
-        date: "02-02-2024",
-        particular: "Bill No # 508",
-        credit: 0,
-        debit: 10000,
-        balance: 10000
-    },
-    {
-        id: 2,
-        date: "02-02-2024",
-        particular: "Cash in Meezan Bank",
-        credit: 2000,
-        debit: 0,
-        balance: 8000
-    },
-]
 
 const SellersDetails = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
 
     const { loading, SellerById } = useSelector((state) => state.Seller);
-    console.log('SellerById', SellerById);
 
     useEffect(() => {
         if (id) {

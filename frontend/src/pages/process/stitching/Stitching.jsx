@@ -10,7 +10,6 @@ import { GetAllStitching } from '../../../features/stitching';
 const Stitching = () => {
     const dispatch = useDispatch();
     const { Stitching, loading } = useSelector((state) => state.stitching);
-    const [currentPage, setCurrentPage] = useState(1);
     const [searchText, setSearchText] = useState('');
 
     const [search, setSearch] = useState('');
@@ -21,16 +20,6 @@ const Stitching = () => {
     useEffect(() => {
         dispatch(GetAllStitching({ search, page }));
     }, [page, dispatch]);
-
-
-
-
-    const totalPages = Stitching?.totalPages || 1;
-
-
-    // const handleSearch = (e) => {
-    //     setSearchText(e.target.value);
-    // };
 
     const filteredData = Stitching?.data?.filter((data) =>
         data.partyName.toLowerCase().includes(searchText.toLowerCase())
@@ -73,17 +62,28 @@ const Stitching = () => {
         });
     };
 
+    const setStatusColor = (status) => {
+        switch (status) {
+          case "Pending":
+            return <span className="text-[#FFC107]">{status}</span>;
+          case "Completed":
+            return <span className="text-[#2ECC40]">{status}</span>;
+          default:
+            return "";
+        }
+      };
+
 
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Stitching</h1>
 
                     {/* <!-- search bar --> */}
                     <div className="flex items-center gap-2 mr-2">
-                    
+
 
                         <div className="relative mt-4 md:mt-0">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -196,13 +196,13 @@ const Stitching = () => {
                                                     {new Date(data.date).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.Quantity} y
+                                                    {data.Quantity} suit
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.r_quantity} y
+                                                    {data.r_quantity ? `${data.r_quantity} suit` : '--'}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {data.project_status}
+                                                    {setStatusColor(data.project_status)}
                                                 </td>
                                                 <td className="pl-10 py-4">
                                                     <Link to={`/dashboard/stitching-details/${data.id}`}>

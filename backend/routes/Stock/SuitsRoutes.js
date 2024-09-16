@@ -1,5 +1,5 @@
 import express from "express";
-import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
+import { superAdminAndAdminOnly,verifyUser } from "../../middleware/Auth.js";
 import { addSuitsInStock, getAllCategoriesForSuits, getAllSuits } from "../../controllers/Stock/SuitsController.js";
 
 

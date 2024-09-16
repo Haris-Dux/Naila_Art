@@ -25,15 +25,15 @@ const Employee = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { loading, ActiveEmployees, PastEmployees } = useSelector((state) => state.Account);
+  const { loading, ActiveEmployees, PastEmployees,employeEditLoading } = useSelector((state) => state.Account);
 
   useEffect(() => {
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ searchText, page: currentPage }));
+      dispatch(GetEmployeeActive({ searchText, page: page }));
     } else {
-      dispatch(GetEmployeePast({ searchText, page: currentPage }));
+      dispatch(GetEmployeePast({ searchText, page: page }));
     }
-  }, [currentPage, searchText, dispatch]);
+  }, [currentPage, searchText, dispatch, page]);
 
   const Employees = selectedCategory === 'Active Employee' ? ActiveEmployees : PastEmployees;
 
@@ -84,26 +84,21 @@ const Employee = () => {
       const updatedFormData = { ...formData, id: selectedEmployee.id };
 
       dispatch(UpdateEmployee(updatedFormData))
-        .then(() => {
+        .then((res) => {
+          if(res.payload.success === true){
           dispatch(GetEmployeeActive({ searchText, currentPage }));
           closeModal();
           setFormData('');
           setIsEditing(false);
-        })
-
-        .catch((error) => {
-          console.error("Error updating employee:", error);
-        });
+        }})
     } else {
       dispatch(CreateEmployee(formData))
-        .then(() => {
+        .then((res) => {
+          if(res.payload.success === true){
           dispatch(GetEmployeeActive({ searchText, currentPage }));
           closeModal();
           setFormData('');
-        })
-        .catch((error) => {
-          console.error("Error adding employee:", error);
-        });
+    }})
     }
   };
 
@@ -126,9 +121,6 @@ const Employee = () => {
 
         closeConfirmationModal()
       })
-      .catch((error) => {
-        console.error("Error deleting employee:", error);
-      });
   };
 
   const openModal = () => {
@@ -158,10 +150,16 @@ const Employee = () => {
   };
 
   const paginationLinkClick = (i) => {
+
+    const payload = {
+      // search: search.length > 0 ? search : null,
+      page: i
+    }
+
     if (selectedCategory === 'Active Employee') {
-      dispatch(GetEmployeeActive({ search, page: i }));
+      dispatch(GetEmployeeActive(payload));
     } else {
-      dispatch(GetEmployeePast({ search, page: i }));
+      dispatch(GetEmployeePast(payload));
     }
   }
 
@@ -294,7 +292,7 @@ const Employee = () => {
                         <td className="px-6 py-4 font-medium">{employee.salary} Rs</td>
                         <td className="px-6 py-4 font-medium">
                           {employee?.financeData && employee.financeData.length > 0 ? (
-                            `${employee.financeData[employee.financeData.length - 1]?.balance < 0 ? 0 : employee.financeData[employee.financeData.length - 1]?.balance} Rs`
+                            `${employee.financeData[employee.financeData.length - 1]?.balance < 0 ? Math.abs(employee.financeData[employee.financeData.length - 1]?.balance) : 0} Rs`
                           ) : (
                             "-"
                           )}
@@ -314,7 +312,7 @@ const Employee = () => {
                         {selectedCategory === 'Active Employee' && (
                           <td className="pl-10 py-4 flex gap-2 mt-2">
                             <FaEdit size={20} className='cursor-pointer' onClick={() => handleEdit(employee)} />
-                            <FaTrashAlt size={20} className='cursor-pointer' onClick={() => openConfirmationModal(employee)} />
+                            <FaTrashAlt size={20} className=' text-red-500 cursor-pointer' onClick={() => openConfirmationModal(employee)} />
                           </td>
                         )}
                       </tr>
@@ -629,12 +627,22 @@ const Employee = () => {
                 </div>
 
                 <div className="flex justify-center pt-2">
+                  {employeEditLoading ? 
+                  
+                  <button
+                  type="submit"
+                  disabled
+                  className="inline-block cursor-not-allowed rounded border border-gray-400 bg-gray-400 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-400 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                >
+                  {isEditing ? 'Update' : 'Create'}
+                </button>
+                :
                   <button
                     type="submit"
                     className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                   >
                     {isEditing ? 'Update' : 'Create'}
-                  </button>
+                  </button>}
                 </div>
               </form>
             </div>
@@ -647,7 +655,7 @@ const Employee = () => {
           <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Confirm Credit Salary
+                Delete Employee
               </h3>
               <button onClick={closeConfirmationModal} className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" type="button">
                 <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
@@ -660,7 +668,7 @@ const Employee = () => {
             <div className="p-4 md:p-5">
               <p className="text-center text-gray-700 dark:text-gray-300">Are you sure you want to Delete the Employee?</p>
               <div className="flex justify-center pt-5 gap-3">
-                <button onClick={() => handleDelete(selectedEmployee.id)} className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500">
+                <button onClick={() => handleDelete(selectedEmployee.id)} className="inline-block rounded  bg-red-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-red-600 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500">
                   Yes
                 </button>
                 <button onClick={closeConfirmationModal} className="inline-block rounded border border-gray-300 bg-gray-300 dark:bg-gray-400 px-10 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-400 focus:outline-none focus:ring">

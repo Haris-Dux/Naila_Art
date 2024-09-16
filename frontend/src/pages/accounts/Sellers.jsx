@@ -29,7 +29,7 @@ const Sellers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState();
+  const [search, setSearch] = useState("");
   const [paymentStatus, setPaymentStatus] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
@@ -171,6 +171,19 @@ const Sellers = () => {
 
   };
 
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
 
   return (
     <>
@@ -229,9 +242,7 @@ const Sellers = () => {
               </Link>
             ))}
           </div>
-          {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-            <IoAdd size={22} className='text-white' />
-          </button> */}
+       
         </div>
 
         {/* -------------- TABLE -------------- */}
@@ -313,7 +324,7 @@ const Sellers = () => {
                         {data.virtual_account.total_balance === null ? "0" : data.virtual_account.total_balance + " Rs"}
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.virtual_account.status}
+                        {setStatusColor(data.virtual_account.status)}
                       </td>
                       <td className="pl-10 py-4">
                         <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/sellers-details/${data.id}`}>

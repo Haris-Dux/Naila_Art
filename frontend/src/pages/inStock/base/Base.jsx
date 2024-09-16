@@ -9,7 +9,7 @@ import AddBaseModal from './AddBaseModal';
 const Base = () => {
     const dispatch = useDispatch();
     const { loading, Base } = useSelector((state) => state.InStock);
-
+    const { user } = useSelector((state) => state.auth);
     const { BaseCategories } = useSelector((state) => state.InStock);
 
     const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +25,6 @@ const Base = () => {
     useEffect(() => {
         dispatch(GetAllBase({ category: userSelectedCategory, search, page }))
         dispatch(GetAllCategoriesForBase());
-        console.log('Base', Base)
 
     }, [page, dispatch]);
 
@@ -114,9 +113,9 @@ const Base = () => {
 
                     {/* <!-- search bar --> */}
                     <div className="search_bar mr-2 flex items-center gap-x-3">
-                        <button onClick={addBaseModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+                        {(user?.user?.role === "superadmin" || user?.user?.role === "admin") && (<button onClick={addBaseModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
                             <IoAdd size={22} className='text-white' />
-                        </button>
+                        </button>)}
 
 
                         <div className="relative mt-4 md:mt-0">
@@ -376,7 +375,7 @@ const Base = () => {
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">

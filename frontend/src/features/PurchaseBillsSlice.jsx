@@ -16,11 +16,9 @@ export const createBaseAsync = createAsyncThunk(
     try {
       const response = await axios.post(createBase, formData);
       toast.success(response.data.message);
-      // console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
-      console.log(error?.response?.data?.error);
     }
   }
 );
@@ -32,11 +30,9 @@ export const createBagAsync = createAsyncThunk(
     try {
       const response = await axios.post(createBag, formData);
       toast.success(response.data.message);
-      // console.log(response.data);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
-      console.log(error?.response?.data?.error);
     }
   }
 );
@@ -48,10 +44,9 @@ export const createLaceAsync = createAsyncThunk(
     try {
       const response = await axios.post(createLace, formData);
       toast.success(response.data.message);
-      // console.log(response);
+  
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -64,10 +59,8 @@ export const createAsseceriesAsync = createAsyncThunk(
     try {
       const response = await axios.post(createAccesseries, formData);
       toast.success(response.data.message);
-      // console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -80,10 +73,8 @@ export const CeateExpenseAsync = createAsyncThunk(
     try {
       const response = await axios.post(createExpense, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -93,6 +84,8 @@ export const CeateExpenseAsync = createAsyncThunk(
 const initialState = {
   Shop: [],
   loading: false,
+  baseLoading: false,
+  expenseLoading: false
 };
 
 const PurchaseSlice = createSlice({
@@ -106,10 +99,10 @@ const PurchaseSlice = createSlice({
 
       // CREATE BASE
       .addCase(createBaseAsync.pending, (state, action) => {
-        state.loading = true;
+        state.baseLoading = true;
       })
       .addCase(createBaseAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.baseLoading = false;
       })
 
       // CREATE BAG
@@ -138,10 +131,10 @@ const PurchaseSlice = createSlice({
 
       // CREATE EXPENSE
       .addCase(CeateExpenseAsync.pending, (state, action) => {
-        state.loading = true;
+        state.expenseLoading = true;
       })
       .addCase(CeateExpenseAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.expenseLoading = false;
       });
   },
 });
