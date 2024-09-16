@@ -3,34 +3,36 @@ import mongoose from "mongoose";
 const suit_schema = new mongoose.Schema({
   category: {
     type: String,
-    required: [true, "Category Name Required"],
   },
   color: {
     type: String,
-    required: [true, "Color Value Required"],
   },
   quantity_in_no: {
     type: Number,
-    required: [true, "Qunatity Vlaue Required"],
   },
   recieved: {
    type:Number,
    default:0
   },
+  cost_price: {
+    type:Number,
+    default:0
+   },
+   sale_price: {
+    type:Number,
+    default:0
+   },
 },{ timestamps: true });
 
 const dupatta_schema = new mongoose.Schema({
     category: {
       type: String,
-      required: [true, "Category Name Required"],
     },
     color: {
       type: String,
-      required: [true, "Color Value Required"],
     },
     quantity_in_no: {
       type: Number,
-      required: [true, "Qunatity Vlaue Required"],
     },
     recieved: {
      type:Number,
@@ -87,11 +89,11 @@ const stitchingSchema = new mongoose.Schema(
     },
     suits_category: {
       type: [suit_schema],
-      required: [true, "Suits Data required"],
+      default:null
     },
     dupatta_category: {
         type: [dupatta_schema],
-        required: [true, "Dupatta Data required"],
+        default:null
       },
   },
   { timestamps: true }

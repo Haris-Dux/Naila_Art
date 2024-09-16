@@ -17,7 +17,6 @@ export const cashInAsync = createAsyncThunk("cashInOut/cashIn", async (data) => 
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );
@@ -30,7 +29,6 @@ export const cashOutAsync = createAsyncThunk("cashInOut/cashOut", async (data) =
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );
@@ -39,11 +37,9 @@ export const cashOutAsync = createAsyncThunk("cashInOut/cashOut", async (data) =
 export const getTodayCashInOutAsync = createAsyncThunk("getToday/cashInOut", async (data) => {
     try {
         const response = await axios.post(getTodayCashInOut, data);
-        // toast.success(response.data.message)
         return response.data;
     } catch (error) {
-        // toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
+        throw new Error(error?.response?.data?.error);
     }
 }
 );
@@ -55,7 +51,6 @@ export const validatePartyNameForMainBranchAsync = createAsyncThunk("validate/ma
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );
@@ -68,7 +63,6 @@ export const validatePartyNameForOtherBranchAsync = createAsyncThunk("validate/o
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
-        console.log(error?.response?.data?.error);
     }
 }
 );

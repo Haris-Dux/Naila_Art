@@ -1,30 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CeateExpenseAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBranches, GetAllExpense } from "../../../features/InStockSlice";
+import { GetAllExpense } from "../../../features/InStockSlice";
+import moment from "moment-timezone";
+
 
 const ExpenseModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
-  
+  const { expenseLoading } = useSelector((state) => state.PurchaseBills);
+  const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
-  console.log("Branches", Branches);
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
     branchId: user?.user?.branchId || "",
     name: "",
     rate: "",
-    Date: "",
+    Date: today,
     reason: "",
     serial_no: "",
+    payment_Method: "",
   });
-
-  useEffect(() => {
-    dispatch(GetAllBranches({ id: user?.user?.id }));
- 
-  }, []);
 
   // Function to handle changes in form inputs
   const handleChange = (e) => {
@@ -46,20 +44,28 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(CeateExpenseAsync(formData)).then((res) => {
-      if (res.payload.message === "Expense Added") {
-        dispatch(GetAllExpense());
+
+    const modifiedFormData = {
+      ...formData,
+      rate: Number(formData.rate),
+      serial_no: Number(formData.serial_no),
+    }
+
+    dispatch(CeateExpenseAsync(modifiedFormData)).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GetAllExpense({ page: 1 }));
         setFormData({
           branchId: "",
           name: "",
           rate: "",
-          Date: "",
+          Date: today,
           reason: "",
           serial_no: "",
+          payment_Method: "",
         });
+        closeModal();
       }
     });
-    closeModal();
   };
 
   return (
@@ -133,10 +139,10 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                   <div>
                     <input
                       name="Date"
-                      type="date"
+                      type="text"
                       placeholder="Date"
-                      value={formData.Date}
-                      onChange={handleChange}
+                      value={today}
+                      // onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
@@ -168,8 +174,33 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
-                  {user?.user?.role === "superadmin" ||
-                    user?.user?.role === "admin" ? (
+                  {user?.user?.role === "superadmin" ? (
+                    <div className="col-span-2">
+                      <select
+                        id="payment-method"
+                        name="payment_Method"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={formData.payment_Method}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            payment_Method: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="" disabled>
+                          Select Payment Method
+                        </option>
+                        <option value="cashInMeezanBank">Meezan Bank</option>
+                        <option value="cashInJazzCash">Jazz Cash</option>
+                        <option value="cashInEasyPaisa">EasyPaisa</option>
+                        <option value="cashSale">Cash Sale</option>
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {user?.user?.role === "superadmin" 
+                     ? (
                     <div className="col-span-2">
                       <select
                         id="branches"
@@ -189,12 +220,21 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                 </div>
 
                 <div className="flex justify-center mt-6">
-                  <button
-                    type="submit"
-                    className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                  >
-                    Submit
-                  </button>
+                  {expenseLoading ? (
+                     <button
+                     disabled
+                     className="inline-block rounded border border-gray-600 bg-gray-400 cursor-not-allowed px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                   >
+                     Submit
+                   </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                    >
+                      Submit
+                    </button>
+                  )}
                 </div>
               </form>
             </div>

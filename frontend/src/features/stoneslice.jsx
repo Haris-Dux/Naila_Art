@@ -8,6 +8,8 @@ const UpdateStone = "/api/process/stone/updateStone";
 const getAllStone = "/api/process/stone/getAllStone";
 const getSingleStone = "/api/process/stone/getStoneById";
 const getColor = '/api/process/stone/getColorsForCurrentEmbroidery'
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 
 
 //CREATE ASYNC THUNK
@@ -17,10 +19,8 @@ export const createStone = createAsyncThunk(
     try {
       const response = await axios.post(addStone, formData);
       toast.success(response.data.message);
-      console.log(response.data);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
 
     }
@@ -34,10 +34,9 @@ export const UpdateStoneAsync = createAsyncThunk(
     try {
       const response = await axios.post(UpdateStone, formData);
       toast.success(response.data.message);
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
+
       toast.error(error.response.data.error);
     }
   }
@@ -50,14 +49,11 @@ export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
       ? `&search=${data?.search}`
       : "";
   try {
-    // const response = await axios.post(getAllStone, formData);
     const response = await axios.post(`${getAllStone}?&page=${data.page}${searchQuery}`);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
@@ -66,27 +62,78 @@ export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
 export const GetSingleStone = createAsyncThunk("Stone/GetSingle", async (id) => {
   try {
     const response = await axios.post(getSingleStone, id);
-    // toast.success(response.data.message);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.error);
-    toast.error(error.response.data.error);
+    throw new Error(error.response.data.error);
+
   }
 }
 );
 
+// DOWNLOAD GATEPASS PDF file
+const downloadPDF = (response) => {
+  if (response.headers && response.data) {
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
 
+    const contentDisposition = response.headers["content-disposition"];
+    const filenameMatch =
+      contentDisposition && contentDisposition.match(/filename="(.+)"/);
+    const filename = filenameMatch ? filenameMatch[1] : "invoice.pdf";
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    console.error("Invalid response format");
+  }
+};
+
+export const generateStoneGatePssPdfAsync = createAsyncThunk(
+  "Stone/DownladPdf",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        generatePdf,
+        { data, category: "Stone" },
+        { responseType: "arraybuffer" }
+      );
+      downloadPDF(response);
+      return response;
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Error downloading PDF");
+    }
+  }
+);
+
+//CREATE BILL FOR STONE
+export const generateStoneBillAsync = createAsyncThunk(
+  "Stone/generateProcessBil",
+  async (formData) => {
+    try {
+      const response = await axios.post(generateProcessBillURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+//GET COLORS
 export const getColorsForCurrentEmbroidery = createAsyncThunk(
   "Stone/GetColor",
   async (id) => {
     try {
       const response = await axios.post(getColor, id);
-      // toast.success(response.data.message);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.log(error.response.data.error);
       toast.error(error.response.data.error);
     }
   }
@@ -100,6 +147,8 @@ const initialState = {
   SingleStone: {},
   color:[],
   loading: false,
+  StonerpdfLoading: false,
+  StnoneBillLoading: false,
 };
 
 const StoneSlice = createSlice({
@@ -110,6 +159,22 @@ const StoneSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+    // STONE BILL
+    .addCase(generateStoneBillAsync.pending, (state, action) => {
+      state.StnoneBillLoading = true;
+    })
+    .addCase(generateStoneBillAsync.fulfilled, (state, action) => {
+      state.StnoneBillLoading = false;
+    })
+
+    //DOWNLOAD PDF
+    .addCase(generateStoneGatePssPdfAsync.pending, (state) => {
+      state.StonerpdfLoading = true;
+    })
+    .addCase(generateStoneGatePssPdfAsync.fulfilled, (state, action) => {
+      state.StonerpdfLoading = false;
+    })
 
       // Shop Add ADD CASE
       .addCase(createStone.pending, (state, action) => {

@@ -75,29 +75,49 @@ corn.schedule(
         .subtract(1, "day")
         .format("YYYY-MM-DD");
       const dailySalePromises = branchData?.map(async (branch) => {
-        const verifyDuplicateSaleData = await DailySaleModel.findOne({
-          branchId: branch._id,
-          date: today,
-        });
-        if (verifyDuplicateSaleData)
-          throw new Error(
-            `Daily Sale Already Exists for ${verifyDuplicateSaleData.date}`
+        try {
+          const verifyDuplicateSaleData = await DailySaleModel.findOne({
+            branchId: branch._id,
+            date: today,
+          });
+          if (verifyDuplicateSaleData) {
+            console.error(
+              `Daily Sale Already Exists for ${branch.branchName} on ${today}`
+            );
+            return null;
+          }
+          const previousDaySale = await DailySaleModel.findOne({
+            branchId: branch._id,
+            date: yesterday,
+          });
+          return await DailySaleModel.create({
+            branchId: branch._id,
+            date: today,
+            saleData: {
+              totalCash: previousDaySale
+                ? previousDaySale.saleData.totalCash
+                : 0,
+              cashInMeezanBank: previousDaySale
+                ? previousDaySale.saleData.cashInMeezanBank
+                : 0,
+              cashInJazzCash: previousDaySale
+                ? previousDaySale.saleData.cashInJazzCash
+                : 0,
+              cashInEasyPaisa: previousDaySale
+                ? previousDaySale.saleData.cashInEasyPaisa
+                : 0,
+            },
+          });
+        } catch (error) {
+          console.error(
+            `Failed to process branch ${branch.branchName}: ${error.message}`
           );
-        const previousDaySale = await DailySaleModel.findOne({
-          branchId: branch._id,
-          date: yesterday,
-        });
-        return await DailySaleModel.create({
-          branchId: branch._id,
-          date: today,
-          saleData: {
-            totalCash: previousDaySale ? previousDaySale.saleData.totalCash : 0,
-          },
-        });
+          return null;
+        }
       });
-      await Promise.all(dailySalePromises);
+      await Promise.allSettled(dailySalePromises);
     } catch (error) {
-      throw new Error({ error: error.message });
+      console.error(`Error in scheduled task: ${error.message}`);
     }
   },
   {

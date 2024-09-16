@@ -1,7 +1,11 @@
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import { LaceModel } from "../../models/Stock/Lace.Model.js";
+import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import mongoose from "mongoose";
+import { addBPair } from "./B_PairController.js";
+import moment from "moment-timezone";
+
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -35,7 +39,7 @@ export const addStitching = async (req, res, next) => {
       requiredFields.forEach((field) => {
         if (!req.body[field]) {
           missingFields.push(field);
-        };
+        }
         if (suits_category) {
           for (let item of suits_category) {
             if (!item.category || !item.color || !item.quantity_in_no) {
@@ -44,7 +48,7 @@ export const addStitching = async (req, res, next) => {
               );
             }
           }
-        };
+        }
         if (dupatta_category) {
           for (let item of dupatta_category) {
             if (!item.category || !item.color || !item.quantity_in_no) {
@@ -53,31 +57,42 @@ export const addStitching = async (req, res, next) => {
               );
             }
           }
-        };
+        }
         if (missingFields.length > 0) {
           throw new Error(`Missing Fields ${field}`);
         }
       });
-      const lace = await LaceModel.findOne({ category: lace_category });
-      if(!lace) throw new Error("Lace Not found");
+      const lace = await LaceModel.findOne({ category: lace_category }).session(
+        session
+      );
+      if (!lace) throw new Error("Lace Not found");
       if (parseInt(lace_quantity) > lace.totalQuantity)
         throw new Error("Not Enough Lace In Stock");
-        const newLaceTotalQuantity = parseInt(lace.totalQuantity) - parseInt(lace_quantity);
-        await LaceModel.updateOne({category:lace_category},{totalQuantity:newLaceTotalQuantity})
-  
-      await StitchingModel.create({
-        embroidery_Id,
-        Quantity,
-        partyName,
-        serial_No,
-        design_no,
-        date,
-        rate,
-        lace_quantity,
-        lace_category,
-        suits_category,
-        dupatta_category,
-      });
+      const newLaceTotalQuantity =
+        parseInt(lace.totalQuantity) - parseInt(lace_quantity);
+      await LaceModel.updateOne(
+        { category: lace_category },
+        { totalQuantity: newLaceTotalQuantity }
+      ).session(session);
+
+      await StitchingModel.create(
+        [
+          {
+            embroidery_Id,
+            Quantity,
+            partyName,
+            serial_No,
+            design_no,
+            date,
+            rate,
+            lace_quantity,
+            lace_category,
+            suits_category,
+            dupatta_category,
+          },
+        ],
+        { session }
+      );
     });
 
     return res
@@ -140,36 +155,136 @@ export const getStitchingByEmbroideryId = async (req, res, next) => {
   }
 };
 
-export const updateStitching = async (req, res, next) => {
+const addSuitsInStock = async (data, session) => {
   try {
-    const { id, suits_category, dupatta_category, project_status } = req.body;
-    if (!id) throw new Error("Id not Found");
-    const stitching = await StitchingModel.findById(id);
-    if (!stitching) throw new Error("Stitching not Found");
-    if (project_status) {
-      stitching.project_status = project_status;
+    const { category, color, quantity, cost_price, sale_price, d_no } = data;
+    if (!category || !color || !quantity || !cost_price || !sale_price || !d_no)
+      throw new Error("Missing Fields For Adding Suits Stock");
+    const checkExistingSuitStock = await SuitsModel.findOne({
+      d_no,
+      category: { $regex: new RegExp(`^${category}$`, "i") },
+    }).session(session);
+
+    const verifyd_no = await SuitsModel.findOne({
+      d_no,
+    }).session(session);
+    if (!checkExistingSuitStock && verifyd_no) {
+      throw new Error(
+        "Can Not Use Same Design Number For Two Different Categories"
+      );
     }
-    const updateFunction = (data) => {
-      for (const category in data) {
-        const items = data[category];
-        items.forEach((item) => {
-          const { return_quantity, id } = item;
-          let toUpdate = stitching[category].find((obj) => obj._id == id);
-          let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
-          if (toUpdate) {
-            toUpdate.recieved = return_quantity;
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    let recordData = { date: today, quantity, cost_price, sale_price };
+    if (
+      checkExistingSuitStock &&
+      checkExistingSuitStock.color.toLowerCase() === color.toLowerCase()
+    ) {
+      (checkExistingSuitStock.quantity += parseInt(quantity)),
+        (checkExistingSuitStock.cost_price = cost_price),
+        (checkExistingSuitStock.sale_price = sale_price);
+      checkExistingSuitStock.all_records.push(recordData);
+      await checkExistingSuitStock.save({ session });
+    } else {
+      await SuitsModel.create(
+        [
+          {
+            category,
+            color,
+            quantity,
+            cost_price,
+            sale_price,
+            d_no,
+            all_records: [recordData],
+          },
+        ],
+        { session }
+      );
+    }
+    return { success: true, message: "Successfully Added" };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+export const updateStitching = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id, suits_category, dupatta_category, project_status, d_no } =
+        req.body;
+      if (!id) throw new Error("Id not Found");
+      const stitching = await StitchingModel.findById(id).session(session);
+      if (!stitching) throw new Error("Stitching not Found");
+      //ADDING STOCK AND UPDATING PROJECT STATUS
+      if (project_status === "Completed") {
+        stitching.project_status = project_status;
+        if (suits_category) {
+          for (const item of suits_category) {
+            const data = {
+              ...item,
+              d_no: d_no,
+              quantity: item.return_quantity,
+            };
+            const res = await addSuitsInStock(data, session);
+            if (res.error) {
+              throw new Error(res.error);
+            }
           }
-          stitching.r_quantity = new_r_quantity + toUpdate.recieved;
-        });
+
+          //ADD BPAIR
+          const b_pairData = {
+            b_PairCategory: "Stitching",
+            quantity: stitching.Quantity - stitching.r_quantity,
+            rate: (stitching.Quantity - stitching.r_quantity) * stitching.rate,
+            partyName: stitching.partyName,
+            serial_No: stitching.serial_No,
+            design_no: stitching.design_no,
+          };
+          const res = await addBPair(b_pairData, session);
+          if (res.error) {
+            throw new Error(res.error);
+          }
+        }
       }
-    };
-    updateFunction({ suits_category });
-    updateFunction({ dupatta_category });
-    await stitching.save();
-    return res
-      .status(500)
-      .json({ success: true, message: "Updated Successfully" });
+
+      //UPDATING RECIEVED QUANTITY
+      const updateFunction = (data, updateStitchingRQuantity = true) => {
+        for (const category in data) {
+          const items = data[category];
+          items &&
+            items.forEach((item) => {
+              const { return_quantity, id, sale_price, cost_price } = item;
+              let toUpdate = stitching[category].find((obj) => obj._id == id);
+              let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
+              if (toUpdate) {
+                toUpdate.recieved = return_quantity;
+                toUpdate.sale_price = sale_price;
+                toUpdate.cost_price = cost_price;
+              }
+              if (updateStitchingRQuantity) {
+                stitching.r_quantity = new_r_quantity + toUpdate.recieved;
+              }
+            });
+        }
+      };
+
+      if (suits_category && dupatta_category) {
+        updateFunction({ suits_category });
+        updateFunction({ dupatta_category }, false);
+      } else if (suits_category) {
+        updateFunction({ suits_category });
+      } else if (dupatta_category) {
+        updateFunction({ dupatta_category });
+      }
+
+      await stitching.save({ session });
+      return res
+        .status(200)
+        .json({ success: true, message: "Updated Successfully" });
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };

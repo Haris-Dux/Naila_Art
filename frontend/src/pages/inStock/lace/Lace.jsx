@@ -9,7 +9,6 @@ const Lace = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [laceId, setlaceId] = useState();
     const { loading, Lace } = useSelector((state) => state.InStock);
-    console.log('Lace', Lace);
 
     const [search, setSearch] = useState();
 
@@ -66,7 +65,7 @@ const Lace = () => {
 
     return (
         <>
-            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
+            <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg'>
                 {/* -------------- HEADER -------------- */}
                 <div className="header flex justify-between items-center pt-6 mx-2">
                     <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Lace</h1>
@@ -311,7 +310,7 @@ const Lace = () => {
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+                    <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">

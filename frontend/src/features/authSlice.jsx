@@ -140,12 +140,17 @@ export const UpdateUser = createAsyncThunk(
   }
 );
 
-export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async () => {
+// AUTH USER ASYNC THUNK - UPDATED
+export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async (_, thunkAPI) => {
+  thunkAPI.dispatch(setLoading(true));
   try {
     const response = await axios.get(authUserSessionUrl);
     return response.data;
   } catch (error) {
-    console.log(error.response.data.message);
+    localStorage.removeItem("lastPath");
+    throw new Error(error)
+  } finally {
+    thunkAPI.dispatch(setLoading(false));
   }
 });
 
@@ -154,6 +159,8 @@ export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime"
 const initialState = {
   createUser: null,
   user: null,
+  routingLoading:false,
+  logoutLoading:false,
   loading: false,
   userId: null,
   forgetPasswordEmail: null,
@@ -168,6 +175,9 @@ const authSlice = createSlice({
   name: "authSlice",
   initialState,
   reducers: {
+    setLoading(state, action) {
+      state.routingLoading = action.payload;
+    },
     RemoveUserData: (state) => {
       state.user = null;
     },
@@ -244,10 +254,10 @@ const authSlice = createSlice({
       })
 
       .addCase(authUserAsync.pending, (state) => {
-        state.loading = true;
+        state.routingLoading = true;
       })
       .addCase(authUserAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.routingLoading = false;
         state.user = action.payload;
       })
 
@@ -270,16 +280,16 @@ const authSlice = createSlice({
 
 
       .addCase(logoutUserAsync.pending, (state) => {
-        state.loading = true;
+        state.logoutLoading = true;
       })
       .addCase(logoutUserAsync.fulfilled, (state) => {
-        state.loading = false;
+        state.logoutLoading = false;
         state.user = null;
       });
 
   },
 });
 
-export const { reset } = authSlice.actions;
+export const {setLoading, reset } = authSlice.actions;
 
 export default authSlice.reducer;

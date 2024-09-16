@@ -7,15 +7,18 @@ import { CashInOutModel } from "../models/CashInOutModel.js";
 import moment from "moment-timezone";
 import corn from "node-cron";
 import { BranchModel } from "../models/Branch.Model.js";
+import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
     const { name } = req.body;
     if (!name) throw new Error("Buyer Name Required");
     const projection = "name phone _id";
+    const projectionForProcess = "partyName _id serial_No"
     const Data = await Promise.all([
       BuyersModel.find({ name: { $regex: name, $options: "i" } }, projection),
       SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
+      processBillsModel.find({ partyName: { $regex: name, $options: "i" }}, projectionForProcess )
     ]);
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
@@ -149,7 +152,7 @@ export const cashOut = async (req, res, next) => {
       const { cash, partyId, branchId, payment_Method, date } = req.body;
       if (!cash || !partyId || !payment_Method || !date || !branchId)
         throw new Error("All Fields Required");
-      const userDataToUpdate = await SellersModel.findById(partyId);
+      const userDataToUpdate = await SellersModel.findById(partyId) || await processBillsModel.findById(partyId) ;
 
       if (userDataToUpdate.virtual_account.total_balance === 0)
         throw new Error("Balance Cleared");
@@ -169,10 +172,14 @@ export const cashOut = async (req, res, next) => {
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
         totalCash: (dailySaleForToday.saleData.totalCash -= cash),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] -= cash),
       };
 
       if (updatedSaleData.totalCash < 0)
         throw new Error("Not Enough Total Cash");
+
+      if (updatedSaleData.payment_Method < 0)
+        throw new Error("Not Enough Cash In PaymentMethod");
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
@@ -271,24 +278,32 @@ corn.schedule(
       const branchData = await BranchModel.find({});
       const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
       const dailyCashInOutPromises = branchData?.map(async (branch) => {
+      try {
         const verifyDuplicateData = await CashInOutModel.findOne({
           branchId: branch._id,
           date: today,
         });
-        if (verifyDuplicateData)
-          throw new Error(
-            `Cash In Out Data Already Exists for ${verifyDuplicateData.date}`
+        if (verifyDuplicateData){
+          console.error(
+            `Cash In Out Already Exists for ${branch.branchName} on ${today}`
           );
+          return null;}
         return await CashInOutModel.create({
           branchId: branch._id,
           date: today,
           todayCashIn: 0,
           todayCashOut: 0,
         });
+      } catch (error) {
+        console.error(
+          `Failed to process branch ${branch.branchName}: ${error.message}`
+        );
+        return null;
+      }
       });
-      await Promise.all(dailyCashInOutPromises);
+      await Promise.allSettled(dailyCashInOutPromises);
     } catch (error) {
-      throw new Error({ error: error.message });
+      console.error(`Error in scheduled task: ${error.message}`);
     }
   },
   {

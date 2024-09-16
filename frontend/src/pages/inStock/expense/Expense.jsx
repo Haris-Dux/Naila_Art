@@ -13,29 +13,22 @@ const Expense = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messageId, setMessageId] = useState();
   const [selectedBranchId, setSelectedBranchId] = useState(null);
-  console.log('selectedBranchId', selectedBranchId);
 
   const { user } = useSelector((state) => state.auth);
   let branchId = user?.user?.branchId;
 
   const { Branches } = useSelector((state) => state.InStock);
-  console.log('Branches', Branches);
   const { loading, Expense } = useSelector((state) => state.InStock);
-  console.log('Expense', Expense);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const [expenseModal, setexpenseModal] = useState(false);
 
 
-  console.log('expensemodal', expenseModal)
-
 
   const handleTabClick = () => {
     setexpenseModal(!expenseModal);
   };
-
-
 
 
   const allExpenses = Expense?.data?.reduce((acc, branch) => {
@@ -53,21 +46,24 @@ const Expense = () => {
   useEffect(() => {
     let id = user?.user?.id;
     if (id) {
-      dispatch(GetAllBranches({ id }));
+      dispatch(GetAllBranches({ id })).then(() => {
+        setSelectedBranchId(Branches && Branches[0]?.id)
+      })
     }
   }, [dispatch]);
+
 
 
   useEffect(() => {
     if (Branches.length > 0) {
       const payload = {
-        page: 1,
-        // branchId: user?.user?.branchId || Branches[0]?.id,
+        page,
+        branchId: selectedBranchId,
       }
       dispatch(GetAllExpense(payload));
     }
 
-  }, [page, dispatch, Branches]);
+  }, [dispatch, Branches, page]);
 
   const openModal = (msgId) => {
     setMessageId(msgId);
@@ -89,7 +85,7 @@ const Expense = () => {
             to={`/dashboard/expense?page=${i}`}
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
               }`}
-            onClick={() => dispatch(GetAllBase({ category: GetAllExpense, page: i }))}
+            onClick={() => dispatch(GetAllExpense({ page: i }))}
           >
             {i}
           </Link>
@@ -120,7 +116,6 @@ const Expense = () => {
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "all" ? "" : branchId;
-    console.log('selectedBranch', selectedBranch);
 
     setSelectedBranchId(selectedBranch);
 
@@ -413,7 +408,7 @@ const Expense = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -454,9 +449,6 @@ const Expense = () => {
       )}
 
       {expenseModal && <ExpenseModal isOpen={expenseModal} closeModal={() => setexpenseModal(false)} />}
-
-
-
     </>
   );
 };

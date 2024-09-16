@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  generateCalenderBillAsync,
+  generateCalenderGatePssPdfAsync,
   GetSingleCalender,
   UpdateCalenderAsync,
 } from "../../../features/CalenderSlice";
@@ -10,16 +12,21 @@ import { createCutting } from "../../../features/CuttingSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 const CalendarDetails = () => {
   const { id } = useParams();
-  const { loading, SingleCalender } = useSelector((state) => state.Calender);
-  const { loading:IsLoading } = useSelector((state) => state.Cutting);
+  const {
+    loading,
+    SingleCalender,
+    generateCAlenderBillLoading,
+    CalenderpdfLoading,
+  } = useSelector((state) => state.Calender);
+  const { loading: IsLoading } = useSelector((state) => state.Cutting);
 
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] = useState(false);
+  const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
+    useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
-  
-
+  const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
 
   const [CuttingData, setCuttingData] = useState({
     serial_No: "",
@@ -40,7 +47,7 @@ const CalendarDetails = () => {
   };
 
   const [CalenderData, setCalenderData] = useState({
-    id:id,
+    id: id,
     r_quantity: "",
   });
 
@@ -55,18 +62,17 @@ const CalendarDetails = () => {
     setCuttingData({
       serial_No: SingleCalender?.serial_No || "",
       design_no: SingleCalender?.design_no || "",
-      date: SingleCalender?.date ? SingleCalender?.date?.split("T")[0] : "",
-      partyName: SingleCalender?.partyName || "",
+      T_Quantity: SingleCalender?.r_quantity || 0,
+      date: "",
+      partyName: "",
       embroidery_Id: SingleCalender?.embroidery_Id || "",
     });
   }, [SingleCalender]);
 
-
   useEffect(() => {
     setCalenderData({
-      id:id,
+      id: id,
       r_quantity: SingleCalender?.r_quantity || "",
-      
     });
   }, [SingleCalender]);
 
@@ -81,16 +87,12 @@ const CalendarDetails = () => {
   const handleSubmitCutting = (e) => {
     e.preventDefault();
 
-    console.log("cutting", CuttingData);
-
-    dispatch(createCutting(CuttingData))
-      .then((res) => {
-        if (res.payload.success === true) {
+    dispatch(createCutting(CuttingData)).then((res) => {
+      if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/cutting");
-        }
-      })
-     
+      }
+    });
   };
 
   const handleCompleteCalender = (e) => {
@@ -101,8 +103,7 @@ const CalendarDetails = () => {
     dispatch(UpdateCalenderAsync({ project_status: "Completed", id: id }))
       .then(() => {
         dispatch(GetSingleCalender(data));
-        closeCompletedModal()
-       
+        closeCompletedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -116,9 +117,10 @@ const CalendarDetails = () => {
       id: id,
     };
 
-    dispatch(UpdateCalenderAsync(CalenderData)).then(() => {
+    dispatch(UpdateCalenderAsync(CalenderData))
+      .then(() => {
         dispatch(GetSingleCalender(data));
-        closeUpdateRecievedModal()
+        closeUpdateRecievedModal();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -132,6 +134,15 @@ const CalendarDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleOpenGatePassModal = () => {
+    setisGenerateGatePassOpen(true);
+  };
+
+  const closeGatepassModal = () => {
+    setisGenerateGatePassOpen(false);
     document.body.style.overflow = "auto";
   };
 
@@ -150,7 +161,6 @@ const CalendarDetails = () => {
       </section>
     );
   }
-
 
   const handleCompletedClick = () => {
     setIsCompletedConfirmOpen(true);
@@ -172,12 +182,26 @@ const CalendarDetails = () => {
     document.body.style.overflow = "auto";
   };
 
+  const handleGenerateGatePassPDf = () => {
+    dispatch(generateCalenderGatePssPdfAsync(SingleCalender));
+    closeGatepassModal();
+  };
 
+  const generateBill = () => {
+    const formData = { ...SingleCalender, process_Category: "Calender" };
+    dispatch(generateCalenderBillAsync(formData));
+  };
 
-
-
-
-  console.log("selectedDetails", SingleCalender);
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Completed":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      default:
+        return "";
+    }
+  };
 
   return (
     <>
@@ -212,9 +236,9 @@ const CalendarDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="text-green-600 dark:text-green-300">
+              <span className="">
                 {" "}
-                {SingleCalender?.project_status}
+                {setStatusColor(SingleCalender?.project_status)}
               </span>
             </div>
             <div className="box">
@@ -253,7 +277,7 @@ const CalendarDetails = () => {
         <div className="flex justify-center items-center">
           {SingleCalender?.project_status !== "Completed" && (
             <button
-              className="px-4 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-2 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -261,24 +285,49 @@ const CalendarDetails = () => {
           )}
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
-        <div className="mt-10 flex justify-center items-center gap-x-5">
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={handleCompletedClick}
-          >
-            Completed
-          </button>
+        <div className="mt-6 flex justify-center items-center gap-x-5">
+          {SingleCalender?.project_status !== "Completed" && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={handleCompletedClick}
+            >
+              Completed
+            </button>
+          )}
           {SingleCalender?.project_status === "Completed" && (
-            <> 
-          <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Bill
-          </button>
-       
-          </>
-)}
-   <button className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800">
-            Generate Gate Pass
-          </button>
+            <>
+              {generateCAlenderBillLoading ? (
+                <button
+                  disabled
+                  className="px-4 py-2.5 text-sm cursor-progress rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              ) : (
+                <button
+                  onClick={generateBill}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Generate Bill
+                </button>
+              )}
+            </>
+          )}
+          {CalenderpdfLoading ? (
+            <button
+              disabled
+              className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          ) : (
+            <button
+              onClick={handleOpenGatePassModal}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Gate Pass
+            </button>
+          )}
           <button
             className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             onClick={openModal}
@@ -333,6 +382,7 @@ const CalendarDetails = () => {
                         value={CuttingData.serial_No}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
                     <div>
@@ -356,6 +406,7 @@ const CalendarDetails = () => {
                         value={CuttingData.design_no}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -380,6 +431,7 @@ const CalendarDetails = () => {
                         value={CuttingData.T_Quantity}
                         onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -397,12 +449,22 @@ const CalendarDetails = () => {
                   </div>
 
                   <div className="flex justify-center pt-2">
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
-                    >
-                     {IsLoading ? "Submiting..." : "Submit"}
-                    </button>
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                      >
+                        Submit
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -410,24 +472,32 @@ const CalendarDetails = () => {
           </div>
         )}
 
+        {isUpdateReceivedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Update"
+            message="Are you sure you want to update the received items?"
+            onConfirm={handleUpdateCalender}
+            onClose={closeUpdateRecievedModal}
+          />
+        )}
 
-{isUpdateReceivedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Update"
-          message="Are you sure you want to update the received items?"
-          onConfirm={handleUpdateCalender}
-          onClose={closeUpdateRecievedModal}
-        />
-      )}
+        {isCompletedConfirmOpen && (
+          <ConfirmationModal
+            title="Confirm Complete"
+            message="Are you sure you want to Complete ?"
+            onConfirm={handleCompleteCalender}
+            onClose={closeCompletedModal}
+          />
+        )}
 
-{isCompletedConfirmOpen && (
-        <ConfirmationModal
-          title="Confirm Complete"
-          message="Are you sure you want to Complete ?"
-          onConfirm={handleCompleteCalender}
-          onClose={closeCompletedModal}
-        />
-      )}
+        {isGenerateGatePassOpen && (
+          <ConfirmationModal
+            title="Confirmation"
+            message="Are you sure you want to generate gatepass?"
+            onConfirm={handleGenerateGatePassPDf}
+            onClose={closeGatepassModal}
+          />
+        )}
       </section>
     </>
   );

@@ -7,7 +7,7 @@ import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addExpense = async (req, res, next) => {
   try {
-    const { name, reason, Date, rate, serial_no, branchId } = req.body;
+    const { name, reason, Date, rate, serial_no, branchId , payment_Method} = req.body;
     if (!name || !reason || !Date || !rate || !serial_no || !branchId)
       throw new Error("Missing Fields");
     const branch = await BranchModel.findOne({ _id: branchId });
@@ -25,7 +25,11 @@ export const addExpense = async (req, res, next) => {
     //UPDATING DAILY SALE
     existingDailySaleData.saleData.totalExpense += rate;
     existingDailySaleData.saleData.totalCash -= rate;
-    if(existingDailySaleData.saleData.totalCash < 0) throw new Error('Not Enough Cash')
+    if(payment_Method){
+      existingDailySaleData.saleData[payment_Method] -= rate;
+    }
+    if(existingDailySaleData.saleData[payment_Method] < 0) throw new Error('Not Enough Cash In Selected Payment Method')
+    if(existingDailySaleData.saleData.totalCash < 0) throw new Error('Not Enough Total Cash')
     if (existingExpenseData) {
       existingExpenseData.brannchExpenses.push(expenseData);
       await Promise.all([
@@ -48,10 +52,9 @@ export const getAllExpenses = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
 
-    const limit = 6;
+    const limit = 10;
     let search = req.query.search || "";
     let branchId = req.query.branchId || "";
-
     const matchStage = {
       $match: {
         branchId: branchId ? new mongoose.Types.ObjectId(branchId) : { $exists: true },
