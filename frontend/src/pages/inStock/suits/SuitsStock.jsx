@@ -6,6 +6,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
 import { LuGitBranchPlus } from "react-icons/lu";
+import StockForBranch from '../../../Component/InStock/StockForBranch';
 const SuitsStock = () => {
     const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
@@ -22,7 +23,7 @@ const SuitsStock = () => {
     const { SuitCategories } = useSelector((state) => state.InStock);
     const { user } = useSelector((state) => state.auth);
 
-
+console.log('user',user)
 
     // State variables to hold form data
     const [formData, setFormData] = useState({
@@ -169,6 +170,13 @@ const SuitsStock = () => {
     const filteredSuitData = useMemo(() => Suit?.data?.filter(data => data.id === SuitId), [Suit, SuitId]);
 
     console.log('filteredSuitData', filteredSuitData);
+
+
+if(user?.user?.role !== "superadmin")
+    {
+return <StockForBranch/>;
+    }
+
 
     return (
         <>
