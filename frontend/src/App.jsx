@@ -44,6 +44,9 @@ import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
+import PreviewBill from "./pages/generateBills/PreviewBill";
+import AssignSuits from "./pages/inStock/assignstocks/AssignStock";
+import AssignStock from "./pages/inStock/assignstocks/AssignStock";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 import B_Pair from "./pages/process/b_pair/B_Pair";
 import VerifyOTP from "./pages/dashboard/VerifyOTP";
@@ -87,6 +90,8 @@ useEffect(() => {
             <Route path="bag" element={<Bag />} />
             <Route path="accessories" element={<Accessories />} />
             <Route path="expense" element={<Expense />} />
+            <Route path="assignstocks" element={<AssignStock />} />
+
 
             {/* GENERATE BILL */}
             <Route path="generate-bill" element={<GenerateBill />} />
