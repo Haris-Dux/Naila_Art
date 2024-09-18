@@ -20,16 +20,13 @@ const OldBuyerGenerateBill = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
-  const { Bags } = useSelector((state) => state.InStock);
+  const PackagingData = useSelector((state) => state.InStock?.Bags);
   const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
   const { loading, BuyerById } = useSelector((state) => state.Buyer);
+  const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-
-
-
-  // console.log('BuyerById', BuyerById);
 
   const [billData, setBillData] = useState({
     buyerId: id,
@@ -39,6 +36,8 @@ const OldBuyerGenerateBill = () => {
     city: BuyerById?.city,
     cargo: "",
     phone: BuyerById?.phone,
+    discountType: "RS",
+    subTotal: "",
     date: today,
     bill_by: "",
     payment_Method: "",
@@ -55,7 +54,6 @@ const OldBuyerGenerateBill = () => {
   });
 
   const [colorOptions, setColorOptions] = useState([[]]);
-  const [suitOptions, setSuitOptions] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
 
   console.log("billData", billData);
@@ -95,7 +93,7 @@ const OldBuyerGenerateBill = () => {
         city: BuyerById?.city || "",
         cargo: "",
         phone: BuyerById?.phone || "",
-        date: new Date().toISOString().split("T")[0],
+        date: today,
         bill_by: "",
         payment_Method: "",
         total: "",
@@ -112,11 +110,8 @@ const OldBuyerGenerateBill = () => {
     }
   }, [BuyerById, user]);
 
-  console.log('billData', billData);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     // Update the state with the new value
     const updatedBillData = {
       ...billData,
@@ -124,22 +119,44 @@ const OldBuyerGenerateBill = () => {
     };
 
     // Convert total and paid to numbers for calculation
-    const total = parseInt(updatedBillData.total, 10) || 0;
     const paid = parseInt(updatedBillData.paid, 10) || 0;
+    const discount = () => {
+      return updatedBillData.discountType === "%"
+        ? (parseInt(calculateSubTotal()) * parseInt(updatedBillData.discount)) /
+            100 || 0
+        : parseInt(updatedBillData.discount) || 0;
+    };
+    updatedBillData.subTotal = calculateSubTotal();
 
     // Calculate remaining value if total or paid has changed
-    if (name === "total" || name === "paid") {
-      updatedBillData.remaining = total - paid;
+    if (
+      name === "paid" ||
+      name === "discount" ||
+      name === "discountType" ||
+      name === "subTotal"
+    ) {
+      updatedBillData.remaining = calculateSubTotal() - paid - discount();
+      updatedBillData.total = updatedBillData.remaining + paid;
     }
 
     setBillData(updatedBillData);
   };
 
+  useEffect(() => {
+    const e = {
+      target: {
+        name: "subTotal",
+        value: "",
+      },
+    };
+    handleInputChange(e);
+  }, [billData.suits_data]);
+
   const handlePackagingChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "packagingType") {
-      const selectedOption = Bags.data.find((bag) => bag.id === value);
+      const selectedOption = Bags.find((bag) => bag.id === value);
       setBillData((prevState) => ({
         ...prevState,
         packaging: {
@@ -175,7 +192,7 @@ const OldBuyerGenerateBill = () => {
         { id: "", quantity: "", d_no: "", color: "", price: "" },
       ],
     }));
-    setColorOptions((prevOptions) => [...prevOptions, []]); // Add an empty color options array for the new row
+    setColorOptions((prevOptions) => [...prevOptions, []]);
   };
 
   const handleSuitDataChange = (index, e) => {
@@ -187,7 +204,6 @@ const OldBuyerGenerateBill = () => {
       suits_data: updatedSuitsData,
     }));
   };
-
 
   const removeRow = (index) => {
     setBillData((prevData) => ({
@@ -201,15 +217,17 @@ const OldBuyerGenerateBill = () => {
     });
   };
 
-
-
   const handleSuitChange = (index, e) => {
     const { name, value } = e.target;
     const newSuitsData = [...billData.suits_data];
     newSuitsData[index][name] = value;
 
     if (name === "d_no") {
-      dispatch(getSuitFromDesignAsync({ d_no: value })).then((response) => {
+      const data = {
+        branchId: billData.branchId,
+        d_no: value,
+      };
+      dispatch(getSuitFromDesignAsync(data)).then((response) => {
         const colors = response.payload.map((item) => item.color);
 
         // Update color options for this specific row
@@ -227,12 +245,14 @@ const OldBuyerGenerateBill = () => {
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
 
-    const selectedDesign = SuitFromDesign.find((design) => design.color === selectedColor);
+    const selectedDesign = SuitFromDesign.find(
+      (design) => design.color === selectedColor
+    );
 
     setBillData((prevState) => {
       const updatedSuitsData = [...prevState.suits_data];
       updatedSuitsData[index].color = selectedColor;
-      updatedSuitsData[index].id = selectedDesign?.id || "";
+      updatedSuitsData[index].id = selectedDesign?.Item_Id || "";
 
       return {
         ...prevState,
@@ -301,6 +321,19 @@ const OldBuyerGenerateBill = () => {
         });
       }
     });
+  };
+
+  const validateValue = (value) => {
+    return value === undefined || value === null || isNaN(value) || value === ""
+      ? 0
+      : parseInt(value);
+  };
+
+  const calculateSubTotal = () => {
+    const subtotal = billData?.suits_data?.reduce((total, suit) => {
+      return total + validateValue(suit?.price) * validateValue(suit?.quantity);
+    }, 0);
+    return subtotal;
   };
 
   return (
@@ -439,7 +472,7 @@ const OldBuyerGenerateBill = () => {
                   </div>
 
                   {/* THIRD ROW */}
-                  <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                       <select
                         id="packaging"
@@ -451,7 +484,7 @@ const OldBuyerGenerateBill = () => {
                         <option value="" disabled>
                           Select Packaging
                         </option>
-                        {Bags?.data?.map((bag) => (
+                        {Bags?.map((bag) => (
                           <option key={bag.id} value={bag.id}>
                             {bag.name}
                           </option>
@@ -467,58 +500,6 @@ const OldBuyerGenerateBill = () => {
                         value={billData.packaging.quantity}
                         onChange={handlePackagingChange}
                         required
-                      />
-                    </div>
-                    <div>
-                      <input
-                        name="discount"
-                        type="number"
-                        placeholder="Discount"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={billData.discount}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* FORTH ROW */}
-                  <div
-                    className={`mb-4 grid items-start grid-cols-2 gap-5 ${user?.user?.role === "superadmin"
-                      ? "lg:grid-cols-4"
-                      : "lg:grid-cols-3"
-                      }`}
-                  >
-                    <div>
-                      <input
-                        name="total"
-                        type="number"
-                        placeholder="Total"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={billData.total}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <input
-                        name="paid"
-                        type="number"
-                        placeholder="Paid"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={billData.paid}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <input
-                        name="remaining"
-                        type="number"
-                        placeholder="Remaining"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={billData.remaining}
-                        readOnly // Set to read-only since it's calculated
                       />
                     </div>
                     {user?.user?.role === "superadmin" ? (
@@ -541,6 +522,89 @@ const OldBuyerGenerateBill = () => {
                         </select>
                       </div>
                     ) : null}
+                  </div>
+
+                  {/* FORTH ROW */}
+                  <div
+                    className={`mb-4 border-t pt-2 grid items-start grid-cols-2 gap-5 lg:grid-cols-5`}
+                  >
+                    <div>
+                      <label className="text-sm font-semibold">Sub Total</label>
+                      <input
+                        name="subTotal"
+                        type="number"
+                        placeholder={0}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={calculateSubTotal() || 0}
+                        readOnly
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-semibold">Paid</label>
+                      <input
+                        name="paid"
+                        type="number"
+                        placeholder="Enter Value"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={billData.paid}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1">
+                        <label className="text-sm font-semibold">
+                          Discount
+                        </label>
+                        <div className="flex">
+                          <input
+                            name="discount"
+                            type="number"
+                            placeholder="Enter Value"
+                            className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            value={billData.discount}
+                            onChange={handleInputChange}
+                          />
+                          <select
+                            name="discountType"
+                            className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                            value={billData.discountType}
+                            onChange={handleInputChange}
+                          >
+                            <option value="RS">RS</option>
+                            <option value="%">%</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-semibold">Total</label>
+                      <input
+                        name="total"
+                        type="number"
+                        placeholder={0}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={billData.total}
+                        required
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-semibold">Remaining</label>
+                      <input
+                        name="remaining"
+                        type="number"
+                        placeholder={0}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={billData.remaining}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -586,7 +650,9 @@ const OldBuyerGenerateBill = () => {
                               value={suit.color}
                               onChange={(e) => handleColorChange(index, e)}
                             >
-                              <option value="" disabled>Choose Color</option>
+                              <option value="" disabled>
+                                Choose Color
+                              </option>
                               {colorOptions[index]?.map((color, idx) => (
                                 <option key={idx} value={color}>
                                   {color}

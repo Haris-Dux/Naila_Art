@@ -154,13 +154,17 @@ const PreviewBill = ({ onReturnClick, billData }) => {
                             </div>
 
                             <div className="total border border-gray-400">
-                                <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
-                                    <h2 className='pl-3 py-3 w-full border-r'>Total</h2>
-                                    <h2 className='pl-3 py-3 w-full'>{Number(billData?.total) + Number(billData?.discount)}</h2>
+                            <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
+                                    <h2 className='pl-3 py-3 w-full border-r'>Sub Total</h2>
+                                    <h2 className='pl-3 py-3 w-full'>{Number(billData?.subTotal)}</h2>
                                 </div>
                                 <div className="total flex justify-start items-center w-full">
                                     <h2 className='pl-3 py-3 w-full border-r'>Discount</h2>
-                                    <h2 className='pl-3 py-3 w-full'>{billData?.discount}</h2>
+                                    <h2 className='pl-3 py-3 w-full'>{billData?.discount}{" "}{billData.discountType === "%" ? "%" : "RS"}</h2>
+                                </div>
+                                <div className="total flex border-b bg-[#252525] text-white justify-start items-center w-full">
+                                    <h2 className='pl-3 py-3 w-full border-r'>Total</h2>
+                                    <h2 className='pl-3 py-3 w-full'>{Number(billData?.total)}</h2>
                                 </div>
                                 <div className="total flex bg-[#252525] text-white justify-start items-center w-full">
                                     <h2 className='pl-3 py-3 w-full border-r'>Advance</h2>
