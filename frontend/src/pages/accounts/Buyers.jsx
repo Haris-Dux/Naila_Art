@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IoAdd } from "react-icons/io5";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -34,7 +34,6 @@ const Buyers = () => {
   const [paymentStatus, setPaymentStatus] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
-  const [oldBuyerData, setOldBuyerData] = useState([]);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -77,24 +76,6 @@ const Buyers = () => {
   )
     : Buyers?.buyers;
 
-
-  const [formData, setFormData] = useState({
-    category: "",
-    color: "",
-    quantity: "",
-    cost_price: "",
-    sale_price: "",
-    d_no: ""
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = 'hidden';
@@ -134,11 +115,13 @@ const Buyers = () => {
     });
   };
 
+  const searchTimerRef = useRef(null);
+
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
-    setValidateOldBuyer(value)
-
+    setValidateOldBuyer(value);
+  
     const payload = {
       id: user?.user?.id,
       page: 1,
@@ -146,21 +129,34 @@ const Buyers = () => {
       status: paymentStatus !== "All" ? paymentStatus : undefined,
       branchId: selectedBranchId
     };
-
-    dispatch(getBuyerForBranchAsync(payload));
+  
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+  
+    if (value.length > 0) {
+      searchTimerRef.current = setTimeout(() => {
+        dispatch(getBuyerForBranchAsync(payload));
+      }, 1000);
+    }
   };
+
+  const validateBuyerTimerRef = useRef(null);
 
   const handleValidateOldBuyer = (e) => {
     const value = e.target.value;
     setValidateOldBuyer(value);
-
+  
+    if (validateBuyerTimerRef.current) {
+      clearTimeout(validateBuyerTimerRef.current);
+    }
+  
     if (value.length > 0) {
-      const timer = setTimeout(() => {
+      validateBuyerTimerRef.current = setTimeout(() => {
         dispatch(validateOldBuyerAsync({ name: value }));
       }, 1000);
-      return () => clearTimeout(timer);
     }
-  }
+  };
 
   const handleStatusClick = (status) => {
     setPaymentStatus(status);
@@ -329,6 +325,13 @@ const Buyers = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
+                  <th
+                      className="px-6 py-4 text-md font-medium"
+                      scope="col"
+                    >
+                      <span className='text-red-500'>S.N</span>-
+                      <span className='text-green-600'>A.S.N</span>
+                    </th>
                     <th
                       className="px-6 py-4 text-md font-medium"
                       scope="col"
@@ -371,6 +374,10 @@ const Buyers = () => {
                   {filteredData && filteredData.length > 0 ? (
                     filteredData?.map((data, index) => (
                       <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <td className="px-6 py-4  font-medium">
+                        <span className='text-red-500'> {data.serialNumber}</span>-
+                        <span className='text-green-600'>{data.autoSN}</span>
+                        </td>
                         <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >

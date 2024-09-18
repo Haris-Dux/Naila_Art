@@ -21,7 +21,7 @@ const GenerateBill = () => {
   const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
-  const Bags = PackagingData.data.filter((item) => item.name !== "Bags");
+  const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const [billData, setBillData] = useState({
@@ -31,6 +31,8 @@ const GenerateBill = () => {
     city: "",
     cargo: "",
     phone: "",
+    discountType: "RS",
+    subTotal: "",
     date: today,
     bill_by: "",
     payment_Method: "",
@@ -45,7 +47,6 @@ const GenerateBill = () => {
     },
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
   });
-
 
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
@@ -71,7 +72,6 @@ const GenerateBill = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     // Update the state with the new value
     const updatedBillData = {
       ...billData,
@@ -79,16 +79,39 @@ const GenerateBill = () => {
     };
 
     // Convert total and paid to numbers for calculation
-    const total = parseInt(updatedBillData.total, 10) || 0;
     const paid = parseInt(updatedBillData.paid, 10) || 0;
+    const discount = () => {
+      return updatedBillData.discountType === "%"
+        ? (parseInt(calculateSubTotal()) * parseInt(updatedBillData.discount)) /
+            100 || 0
+        : parseInt(updatedBillData.discount) || 0;
+    };
+    updatedBillData.subTotal = calculateSubTotal();
 
     // Calculate remaining value if total or paid has changed
-    if (name === "total" || name === "paid") {
-      updatedBillData.remaining = total - paid;
+    if (
+      name === "paid" ||
+      name === "discount" ||
+      name === "discountType" ||
+       name === "subTotal"
+    ) {
+      updatedBillData.remaining = calculateSubTotal() - paid - discount();
+      updatedBillData.total = updatedBillData.remaining + paid;
     }
 
     setBillData(updatedBillData);
   };
+
+  useEffect(() => {
+    const e = {
+      target: {
+        name: "subTotal",
+        value: "",
+      },
+    }
+    handleInputChange(e);
+   
+  },[billData.suits_data])
 
   const handlePackagingChange = (e) => {
     const { name, value } = e.target;
@@ -133,7 +156,6 @@ const GenerateBill = () => {
     setColorOptions((prevOptions) => [...prevOptions, []]);
   };
 
-
   const handleSuitDataChange = (index, e) => {
     const { name, value } = e.target;
     const updatedSuitsData = [...billData.suits_data];
@@ -156,14 +178,17 @@ const GenerateBill = () => {
     });
   };
 
-
   const handleSuitChange = (index, e) => {
     const { name, value } = e.target;
     const newSuitsData = [...billData.suits_data];
     newSuitsData[index][name] = value;
 
     if (name === "d_no") {
-      dispatch(getSuitFromDesignAsync({ d_no: value })).then((response) => {
+      const data = {
+        branchId: billData.branchId,
+        d_no: value,
+      };
+      dispatch(getSuitFromDesignAsync(data)).then((response) => {
         const colors = response.payload.map((item) => item.color);
 
         // Update color options for this specific row
@@ -181,12 +206,13 @@ const GenerateBill = () => {
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
 
-    const selectedDesign = SuitFromDesign.find((design) => design.color === selectedColor);
-
+    const selectedDesign = SuitFromDesign.find(
+      (design) => design.color === selectedColor
+    );
     setBillData((prevState) => {
       const updatedSuitsData = [...prevState.suits_data];
       updatedSuitsData[index].color = selectedColor;
-      updatedSuitsData[index].id = selectedDesign?.id || "";
+      updatedSuitsData[index].id = selectedDesign?.Item_Id || "";
 
       return {
         ...prevState,
@@ -194,8 +220,6 @@ const GenerateBill = () => {
       };
     });
   };
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -223,8 +247,6 @@ const GenerateBill = () => {
       toast.error("Please Select Branch");
       return;
     }
-
-    console.log(pdfLoading);
 
     dispatch(generateBuyerBillAsync(modifiedBillData)).then((res) => {
       if (res.payload.succes === true) {
@@ -258,6 +280,21 @@ const GenerateBill = () => {
       }
     });
   };
+
+  const validateValue = (value) => {
+    return value === undefined || value === null || isNaN(value) || value === ""
+      ? 0
+      : parseInt(value);
+  };
+
+  const calculateSubTotal = () => {
+    const subtotal = billData?.suits_data?.reduce((total, suit) => {
+      return total + validateValue(suit?.price) * validateValue(suit?.quantity);
+    }, 0);
+    return subtotal;
+  };
+
+  
 
   return (
     <>
@@ -383,7 +420,7 @@ const GenerateBill = () => {
               </div>
 
               {/* THIRD ROW */}
-              <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
                 <div>
                   <select
                     id="packaging"
@@ -392,7 +429,10 @@ const GenerateBill = () => {
                     value={billData.packaging.id}
                     onChange={handlePackagingChange}
                   >
-                 
+                    <option value="" disabled>
+                      Select Packaging
+                    </option>
+
                     {Bags?.map((bag) => (
                       <option key={bag.id} value={bag.id}>
                         {bag.name}
@@ -411,58 +451,7 @@ const GenerateBill = () => {
                     required
                   />
                 </div>
-                <div>
-                  <input
-                    name="discount"
-                    type="number"
-                    placeholder="Discount"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    value={billData.discount}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
 
-              {/* FORTH ROW */}
-              <div
-                className={`mb-4 grid items-start grid-cols-2 gap-5 ${user?.user?.role === "superadmin"
-                  ? "lg:grid-cols-4"
-                  : "lg:grid-cols-3"
-                  }`}
-              >
-                <div>
-                  <input
-                    name="total"
-                    type="number"
-                    placeholder="Total"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    value={billData.total}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="paid"
-                    type="number"
-                    placeholder="Paid"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    value={billData.paid}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    name="remaining"
-                    type="number"
-                    placeholder="Remaining"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    value={billData.remaining}
-                    readOnly // Set to read-only since it's calculated
-                  />
-                </div>
                 {user?.user?.role === "superadmin" ? (
                   <div>
                     <select
@@ -484,13 +473,96 @@ const GenerateBill = () => {
                   </div>
                 ) : null}
               </div>
+
+              {/* FORTH ROW */}
+              <div
+                className={`mb-4 border-t pt-2 grid items-start grid-cols-2 gap-5 lg:grid-cols-5`}
+              >
+                <div>
+                  <label className="text-sm font-semibold">Sub Total</label>
+                  <input
+                    name="subTotal"
+                    type="number"
+                    placeholder={0}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={calculateSubTotal() || 0}
+                    readOnly
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold">Paid</label>
+                  <input
+                    name="paid"
+                    type="number"
+                    placeholder="Enter Value"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={billData.paid}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1">
+                    <label className="text-sm font-semibold">Discount</label>
+                    <div className="flex">
+                      <input
+                        name="discount"
+                        type="number"
+                        placeholder="Enter Value"
+                        className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={billData.discount}
+                        onChange={handleInputChange}
+                      />
+                      <select
+                        name="discountType"
+                        className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                        value={billData.discountType}
+                        onChange={handleInputChange}
+                      >
+                        <option value="RS">RS</option>
+                        <option value="%">%</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold">Total</label>
+                  <input
+                    name="total"
+                    type="number"
+                    placeholder={0}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={billData.total}
+                    required
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold">Remaining</label>
+                  <input
+                    name="remaining"
+                    type="number"
+                    placeholder={0}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={billData.remaining}
+                    readOnly
+                  />
+                </div>
+              </div>
             </div>
 
             {/* DESIGN FIELDS */}
             <div className="fields mt-10">
               {/* header */}
               <div className="header flex justify-between items-center">
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white">Enter Design Number</h3>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+                  Enter Design Number
+                </h3>
 
                 <button
                   type="button"
@@ -528,7 +600,9 @@ const GenerateBill = () => {
                           value={suit.color}
                           onChange={(e) => handleColorChange(index, e)}
                         >
-                          <option value="" disabled>Choose Color</option>
+                          <option value="" disabled>
+                            Choose Color
+                          </option>
                           {colorOptions[index]?.map((color, idx) => (
                             <option key={idx} value={color}>
                               {color}
@@ -582,7 +656,7 @@ const GenerateBill = () => {
               >
                 Preview Bill
               </button>
-              {pdfLoading || generateBillloading ?
+              {pdfLoading || generateBillloading ? (
                 <button
                   disabled
                   type="submit"
@@ -590,12 +664,14 @@ const GenerateBill = () => {
                 >
                   Loading ...
                 </button>
-                : <button
+              ) : (
+                <button
                   type="submit"
                   className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-gray-500"
                 >
                   Generate Bill
-                </button>}
+                </button>
+              )}
             </div>
           </form>
         </section>

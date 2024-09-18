@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from "react-router-dom";
-import { GetAllaccessories } from '../../../features/InStockSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaEye } from "react-icons/fa";
 import { getAllPurchasingHistoryAsync } from '../../../features/SellerSlice';
 
 
@@ -127,7 +125,7 @@ const AccessoriesTable = () => {
                                                 {new Date(data.date).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {data.quantity} m
+                                                {data.quantity}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {data.rate}

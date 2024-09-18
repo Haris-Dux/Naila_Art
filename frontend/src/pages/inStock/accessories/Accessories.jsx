@@ -428,7 +428,7 @@ const Accessories = () => {
                                                                 {data.name}
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                {data.quantity} m
+                                                                {data.quantity} 
                                                             </td>
                                                         </tr>
                                                     ))
@@ -466,6 +466,12 @@ const Accessories = () => {
                                                 >
                                                     Note
                                                 </th>
+                                                <th
+                                                    className="px-6 py-3"
+                                                    scope="col"
+                                                >
+                                                    Quantity
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -481,6 +487,9 @@ const Accessories = () => {
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 {data?.note}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {data?.quantityRemoved}
                                                             </td>
                                                         </tr>
                                                     ))

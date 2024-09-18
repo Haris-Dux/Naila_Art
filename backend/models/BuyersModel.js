@@ -74,6 +74,10 @@ const BuyersSchema = new mongoose.Schema({
     type: String,
     required: [true, "Serial Number is required"],
   },
+  autoSN:{
+    type: Number,
+    required: [true, "Auto Serial Number is required"],
+  },
   name: {
     type: String,
     required: [true, "Name Value is required"],

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { GetAllBags } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { FaEye } from "react-icons/fa";
 import { getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 
 const BagBoxTable = () => {
