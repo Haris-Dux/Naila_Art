@@ -4,11 +4,16 @@ import {
   AssginStocktoBranch,
   GetAllBranches,
 } from "../../../features/InStockSlice";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { FaDatabase } from "react-icons/fa";
+import moment from "moment-timezone";
 
 const AssignStock = () => {
-  const { Branches, SuitLoading } = useSelector((state) => state.InStock);
+  const { Branches, stockLoading } = useSelector((state) => state.InStock);
   const { user } = useSelector((state) => state.auth);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
   const dispatch = useDispatch();
 
   const [selectedItems, setSelectedItems] = useState(
@@ -31,11 +36,11 @@ const AssignStock = () => {
       Item_Id: item._id,
       category: item.category,
       color: item.color,
-      quantity: item?.assignQuantity || 1,
+      quantity: item?.assignQuantity,
       cost_price: item.cost_price,
       sale_price: item.sale_price,
       d_no: item.d_no,
-      date: new Date().toISOString().split("T")[0],
+      date: today
     }));
 
     setFormData((prevFormData) => ({
@@ -60,23 +65,22 @@ const AssignStock = () => {
   };
 
   const handleAssignQuantityChange = (index, value) => {
-    // Ensure the value is a number and within range
-    const quantity = Number(value);
     const updatedItems = [...selectedItems];
     updatedItems[index] = {
       ...updatedItems[index],
-      assignQuantity: Math.max(1, Math.min(quantity, updatedItems[index]?.TotalQuantity || 1)),
+      assignQuantity: value === "" ? null : Number(value),
     };
+
 
     const updatedStockDetails = updatedItems.map((item) => ({
       Item_Id: item._id,
       category: item.category,
       color: item.color,
-      quantity: item.assignQuantity || 1,
+      quantity: item.assignQuantity,
       cost_price: item.cost_price,
       sale_price: item.sale_price,
       d_no: item.d_no,
-      date: new Date().toISOString().split("T")[0],
+      date: today,
     }));
 
     setSelectedItems(updatedItems);
@@ -88,6 +92,17 @@ const AssignStock = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const checkValidQuantity = formData.stock_Details.some(
+      (item) => item.quantity === null || item.quantity === 0
+    );
+    if (formData.branchId === "") {
+      toast.error("Please select a branch");
+      return;
+    }
+    if (checkValidQuantity) {
+      toast.error("Please assign valid quantity for all items");
+      return;
+    }
     dispatch(AssginStocktoBranch(formData)).then((res) => {
       if (res.payload.success === true) {
         navigate("/dashboard/suits");
@@ -100,26 +115,32 @@ const AssignStock = () => {
     });
   };
 
+
   return (
     <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
       <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
         Assign Stock
       </h1>
 
-      <div className="flex justify-center items-center pt-6">
+      <div className="flex justify-between items-center pt-6">
         <select
           id="branches"
           value={formData.branchId}
           onChange={handleBranchChange}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+          className="bg-gray-50 w-48 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
         >
-          <option value="">Choose Branch</option>
+          <option value="" disabled>
+            Choose Branch
+          </option>
           {Branches?.map((data) => (
-            <option key={data.id} value={data.id}>
+            <option key={data?.id} value={data?.id}>
               {data?.branchName}
             </option>
           ))}
         </select>
+        <Link to={"/dashboard/AssignedStockHistory"}>
+        <FaDatabase  size={32} className="cursor-pointer" />
+        </Link>
       </div>
 
       <div className="relative overflow-x-auto mt-5">
@@ -132,7 +153,7 @@ const AssignStock = () => {
               <th className="px-6 py-3">Quantity</th>
               <th className="px-6 py-3">Cost Prices</th>
               <th className="px-6 py-3">Sales Prices</th>
-              <th className="px-6 py-3">Assign Quantity</th>
+              <th className="px-6 py-3">Send Quantity</th>
               <th className="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -156,19 +177,19 @@ const AssignStock = () => {
                   <td className="px-6 py-4">
                     <input
                       type="number"
-                      min={1}
-                      max={data?.TotalQuantity}
-                      value={data.assignQuantity || ""}
+                      required
+                      placeholder="0"
+                      value={data.assignQuantity}
                       onChange={(e) =>
                         handleAssignQuantityChange(index, e.target.value)
                       }
-                      className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-700"
+                      className="border border-gray-300 outline-none focus:outline-none focus:ring-0 focus:border-gray-900 rounded-md px-2 py-1 w-20 text-gray-700"
                     />
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => handleRemoveItem(index)}
-                      className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                      className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-red-500 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                     >
                       <svg
                         aria-hidden="true"
@@ -203,12 +224,12 @@ const AssignStock = () => {
 
       {selectedItems.length > 0 && (
         <div className="flex justify-center pt-6">
-          {SuitLoading ? (
+          {stockLoading ? (
             <button
               disabled
-              className="inline-block cursor-progress rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indigo-500"
+              className="inline-block cursor-progress rounded border border-gray-600 bg-gray-300 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indigo-500"
             >
-              Submitting...
+              Assign Stock
             </button>
           ) : (
             <button

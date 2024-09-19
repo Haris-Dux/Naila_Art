@@ -107,9 +107,9 @@ const VerifyOTP = () => {
 
   return (
     <>
-      <section className="unauthorized">
+      <section >
         <div className="flex flex-col items-center bottom-4 border-r-slate-900 justify-center px-6 py-8 mx-auto min-h-screen lg:py-0">
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 ">
+          <div className="w-full bg-white border-4 rounded-lg   border-red-600 shadow dark:border md:mt-0 sm:max-w-md xl:p-0 ">
             <div className="p-6 items-center space-y-4 md:space-y-6 sm:p-8">
               <div className="unauthorized text-center space-y-4 md:space-y-6 sm:p-4 text-4xl font-semibold tracking-wider text-red-600">
                 VERIFY OTP
@@ -190,7 +190,7 @@ const VerifyOTP = () => {
 
                       {timer === 0 ? (
                         <button
-                          style={{ minWidth: "130px" }}
+                          style={{ minWidth: "135px" }}
                           className="inline-block align-baseline font-bold text-sm text-[#6CD572] hover:text-green-400 ml-4"
                           type="button"
                           onClick={resendOTP}
@@ -199,7 +199,7 @@ const VerifyOTP = () => {
                         </button>
                       ) : (
                         <div
-                          style={{ minWidth: "130px" }}
+                          style={{ minWidth: "135px" }}
                           className="inline-block align-baseline font-bold text-sm  ml-4 text-red-600"
                         >
                           Resend OTP in : {Math.round(timer / 1000)}

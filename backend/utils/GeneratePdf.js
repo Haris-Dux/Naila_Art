@@ -1460,7 +1460,7 @@ async function generatePDF(data) {
         <div class="bill_total">
           <div class="bill_row dark_class">
             <div class="bill_title">Total</div>
-            <div class="bill_value">${data.total + data.discount}</div>
+            <div class="bill_value">${data.total}</div>
           </div>
 
           <div class="bill_row">

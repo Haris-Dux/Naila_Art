@@ -282,7 +282,6 @@ export const generateGatePassPdfFunction = async (req, res, next) => {
 
     return res.status(200).end(pdfBuffer);
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: error.message });
   }
 };

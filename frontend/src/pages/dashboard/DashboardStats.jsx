@@ -26,6 +26,7 @@ const DashboardStats = () => {
   const { user } = useSelector((state) => state.auth);
   const { loading, DashboardData } = useSelector((state) => state.dashboard);
   const [hasError, setHasError] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
@@ -33,14 +34,16 @@ const DashboardStats = () => {
         if (res?.error) {
           setHasError(true);
           localStorage.removeItem("dashboardAccessTime");
-        }
+        };
+        setDataLoading(false);
       });
     } else {
       dispatch(getDataForOtherBranchAsync()).then((res) => {
         if (res?.error) {
           setHasError(true);
           localStorage.removeItem("dashboardAccessTime");
-        }
+        };
+        setDataLoading(false);
       });
     }
   }, [user]);
@@ -122,7 +125,7 @@ const DashboardStats = () => {
 
   return (
     <>
-      {loading ? (
+      {dataLoading || loading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
           <div
             className="animate-spin inline-block w-9 h-9 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "

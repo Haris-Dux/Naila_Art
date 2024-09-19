@@ -56,8 +56,6 @@ const OldBuyerGenerateBill = () => {
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
 
-  console.log("billData", billData);
-
   const handlePreviewClick = () => {
     setShowPreview(true);
     window.scrollTo(0, 0);

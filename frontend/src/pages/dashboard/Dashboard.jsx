@@ -155,6 +155,7 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
+              
               <Link
                 to="/dashboard/generate-bill"
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"

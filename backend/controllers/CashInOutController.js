@@ -8,17 +8,21 @@ import moment from "moment-timezone";
 import corn from "node-cron";
 import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
+import { sendEmail } from "../utils/nodemailer.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
     const { name } = req.body;
     if (!name) throw new Error("Buyer Name Required");
     const projection = "name phone _id";
-    const projectionForProcess = "partyName _id serial_No"
+    const projectionForProcess = "partyName _id serial_No";
     const Data = await Promise.all([
       BuyersModel.find({ name: { $regex: name, $options: "i" } }, projection),
       SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
-      processBillsModel.find({ partyName: { $regex: name, $options: "i" }}, projectionForProcess )
+      processBillsModel.find(
+        { partyName: { $regex: name, $options: "i" } },
+        projectionForProcess
+      ),
     ]);
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
@@ -52,7 +56,9 @@ export const cashIn = async (req, res, next) => {
       const { cash, partyId, branchId, payment_Method, date } = req.body;
       if (!cash || !partyId || !payment_Method || !date || !branchId)
         throw new Error("All Fields Required");
-      const userDataToUpdate = await BuyersModel.findById(partyId);
+      const userDataToUpdate = await BuyersModel.findById(partyId).session(
+        session
+      );
 
       if (userDataToUpdate.virtual_account.total_balance === 0)
         throw new Error("Balance Cleared");
@@ -136,12 +142,35 @@ export const cashIn = async (req, res, next) => {
       todayCashInOut.todayCashIn += cash;
       await todayCashInOut.save({ session });
 
+      //Sending Email
+      const branch = await BranchModel.findById(branchId)
+        .select("branchName")
+        .session(session);
+
+      const CashInEmailData = {
+        branchName: branch.branchName,
+        name: userDataToUpdate.name,
+        phone: userDataToUpdate.phone,
+        amount: cash,
+        date: date,
+        payment_Method: payment_Method,
+      };
+
+      await sendEmail({
+        branchName: branch.branchName,
+        email: "Nailaarts666@gmail.com",
+        email_Type: "Cash In",
+        CashInEmailData,
+      });
+
       return res
         .status(200)
         .json({ sucess: true, message: "Cash In Successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -152,7 +181,9 @@ export const cashOut = async (req, res, next) => {
       const { cash, partyId, branchId, payment_Method, date } = req.body;
       if (!cash || !partyId || !payment_Method || !date || !branchId)
         throw new Error("All Fields Required");
-      const userDataToUpdate = await SellersModel.findById(partyId) || await processBillsModel.findById(partyId) ;
+      const userDataToUpdate =
+        (await SellersModel.findById(partyId).session(session)) ||
+        (await processBillsModel.findById(partyId).session(session));
 
       if (userDataToUpdate.virtual_account.total_balance === 0)
         throw new Error("Balance Cleared");
@@ -240,12 +271,32 @@ export const cashOut = async (req, res, next) => {
       todayCashInOut.todayCashOut += cash;
       await todayCashInOut.save({ session });
 
+      //SEND EMAIL
+      const branch = await BranchModel.findById(branchId)
+        .select("branchName")
+        .session(session);
+      const CashOutEmailData = {
+        branchName: branch.branchName,
+        name: userDataToUpdate.name,
+        phone: userDataToUpdate.phone,
+        amount: cash,
+        date: date,
+        payment_Method: payment_Method,
+      };
+      await sendEmail({
+        email: "Nailaarts666@gmail.com",
+        email_Type: "Cash Out",
+        CashOutEmailData,
+      });
+
       return res
         .status(200)
         .json({ sucess: true, message: "Cash Out Successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -263,7 +314,7 @@ export const getTodaysCashInOut = async (req, res, next) => {
       { date: { $eq: today }, branchId },
       projection
     );
- 
+
     const data = { ...TodaysCashInOut._doc, ...TodaysDailySale._doc };
     return res.status(200).json({ success: true, data });
   } catch (error) {
@@ -278,28 +329,29 @@ corn.schedule(
       const branchData = await BranchModel.find({});
       const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
       const dailyCashInOutPromises = branchData?.map(async (branch) => {
-      try {
-        const verifyDuplicateData = await CashInOutModel.findOne({
-          branchId: branch._id,
-          date: today,
-        });
-        if (verifyDuplicateData){
+        try {
+          const verifyDuplicateData = await CashInOutModel.findOne({
+            branchId: branch._id,
+            date: today,
+          });
+          if (verifyDuplicateData) {
+            console.error(
+              `Cash In Out Already Exists for ${branch.branchName} on ${today}`
+            );
+            return null;
+          }
+          return await CashInOutModel.create({
+            branchId: branch._id,
+            date: today,
+            todayCashIn: 0,
+            todayCashOut: 0,
+          });
+        } catch (error) {
           console.error(
-            `Cash In Out Already Exists for ${branch.branchName} on ${today}`
+            `Failed to process branch ${branch.branchName}: ${error.message}`
           );
-          return null;}
-        return await CashInOutModel.create({
-          branchId: branch._id,
-          date: today,
-          todayCashIn: 0,
-          todayCashOut: 0,
-        });
-      } catch (error) {
-        console.error(
-          `Failed to process branch ${branch.branchName}: ${error.message}`
-        );
-        return null;
-      }
+          return null;
+        }
       });
       await Promise.allSettled(dailyCashInOutPromises);
     } catch (error) {

@@ -6,6 +6,7 @@ import { BuyersModel } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
+import { sendEmail } from "../utils/nodemailer.js";
 
 export const generateBuyersBillandAddBuyer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -76,7 +77,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BAGS OR BOXES FROM STOCK
-      if(packaging && !packaging.id){
+      if (packaging && !packaging.id) {
         throw new Error("Please Select Packaging");
       }
       const bagsorBoxStock = await BagsAndBoxModel.findById(
@@ -218,6 +219,27 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         ],
         { session }
       );
+
+      //SEND EMAIL
+      const BillEmailData = {
+        serialNumber,
+        branchName: branch.branchName,
+        name,
+        phone,
+        date,
+        bill_by,
+        payment_Method,
+        debit: virtualAccountData.total_debit,
+        credit: virtualAccountData.total_credit,
+        balance: virtualAccountData.total_balance,
+        status: virtualAccountData.status,
+      };
+
+      await sendEmail({
+        email: "Nailaarts666@gmail.com",
+        email_Type: "Buyer Bill",
+        BillEmailData,
+      });
 
       return res
         .status(200)
@@ -397,7 +419,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BAGS OR BOXES FROM STOCK
-      if(packaging && !packaging.id){
+      if (packaging && !packaging.id) {
         throw new Error("Please Select Packaging");
       }
       const bagsorBoxStock = await BagsAndBoxModel.findById(
@@ -482,7 +504,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
-      };
+      }
 
       if (new_total_balance < 0)
         throw new Error("Invalid Balance Amount For This Party");
@@ -536,6 +558,27 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         },
         { session }
       );
+
+      //SEND EMAIL
+      const BillEmailData = {
+        serialNumber,
+        branchName: branch.branchName,
+        name,
+        phone,
+        date,
+        bill_by,
+        payment_Method,
+        debit: virtualAccountData.total_debit,
+        credit: virtualAccountData.total_credit,
+        balance: virtualAccountData.total_balance,
+        status: virtualAccountData.status,
+      };
+
+      await sendEmail({
+        email: "Nailaarts666@gmail.com",
+        email_Type: "Buyer Bill",
+        BillEmailData,
+      });
       return res
         .status(200)
         .json({ succes: true, message: "Bill Generated Successfully" });
