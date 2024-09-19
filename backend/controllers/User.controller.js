@@ -51,6 +51,7 @@ export const logout = async (req, res) => {
       if (error)
         return res.status(400).json({ message: "Logout Unsuccessfull" });
       res.clearCookie("connect.sid");
+      res.clearCookie("D_Token")
       res.status(200).json({ message: "Logout Successfull" });
     });
   } catch (error) {
@@ -174,7 +175,7 @@ export const sendResetPasswordOTP = async (req, res, next) => {
         timestamp: new Date(currentDate.getTime()),
       });
     }
-    await sendEmail({ email, g_Otp });
+    await sendEmail({ email, g_Otp ,email_Type:'Reset Password'});
     return res
       .status(200)
       .json({ message: "OTP has been sent to your email", userId: user.id });

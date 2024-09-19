@@ -10,7 +10,6 @@ import {
 import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import toast from "react-hot-toast";
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -37,7 +36,7 @@ const EmbroideryDetails = () => {
     partyName: "",
     design_no: "",
     date: "",
-    recieved_suit: "",
+    T_Quantity: 0,
     rate: 0,
     embroidery_Id: SingleEmbroidery?.id || "",
   });
@@ -47,8 +46,6 @@ const EmbroideryDetails = () => {
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
       date: SingleEmbroidery?.date ? SingleEmbroidery?.date?.split("T")[0] : "",
-      T_Quantity: SingleEmbroidery?.T_Recieved_Suit * 3 || "",
-
       embroidery_Id: SingleEmbroidery?.id || "",
     });
   }, [SingleEmbroidery]);
@@ -184,7 +181,7 @@ const EmbroideryDetails = () => {
 
     dispatch(createCalender(CalenderData)).then((res) => {
       if (res.payload.success === true) {
-        closeModal(); // Close modal after submission
+        closeModal(); 
         navigate("/dashboard/calendar");
       }
     });
@@ -683,7 +680,7 @@ const EmbroideryDetails = () => {
 
                     <div>
                       <input
-                        name="quantity"
+                        name="T_Quantity"
                         type="number"
                         placeholder="Quantity"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"

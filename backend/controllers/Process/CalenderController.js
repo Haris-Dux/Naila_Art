@@ -67,7 +67,6 @@ export const updateCalender = async (req, res, next) => {
         b_PairCategory: "Calender",
       };
       const response = await addBPair(data);
-      console.log(response);
       if (response.error) throw new Error(response.error);
     }
     return res.status(200).json({ success: true, message: "Updated Successfully" });

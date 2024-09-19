@@ -346,7 +346,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         "Please Enter data for suit,duppata or trouser and one head and it's value"
       );
     } else {
-      console.log(meregdata);
 
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {

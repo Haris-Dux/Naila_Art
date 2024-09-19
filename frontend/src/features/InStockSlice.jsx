@@ -14,10 +14,10 @@ const GetLaceForEmroidery = "/api/stock/lace/getAllLaceForEmbroidery";
 const getSuits = "/api/stock/suits/getAllSuits";
 const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
-const getExpenseForBranchUrl = "/api/stock/expense/getExpensesForBranch";
 const AddSuits = "/api/stock/suits/addBaseInStock";
 const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
+const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
 const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock"
 // GET ALL BRANCHES API
 const getAllBranches = "/api/branches/getAllBranches";
@@ -43,6 +43,24 @@ export const AssginStocktoBranch = createAsyncThunk(
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const AllBranchStockHistoryAsync = createAsyncThunk(
+  "StocktoBranch/AllBranchStockHistory",
+  async (data) => {
+    try {
+      const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+      const response = await axios.post( `${AllSuitsStockHistoryUrl}?&page=${data.page}${searchQuery}`,{
+        id: data.id, 
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error)
     }
   }
 );
@@ -87,7 +105,6 @@ export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
 export const GetAllStockForBranch = createAsyncThunk(
   "StockForBranch/Get",
   async (data) => {
-    // Construct search query string if needed
     const searchQuery =
       data?.search !== undefined && data?.search !== null
         ? `&search=${data?.search}`
@@ -287,11 +304,14 @@ const initialState = {
   Bags: [],
   accessories: [],
   Expense: [],
-  // SingleBranchExpense: [],
   loading: false,
   GetSuitloading: false,
   Branches: [],
-  suitStocks:[]
+  suitStocks:[],
+  StockHistory:[],
+  StockHistoryLoading:false,
+  stockLoading:false,
+  addSuitLoading:false
 };
 
 const InStockSlic = createSlice({
@@ -382,6 +402,15 @@ const InStockSlic = createSlice({
         state.GetSuitloading = false;
         state.suitStocks = action.payload;
       })
+
+      .addCase(AllBranchStockHistoryAsync.pending, (state, action) => {
+        state.StockHistoryLoading = true;
+      })
+      .addCase(AllBranchStockHistoryAsync.fulfilled, (state, action) => {
+        state.StockHistoryLoading = false;
+        state.StockHistory = action.payload;
+      })
+
       .addCase(GetAllExpense.pending, (state, action) => {
         state.loading = true;
       })
@@ -390,34 +419,26 @@ const InStockSlic = createSlice({
         state.Expense = action.payload;
       })
 
-      // .addCase(GetAllExpenseForBranch.pending, (state, action) => {
-      //   state.loading = true;
-      // })
-      // .addCase(GetAllExpenseForBranch.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.SingleBranchExpense = action.payload;
-      // })
-
       .addCase(AddSuit.pending, (state) => {
-        state.SuitLoading = true;
+        state.addSuitLoading = true;
       })
       .addCase(AddSuit.fulfilled, (state, action) => {
-        state.SuitLoading = false;
+        state.addSuitLoading = false;
       })
 
       .addCase(approveOrRejectStock.pending, (state) => {
-        state.SuitLoading = true;
+        state.stockLoading = true;
       })
       .addCase(approveOrRejectStock.fulfilled, (state, action) => {
-        state.SuitLoading = false;
+        state.stockLoading = false;
       })
 
 
       .addCase(AssginStocktoBranch.pending, (state) => {
-        state.SuitLoading = true;
+        state.stockLoading = true;
       })
       .addCase(AssginStocktoBranch.fulfilled, (state, action) => {
-        state.SuitLoading = false;
+        state.stockLoading = false;
       })
       .addCase(GetAllBranches.pending, (state, action) => {
         state.loading = true;

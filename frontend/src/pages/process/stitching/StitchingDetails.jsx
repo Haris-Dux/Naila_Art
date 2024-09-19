@@ -206,8 +206,7 @@ const StitchingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium ">Project Status:</span>
-              <span className="text-green-600 dark:text-green-300">
-                {" "}
+              <span className={`${SingleStitching.project_status === "Pending" ? "text-yellow-300" : "text-green-600"}`}>
                 {SingleStitching?.project_status}
               </span>
             </div>

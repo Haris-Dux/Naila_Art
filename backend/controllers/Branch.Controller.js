@@ -6,6 +6,7 @@ import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
+import { sendEmail } from "../utils/nodemailer.js";
 
 export const createBranch = async (req, res) => {
   try {
@@ -216,7 +217,7 @@ export const getAllBranchStockHistory = async (req, res) => {
     if (!branch) throw new Error("Branch Not Found");
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 20;
     let search = parseInt(req.query.search) || "";
 
     let query = {};
@@ -229,29 +230,37 @@ export const getAllBranchStockHistory = async (req, res) => {
     const data = await BranchModel.aggregate([
       { $match: { _id: branchId } },
       { $unwind: "$stockData" },
+      { $unwind: "$stockData.all_records" },
       { $match: query },
       { $skip: (page - 1) * limit },
       { $limit: limit },
       { $sort: { "stockData.createdAt": -1 } },
       {
         $project: {
-          _id: 0,
-          id: "$stockData._id",
           category: "$stockData.category",
           color: "$stockData.color",
-          quantity: "$stockData.quantity",
-          cost_price: "$stockData.cost_price",
-          sale_price: "$stockData.sale_price",
+          quantity: "$stockData.all_records.quantity",
+          cost_price: "$stockData.all_records.cost_price",
+          sale_price: "$stockData.all_records.sale_price",
+          date: "$stockData.all_records.date",
           d_no: "$stockData.d_no",
-          Item_Id: "$stockData.Item_Id",
-          last_updated: "$stockData.last_updated",
-          stock_status: "$stockData.stock_status",
-          all_records: "$stockData.all_records",
+          stock_status: "$stockData.all_records.stock_status",
         },
       },
     ]);
-
-    const total = branch.stockData.length;
+    let total = 0;
+    if (search) {
+      branch?.stockData?.forEach((item) => {
+        if (item.d_no === search) {
+          total += item.all_records.length;
+        }
+      });
+    } else {
+      total = branch?.stockData?.reduce(
+        (inc, item) => inc + item.all_records.length,
+        0
+      );
+    }
 
     setMongoose();
 
@@ -275,7 +284,7 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
     if (!branch) throw new Error("Branch Not Found");
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 20;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
 
@@ -371,22 +380,28 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
 
 export const approveOrRejectStock = async (req, res) => {
   try {
-    const { _id, Item_Id, status , branchId } = req.body;
-    if (!_id || !Item_Id || !status || !branchId) throw new Error("All Fields Required");
+    const { _id, Item_Id, status, branchId } = req.body;
+    if (!_id || !Item_Id || !status || !branchId)
+      throw new Error("All Fields Required");
     const branch = await BranchModel.findById(branchId);
     if (!branch) throw new Error("Branch Not Found");
 
-    const stockItem = branch.stockData.find(item =>
-      item.all_records.some(record => record._id.equals(_id))
+    const stockItem = branch.stockData.find((item) =>
+      item.all_records.some((record) => record._id.equals(_id))
     );
     if (!stockItem) throw new Error("stockItem To Update Not Found");
-    const stockToUpdate = stockItem.all_records.find(record => record._id.equals(_id));
+    const stockToUpdate = stockItem.all_records.find((record) =>
+      record._id.equals(_id)
+    );
     if (!stockToUpdate) throw new Error("stockToUpdate Not Found");
 
     //UPDATING STATUS AND STOCK
     stockToUpdate.stock_status = status;
+    let MainStock = {};
     if (status === "Received") {
-      const MainStock = branch.stockData.find(item => item.Item_Id.equals(Item_Id));
+       MainStock = branch.stockData.find((item) =>
+        item.Item_Id.equals(Item_Id)
+      );
       if (!MainStock) throw new Error("MainStock To Update Not Found");
       MainStock.quantity += stockToUpdate.quantity;
       MainStock.cost_price = stockToUpdate.cost_price;
@@ -394,15 +409,29 @@ export const approveOrRejectStock = async (req, res) => {
       MainStock.last_updated = stockToUpdate.date;
     } else if (status === "Returned") {
       const suitToUpdate = await SuitsModel.findOne({
-        id:  branch.stockData.Item_Id,
+        id: branch.stockData.Item_Id,
       });
       if (suitToUpdate) {
         suitToUpdate.quantity += stockToUpdate.quantity;
         await suitToUpdate.save();
       } else throw new Error("Suit Stock Not Found");
-    };
+    }
     await branch.save();
-    return res.status(200).json({success:true , message: "Stock Updated Successfully" });
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    const StockEmailData = {
+      send_date:stockToUpdate.date,
+      recieveDate:today,
+      d_no:MainStock.d_no,
+      category:MainStock.category,
+      color:MainStock.color,
+      quantity:stockToUpdate.quantity,
+      branchName:branch.branchName,
+      stockStatus:status
+    };
+    await sendEmail({email:"Nailaarts666@gmail.com",email_Type:"Stock Update",StockEmailData});
+    return res
+      .status(200)
+      .json({ success: true, message: "Stock Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

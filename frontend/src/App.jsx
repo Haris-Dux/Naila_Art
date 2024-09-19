@@ -50,6 +50,7 @@ import AssignStock from "./pages/inStock/assignstocks/AssignStock";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 import B_Pair from "./pages/process/b_pair/B_Pair";
 import VerifyOTP from "./pages/dashboard/VerifyOTP";
+import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHistory";
 
 
 function App() {
@@ -91,6 +92,7 @@ useEffect(() => {
             <Route path="accessories" element={<Accessories />} />
             <Route path="expense" element={<Expense />} />
             <Route path="assignstocks" element={<AssignStock />} />
+            <Route path="AssignedStockHistory" element={<AssignedStockHistory />} />
 
 
             {/* GENERATE BILL */}

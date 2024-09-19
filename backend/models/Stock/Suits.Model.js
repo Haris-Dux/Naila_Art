@@ -13,7 +13,7 @@ const record_data = new mongoose.Schema({
   sale_price:{
     type:Number
   }
-});
+},{ timestamps: true });
 
 const suitsSchema = new mongoose.Schema({
   category: {
@@ -39,7 +39,6 @@ const suitsSchema = new mongoose.Schema({
   d_no: {
     type: Number,
     required: [true,"D number required"],
-    unique: true,
   },
   all_records:[record_data]
 }, { timestamps: true });

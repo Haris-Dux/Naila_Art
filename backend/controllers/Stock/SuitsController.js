@@ -8,19 +8,19 @@ export const addSuitsInStock = async (req, res, next) => {
       req.body;
     if (!category || !color || !quantity || !cost_price || !sale_price || !d_no)
       throw new Error("Missing Fields For Adding Suits Stock");
+
+    const existingSuitWithDNo = await SuitsModel.findOne({ d_no });
+
+    if (existingSuitWithDNo && existingSuitWithDNo.category.toLowerCase() !== category.toLowerCase()) {
+      throw new Error(`The Design No ${d_no} is already assigned to the category '${existingSuitWithDNo.category}'`);
+    }
+    
     const checkExistingSuitStock = await SuitsModel.findOne({
       d_no,
       category: { $regex: new RegExp(`^${category}$`, "i") },
+      color: {$regex : new RegExp(`^${color}$`,"i")}
     });
-
-    const verifyd_no = await SuitsModel.findOne({
-      d_no,
-    });
-    if (!checkExistingSuitStock && verifyd_no) {
-      throw new Error(
-        "Can Not Use Same Design Number For Two Different Categories"
-      );
-    }
+  
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
     let recordData = { date: today, quantity, cost_price, sale_price };
     if (

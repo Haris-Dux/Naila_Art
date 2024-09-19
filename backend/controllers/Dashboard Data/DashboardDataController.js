@@ -699,8 +699,7 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
         timestamp: new Date(currentDate.getTime()),
       });
     };
-    await sendEmail({ email:"harissaeed583@gamil.com", g_Otp });
-    console.log(g_Otp);
+    await sendEmail({ email:"Nailaarts666@gmail.com", g_Otp, emailType:"Dashboard OTP" });
     return res
       .status(200)
       .json({ message: "OTP has been sent to your email", success: true , userId: user._id});

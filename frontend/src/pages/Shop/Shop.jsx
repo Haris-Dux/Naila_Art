@@ -215,8 +215,8 @@ const Shop = () => {
                         onClick={() => fetchBranchUser(data?.id)}
                         className={`border w-56 border-gray-500 ${
                           selectedShopId === data?.id
-                            ? "bg-blue-800 text-white border-none"
-                            : "bg-white dark:bg-gray-700 text-black hover:bg-blue-800 hover:text-white dark:text-gray-100"
+                            ? "bg-gray-800 text-white border-none"
+                            : "bg-white dark:bg-gray-700 text-black hover:bg-gray-800 hover:text-white dark:text-gray-100"
                         } px-5 py-2 mx-2 text-sm rounded-md`}
                         key={data?.id}
                       >

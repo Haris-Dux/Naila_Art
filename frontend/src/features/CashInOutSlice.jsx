@@ -78,6 +78,7 @@ const initialState = {
     TodayCashInOutData: [],
     mainBranchResponse: [],
     otherBranchResponse: [],
+    valiDateLoading:false
 };
 
 const CashInOutSlice = createSlice({
@@ -115,19 +116,19 @@ const CashInOutSlice = createSlice({
 
             // VALIDATE PARTY NAME FOR MAIN BRANCH
             .addCase(validatePartyNameForMainBranchAsync.pending, (state) => {
-                state.loading = true;
+                state.valiDateLoading = true;
             })
             .addCase(validatePartyNameForMainBranchAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.valiDateLoading = false;
                 state.mainBranchResponse = action.payload
             })
 
             // VALIDATE PARTY NAME FOR OTHER BRANCH
             .addCase(validatePartyNameForOtherBranchAsync.pending, (state) => {
-                state.loading = true;
+                state.valiDateLoading = true;
             })
             .addCase(validatePartyNameForOtherBranchAsync.fulfilled, (state, action) => {
-                state.loading = false;
+                state.valiDateLoading = false;
                 state.otherBranchResponse = action.payload
             })
     },
