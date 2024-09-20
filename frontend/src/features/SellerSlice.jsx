@@ -49,6 +49,7 @@ export const GetSellerByIdAsync = createAsyncThunk("getSeller/id", async (id) =>
 export const AddSellerDetailsFromAsync = createAsyncThunk("addSeller/details", async (data) => {
     try {
         const response = await axios.post(addNewSellerDetails, data);
+        toast.success(response.data.message)
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -61,6 +62,7 @@ export const AddSellerDetailsFromAsync = createAsyncThunk("addSeller/details", a
 export const AddOldSellerDetailsFromAsync = createAsyncThunk("addOldSeller/details", async (data) => {
     try {
         const response = await axios.post(addOldSellerDetails, data);
+        toast.success(response.data.message)
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);

@@ -75,6 +75,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
       rate: Number(formData.rate),
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
+      seller_stock_category: "Bag/box"
     };
 
     if (sellerDetails && sellerDetails?.id) {

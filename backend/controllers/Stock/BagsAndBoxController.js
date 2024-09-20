@@ -5,6 +5,10 @@ export const addBagsAndBoxInStock = async ({name, bill_no, r_Date, quantity,sess
   try {
     if (!name || !bill_no || !quantity || !r_Date)
       throw new Error("All Fields Required");
+    // Ensure name is either 'Bags' or 'Box'
+  if (name !== "Bags" && name !== "Box") {
+    throw new Error("Name must be either 'Bags' or 'Box'");
+  }
     const checkExistingStock = await BagsAndBoxModel.findOne({
       name: name,
     }).session(session);

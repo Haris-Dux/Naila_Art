@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IoAdd } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { FaEye } from "react-icons/fa";
 import { GetAllBranches } from "../../features/InStockSlice";
 import {
   cashInAsync,
   cashOutAsync,
   getTodayCashInOutAsync,
+  validatePartyNameForAdminAsync,
   validatePartyNameForMainBranchAsync,
   validatePartyNameForOtherBranchAsync,
 } from "../../features/CashInOutSlice";
@@ -60,7 +58,6 @@ const CashInOut = () => {
       branchId: value,
     }));
   };
-
   const timerRef = useRef(null);
 
   const handleValidateParty = useCallback(
@@ -72,14 +69,14 @@ const CashInOut = () => {
         const validateParty =
           user?.user?.role === "superadmin"
             ? validatePartyNameForMainBranchAsync
+            : user?.user?.role === "admin"
+            ? validatePartyNameForAdminAsync
             : validatePartyNameForOtherBranchAsync;
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
 
-            if(timerRef.current){
-                clearTimeout(timerRef.current);
-               
-            }
-
-            timerRef.current = setTimeout(() => {
+        timerRef.current = setTimeout(() => {
           dispatch(validateParty({ name: value }));
         }, 1000);
 
@@ -493,7 +490,7 @@ const CashInOut = () => {
                           </ul>
                         ) : (
                           <p className="mt-4 text-gray-600 pl-4">
-                            No matching buyers found.
+                            No matching Data found.
                           </p>
                         )}
                       </>

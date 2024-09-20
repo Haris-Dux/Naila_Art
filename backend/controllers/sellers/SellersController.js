@@ -172,7 +172,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
     });
     return res
       .status(200)
-      .json({ success: true, message: "Seller Bill Generated And SStock Added Successfuly" });
+      .json({ success: true, message: "Seller Bill Generated And Stock Added Successfuly" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {

@@ -1,23 +1,25 @@
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-
 export const addBaseInStock = async (req, res, next) => {
   try {
-    const { category, colors, r_Date, quantity } = req.body;
+    let { category, colors, r_Date, quantity } = req.body;
     if (!category || !colors || !quantity || !r_Date)
       throw new Error("All Fields Required");
+    category =
+      category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+    colors = colors.charAt(0).toUpperCase() + colors.slice(1).toLowerCase();
     const checkExistingStock = await BaseModel.findOne({
-      category: { $regex: new RegExp(category, 'i') },
-      colors: { $regex: new RegExp(colors, 'i') },
+      category: { $regex: new RegExp(category, "i") },
+      colors: { $regex: new RegExp(colors, "i") },
     });
     let recordData = { category, colors, Date: r_Date, quantity };
     if (checkExistingStock) {
       const updatedTYm = checkExistingStock.TYm + quantity;
-      checkExistingStock.recently = quantity,
-        checkExistingStock.r_Date = r_Date,
-        checkExistingStock.TYm = updatedTYm,
-        checkExistingStock.all_Records.push(recordData)
+      (checkExistingStock.recently = quantity),
+        (checkExistingStock.r_Date = r_Date),
+        (checkExistingStock.TYm = updatedTYm),
+        checkExistingStock.all_Records.push(recordData);
       await checkExistingStock.save();
     } else {
       await BaseModel.create({
@@ -26,7 +28,7 @@ export const addBaseInStock = async (req, res, next) => {
         recently: quantity,
         r_Date,
         TYm: quantity,
-        all_Records: [recordData]
+        all_Records: [recordData],
       });
     }
 
@@ -45,19 +47,17 @@ export const getAllBases = async (req, res, next) => {
 
     let query = {};
     if (search) {
-
       query.colors = { $regex: search, $options: "i" };
-    };
+    }
     if (category) {
       query = { ...query, category: category };
-    };
+    }
     const data = await BaseModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ updatedAt: -1 });
 
     const total = await BaseModel.countDocuments(query);
-
 
     const response = {
       totalPages: Math.ceil(total / limit),
@@ -87,11 +87,11 @@ export const getAllCategoriesForbase = async (req, res, next) => {
   }
 };
 
-export const getAllBasesForEmbroidery =  async (req,res,next) => {
+export const getAllBasesForEmbroidery = async (req, res, next) => {
   try {
     const baseData = await BaseModel.find({});
     return res.status(200).json(baseData);
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message });
   }
 };

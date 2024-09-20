@@ -9,6 +9,7 @@ import corn from "node-cron";
 import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
+import { UserModel } from "../models/User.Model.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -32,14 +33,47 @@ export const validatePartyNameForMainBranch = async (req, res, next) => {
   }
 };
 
-export const validatePartyNameForOtherBranches = async (req, res, next) => {
+export const validatePartyNameForAdminBranch = async (req, res, next) => {
   try {
     const { name } = req.body;
     if (!name) throw new Error("Buyer Name Required");
+    const id = req.session.userId;
+    if (!id) {
+      throw new Error("Please Login Again");
+    }
+    const user = await UserModel.findById({ _id: id });
+    if (user.role !== "admin") throw new Error("User UnAuthorized");
+    const projection = "name phone _id";
+    const projectionForProcess = "partyName _id serial_No";
+    const Data = await Promise.all([
+      BuyersModel.find( { branchId: user.branchId, name: { $regex: name, $options: "i" } }, projection),
+      SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
+      processBillsModel.find(
+        { partyName: { $regex: name, $options: "i" } },
+        projectionForProcess
+      ),
+    ]);
+    if (!Data) throw new Error("No Data Found With For This Name");
+    setMongoose();
+    return res.status(200).json({ success: true, Data });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const validatePartyNameForOtherBranches = async (req, res, next) => {
+  try {
+    const id = req.session.userId;
+    const { name } = req.body;
+    if (!name) throw new Error("Buyer Name Required");
+    if (!id) {
+      throw new Error("Please Login Again");
+    }
+    const user = await UserModel.findById({ _id: id });
     const projection = "name phone _id";
     const Data = await BuyersModel.find(
-      { name: { $regex: name, $options: "i" } },
-      projection
+      { branchId: user.branchId, name: { $regex: name, $options: "i" } },
+       projection 
     );
     if (!Data) throw new Error("No Data Found With This Buyer Name");
     setMongoose();
