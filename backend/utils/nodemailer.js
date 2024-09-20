@@ -104,6 +104,7 @@ export async function sendEmail(data) {
   </body>
   </html>
   `;
+  break;
     case email_Type === "Cash In":
       subject = "Cash In Notification";
       output = `

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { createLaceAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllLace } from "../../../features/InStockSlice";
 import {
   AddOldSellerDetailsFromAsync,
   AddSellerDetailsFromAsync,
@@ -68,6 +66,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
       rate: Number(formData.rate),
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
+      seller_stock_category: "Lace"
     };
 
     if (sellerDetails && sellerDetails?.id) {

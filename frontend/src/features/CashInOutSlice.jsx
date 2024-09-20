@@ -8,6 +8,7 @@ const cashOut = "/api/cashInOut/cashOut";
 const getTodayCashInOut = "/api/cashInOut/getTodaysCashInOut";
 const validatePartyNameForMainBranch = "/api/cashInOut/validatePartyNameForMainBranch";
 const validatePartyNameForOtherBranch = "/api/cashInOut/validatePartyNameForOtherBranches";
+const validatePartyNameForAdmin = "/api/cashInOut/validatePartyNameForAdminBranch";
 
 // CASH IN THUNK
 export const cashInAsync = createAsyncThunk("cashInOut/cashIn", async (data) => {
@@ -48,6 +49,17 @@ export const getTodayCashInOutAsync = createAsyncThunk("getToday/cashInOut", asy
 export const validatePartyNameForMainBranchAsync = createAsyncThunk("validate/mainBranch", async (data) => {
     try {
         const response = await axios.post(validatePartyNameForMainBranch, data);
+        return response.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+    }
+}
+);
+
+// VALIDATE PARTY NAME FOR ADMIN THUNK
+export const validatePartyNameForAdminAsync = createAsyncThunk("validate/admin", async (data) => {
+    try {
+        const response = await axios.post(validatePartyNameForAdmin, data);
         return response.data;
     } catch (error) {
         toast.error(error.response.data.error);
@@ -119,6 +131,15 @@ const CashInOutSlice = createSlice({
                 state.valiDateLoading = true;
             })
             .addCase(validatePartyNameForMainBranchAsync.fulfilled, (state, action) => {
+                state.valiDateLoading = false;
+                state.mainBranchResponse = action.payload
+            })
+
+             // VALIDATE PARTY NAME FOR ADMIN BRANCH
+             .addCase(validatePartyNameForAdminAsync.pending, (state) => {
+                state.valiDateLoading = true;
+            })
+            .addCase(validatePartyNameForAdminAsync.fulfilled, (state, action) => {
                 state.valiDateLoading = false;
                 state.mainBranchResponse = action.payload
             })

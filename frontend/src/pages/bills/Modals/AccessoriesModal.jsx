@@ -66,6 +66,7 @@ const AccessoriesModal = ({ isOpen, closeModal, sellerDetails}) => {
       rate: Number(formData.rate),
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
+      seller_stock_category: "Accessories"
     };
 
     if (sellerDetails && sellerDetails?.id) {

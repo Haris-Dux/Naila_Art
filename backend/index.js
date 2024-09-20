@@ -27,6 +27,7 @@ import sellerRouter from "./routes/Sellers/SellerRoutes.js";
 import processBillRouter from "./routes/Process/ProcessBillRoutes.js";
 import dashboardRouter from "./routes/Dashboard Data/DashboardRoutes.js";
 import b_PairRouter from "./routes/Process/B_PairRoutes.js";
+import returnRouter from "./routes/Returns/ReturnRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -77,6 +78,7 @@ app.use(session({
   app.use("/api/processBillRouter",processBillRouter);
   app.use("/api/dashboardRouter",dashboardRouter);
   app.use("/api/b_PairRouter",b_PairRouter);
+  app.use("/api/returns",returnRouter);
 
 const root = path.resolve();
 app.use(express.static(path.join(root, 'dist')));
