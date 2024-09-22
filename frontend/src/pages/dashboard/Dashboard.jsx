@@ -155,7 +155,6 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
-              
               <Link
                 to="/dashboard/generate-bill"
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
@@ -595,15 +594,15 @@ const Dashboard = () => {
                   <ul className="absolute left-0 z-0 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
                     <li>
                       <Link
-                        to="/dashboard/buyers"
+                        to="/dashboard/naila-arts-buyer"
                         onClick={handleMoveTop}
                         className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                          location.pathname === "/dashboard/buyers"
+                          location.pathname === "/dashboard/naila-arts-buyer"
                             ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
                             : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
                         } group`}
                       >
-                        Naila Arts Buyer
+                         Buyer Bills
                       </Link>
                     </li>
                     {user?.user?.role !== "user" ? (

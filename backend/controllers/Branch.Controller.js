@@ -408,6 +408,9 @@ export const approveOrRejectStock = async (req, res) => {
       MainStock.sale_price = stockToUpdate.sale_price;
       MainStock.last_updated = stockToUpdate.date;
     } else if (status === "Returned") {
+      MainStock = branch.stockData.find((item) =>
+        item.Item_Id.equals(Item_Id)
+      );
       const suitToUpdate = await SuitsModel.findOne({
         id: branch.stockData.Item_Id,
       });

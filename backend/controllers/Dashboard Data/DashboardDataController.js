@@ -698,11 +698,19 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
         otp: g_Otp,
         timestamp: new Date(currentDate.getTime()),
       });
-    };
-    await sendEmail({ email:"nailaarts666@gmail.com", g_Otp, email_Type:"Dashboard OTP" });
+    }
+    await sendEmail({
+      email: "nailaarts666@gmail.com",
+      g_Otp,
+      email_Type: "Dashboard OTP",
+    });
     return res
       .status(200)
-      .json({ message: "OTP has been sent to your email", success: true , userId: user._id});
+      .json({
+        message: "OTP has been sent to your email",
+        success: true,
+        userId: user._id,
+      });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -724,17 +732,14 @@ export const verifyOtpForDasboardData = async (req, res, next) => {
     });
     res.cookie("D_Token", token, {
       httpOnly: true,
-      secure: 'auto',
+      secure: "auto",
       maxAge: 60 * 10 * 1000,
     });
-    res
-      .status(200)
-      .json({
-        message: "OTP Verified Successfully",
-        OtpVerified: true,
-      });
+    res.status(200).json({
+      message: "OTP Verified Successfully",
+      OtpVerified: true,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
-
