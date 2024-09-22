@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { BranchModel } from "../models/Branch.Model.js";
 import { BagsAndBoxModel } from "../models/Stock/BagsAndBoxModel.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import { BuyersModel } from "../models/BuyersModel.js";
+import { BuyersBillsModel, BuyersModel } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
@@ -119,9 +119,19 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //calculating profit
       let TotalProfit = 0;
+      let profitDataForHistory = [];
       suits_data.forEach((suit) => {
         const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
         const profitOnSale = suit.price - suitInStock.cost_price;
+        profitDataForHistory.push({
+          d_no: suit.d_no,
+          color: suit.color,
+          category:suit.category,
+          suitId:suit.id,
+          quantity: suit.quantity,
+          suitSalePrice:suit.price,
+          profit: profitOnSale,
+        });
         TotalProfit += profitOnSale * suit.quantity;
         if (profitOnSale < 0)
           throw new Error("Sale Price Must Be Greater Then Cost Price");
@@ -197,7 +207,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const lastAutoSN = lastDocument ? lastDocument.autoSN : 0;
 
       //CREATING BUYER
-      await BuyersModel.create(
+    const buyerResult = await BuyersModel.create(
         [
           {
             branchId,
@@ -219,6 +229,22 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         ],
         { session }
       );
+
+      //CREATING BILL HISTORY
+      await BuyersBillsModel.create([
+        { branchId,
+          buyerId: buyerResult[0]._id,
+          serialNumber,
+          autoSN: lastAutoSN + 1,
+          date,
+          name,
+          phone,
+          total,
+          paid,
+          remaining,
+          TotalProfit,
+          profitDataForHistory}
+      ],{session})
 
       //SEND EMAIL
       const BillEmailData = {
@@ -607,3 +633,34 @@ export const generatePdfFunction = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const getBuyerBillHistoryForBranch = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Branch Id Required Found");
+    const name = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = 2;
+
+    let query = {
+      branchId: id,
+      name: { $regex: name, $options: "i" },
+    };
+    const totalDocuments = await BuyersBillsModel.countDocuments(query);
+    const data = await BuyersBillsModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    const response = {
+      data,
+      page,
+      totalPages: Math.ceil(totalDocuments / limit),
+    };
+    setMongoose();
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+

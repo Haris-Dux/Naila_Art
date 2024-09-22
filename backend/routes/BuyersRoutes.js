@@ -4,9 +4,9 @@ import {
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
   generatePdfFunction,
+  getBuyerBillHistoryForBranch,
   getBuyerById,
   getBuyersForBranch,
-  
   validateAndGetOldBuyerData,
   validateD_NoAndGetSuitData,
 } from "../controllers/BuyersController.js";
@@ -35,7 +35,11 @@ buyerRouter.post(
   verifyUser,
   generateBillForOldbuyer
 );
-buyerRouter.post("/generatePdfFunction",verifyUser, generatePdfFunction);
-
+buyerRouter.post("/generatePdfFunction", verifyUser, generatePdfFunction);
+buyerRouter.post(
+  "/getBuyerBillHistoryForBranch",
+  verifyUser,
+  getBuyerBillHistoryForBranch
+);
 
 export default buyerRouter;

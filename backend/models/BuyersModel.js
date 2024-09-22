@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
 const suits_sale_details = new mongoose.Schema({
   id: {
@@ -53,11 +53,11 @@ const transaction_details = new mongoose.Schema({
   },
   debit: {
     type: Number,
-    default: null
+    default: null,
   },
   credit: {
     type: Number,
-    default: null
+    default: null,
   },
   balance: {
     type: Number,
@@ -65,67 +65,162 @@ const transaction_details = new mongoose.Schema({
   },
 });
 
-const BuyersSchema = new mongoose.Schema({
-  branchId: {
-    type: mongoose.Types.ObjectId,
-    required: [true, "Branch Id required"],
-  },
-  serialNumber: {
-    type: String,
-    required: [true, "Serial Number is required"],
-  },
-  autoSN:{
-    type: Number,
-    required: [true, "Auto Serial Number is required"],
-  },
-  name: {
-    type: String,
-    required: [true, "Name Value is required"],
-  },
-  city: {
-    type: String,
-    required: [true, "City value is required"],
-  },
-  cargo: {
-    type: String,
-    required: [true, "Cargo value is required"],
-  },
-  phone: {
-    type: String,
-    required: [true, "Phone value is required"],
-  },
-  date: {
-    type: Date,
-    required: [true, "Date value is required"],
-  },
-  bill_by: {
-    type: String,
-    required: [true, "billBy value is required"],
-  },
-  payment_Method: {
-    type: String,
-    required: [true, "paymentMethod value is required"],
-    enum: ["cashInMeezanBank", "cashInJazzCash", "cashInEasyPaisa", "cashSale"],
-  },
-  packaging: {
+const BuyersSchema = new mongoose.Schema(
+  {
+    branchId: {
+      type: mongoose.Types.ObjectId,
+      required: [true, "Branch Id required"],
+    },
+    serialNumber: {
+      type: String,
+      required: [true, "Serial Number is required"],
+    },
+    autoSN: {
+      type: Number,
+      required: [true, "Auto Serial Number is required"],
+    },
     name: {
       type: String,
-      required: [true, "packaging value is required"],
-      enum: ['Bags', 'Box']
+      required: [true, "Name Value is required"],
     },
-    quantity: {
+    city: {
+      type: String,
+      required: [true, "City value is required"],
+    },
+    cargo: {
+      type: String,
+      required: [true, "Cargo value is required"],
+    },
+    phone: {
+      type: String,
+      required: [true, "Phone value is required"],
+    },
+    date: {
+      type: Date,
+      required: [true, "Date value is required"],
+    },
+    bill_by: {
+      type: String,
+      required: [true, "billBy value is required"],
+    },
+    payment_Method: {
+      type: String,
+      required: [true, "paymentMethod value is required"],
+      enum: [
+        "cashInMeezanBank",
+        "cashInJazzCash",
+        "cashInEasyPaisa",
+        "cashSale",
+      ],
+    },
+    packaging: {
+      name: {
+        type: String,
+        required: [true, "packaging value is required"],
+        enum: ["Bags", "Box"],
+      },
+      quantity: {
+        type: Number,
+        required: [true, "quantity value is required"],
+      },
+    },
+    discount: {
       type: Number,
-      required: [true, "quantity value is required"],
+      required: [true, "discount value is required"],
     },
+    suits_data: [suits_sale_details],
+    virtual_account: financialDetails,
+    credit_debit_history: [transaction_details],
   },
-  discount: {
-    type: Number,
-    required: [true, "discount value is required"],
-  },
-  suits_data: [suits_sale_details],
-  virtual_account: financialDetails,
-  credit_debit_history: [transaction_details],
-},
-{timestamps:true});
+  { timestamps: true }
+);
 
 export const BuyersModel = mongoose.model("Buyers", BuyersSchema);
+
+//BUYERS BILLS HISTORY
+
+const historyData = new mongoose.Schema({
+  d_no: {
+    type: Number,
+    required: [true, "d_no value is required"],
+  },
+  color: {
+    type: String,
+    required: [true, "color value required"],
+  },
+  category: {
+    type: String,
+    required: [true, "category valuerequired"],
+  },
+  suitId: {
+    type: String,
+    required: [true, "Suit Id required"],
+  },
+  quantity: {
+    type: Number,
+    required: [true, "Quantity value is required"],
+  },
+  suitSalePrice: {
+    type: Number,
+    required: [true, "Suit Sale Price value is required"],
+  },
+  profit: {
+    type: Number,
+    required: [true, "Profit value is required"],
+  },
+});
+
+const historySchema = new mongoose.Schema(
+  {
+    branchId: {
+      type: String,
+      required: [true, "Branch Id required"],
+    },
+    buyerId: {
+      type: String,
+      required: [true, "Buyer Id required"],
+    },
+    serialNumber: {
+      type: String,
+      required: [true, "Serial Number is required"],
+    },
+    autoSN: {
+      type: Number,
+      required: [true, "Auto Serial Number is required"],
+    },
+    name: {
+      type: String,
+      required: [true, "Name Value is required"],
+    },
+    date: {
+      type: String,
+      required: [true, "Date value is required"],
+    },
+    phone: {
+      type: String,
+      required: [true, "Phone value is required"],
+    },
+    total: {
+      type: Number,
+      required: [true, "Total value is required"],
+    },
+    paid: {
+      type: Number,
+      required: [true, "Paid value is required"],
+    },
+    remaining: {
+      type: Number,
+      required: [true, "Remaining Value is required"],
+    },
+    TotalProfit: {
+      type: Number,
+      required: [true, "Total Profit Number is required"],
+    },
+    profitDataForHistory: [historyData],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export const BuyersBillsModel = mongoose.model("Buyers Bills", historySchema);

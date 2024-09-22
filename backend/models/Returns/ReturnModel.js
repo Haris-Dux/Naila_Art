@@ -13,6 +13,10 @@ const suits_return_details = new mongoose.Schema({
       type: String,
       required: [true, "color value is required"],
     },
+    category: {
+      type: String,
+      required: [true, "category valuerequired"],
+    },
     quantity: {
       type: Number,
       required: [true, "Quantity value is required"],
@@ -48,5 +52,19 @@ const returnSchema = new mongoose.Schema({
     type: String,
     required: [true, "Date value is required"],
   },
+  T_Return_Amount : {
+    type: Number,
+    required: [true, "Total Return Amount required"],
+  },
+  Amount_From_Balance : {
+    type: Number,
+    required: [true, "Amount From Balance required"],
+  },
+  Amount_From_TotalCash : {
+    type: Number,
+    required: [true, "Amount From Total Cash required"],
+  },
   suits_data: [suits_return_details]
 });
+
+export const ReturnSuitModel = mongoose.model("Return Bills",returnSchema);
