@@ -9,16 +9,17 @@ export const addBPair = async (data,session = null) => {
   try {
     const { b_PairCategory, quantity, rate, partyName, serial_No, design_no } =
       data;
-    if (
-      !b_PairCategory ||
-      !quantity ||
-      !rate ||
-      !partyName ||
-      !serial_No ||
-      !design_no
-    ) {
-      throw new Error("Missing required fields for B Pair Data");
-    }
+      
+      if (
+        !b_PairCategory ||
+        !partyName ||
+        !serial_No ||
+        !design_no ||
+        quantity === undefined || 
+        rate === undefined         
+      ) {
+        throw new Error("Missing required fields for B Pair Data");
+      }
 
     await B_PairModel.create([{
       b_PairCategory,

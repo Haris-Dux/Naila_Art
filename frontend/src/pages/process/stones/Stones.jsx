@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
@@ -8,7 +7,6 @@ import { GetAllStone } from '../../../features/stoneslice';
 const Stones = () => {
     const dispatch = useDispatch();
     const { loading, Stone } = useSelector((state) => state.stone);
-    const [currentPage, setCurrentPage] = useState(1);
     const [searchText, setSearchText] = useState('');
 
     const [search, setSearch] = useState('');
