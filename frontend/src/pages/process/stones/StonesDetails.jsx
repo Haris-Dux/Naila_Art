@@ -87,6 +87,7 @@ const StonesDetails = () => {
           second: item.recieved_Data?.second?.quantity || 0,
           third: item.recieved_Data?.third?.quantity || 0,
           category: item.category,
+          color: item.color,
         })),
       });
     }
@@ -471,7 +472,8 @@ const StonesDetails = () => {
                     key={item.id}
                     className="line my-3 flex justify-between items-center gap-x-6 "
                   >
-                    <span className="w-32 font-semibold">{item.category}</span>
+                    <span className="w-16 font-semibold">{item.category}</span>
+                    <span className="font-medium">({item.color})</span>
                     <input
                       type="number"
                       className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
