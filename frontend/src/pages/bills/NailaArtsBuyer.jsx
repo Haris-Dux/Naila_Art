@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { GetAllBranches } from "../../features/InStockSlice";
-import { getBuyerBillsHistoryForBranchAsync } from "../../features/BuyerSlice";
+import { getBuyerBillsHistoryForBranchAsync, getBuyerByIdAsync } from "../../features/BuyerSlice";
+import Return from "../../Component/NailaArtsBuyer/Return";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -21,6 +22,10 @@ const NailaArtsBuyer = () => {
   const dispatch = useDispatch();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [returnModal, setreturnModal] = useState(false);
+  const [selected, setselected] = useState(false);
+
+
   const [search, setSearch] = useState();
   const [suitSaleData, setSuitSaleData] = useState("");
 
@@ -31,16 +36,28 @@ const NailaArtsBuyer = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { BuyerBillHistory, billHistoryLoading } = useSelector(
+  const { BuyerBillHistory, billHistoryLoading,BuyerById } = useSelector(
     (state) => state.Buyer
   );
   const [selectedBranchId, setSelectedBranchId] = useState();
+
+
+  console.log('bill data',BuyerBillHistory)
 
   useEffect(() => {
     if (user?.user?.id) {
       dispatch(GetAllBranches({ id: user?.user?.id }));
     }
   }, [dispatch, user]);
+
+
+
+  useEffect(() => {
+    if (selected) {
+      dispatch(getBuyerByIdAsync({ id: selected?.buyerId }));
+    }
+  }, [selected]);
+
 
   useEffect(() => {
     if (Branches?.length > 0) {
@@ -114,6 +131,17 @@ const NailaArtsBuyer = () => {
   const closeModal = () => {
     setSuitSaleData("");
     setIsOpen(false);
+  };
+
+
+
+  const openReturnModal = (data) => {
+    setselected(data);
+    setreturnModal(true);
+  };
+  const closeReturnModal = () => {
+    setselected("");
+    setreturnModal(false);
   };
 
   const searchTimerRef = useRef();
@@ -302,7 +330,8 @@ const NailaArtsBuyer = () => {
                           </button>
                         </td>
                         <td className="pl-10 py-4">
-                          <button onClick={""}>
+                        <button  onClick={() => openReturnModal(data)}>
+                     
                             <FaEdit size={20} className="cursor-pointer" />
                           </button>
                         </td>
@@ -510,6 +539,11 @@ const NailaArtsBuyer = () => {
             </div>
           </div>
         </div>
+      )}
+
+
+{returnModal && (
+     <Return closeModal={closeReturnModal} Buyerdata={BuyerById} selected={selected}  />
       )}
     </>
   );

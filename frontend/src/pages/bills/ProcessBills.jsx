@@ -221,7 +221,7 @@ const ProcessBills = () => {
                       <td className="pl-10 py-4">
                         <Link to={`/dashboard/process-details/${data?.id}`}>
                           <FaEye size={20} className="cursor-pointer" />
-                        </Link>
+                      </Link>
                       </td>
                     </tr>
                   ))

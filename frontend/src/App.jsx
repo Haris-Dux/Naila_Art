@@ -105,6 +105,8 @@ useEffect(() => {
             <Route path="process-details/:id" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
 
+        
+
             {/* ACCOUNTS ROUTES */}
             <Route path="buyers" element={<Buyers />} />
             <Route path="buyers-details/:id" element={<BuyersDetails />} />
