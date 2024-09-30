@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { createCutting } from "../../../features/CuttingSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import toast from "react-hot-toast";
 const CalendarDetails = () => {
   const { id } = useParams();
   const {
@@ -62,7 +63,7 @@ const CalendarDetails = () => {
     setCuttingData({
       serial_No: SingleCalender?.serial_No || "",
       design_no: SingleCalender?.design_no || "",
-      T_Quantity: SingleCalender?.r_quantity || 0,
+      T_Quantity: "",
       date: "",
       partyName: "",
       embroidery_Id: SingleCalender?.embroidery_Id || "",
@@ -78,6 +79,7 @@ const CalendarDetails = () => {
 
   const handleInputChangeCalender = (e) => {
     const { name, value } = e.target;
+ 
     setCalenderData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -86,6 +88,7 @@ const CalendarDetails = () => {
 
   const handleSubmitCutting = (e) => {
     e.preventDefault();
+
 
     dispatch(createCutting(CuttingData)).then((res) => {
       if (res.payload.success === true) {
@@ -431,7 +434,6 @@ const CalendarDetails = () => {
                         value={CuttingData.T_Quantity}
                         onChange={handleInputChangeCutting}
                         required
-                        readOnly
                       />
                     </div>
 

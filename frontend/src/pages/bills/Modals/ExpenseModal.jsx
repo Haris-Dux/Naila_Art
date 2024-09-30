@@ -20,7 +20,6 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
     rate: "",
     Date: today,
     reason: "",
-    serial_no: "",
     payment_Method: "",
   });
 
@@ -60,7 +59,6 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
           rate: "",
           Date: today,
           reason: "",
-          serial_no: "",
           payment_Method: "",
         });
         closeModal();
@@ -135,8 +133,21 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
+                   {/* REASON */}
+                   <div className="col-span-2">
+                    <input
+                      name="reason"
+                      type="text"
+                      placeholder="Reason"
+                      value={formData.reason}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
                   {/* DATE */}
-                  <div>
+                  <div >
                     <input
                       name="Date"
                       type="text"
@@ -148,31 +159,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
-                  {/* SERIAL NO */}
-                  <div>
-                    <input
-                      name="serial_no"
-                      type="text"
-                      placeholder="Serial No"
-                      value={formData.serial_no}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* REASON */}
-                  <div className="col-span-2">
-                    <input
-                      name="reason"
-                      type="text"
-                      placeholder="Reason"
-                      value={formData.reason}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                 
 
                   {user?.user?.role === "superadmin" ? (
                     <div className="col-span-2">

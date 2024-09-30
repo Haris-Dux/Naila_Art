@@ -37,7 +37,7 @@ export const addStitching = async (req, res, next) => {
       ];
       const missingFields = [];
       requiredFields.forEach((field) => {
-        if (!req.body[field]) {
+        if (req.body[field] === undefined || req.body[field] === null) {
           missingFields.push(field);
         }
         if (suits_category) {
@@ -231,8 +231,10 @@ export const updateStitching = async (req, res, next) => {
       const stitching = await StitchingModel.findById(id).session(session);
       if (!stitching) throw new Error("Stitching not Found");
       //ADDING STOCK AND UPDATING PROJECT STATUS
+      
       if (project_status === "Completed") {
         stitching.project_status = project_status;
+        let salePrice = 0;
         if (suits_category) {
           for (const item of suits_category) {
             const data = {
@@ -240,17 +242,19 @@ export const updateStitching = async (req, res, next) => {
               d_no: d_no,
               quantity: item.return_quantity,
             };
+            salePrice = item.sale_price;
             const res = await addSuitsInStock(data, session);
             if (res.error) {
               throw new Error(res.error);
             }
-          }
+          };
+          
 
           //ADD BPAIR
           const b_pairData = {
             b_PairCategory: "Stitching",
             quantity: stitching.Quantity - stitching.r_quantity,
-            rate: (stitching.Quantity - stitching.r_quantity) * stitching.rate,
+            rate: (stitching.Quantity - stitching.r_quantity) * salePrice,
             partyName: stitching.partyName,
             serial_No: stitching.serial_No,
             design_no: stitching.design_no,

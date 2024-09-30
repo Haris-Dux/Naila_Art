@@ -10,6 +10,7 @@ import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { UserModel } from "../models/User.Model.js";
+import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -46,7 +47,10 @@ export const validatePartyNameForAdminBranch = async (req, res, next) => {
     const projection = "name phone _id";
     const projectionForProcess = "partyName _id serial_No";
     const Data = await Promise.all([
-      BuyersModel.find( { branchId: user.branchId, name: { $regex: name, $options: "i" } }, projection),
+      BuyersModel.find(
+        { branchId: user.branchId, name: { $regex: name, $options: "i" } },
+        projection
+      ),
       SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
       processBillsModel.find(
         { partyName: { $regex: name, $options: "i" } },
@@ -73,7 +77,7 @@ export const validatePartyNameForOtherBranches = async (req, res, next) => {
     const projection = "name phone _id";
     const Data = await BuyersModel.find(
       { branchId: user.branchId, name: { $regex: name, $options: "i" } },
-       projection 
+      projection
     );
     if (!Data) throw new Error("No Data Found With This Buyer Name");
     setMongoose();
@@ -114,11 +118,28 @@ export const cashIn = async (req, res, next) => {
         payment_Method: (dailySaleForToday.saleData[payment_Method] += cash),
         totalSale: (dailySaleForToday.saleData.totalSale += cash),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += cash),
-        totalCash: (dailySaleForToday.saleData.totalCash += cash),
       };
+
+      if (payment_Method === "cashSale") {
+        updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+          cash;
+      }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({})
+          .select("-Transaction_History")
+          .session(session);
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] += cash),
+        };
+        virtualAccounts = updatedAccount;
+        await virtualAccounts[0].save({ session });
+      }
 
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_debit =
@@ -234,20 +255,38 @@ export const cashOut = async (req, res, next) => {
         throw new Error("Daily sale record not found for This Date");
       }
 
-      const updatedSaleData = {
-        ...dailySaleForToday.saleData,
-        totalCash: (dailySaleForToday.saleData.totalCash -= cash),
-        payment_Method: (dailySaleForToday.saleData[payment_Method] -= cash),
-      };
+      if (payment_Method === "cashSale") {
+        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
+          cash;
+      }
 
-      if (updatedSaleData.totalCash < 0)
+      if (dailySaleForToday.totalCash < 0)
         throw new Error("Not Enough Total Cash");
 
-      if (updatedSaleData.payment_Method < 0)
-        throw new Error("Not Enough Cash In PaymentMethod");
-
-      dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({}).session(session);
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] -= cash),
+        };
+        const new_balance = updatedAccount[0][payment_Method];
+       const historyData = {
+          date,
+          transactionType:"WithDraw",
+          payment_Method,
+          new_balance,
+          amount:cash,
+          note:"Cash Out Transaction",
+        };
+        if (new_balance < 0)
+          throw new Error("Not Enough Cash In Payment Method");
+        virtualAccounts = updatedAccount;
+        virtualAccounts[0].Transaction_History.push(historyData);
+        await virtualAccounts[0].save({ session });
+      }
 
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_debit =

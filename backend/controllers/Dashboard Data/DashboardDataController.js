@@ -12,6 +12,7 @@ import {
 } from "../../middleware/ValidateOtp.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import jwt from "jsonwebtoken";
+import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -262,11 +263,12 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     };
 
     //banks data
-    const banksData = {
-      Meezan_Bank: dailySaleForToday.saleData.cashInMeezanBank || 0,
-      JazzCash: dailySaleForToday.saleData.cashInJazzCash || 0,
-      EasyPaisa: dailySaleForToday.saleData.cashInEasyPaisa || 0,
-    };
+
+    let banksData = [
+      { name: "Meezan Bank", value: dailySaleForToday.saleData.cashInMeezanBank },
+      { name: "JazzCash", value: dailySaleForToday.saleData.cashInJazzCash },
+      { name: "EasyPaisa", value: dailySaleForToday.saleData.cashInEasyPaisa },
+    ];
 
     //cash in hand data
     const cashInHandData = dailySaleForToday.saleData.totalCash || 0;
@@ -376,30 +378,6 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
           totalSale: [
             {
               $group: { _id: null, totalSale: { $sum: "$saleData.totalSale" } },
-            },
-          ],
-          cashInMeezanBank: [
-            {
-              $group: {
-                _id: null,
-                cashInMeezanBank: { $sum: "$saleData.cashInMeezanBank" },
-              },
-            },
-          ],
-          cashInJazzCash: [
-            {
-              $group: {
-                _id: null,
-                cashInJazzCash: { $sum: "$saleData.cashInJazzCash" },
-              },
-            },
-          ],
-          cashInEasyPaisa: [
-            {
-              $group: {
-                _id: null,
-                cashInEasyPaisa: { $sum: "$saleData.cashInEasyPaisa" },
-              },
             },
           ],
           totalCash: [
@@ -608,11 +586,19 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     };
 
     //banks data
-    const banksData = {
-      Meezan_Bank: todaySalesResult.cashInMeezanBank[0].cashInMeezanBank,
-      JazzCash: todaySalesResult.cashInJazzCash[0].cashInJazzCash,
-      EasyPaisa: todaySalesResult.cashInEasyPaisa[0].cashInEasyPaisa,
-    };
+    const banksDataRaw = await VirtalAccountModal.find({}).select(
+      "-Transaction_History"
+    );
+
+    let banksData = [];
+    if (banksDataRaw.length > 0) {
+      const account = banksDataRaw[0];
+      banksData = [
+        { name: "Meezan Bank", value: account.cashInMeezanBank },
+        { name: "JazzCash", value: account.cashInJazzCash },
+        { name: "EasyPaisa", value: account.cashInEasyPaisa },
+      ];
+    }
 
     //cash in hand data
     const cashInHandData = todaySalesResult.totalCash[0].totalCash;
@@ -699,18 +685,17 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
         timestamp: new Date(currentDate.getTime()),
       });
     }
+    console.log(g_Otp);
     await sendEmail({
       email: "nailaarts666@gmail.com",
       g_Otp,
       email_Type: "Dashboard OTP",
     });
-    return res
-      .status(200)
-      .json({
-        message: "OTP has been sent to your email",
-        success: true,
-        userId: user._id,
-      });
+    return res.status(200).json({
+      message: "OTP has been sent to your email",
+      success: true,
+      userId: user._id,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -728,16 +713,155 @@ export const verifyOtpForDasboardData = async (req, res, next) => {
       throw new Error("OTP Expired");
     }
     const token = jwt.sign({ userId }, process.env.TOEKN_SECRET, {
-      expiresIn: 60 * 10,
+      expiresIn: 60 * 60,
     });
     res.cookie("D_Token", token, {
       httpOnly: true,
       secure: "auto",
-      maxAge: 60 * 10 * 1000,
+      maxAge: 60 * 60 * 1000,
     });
     res.status(200).json({
       message: "OTP Verified Successfully",
       OtpVerified: true,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getVirtualAccounts = async (req, res, next) => {
+  try {
+    const data = await VirtalAccountModal.find({}).select(
+      "-Transaction_History"
+    );
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const makeTransactionInAccounts = async (req, res, next) => {
+  try {
+    const { date, transactionType, payment_Method, amount, note } = req.body;
+    const requiredFields = [
+      "date",
+      "transactionType",
+      "payment_Method",
+      "amount",
+      "note",
+    ];
+    const missingFields = [];
+    requiredFields.forEach((field) => {
+      if (!req.body[field]) {
+        missingFields.push(field);
+      }
+    });
+    if (missingFields.length > 0) {
+      throw new Error(`Missing Fields : ${requiredFields}`);
+    }
+    //TRANSACTION LOGIC
+    let virtualAccounts = await VirtalAccountModal.find({});
+    let updatedAccounts = {};
+    let historyData = {};
+    if (transactionType === "Deposit") {
+      updatedAccounts = {
+        ...virtualAccounts,
+        [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
+      };
+      const new_balance = updatedAccounts[0][payment_Method];
+      historyData = {
+        date,
+        transactionType,
+        payment_Method,
+        new_balance,
+        amount,
+        note,
+      };
+    } else if (transactionType === "WithDraw") {
+      updatedAccounts = {
+        ...virtualAccounts,
+        [payment_Method]: (virtualAccounts[0][payment_Method] -= amount),
+      };
+      const new_balance = updatedAccounts[0][payment_Method];
+      if (new_balance < 0) throw new Error("Not Enough Cash");
+      historyData = {
+        date,
+        transactionType,
+        payment_Method,
+        new_balance,
+        amount,
+        note,
+      };
+    }
+    virtualAccounts = updatedAccounts;
+    virtualAccounts[0].Transaction_History.push(historyData);
+    await virtualAccounts[0].save();
+    await sendEmail({
+      email: "nailaarts666@gmail.com",
+      TransactionData: historyData,
+      email_Type: "Transaction Notification",
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Transaction Successfull" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getTransactionsHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
+    const date = req.query.date || "";
+
+    const result = await VirtalAccountModal.aggregate([
+      {
+        $unwind: "$Transaction_History",
+      },
+      {
+        $match: {
+          "Transaction_History.date": { $regex: date },
+        },
+      },
+      {
+        $sort: {
+          "Transaction_History.createdAt": -1,
+        },
+      },
+      {
+        $skip: (page - 1) * limit,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$Transaction_History.date",
+          transactionType: "$Transaction_History.transactionType",
+          payment_Method: "$Transaction_History.payment_Method",
+          amount: "$Transaction_History.amount",
+          new_balance: "$Transaction_History.new_balance",
+          note: "$Transaction_History.note",
+          createdAt: "$Transaction_History.createdAt",
+        },
+      },
+    ]);
+    let totalDocs = 0;
+    if (date) {
+      const accountData = await VirtalAccountModal.find({});
+      totalDocs = accountData[0].Transaction_History.filter(
+        (h) => h.date === date
+      ).length;
+    } else {
+      const accountData = await VirtalAccountModal.find({});
+      totalDocs = accountData[0].Transaction_History.length;
+    }
+    return res.status(200).json({
+      data: result,
+      totalPages: Math.ceil(totalDocs / limit),
+      page,
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

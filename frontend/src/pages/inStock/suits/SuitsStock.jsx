@@ -80,14 +80,14 @@ const SuitsStock = () => {
             GetAllSuit({ category: userSelectedCategory, search, page })
           );
           dispatch(GetAllCategoriesForSuits());
-          // setFormData({
-          //   category: "",
-          //   color: "",
-          //   quantity: "",
-          //   cost_price: "",
-          //   sale_price: "",
-          //   d_no: "",
-          // });
+          setFormData({
+            category: "",
+            color: "",
+            quantity: "",
+            cost_price: "",
+            sale_price: "",
+            d_no: "",
+          });
         }
         closeModal();
       })

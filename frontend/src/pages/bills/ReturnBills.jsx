@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
-import { FaEdit, FaEye } from "react-icons/fa";
+import { FaEye } from "react-icons/fa";
 import { GetAllBranches } from "../../features/InStockSlice";
-import { getBuyerBillsHistoryForBranchAsync, getBuyerByIdAsync } from "../../features/BuyerSlice";
-import Return from "./Modals/Return";
+import { getAllReturnsForBranch } from "../../features/ReturnSlice";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -18,17 +17,12 @@ const PhoneComponent = ({ phone }) => {
   return <p>{maskPhoneNumber(phone)}</p>;
 };
 
-const NailaArtsBuyer = () => {
+const ReturnBills = () => {
   const dispatch = useDispatch();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [returnModal, setreturnModal] = useState(false);
-  const [selected, setselected] = useState(false);
-
-
   const [search, setSearch] = useState();
   const [suitSaleData, setSuitSaleData] = useState("");
-
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -36,23 +30,17 @@ const NailaArtsBuyer = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { BuyerBillHistory, billHistoryLoading,BuyerById } = useSelector(
-    (state) => state.Buyer
+  const { Returnloading, ReturnsBillHistory } = useSelector(
+    (state) => state.Return
   );
-  const [selectedBranchId, setSelectedBranchId] = useState();
 
+  const [selectedBranchId, setSelectedBranchId] = useState();
 
   useEffect(() => {
     if (user?.user?.id) {
       dispatch(GetAllBranches({ id: user?.user?.id }));
     }
   }, [dispatch, user]);
-
-  useEffect(() => {
-    if (selected) {
-      dispatch(getBuyerByIdAsync({ id: selected?.buyerId }));
-    }
-  }, [selected]);
 
   useEffect(() => {
     if (Branches?.length > 0) {
@@ -62,7 +50,7 @@ const NailaArtsBuyer = () => {
           : user?.user?.branchId || Branches[0].id,
         page,
       };
-      dispatch(getBuyerBillsHistoryForBranchAsync(payload));
+      dispatch(getAllReturnsForBranch(payload));
 
       setSelectedBranchId(
         selectedBranchId
@@ -73,19 +61,19 @@ const NailaArtsBuyer = () => {
   }, [user, dispatch, Branches, page]);
 
   const renderPaginationLinks = () => {
-    const totalPages = BuyerBillHistory?.totalPages;
+    const totalPages = ReturnsBillHistory?.totalPages;
     const paginationLinks = [];
     for (let i = 1; i <= totalPages; i++) {
       paginationLinks.push(
         <li key={i} onClick={ToDown}>
           <Link
-            to={`/dashboard/naila-arts-buyer?page=${i}`}
+            to={`/dashboard/naila-arts-return-bills?page=${i}`}
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
               i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
             onClick={() =>
               dispatch(
-                getBuyerBillsHistoryForBranchAsync({
+                getAllReturnsForBranch({
                   id: selectedBranchId,
                   page: i,
                 })
@@ -116,7 +104,7 @@ const NailaArtsBuyer = () => {
       id: branchId,
       page: 1,
     };
-    dispatch(getBuyerBillsHistoryForBranchAsync(payload));
+    dispatch(getAllReturnsForBranch(payload));
   };
 
   const openModal = (data) => {
@@ -126,15 +114,6 @@ const NailaArtsBuyer = () => {
   const closeModal = () => {
     setSuitSaleData("");
     setIsOpen(false);
-  };
-
-  const openReturnModal = (data) => {
-    setselected(data);
-    setreturnModal(true);
-  };
-  const closeReturnModal = () => {
-    setselected("");
-    setreturnModal(false);
   };
 
   const searchTimerRef = useRef();
@@ -148,17 +127,17 @@ const NailaArtsBuyer = () => {
     };
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
-    };
+    }
     if (value.length > 0) {
       searchTimerRef.current = setTimeout(() => {
-        dispatch(getBuyerBillsHistoryForBranchAsync(payload));
+        dispatch(getAllReturnsForBranch(payload));
       }, 1000);
-    };
+    }
   };
 
   return (
     <>
-      {billHistoryLoading || branchesLoading ? (
+      {Returnloading || branchesLoading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
           <div
             className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
@@ -179,7 +158,7 @@ const NailaArtsBuyer = () => {
                   <>
                     {Branches?.map((branch) => (
                       <Link
-                        to={`/dashboard/naila-arts-buyer?page=${1}`}
+                        to={`/dashboard/naila-arts-return-bills?page=${1}`}
                         key={branch?.id}
                         className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
                           selectedBranchId === branch?.id
@@ -214,16 +193,12 @@ const NailaArtsBuyer = () => {
             {/* -------------- HEADER -------------- */}
             <div className="header flex justify-between items-center pt-6 mx-2">
               <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
-                Buyers Bills
+               Return Bills
               </h1>
 
               {/* <!-- search bar --> */}
               <div className="search_bar flex items-center gap-3 mr-2">
-              <Link
-                  
-                  className=" bg-[#374151] hover:bg-gray-500 text-white px-3 py-2 rounded-md"
-                 to={"/dashboard/naila-arts-return-bills"}
-                >Return Bills</Link>
+            
                 <div className="relative mt-4 md:mt-0">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                     <svg
@@ -260,83 +235,63 @@ const NailaArtsBuyer = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      <span className="text-red-500">S.N</span>-
-                      <span className="text-green-600">A.S.N</span>
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                      <span className="text-red-500">S.N</span>                    
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
                       Party Name
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Total
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    T Return Amount
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Paid
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    Amount From Balance
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Remaining
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    Amount From TotalCash
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Profit
-                    </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
+                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
                       Suit Details
-                    </th>
-                    <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Return Bill
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {BuyerBillHistory && BuyerBillHistory?.data?.length > 0 ? (
-                    BuyerBillHistory?.data?.map((data, index) => (
+                  {ReturnsBillHistory &&
+                  ReturnsBillHistory?.data?.length > 0 ? (
+                    ReturnsBillHistory?.data?.map((data, index) => (
                       <tr
                         key={index}
                         className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                       >
-                        <td className="px-6 py-4  font-medium">
+                        <td className="px-6 py-4 text-center  font-medium">
                           <span className="text-red-500">
-                            {" "}
                             {data.serialNumber}
                           </span>
-                          -<span className="text-green-600">{data.autoSN}</span>
                         </td>
                         <th
-                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          className="px-6 py-4 text-center font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <p>{data.name}</p>
+                          <p>{data.partyName}</p>
                           <PhoneComponent phone={data.phone} />
                         </th>
-                        <td className="px-6 py-4 font-medium">
-                          {data.total} Rs
+                        <td className="px-6 py-4 text-center font-medium">
+                          {data.T_Return_Amount} Rs
                         </td>
-                        <td className="px-6 py-4 font-medium">
-                          {data.paid} Rs
+                        <td className="px-6 py-4 text-center font-medium">
+                          {data.Amount_From_Balance} Rs
                         </td>
-                        <td className="px-6 py-4 font-medium">
-                          {data.remaining} Rs
+                        <td className="px-6 py-4 text-center font-medium">
+                          {data.Amount_From_TotalCash} Rs
                         </td>
-                        <td className="px-6 py-4 font-medium">
-                          {data.TotalProfit} Rs
-                        </td>
-                        <td className="px-6 py-4 font-medium">
-                          {data.date}
-                        </td>
-                        <td className="pl-10 py-4">
-                          <button
-                            onClick={() => openModal(data.profitDataForHistory)}
-                          >
+                       
+                        <td className="px-6 py-4 text-center font-medium">{data.date}</td>
+                        <td className="pl-10 py-4 text-center">
+                          <button onClick={() => openModal(data.suits_data)}>
                             <FaEye size={20} className="cursor-pointer" />
-                          </button>
-                        </td>
-                        <td className="pl-10 py-4">
-                        <button  onClick={() => openReturnModal(data)}>
-                     
-                            <FaEdit size={20} className="cursor-pointer" />
                           </button>
                         </td>
                       </tr>
@@ -356,10 +311,10 @@ const NailaArtsBuyer = () => {
             <nav aria-label="Page navigation example">
               <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
                 <li>
-                  {BuyerBillHistory?.page > 1 ? (
+                  {ReturnsBillHistory?.page > 1 ? (
                     <Link
                       onClick={ToDown}
-                      to={`/dashboard/naila-arts-buyer?page=${page - 1}`}
+                      to={`/dashboard/naila-arts-return-bills?page=${page - 1}`}
                       className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
                       <span className="sr-only">Previous</span>
@@ -405,10 +360,10 @@ const NailaArtsBuyer = () => {
                 </li>
                 {renderPaginationLinks()}
                 <li>
-                  {BuyerBillHistory?.totalPages !== page ? (
+                  {ReturnsBillHistory?.totalPages !== page ? (
                     <Link
                       onClick={ToDown}
-                      to={`/dashboard/naila-arts-buyer?page=${page + 1}`}
+                      to={`/dashboard/naila-arts-return-bills?page=${page + 1}`}
                       className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
                       <span className="sr-only">Next</span>
@@ -544,13 +499,9 @@ const NailaArtsBuyer = () => {
           </div>
         </div>
       )}
-
-
-{returnModal && (
-     <Return closeModal={closeReturnModal} Buyerdata={BuyerById} selected={selected}  />
-      )}
+     
     </>
   );
 };
 
-export default NailaArtsBuyer;
+export default ReturnBills;

@@ -181,9 +181,9 @@ const Cutting = () => {
                         <td className="px-6 py-4">
                           {new Date(data.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4">{data.T_Quantity} m</td>
+                        <td className="px-6 py-4">{data.T_Quantity} suit</td>
                         <td className="px-6 py-4">
-                          {data.r_quantity ? `${data.r_quantity} m` : "--"} 
+                          {data.r_quantity ? `${data.r_quantity} suit` : "--"} 
                         </td>
                         <td className="px-6 py-4">{setStatusColor(data.project_status)}</td>
                         <td className="pl-10 py-4">

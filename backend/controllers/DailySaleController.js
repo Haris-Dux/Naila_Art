@@ -96,16 +96,7 @@ corn.schedule(
             saleData: {
               totalCash: previousDaySale
                 ? previousDaySale.saleData.totalCash
-                : 0,
-              cashInMeezanBank: previousDaySale
-                ? previousDaySale.saleData.cashInMeezanBank
-                : 0,
-              cashInJazzCash: previousDaySale
-                ? previousDaySale.saleData.cashInJazzCash
-                : 0,
-              cashInEasyPaisa: previousDaySale
-                ? previousDaySale.saleData.cashInEasyPaisa
-                : 0,
+                : 0
             },
           });
         } catch (error) {

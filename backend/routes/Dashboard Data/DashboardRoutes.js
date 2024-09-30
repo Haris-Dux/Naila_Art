@@ -3,6 +3,8 @@ import { superAdminOnly, verifyOtp, verifyUser } from "../../middleware/Auth.js"
 import {
   getDashBoardDataForBranch,
   getDashBoardDataForSuperAdmin,
+  getTransactionsHistory,
+  makeTransactionInAccounts,
   sendDashBoardAccessOTP,
   verifyOtpForDasboardData,
 } from "../../controllers/Dashboard Data/DashboardDataController.js";
@@ -33,5 +35,18 @@ dashboardRouter.post(
   verifyUser,
   verifyOtpForDasboardData
 );
+
+dashboardRouter.post(
+  "/makeTransactionInAccounts",
+  superAdminOnly,
+  makeTransactionInAccounts
+);
+
+dashboardRouter.post(
+  "/getTransactionsHistory",
+  superAdminOnly,
+  getTransactionsHistory
+);
+
 
 export default dashboardRouter;

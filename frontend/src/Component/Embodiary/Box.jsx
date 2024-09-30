@@ -361,7 +361,7 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
       <div className="box">
         <div className="header flex justify-between items-center">
           <p className="mt-3 text-gray-700  dark:text-white">
-            Enter Suit Colors And Quantity:
+            Enter Shirt Colors And Quantity:
           </p>
           <p onClick={() => addNewRow("shirt")}>
             <FiPlus size={24} className=" cursor-pointer dark:text-white" />

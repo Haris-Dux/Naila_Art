@@ -11,22 +11,44 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  createTransactionAsync,
   getDataForOtherBranchAsync,
   getDataForSuperAdminAsync,
+  getTransactionHIstoryAsync,
+  updateAccount,
 } from "../../features/DashboardSlice";
 import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
+import { FaHistory } from "react-icons/fa";
 import SendOTP from "./SendOTP";
+import { CiSearch } from "react-icons/ci";
+import moment from "moment-timezone";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
-  const { loading, DashboardData } = useSelector((state) => state.dashboard);
+  const { loading, DashboardData, transactionLoading, TransactionsHistory } =
+    useSelector((state) => state.dashboard);
   const [hasError, setHasError] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
+  const [transactionType, setTransactionType] = useState("");
+  const [transactionModal, setTransactionModal] = useState(false);
+  const [confirmationModal, setConfirmationModal] = useState(false);
+  const [historyModal, setHistoryModal] = useState(false);
+
+  const [formData, setFormData] = useState({
+    date: today,
+    transactionType: "",
+    payment_Method: "",
+    amount: "",
+    note: "",
+  });
 
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
@@ -34,7 +56,7 @@ const DashboardStats = () => {
         if (res?.error) {
           setHasError(true);
           localStorage.removeItem("dashboardAccessTime");
-        };
+        }
         setDataLoading(false);
       });
     } else {
@@ -42,7 +64,7 @@ const DashboardStats = () => {
         if (res?.error) {
           setHasError(true);
           localStorage.removeItem("dashboardAccessTime");
-        };
+        }
         setDataLoading(false);
       });
     }
@@ -119,9 +141,118 @@ const DashboardStats = () => {
     });
   };
 
+  const validateValue = (value) => {
+    return value === undefined || value === null || isNaN(value) || value === ""
+      ? ""
+      : parseInt(value);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: name === "amount" ? validateValue(value) : value,
+      transactionType: transactionType,
+    }));
+  };
+
+  const opemTransactionMOdal = (transactionValue) => {
+    setTransactionType(transactionValue);
+    setTransactionModal(true);
+  };
+
+  const closeTransactionMOdal = () => {
+    setTransactionType("");
+    setTransactionModal(false);
+  };
+
+  const openConfirmationModal = () => {
+    setConfirmationModal(true);
+  };
+
+  const closeConfirmationModal = () => {
+    setConfirmationModal(false);
+  };
+
+  const openHistoryModal = () => {
+    setHistoryModal(true);
+    const data = {
+      page: 1,
+    };
+    dispatch(getTransactionHIstoryAsync(data));
+  };
+
+  const closeHistoryModal = () => {
+    setHistoryModal(false);
+    setDate("");
+  };
+
+  const handleTransaction = (e) => {
+    e.preventDefault();
+    setConfirmationModal(false);
+    dispatch(createTransactionAsync(formData)).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(updateAccount(formData));
+        closeTransactionMOdal();
+        setTransactionType("");
+        resetFormData();
+      }
+    });
+  };
+
+  const resetFormData = () => {
+    setFormData({
+      date: today,
+      transactionType: "",
+      payment_method: "",
+      amount: "",
+      note: "",
+    });
+  };
+
+  const page = TransactionsHistory?.page;
+  const [date, setDate] = useState("");
+
+  const handleDateChange = (e) => {
+    const value = e.target.value;
+    setDate(value);
+  };
+
+  const handleDateSearch = () => {
+    dispatch(getTransactionHIstoryAsync({ page: 1, date }));
+  };
+
+  const renderPaginationLinks = () => {
+    const totalPages = TransactionsHistory?.totalPages;
+    const paginationLinks = [];
+    for (let i = 1; i <= totalPages; i++) {
+      paginationLinks.push(
+        <li key={i}>
+          <Link
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
+              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+            }`}
+            onClick={() => ToDown(i)}
+          >
+            {i}
+          </Link>
+        </li>
+      );
+    }
+    return paginationLinks;
+  };
+
+  const ToDown = (pageValue) => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+    dispatch(getTransactionHIstoryAsync({ page: pageValue, date }));
+  };
+
   if (hasError) {
     return <SendOTP />;
-  };
+  }
 
   return (
     <>
@@ -462,23 +593,499 @@ const DashboardStats = () => {
 
               {/* BANK ACCOUNT */}
               <div className="h-[21rem] px-4 pt-5 lg:col-span-4 xl:col-span-1 pb-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
-                <h2 className="mb-3 font-medium text-lg">Bank Account</h2>
-                {DashboardData?.bankAccountsData &&
-                  Object.entries(DashboardData.bankAccountsData).map(
-                    ([name, value], index) => (
-                      <div
-                        key={index}
-                        className="my-4 flex justify-between items-center border-b"
-                      >
-                        <span>{name}</span>
-                        <span className="font-semibold">{value}</span>
-                      </div>
-                    )
+                <div className="flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex justify-between items-center ">
+                      <h2 className="mb-3 font-medium text-lg">
+                        Bank Accounts
+                      </h2>
+                      {user?.role === "superadmin" && (
+                        <FaHistory
+                          className="cursor-pointer"
+                          onClick={openHistoryModal}
+                          size={18}
+                        />
+                      )}
+                    </div>
+                    {DashboardData?.bankAccountsData &&
+                      DashboardData?.bankAccountsData.map((account, index) => (
+                        <div
+                          key={index}
+                          className="my-4 flex justify-between items-center border-b"
+                        >
+                          <span>{account.name}</span>
+                          <span className="font-semibold">{account.value}</span>
+                        </div>
+                      ))}
+                  </div>
+                  {user?.role === "superadmin" && (
+                    <div className="flex justify-evenly items-center">
+                      <button onClick={(e) => opemTransactionMOdal("Deposit")}>
+                        <PiHandDeposit size={32} className="text-green-500 " />
+                      </button>
+                      <button onClick={() => opemTransactionMOdal("WithDraw")}>
+                        <PiHandWithdraw size={32} className="text-red-500" />
+                      </button>
+                    </div>
                   )}
+                </div>
               </div>
             </div>
           </div>
         </section>
+      )}
+      {/* TRANSACTION MODAL */}
+      {transactionModal && !confirmationModal && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-lg max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            {/* ------------- HEADER ------------- */}
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Transaction Details
+              </h3>
+              <button
+                onClick={closeTransactionMOdal}
+                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+
+            {/* ------------- BODY ------------- */}
+            <div className="p-4 md:p-5">
+              <form onSubmit={openConfirmationModal}>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                  {/* AMOUNT */}
+                  <div>
+                    <input
+                      name="amount"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* DATE */}
+                  <div>
+                    <input
+                      name="date"
+                      type="date"
+                      placeholder="Date"
+                      value={today}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                      readOnly
+                    />
+                  </div>
+
+                  {/* payment_Method */}
+                  <div className="col-span-2">
+                    <select
+                      name="payment_Method"
+                      type="text"
+                      value={formData.payment_Method}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    >
+                      <option value="" disabled>
+                        Select Payment Method
+                      </option>
+                      <option value="cashInMeezanBank">Meezan Bank</option>
+                      <option value="cashInJazzCash">JazzCash</option>
+                      <option value="cashInEasyPaisa">EasyPaisa</option>
+                    </select>
+                  </div>
+
+                  {/* NOtE */}
+                  <div className="col-span-2">
+                    <input
+                      name="note"
+                      type="text"
+                      inputMode="text"
+                      placeholder="Write Note"
+                      value={formData.note}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-center mt-6">
+                  {transactionLoading ? (
+                    <button
+                      disabled
+                      type="button"
+                      class="text-white cursor-not-allowed border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        role="status"
+                        class="inline mr-3 w-4 h-4 text-white animate-spin"
+                        viewBox="0 0 100 101"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                          fill="#E5E7EB"
+                        ></path>
+                        <path
+                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                      Submit
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring-0 active:text-indgrayigo-500"
+                    >
+                      Submit
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* CONFIRMATION MODAL */}
+      {confirmationModal && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {transactionType === "Deposit" ? (
+                  <span className="text-green-500 flex items-center justify-center gap-4">
+                    Deposit <PiHandDeposit size={32} />
+                  </span>
+                ) : (
+                  <span className="text-red-500 flex items-center justify-center gap-4">
+                    Withdraw <PiHandWithdraw size={32} />
+                  </span>
+                )}
+              </h3>
+            </div>
+            <div className="p-4">
+              <p className="text-gray-700 text-center dark:text-gray-300">
+                Are You Sure Want To Make a Transaction of{" "}
+                <span className="font-semibold">{formData.amount}</span> ?
+              </p>
+            </div>
+            <div className="flex justify-center p-2">
+              <button
+                onClick={closeConfirmationModal}
+                className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white mr-2"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleTransaction}
+                className="px-4 py-2.5 text-sm rounded bg-green-500 dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                Confirm
+              </button>
+            </div>
+
+            <div className="button_box absolute top-6 right-6">
+              <button
+                onClick={closeConfirmationModal}
+                className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* HISTORY MODALS */}
+      {historyModal && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-6xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            {/* ------------- HEADER ------------- */}
+            <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Transaction History
+              </h3>
+
+              <div className="flex items-center space-x-4">
+                <div className="relative mt-4 md:mt-0">
+                  <input
+                    type="date"
+                    className="md:w-44 lg:w-60 py-1 pl-14 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-xs dark:placeholder:text-gray-300"
+                    placeholder="Search by date"
+                    value={date}
+                    onChange={handleDateChange}
+                  />
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <CiSearch
+                      size={24}
+                      onClick={handleDateSearch}
+                      className="cursor-pointer"
+                    />
+                  </span>
+                </div>
+                <button
+                  onClick={closeHistoryModal}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ------------- BODY ------------- */}
+            <div className="p-4 md:p-5">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                  <tr>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Date
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Transaction Type
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Amount
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Payment Method
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      New Balance
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Note
+                    </th>
+                  </tr>
+                </thead>
+              </table>
+              <div className="h-[60vh] scrollable-content overflow-y-auto">
+                {transactionLoading ? (
+                  <div className="min-h-screen flex justify-center items-center">
+                    <div
+                      className="animate-spin inline-block w-9 h-9 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                      role="status"
+                      aria-label="loading"
+                    >
+                      <span className="sr-only">Loading...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                    <tbody>
+                      {TransactionsHistory &&
+                      TransactionsHistory?.data?.length > 0 ? (
+                        TransactionsHistory?.data?.map((data, index) => (
+                          <tr
+                            key={index}
+                            className="bg-white border-b text-sm font-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                          >
+                            <td className=" px-6 py-3 text-center" scope="row">
+                              {data?.date}
+                            </td>
+                            <td
+                              className={`px-6 py-3 text-center ${
+                                data?.transactionType === "Deposit"
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              {data?.transactionType}
+                            </td>
+                            <td className=" px-6 py-3 text-center">
+                              {data?.amount}
+                            </td>
+                            <td className="px-6 py-3 text-center">
+                              {data?.payment_Method}
+                            </td>
+                            <td className="px-6 py-3 text-center">
+                              {data?.new_balance}
+                            </td>
+                            <td className="px-6 py-3 text-center">
+                              {data?.note}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className="w-full flex justify-center items-center">
+                          <td className="text-xl mt-3">No Data Available</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+            {/* -------- PAGINATION -------- */}
+            <section className="flex justify-center">
+              <nav aria-label="Page navigation example">
+                <ul className="flex items-center -space-x-px h-8 py-2 text-sm">
+                  <li>
+                    {TransactionsHistory?.page > 1 ? (
+                      <Link
+                        onClick={() => ToDown(page - 1)}
+                        className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                      >
+                        <span className="sr-only">Previous</span>
+                        <svg
+                          className="w-2.5 h-2.5 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 6 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 1 1 5l4 4"
+                          />
+                        </svg>
+                      </Link>
+                    ) : (
+                      <button
+                        className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                        disabled
+                      >
+                        <span className="sr-only">Previous</span>
+                        <svg
+                          className="w-2.5 h-2.5 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 6 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 1 1 5l4 4"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </li>
+                  {renderPaginationLinks()}
+                  <li>
+                    {TransactionsHistory?.totalPages !== page ? (
+                      <Link
+                        onClick={() => ToDown(page + 1)}
+                        className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                      >
+                        <span className="sr-only">Next</span>
+                        <svg
+                          className="w-2.5 h-2.5 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 6 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="m1 9 4-4-4-4"
+                          />
+                        </svg>
+                      </Link>
+                    ) : (
+                      <button
+                        className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                        disabled
+                      >
+                        <span className="sr-only">Next</span>
+                        <svg
+                          className="w-2.5 h-2.5 rtl:rotate-180"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 6 10"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="m1 9 4-4-4-4"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </li>
+                </ul>
+              </nav>
+            </section>
+          </div>
+        </div>
       )}
     </>
   );
