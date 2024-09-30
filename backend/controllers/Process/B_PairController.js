@@ -86,7 +86,7 @@ export const saleBPair = async (req, res, next) => {
 
 export const getAllBPairs = async (req, res, next) => {
   try {
-    const limit = 12;
+    const limit = 20;
     const search = req.query.search;
     const category = req.query.category;
     const page = parseInt(req.query.page) || 1;

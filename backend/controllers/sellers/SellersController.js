@@ -196,7 +196,7 @@ export const getSelleForPurchasingById = async (req, res, next) => {
 export const getAllSellersForPurchasing = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = 6;
+    let limit = 20;
     let search = req.query.search || "";
     let category = req.query.category || "";
 
@@ -443,7 +443,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
 export const getAllPurchasingHistory = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = 6;
+    let limit = 20;
     let search = req.query.search || "";
     let category = req.query.category || "";
 

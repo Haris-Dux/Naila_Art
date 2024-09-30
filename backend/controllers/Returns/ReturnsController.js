@@ -219,7 +219,7 @@ export const getAllReturnsForBranch = async (req, res, next) => {
     const name = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
 
-    const limit = 1;
+    const limit = 20;
     let query = {
       branchId: id,
     };
