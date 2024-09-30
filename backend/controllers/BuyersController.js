@@ -712,7 +712,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     if (!id) throw new Error("Branch Id Required Found");
     const name = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 20;
 
     let query = {
       branchId: id,

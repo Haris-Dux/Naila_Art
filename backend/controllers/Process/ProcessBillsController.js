@@ -113,7 +113,7 @@ export const getProcessillById = async (req, res, next) => {
 export const getAllProcessBills = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = 10;
+    let limit = 20;
     let search = req.query.search || "";
     let category = req.query.category || "";
 

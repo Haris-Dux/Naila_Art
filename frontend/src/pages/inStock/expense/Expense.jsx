@@ -20,7 +20,6 @@ const Expense = () => {
   const { Branches } = useSelector((state) => state.InStock);
   const { ExpenseLoading, Expense } = useSelector((state) => state.InStock);
 
-  console.log('EL',ExpenseLoading);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);

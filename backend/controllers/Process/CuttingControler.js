@@ -80,7 +80,7 @@ export const getAllCutting = async (req, res, next) => {
     try {
       const page = req.query.page || 1;
       const search = req.query.search || "";
-      const limit = 2;
+      const limit = 20;
       let query = {
         partyName: { $regex: search, $options: "i" },
       };

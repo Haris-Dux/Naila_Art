@@ -194,7 +194,6 @@ const StonesDetails = () => {
     }
   };
 
-  console.log("FD", formData);
 
   //CALCULAATE TOTAL QUANTITY FOR STITCHING DATA
   const validateValue = (value) => {

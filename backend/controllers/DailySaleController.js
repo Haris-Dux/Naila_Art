@@ -28,7 +28,7 @@ export const getDailySaleHistoryForBranch = async (req, res, next) => {
     const date = req.query.search || "";
 
     const page = req.query.page || 1;
-    const limit = 5;
+    const limit = 30;
 
     let query = {
       branchId: id,

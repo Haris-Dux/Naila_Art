@@ -55,7 +55,7 @@ export const addSuitsInStock = async (req, res, next) => {
 export const getAllSuits = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 15;
+    const limit = 20;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
 

@@ -685,7 +685,6 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
         timestamp: new Date(currentDate.getTime()),
       });
     }
-    console.log(g_Otp);
     await sendEmail({
       email: "nailaarts666@gmail.com",
       g_Otp,

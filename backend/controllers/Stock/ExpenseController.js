@@ -70,7 +70,7 @@ export const getAllExpenses = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
 
-    const limit = 10;
+    const limit = 20;
     let search = req.query.search || "";
     let branchId = req.query.branchId || "";
     const matchStage = {
