@@ -7,6 +7,7 @@ import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
 import { sendEmail } from "../utils/nodemailer.js";
+import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 
 export const generateBuyersBillandAddBuyer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -126,10 +127,10 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         profitDataForHistory.push({
           d_no: suit.d_no,
           color: suit.color,
-          category:suit.category,
-          suitId:suit.id,
+          category: suitInStock.category,
+          suitId: suit.id,
           quantity: suit.quantity,
-          suitSalePrice:suit.price,
+          suitSalePrice: suit.price,
           profit: profitOnSale,
         });
         TotalProfit += profitOnSale * suit.quantity;
@@ -137,7 +138,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           throw new Error("Sale Price Must Be Greater Then Cost Price");
       });
 
-      const updatedSaleData = {
+      let updatedSaleData = {
         ...dailySaleForToday.saleData,
         payment_Method: (dailySaleForToday.saleData[payment_Method] += paid),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
@@ -145,12 +146,28 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
           remaining),
         totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
-        totalCash: (dailySaleForToday.saleData.totalCash += paid),
       };
+
+      if (payment_Method === "cashSale") {
+        updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+          paid;
+      }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({})
+          .select("-Transaction_History")
+          .session(session);
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] += paid),
+        };
+        virtualAccounts = updatedAccount;
+        await virtualAccounts[0].save({ session });
+      }
       //DATA FOR VIRTUAL ACCOUNT
       const total_debit = remaining;
       const total_credit = paid;
@@ -207,7 +224,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const lastAutoSN = lastDocument ? lastDocument.autoSN : 0;
 
       //CREATING BUYER
-    const buyerResult = await BuyersModel.create(
+      const buyerResult = await BuyersModel.create(
         [
           {
             branchId,
@@ -231,20 +248,317 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       );
 
       //CREATING BILL HISTORY
-      await BuyersBillsModel.create([
-        { branchId,
-          buyerId: buyerResult[0]._id,
-          serialNumber,
-          autoSN: lastAutoSN + 1,
+      await BuyersBillsModel.create(
+        [
+          {
+            branchId,
+            buyerId: buyerResult[0]._id,
+            serialNumber,
+            autoSN: lastAutoSN + 1,
+            date,
+            name,
+            phone,
+            total,
+            paid,
+            remaining,
+            TotalProfit,
+            profitDataForHistory,
+          },
+        ],
+        { session }
+      );
+
+      //SEND EMAIL
+      const BillEmailData = {
+        serialNumber,
+        branchName: branch.branchName,
+        name,
+        phone,
+        date,
+        bill_by,
+        payment_Method,
+        debit: virtualAccountData.total_debit,
+        credit: virtualAccountData.total_credit,
+        balance: virtualAccountData.total_balance,
+        status: virtualAccountData.status,
+      };
+
+      await sendEmail({
+        email: "Nailaarts666@gmail.com",
+        email_Type: "Buyer Bill",
+        BillEmailData,
+      });
+
+      return res
+        .status(200)
+        .json({ succes: true, message: "Bill Generated Successfully" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
+export const generateBillForOldbuyer = async (req, res, nex) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const {
+        buyerId,
+        branchId,
+        serialNumber,
+        name,
+        city,
+        cargo,
+        phone,
+        date,
+        bill_by,
+        payment_Method,
+        packaging,
+        discount,
+        suits_data,
+        total,
+        paid,
+        remaining,
+      } = req.body;
+
+      //VALIDATING FIELDS DATA
+      const requiredFields = [
+        "buyerId",
+        "branchId",
+        "serialNumber",
+        "name",
+        "city",
+        "cargo",
+        "phone",
+        "date",
+        "bill_by",
+        "payment_Method",
+        "packaging",
+        "discount",
+        "suits_data",
+        "total",
+        "paid",
+        "remaining",
+      ];
+      const missingFields = [];
+      requiredFields.forEach((field) => {
+        if (req.body[field] === undefined || req.body[field] === null) {
+          missingFields.push(field);
+        } else if (field === "suits_data") {
+          if (suits_data.length < 1)
+            throw new Error("Please Add Atleat 1 Suit");
+          req.body.suits_data.forEach((suit, index) => {
+            const requiredSuitFields = [
+              "id",
+              "d_no",
+              "color",
+              "quantity",
+              "price",
+            ];
+            requiredSuitFields.forEach((suit_field) => {
+              if (!suit[suit_field]) {
+                missingFields.push(`${suit_field} for suit ${index + 1}`);
+              }
+            });
+          });
+        }
+      });
+      if (missingFields.length > 0)
+        throw new Error(`Missing Fields ${missingFields}`);
+      const branch = await BranchModel.findOne({ _id: branchId });
+      if (!branch) throw new Error("Branch Not Found");
+
+      //DEDUCTING BAGS OR BOXES FROM STOCK
+      if (packaging && !packaging.id) {
+        throw new Error("Please Select Packaging");
+      }
+      const bagsorBoxStock = await BagsAndBoxModel.findById(
+        packaging.id
+      ).session(session);
+      if (!bagsorBoxStock) throw new Error("Packaging Not Found");
+      const updatedBagsorBoxQuantity =
+        bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
+      if (updatedBagsorBoxQuantity < 0)
+        throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
+      bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
+      await bagsorBoxStock.save({ session });
+
+      //DEDUCTING SUITS FROM STOCK
+      const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
+      const suitsStock = branch.stockData.filter((mainStock) =>
+        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
+      );
+      suitsStock.forEach((suit) => {
+        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
+        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
+        if (updatedSuitQuantity < 0)
+          throw new Error(
+            `Not enough stock for suit with Design No: ${suit.d_no}`
+          );
+        suit.quantity = updatedSuitQuantity;
+        return suit;
+      });
+      await branch.save({ session });
+
+      //ADDING IN DAILY SALE
+      const dailySaleForToday = await DailySaleModel.findOne({
+        branchId,
+        date: { $eq: date },
+      }).session(session);
+      if (!dailySaleForToday) {
+        throw new Error("Daily sale record not found for This Date");
+      }
+
+      //calculating profit
+      let TotalProfit = 0;
+      let profitDataForHistory = [];
+      suits_data.forEach((suit) => {
+        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
+        const profitOnSale = suit.price - suitInStock.cost_price;
+        profitDataForHistory.push({
+          d_no: suit.d_no,
+          color: suit.color,
+          category: suitInStock.category,
+          suitId: suit.id,
+          quantity: suit.quantity,
+          suitSalePrice: suit.price,
+          profit: profitOnSale,
+        });
+        TotalProfit += profitOnSale * suit.quantity;
+        if (profitOnSale < 0)
+          throw new Error("Sale Price Must Be Greater Then Cost Price");
+      });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({})
+          .select("-Transaction_History")
+          .session(session);
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] += paid),
+        };
+        virtualAccounts = updatedAccount;
+        await virtualAccounts[0].save({ session });
+      }
+      //UPDATING DAILY SALE
+
+      const updatedSaleData = {
+        ...dailySaleForToday.saleData,
+        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid),
+        totalSale: (dailySaleForToday.saleData.totalSale += paid),
+        todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
+        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
+          remaining),
+        totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
+      };
+
+      if (payment_Method === "cashSale") {
+        updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+          paid;
+      }
+
+      dailySaleForToday.saleData = updatedSaleData;
+      await dailySaleForToday.save({ session });
+
+      //GETTING BUYERS PREVIOUS DATA
+      const buyerData = await BuyersModel.findById({ _id: buyerId });
+      if (!buyerData) throw new Error("Buyer Data Not Found");
+
+      //DATA FOR VIRTUAL ACCOUNT
+      const new_total_debit = buyerData.virtual_account.total_debit + remaining;
+      const new_total_credit = buyerData.virtual_account.total_credit + paid;
+      const new_total_balance =
+        buyerData.virtual_account.total_balance + remaining;
+      let new_status = "";
+
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_debit && new_total_credit > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_credit === 0 && new_total_balance === new_total_debit:
+          new_status = "Unpaid";
+          break;
+      }
+
+      if (new_total_balance < 0)
+        throw new Error("Invalid Balance Amount For This Party");
+
+      const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+      //DATA FOR CREDIT DEBIT HISTORY
+
+      const credit_debit_history_details = [
+        {
           date,
+          particular: `Bill No ${serialNumber}`,
+          debit: total,
+          balance: buyerData.virtual_account.total_balance + total,
+        },
+      ];
+      if (paid > 0) {
+        credit_debit_history_details.push({
+          date,
+          particular: payment_Method,
+          credit: paid,
+          balance: new_total_balance,
+        });
+      }
+
+      // UPDATING BUYER DATA
+      await BuyersModel.findByIdAndUpdate(
+        buyerId,
+        {
+          branchId,
+          serialNumber,
           name,
+          city,
+          cargo,
           phone,
-          total,
-          paid,
-          remaining,
-          TotalProfit,
-          profitDataForHistory}
-      ],{session})
+          date,
+          bill_by,
+          payment_Method,
+          packaging,
+          discount,
+          virtual_account: virtualAccountData,
+          $push: {
+            credit_debit_history: { $each: credit_debit_history_details },
+            suits_data: { $each: suits_data },
+          },
+        },
+        { session }
+      );
+
+      //CREATING BILL HISTORY
+      await BuyersBillsModel.create(
+        [
+          {
+            branchId,
+            buyerId: buyerData._id,
+            serialNumber,
+            autoSN: buyerData.autoSN,
+            date,
+            name,
+            phone,
+            total,
+            paid,
+            remaining,
+            TotalProfit,
+            profitDataForHistory,
+          },
+        ],
+        { session }
+      );
 
       //SEND EMAIL
       const BillEmailData = {
@@ -374,248 +688,6 @@ export const validateAndGetOldBuyerData = async (req, res, next) => {
   }
 };
 
-export const generateBillForOldbuyer = async (req, res, nex) => {
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      const {
-        buyerId,
-        branchId,
-        serialNumber,
-        name,
-        city,
-        cargo,
-        phone,
-        date,
-        bill_by,
-        payment_Method,
-        packaging,
-        discount,
-        suits_data,
-        total,
-        paid,
-        remaining,
-      } = req.body;
-
-      //VALIDATING FIELDS DATA
-      const requiredFields = [
-        "buyerId",
-        "branchId",
-        "serialNumber",
-        "name",
-        "city",
-        "cargo",
-        "phone",
-        "date",
-        "bill_by",
-        "payment_Method",
-        "packaging",
-        "discount",
-        "suits_data",
-        "total",
-        "paid",
-        "remaining",
-      ];
-      const missingFields = [];
-      requiredFields.forEach((field) => {
-        if (req.body[field] === undefined || req.body[field] === null) {
-          missingFields.push(field);
-        } else if (field === "suits_data") {
-          if (suits_data.length < 1)
-            throw new Error("Please Add Atleat 1 Suit");
-          req.body.suits_data.forEach((suit, index) => {
-            const requiredSuitFields = [
-              "id",
-              "d_no",
-              "color",
-              "quantity",
-              "price",
-            ];
-            requiredSuitFields.forEach((suit_field) => {
-              if (!suit[suit_field]) {
-                missingFields.push(`${suit_field} for suit ${index + 1}`);
-              }
-            });
-          });
-        }
-      });
-      if (missingFields.length > 0)
-        throw new Error(`Missing Fields ${missingFields}`);
-      const branch = await BranchModel.findOne({ _id: branchId });
-      if (!branch) throw new Error("Branch Not Found");
-
-      //DEDUCTING BAGS OR BOXES FROM STOCK
-      if (packaging && !packaging.id) {
-        throw new Error("Please Select Packaging");
-      }
-      const bagsorBoxStock = await BagsAndBoxModel.findById(
-        packaging.id
-      ).session(session);
-      if (!bagsorBoxStock) throw new Error("Packaging Not Found");
-      const updatedBagsorBoxQuantity =
-        bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
-      if (updatedBagsorBoxQuantity < 0)
-        throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
-      bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
-      await bagsorBoxStock.save({ session });
-
-      //DEDUCTING SUITS FROM STOCK
-      const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = branch.stockData.filter((mainStock) =>
-        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
-      );
-      suitsStock.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
-        if (updatedSuitQuantity < 0)
-          throw new Error(
-            `Not enough stock for suit with Design No: ${suit.d_no}`
-          );
-        suit.quantity = updatedSuitQuantity;
-        return suit;
-      });
-      await branch.save({ session });
-
-      //ADDING IN DAILY SALE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: { $eq: date },
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
-      }
-
-      //calculating profit
-      let TotalProfit = 0;
-      suits_data.forEach((suit) => {
-        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
-        const profitOnSale = suit.price - suitInStock.cost_price;
-        TotalProfit += profitOnSale * suit.quantity;
-        if (profitOnSale < 0)
-          throw new Error("Sale Price Must Be Greater Then Cost Price");
-      });
-
-      const updatedSaleData = {
-        ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid),
-        totalSale: (dailySaleForToday.saleData.totalSale += paid),
-        todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
-        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
-          remaining),
-        totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
-        totalCash: (dailySaleForToday.saleData.totalCash += paid),
-      };
-
-      dailySaleForToday.saleData = updatedSaleData;
-      await dailySaleForToday.save({ session });
-
-      //GETTING BUYERS PREVIOUS DATA
-      const buyerData = await BuyersModel.findById({ _id: buyerId });
-      if (!buyerData) throw new Error("Buyer Data Not Found");
-
-      //DATA FOR VIRTUAL ACCOUNT
-      const new_total_debit = buyerData.virtual_account.total_debit + remaining;
-      const new_total_credit = buyerData.virtual_account.total_credit + paid;
-      const new_total_balance =
-        buyerData.virtual_account.total_balance + remaining;
-      let new_status = "";
-
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_debit && new_total_credit > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_credit === 0 && new_total_balance === new_total_debit:
-          new_status = "Unpaid";
-          break;
-      }
-
-      if (new_total_balance < 0)
-        throw new Error("Invalid Balance Amount For This Party");
-
-      const virtualAccountData = {
-        total_debit: new_total_debit,
-        total_credit: new_total_credit,
-        total_balance: new_total_balance,
-        status: new_status,
-      };
-
-      //DATA FOR CREDIT DEBIT HISTORY
-
-      const credit_debit_history_details = [
-        {
-          date,
-          particular: `Bill No ${serialNumber}`,
-          debit: total,
-          balance: buyerData.virtual_account.total_balance + total,
-        },
-      ];
-      if (paid > 0) {
-        credit_debit_history_details.push({
-          date,
-          particular: payment_Method,
-          credit: paid,
-          balance: new_total_balance,
-        });
-      }
-
-      // UPDATING BUYER DATA
-      await BuyersModel.findByIdAndUpdate(
-        buyerId,
-        {
-          branchId,
-          serialNumber,
-          name,
-          city,
-          cargo,
-          phone,
-          date,
-          bill_by,
-          payment_Method,
-          packaging,
-          discount,
-          virtual_account: virtualAccountData,
-          $push: {
-            credit_debit_history: { $each: credit_debit_history_details },
-            suits_data: { $each: suits_data },
-          },
-        },
-        { session }
-      );
-
-      //SEND EMAIL
-      const BillEmailData = {
-        serialNumber,
-        branchName: branch.branchName,
-        name,
-        phone,
-        date,
-        bill_by,
-        payment_Method,
-        debit: virtualAccountData.total_debit,
-        credit: virtualAccountData.total_credit,
-        balance: virtualAccountData.total_balance,
-        status: virtualAccountData.status,
-      };
-
-      await sendEmail({
-        email: "Nailaarts666@gmail.com",
-        email_Type: "Buyer Bill",
-        BillEmailData,
-      });
-      return res
-        .status(200)
-        .json({ succes: true, message: "Bill Generated Successfully" });
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  } finally {
-    session.endSession();
-  }
-};
-
 export const generatePdfFunction = async (req, res, next) => {
   try {
     const data = req.body;
@@ -662,5 +734,3 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
-

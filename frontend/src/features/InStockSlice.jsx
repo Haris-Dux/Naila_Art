@@ -304,6 +304,7 @@ const initialState = {
   Bags: [],
   accessories: [],
   Expense: [],
+  ExpenseLoading:false,
   loading: false,
   GetSuitloading: false,
   Branches: [],
@@ -412,12 +413,17 @@ const InStockSlic = createSlice({
       })
 
       .addCase(GetAllExpense.pending, (state, action) => {
-        state.loading = true;
+        state.ExpenseLoading = true;
       })
       .addCase(GetAllExpense.fulfilled, (state, action) => {
-        state.loading = false;
+        state.ExpenseLoading = false;
         state.Expense = action.payload;
       })
+
+      .addCase(GetAllExpense.rejected, (state, action) => {
+        state.ExpenseLoading = false;
+      })
+
 
       .addCase(AddSuit.pending, (state) => {
         state.addSuitLoading = true;

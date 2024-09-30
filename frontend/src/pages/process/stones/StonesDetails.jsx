@@ -149,6 +149,7 @@ const StonesDetails = () => {
         i === index ? { ...row, color: value } : row
       ),
     }));
+    getMaxQuantity(categoryType);
   };
 
   const handleQuantityChange = (e, index, categoryType) => {
@@ -161,6 +162,40 @@ const StonesDetails = () => {
     }));
   };
 
+  const getMaxQuantity = (categoryType) => {
+    if (categoryType === "suits_category") {
+      SingleEmbroidery?.shirt?.forEach((item) => {
+        const { category, color, quantity_in_no } = item;
+        formData?.suits_category.forEach((suit) => {
+          setFormData((prevState) => ({
+            ...prevState,
+            suits_category: prevState.suits_category.map((suit) =>
+              suit.category === category && suit.color === color
+                ? { ...suit, MaxQuantity: quantity_in_no }
+                : suit
+            ),
+          }));
+        });
+      });
+    } else if (categoryType === "dupatta_category") {
+      SingleEmbroidery?.duppata?.forEach((item) => {
+        const { category, color, quantity_in_no } = item;
+        formData?.suits_category.forEach((suit) => {
+          setFormData((prevState) => ({
+            ...prevState,
+            dupatta_category: prevState.dupatta_category.map((dupatta) =>
+              dupatta.category === category && dupatta.color === color
+                ? { ...dupatta, MaxQuantity: quantity_in_no }
+                : dupatta
+            ),
+          }));
+        });
+      });
+    }
+  };
+
+  console.log("FD", formData);
+
   //CALCULAATE TOTAL QUANTITY FOR STITCHING DATA
   const validateValue = (value) => {
     return isNaN(value) || value === undefined || value === null
@@ -169,21 +204,21 @@ const StonesDetails = () => {
   };
   const calculateTotalQuantity = () => {
     let totalQuantity = 0;
-    if(formData.suits_category && formData.dupatta_category){
-      formData.suits_category.forEach((item) => {
-        totalQuantity += validateValue(item.quantity_in_no);
-      })
-    }  else if(formData.suits_category ){
+    if (formData.suits_category && formData.dupatta_category) {
       formData.suits_category.forEach((item) => {
         totalQuantity += validateValue(item.quantity_in_no);
       });
-    } else if (formData.dupatta_category){
+    } else if (formData.suits_category) {
+      formData.suits_category.forEach((item) => {
+        totalQuantity += validateValue(item.quantity_in_no);
+      });
+    } else if (formData.dupatta_category) {
       formData.dupatta_category.forEach((item) => {
         totalQuantity += validateValue(item.quantity_in_no);
       });
     }
 
-  return totalQuantity;
+    return totalQuantity;
   };
 
   //VALIDATE DUPATTA DATA
@@ -236,7 +271,9 @@ const StonesDetails = () => {
       toast.error("Please add Duppata or Shirt Data");
     } else {
       calculateTotalQuantity();
-      dispatch(createStitching({...formData, Quantity: calculateTotalQuantity()})).then((res) => {
+      dispatch(
+        createStitching({ ...formData, Quantity: calculateTotalQuantity() })
+      ).then((res) => {
         if (res.payload.success === true) {
           closeModal();
           navigate("/dashboard/stitching");
@@ -788,7 +825,7 @@ const StonesDetails = () => {
                       </div>
 
                       {/* ENTER QUANITY */}
-                      <div className="col-span-2 flex items-center">
+                      <div className="col-span-2 flex gap-3 items-center">
                         <input
                           type="text"
                           placeholder="Enter Quantity In No"
@@ -798,10 +835,13 @@ const StonesDetails = () => {
                             handleQuantityChange(e, index, "suits_category")
                           }
                         />
+                        <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                          A.Q : {row.MaxQuantity || 0}
+                        </span>
                         {formData?.suits_category?.length > 1 && (
                           <button
                             onClick={() => removeRow("suits_category", index)}
-                            className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             type="button"
                           >
                             <svg
@@ -879,7 +919,7 @@ const StonesDetails = () => {
                       </div>
 
                       {/* ENTER QUANITY */}
-                      <div className="col-span-2 flex items-center">
+                      <div className="col-span-2 gap-3 flex items-center">
                         <input
                           type="text"
                           placeholder="Enter Quantity In No"
@@ -889,10 +929,13 @@ const StonesDetails = () => {
                             handleQuantityChange(e, index, "dupatta_category")
                           }
                         />
+                         <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                          A.Q : {row.MaxQuantity || 0}
+                        </span>
                         {formData?.dupatta_category?.length > 1 && (
                           <button
                             onClick={() => removeRow("dupatta_category", index)}
-                            className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             type="button"
                           >
                             <svg

@@ -18,7 +18,9 @@ const Expense = () => {
   let branchId = user?.user?.branchId;
 
   const { Branches } = useSelector((state) => state.InStock);
-  const { loading, Expense } = useSelector((state) => state.InStock);
+  const { ExpenseLoading, Expense } = useSelector((state) => state.InStock);
+
+  console.log('EL',ExpenseLoading);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -144,9 +146,9 @@ const Expense = () => {
 
           {/* <!-- search bar --> */}
           <div className="flex items-center gap-3">
-            <button type='button' onClick={handleTabClick} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
+           {user?.user?.role !== "superadmin" && <button type='button' onClick={handleTabClick} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
               <IoAdd size={22} className='text-white' />
-            </button>
+            </button>}
 
             <div className="search_bar mr-2">
               <div className="relative mt-4 md:mt-0">
@@ -230,12 +232,12 @@ const Expense = () => {
         </div>
 
         {/* -------------- TABLE -------------- */}
-        {loading ? (
+        {ExpenseLoading ? (
           <div className="pt-16 flex justify-center mt-12 items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
               role="status"
-              aria-label="loading"
+              aria-label="ExpenseLoading"
             >
               <span className="sr-only">Loading...</span>
             </div>

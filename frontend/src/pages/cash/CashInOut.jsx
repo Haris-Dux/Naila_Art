@@ -122,10 +122,21 @@ const CashInOut = () => {
       return;
     }
 
-    const modifiedFormData = {
-      ...formData,
-      cash: Number(formData.cash),
-    };
+    
+    let modifiedFormData = {};
+
+    if (user && user?.user?.role === "admin") {
+      modifiedFormData = {
+        ...formData,
+        branchId: user?.user?.branchId,
+        cash: Number(formData.cash)
+      };
+    } else {
+      modifiedFormData = {
+        ...formData,
+        cash: Number(formData.cash),
+      };
+    }
 
     dispatch(cashInAsync(modifiedFormData)).then((res) => {
       if (res.payload.sucess === true) {
@@ -146,10 +157,20 @@ const CashInOut = () => {
       return;
     }
 
-    const modifiedFormData = {
-      ...formData,
-      cash: Number(formData.cash),
-    };
+    let modifiedFormData = {};
+
+    if (user && user?.user?.role === "admin") {
+      modifiedFormData = {
+        ...formData,
+        branchId: user?.user?.branchId,
+        cash: Number(formData.cash)
+      };
+    } else {
+      modifiedFormData = {
+        ...formData,
+        cash: Number(formData.cash),
+      };
+    }
 
     dispatch(cashOutAsync(modifiedFormData)).then((res) => {
       if (res.payload.sucess === true) {

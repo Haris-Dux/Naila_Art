@@ -10,6 +10,9 @@ const getDashboardDataForBranch =
 const sendDashBoardAccessOTPUrl = "/api/dashboardRouter/sendDashBoardAccessOTP";
 const verifyOtpForDasboardDataPUrl =
   "/api/dashboardRouter/verifyOtpForDasboardData";
+  const createTransactionUrl = "/api/dashboardRouter/makeTransactionInAccounts";
+  const transactionHistoryUrl = `/api/dashboardRouter/getTransactionsHistory`;
+
 
 // GET DATA FOR SUPER ADMIN THUNK
 export const getDataForSuperAdminAsync = createAsyncThunk(
@@ -63,16 +66,72 @@ export const verifyOtpForDasboardDataAsync = createAsyncThunk(
   }
 );
 
+//TRANSACTION THUNK
+export const createTransactionAsync = createAsyncThunk(
+  "Transaction/createTransaction",
+  async (data) => {
+    try {
+      const response = await axios.post(createTransactionUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+//GET  TRANSACTION HISTORY THUNK
+
+export const getTransactionHIstoryAsync = createAsyncThunk(
+  "Transaction/TransactionHistory",
+  async (data) => {
+    const date =
+    data?.date !== undefined && data?.date !== null
+      ? `&date=${data?.date}`
+      : "";
+    try {
+      const response = await axios.post(`${transactionHistoryUrl}?page=${data.page}&${date}`);
+      return response.data;
+    } catch (error) {
+     throw new Error(error);
+    }
+  }
+);
+
+
 // INITIAL STATE
 const initialState = {
   DashboardData: [],
+  TransactionsHistory:[],
   loading: false,
   otpLoading: false,
+  transactionLoading:false
 };
 
 const DashboardSlice = createSlice({
   name: "DashboardSlice",
   initialState,
+  reducers : {
+    updateAccount (state,action) {
+      const {amount,payment_Method,transactionType} = action.payload;
+      const paymentMethodMapping = {
+        cashInMeezanBank: "Meezan Bank",
+        cashInJazzCash: "JazzCash",
+        cashInEasyPaisa: "EasyPaisa",
+      };
+      const readablePaymentMethod = paymentMethodMapping[payment_Method];
+      const paymentMethodData = state.DashboardData.bankAccountsData.find((account) =>{
+        return  account.name === readablePaymentMethod
+      })
+      if(paymentMethodData){
+        if (transactionType === "Deposit") {
+          paymentMethodData.value += amount; 
+        } else if (transactionType === "WithDraw") {
+          paymentMethodData.value -= amount; 
+        }
+      }
+    }
+  },
   extraReducers: (builder) => {
     builder
 
@@ -86,6 +145,29 @@ const DashboardSlice = createSlice({
       })
       .addCase(getDataForSuperAdminAsync.rejected, (state, action) => {
         state.loading = false;
+      })
+
+       // TRANSACTION CASES
+       .addCase(createTransactionAsync.pending, (state) => {
+        state.transactionLoading = true;
+      })
+      .addCase(createTransactionAsync.fulfilled, (state, action) => {
+        state.transactionLoading = false;
+      })
+      .addCase(createTransactionAsync.rejected, (state, action) => {
+        state.transactionLoading = false;
+      })
+
+      // GET TRANSACTION HISTORY
+      .addCase(getTransactionHIstoryAsync.pending, (state) => {
+        state.transactionLoading = true;
+      })
+      .addCase(getTransactionHIstoryAsync.fulfilled, (state, action) => {
+        state.transactionLoading = false;
+        state.TransactionsHistory = action.payload;
+      })
+      .addCase(getTransactionHIstoryAsync.rejected, (state, action) => {
+        state.transactionLoading = false;
       })
 
       // GET DATA FOR OTHER
@@ -119,3 +201,4 @@ const DashboardSlice = createSlice({
 });
 
 export default DashboardSlice.reducer;
+export const { updateAccount } = DashboardSlice.actions;

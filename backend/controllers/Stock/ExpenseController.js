@@ -7,8 +7,8 @@ import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addExpense = async (req, res, next) => {
   try {
-    const { name, reason, Date, rate, serial_no, branchId , payment_Method} = req.body;
-    if (!name || !reason || !Date || !rate || !serial_no || !branchId)
+    const { name, reason, Date, rate, branchId, payment_Method } = req.body;
+    if (!name || !reason || !Date || !rate || !branchId)
       throw new Error("Missing Fields");
     const branch = await BranchModel.findOne({ _id: branchId });
     if (!branch) throw new Error("Branch Not Found");
@@ -20,16 +20,34 @@ export const addExpense = async (req, res, next) => {
     });
     if (!existingDailySaleData) throw new Error("Daily Sale Not Found");
 
+    const id = new mongoose.Types.ObjectId(branchId)
+
     const existingExpenseData = await ExpenseModel.findOne({ branchId });
-    let expenseData = { name, reason, Date, rate, serial_no };
+    const result = await ExpenseModel.aggregate([
+      { $match : {branchId: new mongoose.Types.ObjectId(branchId)}},
+      { $unwind: "$brannchExpenses" },
+      { $sort: { "brannchExpenses._id": -1 } },
+      { $limit: 1 },
+      { $project: { "brannchExpenses.serial_no": 1, _id: 0 } }
+    ]);
+    const lastSerialNo = result.length > 0 ? result[0].brannchExpenses.serial_no : 0;
+    let expenseData = { name, reason, Date, rate, serial_no:lastSerialNo + 1 };
     //UPDATING DAILY SALE
-    existingDailySaleData.saleData.totalExpense += rate;
-    existingDailySaleData.saleData.totalCash -= rate;
-    if(payment_Method){
-      existingDailySaleData.saleData[payment_Method] -= rate;
+    if (payment_Method) {
+      existingDailySaleData.saleData.totalExpense += rate;
+      if (payment_Method === "cashSale") {
+        existingDailySaleData.saleData.totalCash -= rate;
+      } else {
+        existingDailySaleData.saleData[payment_Method] -= rate;
+      }
+    } else {
+      existingDailySaleData.saleData.totalExpense += rate;
+      existingDailySaleData.saleData.totalCash -= rate;
     }
-    if(existingDailySaleData.saleData[payment_Method] < 0) throw new Error('Not Enough Cash In Selected Payment Method')
-    if(existingDailySaleData.saleData.totalCash < 0) throw new Error('Not Enough Total Cash')
+    if (existingDailySaleData.saleData[payment_Method] < 0)
+      throw new Error("Not Enough Cash In Selected Payment Method");
+    if (existingDailySaleData.saleData.totalCash < 0)
+      throw new Error("Not Enough Total Cash");
     if (existingExpenseData) {
       existingExpenseData.brannchExpenses.push(expenseData);
       await Promise.all([
@@ -57,13 +75,15 @@ export const getAllExpenses = async (req, res, next) => {
     let branchId = req.query.branchId || "";
     const matchStage = {
       $match: {
-        branchId: branchId ? new mongoose.Types.ObjectId(branchId) : { $exists: true },
+        branchId: branchId
+          ? new mongoose.Types.ObjectId(branchId)
+          : { $exists: true },
         "brannchExpenses.name": { $regex: search, $options: "i" },
       },
     };
 
     const unwindStage = { $unwind: "$brannchExpenses" };
-    const sortStage = { $sort: { "brannchExpenses.Date": -1 } };
+    const sortStage = { $sort: { "brannchExpenses.createdAt": -1 } };
 
     const paginationStage = [{ $skip: (page - 1) * limit }, { $limit: limit }];
 
@@ -79,7 +99,6 @@ export const getAllExpenses = async (req, res, next) => {
       page,
       total_Expense: totalResult[0].total,
       data,
-
     };
     setMongoose();
     return res.status(200).json(response);

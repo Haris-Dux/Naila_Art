@@ -17,7 +17,7 @@ export const addCalender = async (req, res, next) => {
     ];
     const missingFields = [];
     requiredFields.forEach((field) => {
-      if (!req.body[field]) {
+      if (req.body[field] === undefined || req.body[field] === null) {
         missingFields.push(field);
       }
       if (missingFields.length > 0) {

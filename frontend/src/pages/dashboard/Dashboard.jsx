@@ -50,11 +50,11 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/");
-    }
-  }, [user, dispatch, navigate]);
+  // useEffect(() => {
+  //   if (!user) {
+  //     navigate("/");
+  //   }
+  // }, [user, dispatch, navigate]);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);

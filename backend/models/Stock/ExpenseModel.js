@@ -21,7 +21,7 @@ const dataSchema = new mongoose.Schema({
     type: Number,
     required: [true, "serial_no required"],
   },
-});
+}, { timestamps: true });
 
 const expenseSchema = new mongoose.Schema(
   {

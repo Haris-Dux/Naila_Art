@@ -8,7 +8,8 @@ export async function sendEmail(data) {
     StockEmailData,
     CashInEmailData,
     CashOutEmailData,
-    BillEmailData
+    BillEmailData,
+    TransactionData,
   } = data;
 
   let output = ``;
@@ -104,7 +105,7 @@ export async function sendEmail(data) {
   </body>
   </html>
   `;
-  break;
+      break;
     case email_Type === "Cash In":
       subject = "Cash In Notification";
       output = `
@@ -170,7 +171,7 @@ export async function sendEmail(data) {
   </body>
   </html>
   `;
-break;
+      break;
     case email_Type === "Cash Out":
       subject = "Cash Out Notification";
       output = `
@@ -237,9 +238,9 @@ break;
   </html>
   `;
       break;
-      case email_Type === "Buyer Bill":
-        subject = "Buyer Bill Notification";
-        output = `
+    case email_Type === "Buyer Bill":
+      subject = "Buyer Bill Notification";
+      output = `
         <html>
         <head>
           <style>
@@ -317,7 +318,69 @@ break;
         </body>
         </html>
         `;
-      
+      break;
+    case email_Type === "Transaction Notification":
+      subject = "Transaction Notification";
+      output = `
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              background-color: #f4f4f4;
+            }
+            .container {
+              width: 80%;
+              margin: auto;
+              background: #fff;
+              padding: 20px;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            h3 {
+              color: #333;
+            }
+            .section {
+              padding: 10px 0;
+              border-bottom: 1px solid #eee;
+            }
+            .section:last-child {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: bold;
+              color: #555;
+            }
+            .value {
+              color: #333;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h3>Transaction Details</h3>
+            <div class="section">
+              <span class="label">Transaction Type:</span> <span class="value">${TransactionData.transactionType}</span>
+            </div>
+            <div class="section">
+              <span class="label">Amount:</span> <span class="value">${TransactionData.amount}</span>
+            </div>
+            <div class="section">
+              <span class="label">Payment Method:</span> <span class="value">${TransactionData.payment_Method}</span>
+            </div>
+            <div class="section">
+              <span class="label">Date:</span> <span class="value">${TransactionData.date}</span>
+            </div>
+            <div class="section">
+              <span class="label">Note:</span> <span class="value">${TransactionData.note}</span>
+            </div>
+          </div>
+        </body>
+        </html>
+        `;
       break;
     default:
       "";
