@@ -599,7 +599,7 @@ const DashboardStats = () => {
                       <h2 className="mb-3 font-medium text-lg">
                         Bank Accounts
                       </h2>
-                      {user?.role === "superadmin" && (
+                      {user?.user?.role === "superadmin" && (
                         <FaHistory
                           className="cursor-pointer"
                           onClick={openHistoryModal}
@@ -618,7 +618,7 @@ const DashboardStats = () => {
                         </div>
                       ))}
                   </div>
-                  {user?.role === "superadmin" && (
+                  {user?.user?.role === "superadmin" && (
                     <div className="flex justify-evenly items-center">
                       <button onClick={(e) => opemTransactionMOdal("Deposit")}>
                         <PiHandDeposit size={32} className="text-green-500 " />

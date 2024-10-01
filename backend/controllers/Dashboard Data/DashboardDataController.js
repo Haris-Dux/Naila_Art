@@ -712,12 +712,12 @@ export const verifyOtpForDasboardData = async (req, res, next) => {
       throw new Error("OTP Expired");
     }
     const token = jwt.sign({ userId }, process.env.TOEKN_SECRET, {
-      expiresIn: 60 * 60,
+      expiresIn: 60 * 10,
     });
     res.cookie("D_Token", token, {
       httpOnly: true,
       secure: "auto",
-      maxAge: 60 * 60 * 1000,
+      maxAge: 60 * 10 * 1000,
     });
     res.status(200).json({
       message: "OTP Verified Successfully",

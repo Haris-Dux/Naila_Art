@@ -165,13 +165,13 @@ const StonesDetails = () => {
   const getMaxQuantity = (categoryType) => {
     if (categoryType === "suits_category") {
       SingleEmbroidery?.shirt?.forEach((item) => {
-        const { category, color, quantity_in_no } = item;
+        const { category, color, received } = item;
         formData?.suits_category.forEach((suit) => {
           setFormData((prevState) => ({
             ...prevState,
             suits_category: prevState.suits_category.map((suit) =>
               suit.category === category && suit.color === color
-                ? { ...suit, MaxQuantity: quantity_in_no }
+                ? { ...suit, MaxQuantity: received }
                 : suit
             ),
           }));
@@ -179,13 +179,13 @@ const StonesDetails = () => {
       });
     } else if (categoryType === "dupatta_category") {
       SingleEmbroidery?.duppata?.forEach((item) => {
-        const { category, color, quantity_in_no } = item;
+        const { category, color, received } = item;
         formData?.suits_category.forEach((suit) => {
           setFormData((prevState) => ({
             ...prevState,
             dupatta_category: prevState.dupatta_category.map((dupatta) =>
               dupatta.category === category && dupatta.color === color
-                ? { ...dupatta, MaxQuantity: quantity_in_no }
+                ? { ...dupatta, MaxQuantity: received }
                 : dupatta
             ),
           }));
@@ -193,7 +193,6 @@ const StonesDetails = () => {
       });
     }
   };
-
 
   //CALCULAATE TOTAL QUANTITY FOR STITCHING DATA
   const validateValue = (value) => {
@@ -385,9 +384,25 @@ const StonesDetails = () => {
     closeGatepassModal();
   };
 
+  const Front_category = SingleStone?.category_quantity.find(
+    (item) => item.category === "Front"
+  );
+  const T_QuantityForBill = Front_category?.recieved_Data?.r_total;
+
   const generateBill = () => {
-    const formData = { ...SingleStone, T_Quantity, process_Category: "Stone" };
-    dispatch(generateStoneBillAsync(formData));
+    if (
+      !T_QuantityForBill || T_QuantityForBill === 0
+    ) {
+      toast.error("Invalid Return Quantity For Category Front");
+      return;
+    } 
+      const formData = {
+        ...SingleStone,
+        r_quantity: T_QuantityForBill,
+        process_Category: "Stone",
+      };
+      dispatch(generateStoneBillAsync(formData));
+    
   };
 
   const setStatusColor = (status) => {
@@ -928,7 +943,7 @@ const StonesDetails = () => {
                             handleQuantityChange(e, index, "dupatta_category")
                           }
                         />
-                         <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                        <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
                           A.Q : {row.MaxQuantity || 0}
                         </span>
                         {formData?.dupatta_category?.length > 1 && (

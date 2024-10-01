@@ -44,13 +44,12 @@ import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
-import PreviewBill from "./pages/generateBills/PreviewBill";
-import AssignSuits from "./pages/inStock/assignstocks/AssignStock";
 import AssignStock from "./pages/inStock/assignstocks/AssignStock";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 import B_Pair from "./pages/process/b_pair/B_Pair";
 import VerifyOTP from "./pages/dashboard/VerifyOTP";
 import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHistory";
+import ReturnBills from "./pages/bills/ReturnBills";
 
 
 function App() {
@@ -104,6 +103,7 @@ useEffect(() => {
             <Route path="processbills" element={<ProcessBills />} />
             <Route path="process-details/:id" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
+            <Route path="naila-arts-return-bills" element={<ReturnBills />} />
 
         
 

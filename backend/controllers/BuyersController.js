@@ -42,7 +42,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         "date",
         "bill_by",
         "payment_Method",
-        "packaging",
         "discount",
         "suits_data",
         "total",
@@ -77,21 +76,21 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const branch = await BranchModel.findOne({ _id: branchId });
       if (!branch) throw new Error("Branch Not Found");
 
-      //DEDUCTING BAGS OR BOXES FROM STOCK
-      if (packaging && !packaging.id) {
-        throw new Error("Please Select Packaging");
+      //DEDUCTING BOXES FROM STOCK
+      if (packaging) {
+        const bagsorBoxStock = await BagsAndBoxModel.findById(
+          packaging.id
+        ).session(session);
+        if (!bagsorBoxStock) throw new Error("Packaging Not Found");
+        const updatedBagsorBoxQuantity =
+          bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
+        if (updatedBagsorBoxQuantity < 0)
+          throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
+        bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
+        await bagsorBoxStock.save({ session });
+  
       }
-      const bagsorBoxStock = await BagsAndBoxModel.findById(
-        packaging.id
-      ).session(session);
-      if (!bagsorBoxStock) throw new Error("Packaging Not Found");
-      const updatedBagsorBoxQuantity =
-        bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
-      if (updatedBagsorBoxQuantity < 0)
-        throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
-      bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
-      await bagsorBoxStock.save({ session });
-
+     
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
       const suitsStock = branch.stockData.filter((mainStock) =>
@@ -334,8 +333,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         "phone",
         "date",
         "bill_by",
-        "payment_Method",
-        "packaging",
+        "payment_Method",     
         "discount",
         "suits_data",
         "total",
@@ -371,19 +369,19 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BAGS OR BOXES FROM STOCK
-      if (packaging && !packaging.id) {
-        throw new Error("Please Select Packaging");
+      if (packaging) {
+        const bagsorBoxStock = await BagsAndBoxModel.findById(
+          packaging.id
+        ).session(session);
+        if (!bagsorBoxStock) throw new Error("Packaging Not Found");
+        const updatedBagsorBoxQuantity =
+          bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
+        if (updatedBagsorBoxQuantity < 0)
+          throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
+        bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
+        await bagsorBoxStock.save({ session });
       }
-      const bagsorBoxStock = await BagsAndBoxModel.findById(
-        packaging.id
-      ).session(session);
-      if (!bagsorBoxStock) throw new Error("Packaging Not Found");
-      const updatedBagsorBoxQuantity =
-        bagsorBoxStock.totalQuantity - parseInt(packaging.quantity);
-      if (updatedBagsorBoxQuantity < 0)
-        throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
-      bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
-      await bagsorBoxStock.save({ session });
+     
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
