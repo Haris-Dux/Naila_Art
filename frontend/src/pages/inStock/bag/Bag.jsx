@@ -93,11 +93,11 @@ const Bag = () => {
                       <td className="px-6 py-4" scope="row">
                         {data.name}
                       </td>
-                      <td className="px-6 py-4">{data.recently} m</td>
+                      <td className="px-6 py-4">{data.recently} p</td>
                       <td className="px-6 py-4">
                         {new Date(data?.r_Date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4">{data.totalQuantity} m</td>
+                      <td className="px-6 py-4">{data.totalQuantity} p</td>
                       <td className="pl-10 py-4">
                         <span onClick={() => openModal(data?.id)}>
                           <FaEye size={20} className="cursor-pointer" />
@@ -190,7 +190,7 @@ const Bag = () => {
                             {new Date(data?.date).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4">{data.name}</td>
-                          <td className="px-6 py-4">{data.quantity} m</td>
+                          <td className="px-6 py-4">{data.quantity} p</td>
                         </tr>
                       ))
                     )

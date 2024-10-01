@@ -27,7 +27,6 @@ const PurchaseBills = () => {
   const { loading, validateSeller } = useSelector((state) => state.Seller);
 
   const [search, setSearch] = useState();
-  const [searchParams] = useSearchParams();
 
   const [selectedCategory, setSelectedCategory] = useState("Base");
   const [clearFormData, SetClearFormData] = useState("");

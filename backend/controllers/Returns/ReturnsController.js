@@ -164,9 +164,14 @@ export const createReturn = async (req, res, next) => {
         });
       });
       dailySaleForSaleDay.saleData.totalProfit -= profitToDeduct;
+      dailySaleForSaleDay.saleData.totalSale -= T_Return_Amount;
       if (dailySaleForSaleDay.saleData.totalProfit < 0) {
         throw new Error(
           `Invalid Return Request.Total Profit for ${bill_Date} cannot be less then 0`
+        );
+      } else if (dailySaleForSaleDay.saleData.totalSale < 0) {
+        throw new Error(
+          `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
         );
       }
       await dailySaleForSaleDay.save({ session });

@@ -93,7 +93,7 @@ const GenerateBill = () => {
       name === "paid" ||
       name === "discount" ||
       name === "discountType" ||
-       name === "subTotal"
+      name === "subTotal"
     ) {
       updatedBillData.remaining = calculateSubTotal() - paid - discount();
       updatedBillData.total = updatedBillData.remaining + paid;
@@ -108,10 +108,9 @@ const GenerateBill = () => {
         name: "subTotal",
         value: "",
       },
-    }
+    };
     handleInputChange(e);
-   
-  },[billData.suits_data])
+  }, [billData.suits_data]);
 
   const handlePackagingChange = (e) => {
     const { name, value } = e.target;
@@ -221,6 +220,18 @@ const GenerateBill = () => {
     });
   };
 
+  const validatePackaging = (modifiedBillData) => {
+    const payLoad = { ...modifiedBillData };
+    if (
+      modifiedBillData.packaging.id === "" ||
+      modifiedBillData.packaging.quantity === 0
+    ) {
+      delete payLoad.packaging;
+    }
+
+    return payLoad;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -248,12 +259,13 @@ const GenerateBill = () => {
       return;
     }
 
-    dispatch(generateBuyerBillAsync(modifiedBillData)).then((res) => {
+    const payloadData = validatePackaging(modifiedBillData);
+
+    dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
           if (res.payload.status === 200) {
             setBillData({
-              branchId: "",
               serialNumber: "",
               name: "",
               city: "",
@@ -293,8 +305,6 @@ const GenerateBill = () => {
     }, 0);
     return subtotal;
   };
-
-  
 
   return (
     <>
@@ -448,7 +458,6 @@ const GenerateBill = () => {
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={billData.packaging.quantity}
                     onChange={handlePackagingChange}
-                    required
                   />
                 </div>
 

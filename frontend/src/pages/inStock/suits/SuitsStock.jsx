@@ -63,7 +63,10 @@ const SuitsStock = () => {
 
   // Function to handle changes in form inputs
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === "category" || name === "color"){
+      value = value.charAt(0).toUpperCase() + value.slice(1)
+    } 
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -91,9 +94,7 @@ const SuitsStock = () => {
         }
         closeModal();
       })
-      .catch((error) => {
-        console.error("Error adding suit:", error);
-      });
+     
   };
 
   const openModal = () => {
@@ -508,7 +509,7 @@ const SuitsStock = () => {
                       placeholder="Enter Category"
                       value={formData.category}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
                   </div>
@@ -519,7 +520,7 @@ const SuitsStock = () => {
                       placeholder="Enter Color"
                       value={formData.color}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
                   </div>

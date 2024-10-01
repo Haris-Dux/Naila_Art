@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { GetAllBranches } from "../../features/InStockSlice";
-import { getBuyerBillsHistoryForBranchAsync, getBuyerByIdAsync } from "../../features/BuyerSlice";
+import {
+  getBuyerBillsHistoryForBranchAsync,
+  getBuyerByIdAsync,
+} from "../../features/BuyerSlice";
 import Return from "./Modals/Return";
 
 const PhoneComponent = ({ phone }) => {
@@ -25,7 +28,6 @@ const NailaArtsBuyer = () => {
   const [returnModal, setreturnModal] = useState(false);
   const [selected, setselected] = useState(false);
 
-
   const [search, setSearch] = useState();
   const [suitSaleData, setSuitSaleData] = useState("");
 
@@ -36,11 +38,10 @@ const NailaArtsBuyer = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { BuyerBillHistory, billHistoryLoading,BuyerById } = useSelector(
+  const { BuyerBillHistory, billHistoryLoading, BuyerById } = useSelector(
     (state) => state.Buyer
   );
   const [selectedBranchId, setSelectedBranchId] = useState();
-
 
   useEffect(() => {
     if (user?.user?.id) {
@@ -148,12 +149,12 @@ const NailaArtsBuyer = () => {
     };
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
-    };
+    }
     if (value.length > 0) {
       searchTimerRef.current = setTimeout(() => {
         dispatch(getBuyerBillsHistoryForBranchAsync(payload));
       }, 1000);
-    };
+    }
   };
 
   return (
@@ -219,11 +220,12 @@ const NailaArtsBuyer = () => {
 
               {/* <!-- search bar --> */}
               <div className="search_bar flex items-center gap-3 mr-2">
-              <Link
-                  
+                <Link
                   className=" bg-[#374151] hover:bg-gray-500 text-white px-3 py-2 rounded-md"
-                 to={"/dashboard/naila-arts-return-bills"}
-                >Return Bills</Link>
+                  to={"/dashboard/naila-arts-return-bills"}
+                >
+                  Return Bills
+                </Link>
                 <div className="relative mt-4 md:mt-0">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                     <svg
@@ -323,9 +325,7 @@ const NailaArtsBuyer = () => {
                         <td className="px-6 py-4 font-medium">
                           {data.TotalProfit} Rs
                         </td>
-                        <td className="px-6 py-4 font-medium">
-                          {data.date}
-                        </td>
+                        <td className="px-6 py-4 font-medium">{data.date}</td>
                         <td className="pl-10 py-4">
                           <button
                             onClick={() => openModal(data.profitDataForHistory)}
@@ -334,8 +334,7 @@ const NailaArtsBuyer = () => {
                           </button>
                         </td>
                         <td className="pl-10 py-4">
-                        <button  onClick={() => openReturnModal(data)}>
-                     
+                          <button onClick={() => openReturnModal(data)}>
                             <FaEdit size={20} className="cursor-pointer" />
                           </button>
                         </td>
@@ -544,10 +543,12 @@ const NailaArtsBuyer = () => {
           </div>
         </div>
       )}
-
-
-{returnModal && (
-     <Return closeModal={closeReturnModal} Buyerdata={BuyerById} selected={selected}  />
+      {returnModal && (
+        <Return
+          closeModal={closeReturnModal}
+          Buyerdata={BuyerById}
+          selected={selected}
+        />
       )}
     </>
   );

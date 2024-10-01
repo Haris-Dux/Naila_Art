@@ -259,6 +259,18 @@ const OldBuyerGenerateBill = () => {
     });
   };
 
+  const validatePackaging = (modifiedBillData) => {
+    const payLoad = { ...modifiedBillData };
+    if (
+      modifiedBillData.packaging.id === "" ||
+      modifiedBillData.packaging.quantity === 0
+    ) {
+      delete payLoad.packaging;
+    }
+
+    return payLoad;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -285,8 +297,11 @@ const OldBuyerGenerateBill = () => {
       toast.error("Please Select Branch");
       return;
     }
+
+    const payloadData = validatePackaging(modifiedBillData);
+
     // Uncomment and use this once ready to dispatch the action
-    dispatch(generateBillForOlderBuyerAsync(modifiedBillData)).then((res) => {
+    dispatch(generateBillForOlderBuyerAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
           if (res.payload.status === 200) {

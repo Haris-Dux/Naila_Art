@@ -116,12 +116,10 @@ const BuyersSchema = new mongoose.Schema(
     packaging: {
       name: {
         type: String,
-        required: [true, "packaging value is required"],
         enum: ["Bags", "Box"],
       },
       quantity: {
         type: Number,
-        required: [true, "quantity value is required"],
       },
     },
     discount: {
