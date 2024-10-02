@@ -686,7 +686,7 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
       });
     }
     await sendEmail({
-      email: "nailaarts666@gmail.com",
+      email: "offical@nailaarts.com",
       g_Otp,
       email_Type: "Dashboard OTP",
     });
@@ -796,7 +796,7 @@ export const makeTransactionInAccounts = async (req, res, next) => {
     virtualAccounts[0].Transaction_History.push(historyData);
     await virtualAccounts[0].save();
     await sendEmail({
-      email: "nailaarts666@gmail.com",
+      email: "offical@nailaarts.com",
       TransactionData: historyData,
       email_Type: "Transaction Notification",
     });

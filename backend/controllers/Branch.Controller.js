@@ -431,7 +431,7 @@ export const approveOrRejectStock = async (req, res) => {
       branchName:branch.branchName,
       stockStatus:status
     };
-    await sendEmail({email:"Nailaarts666@gmail.com",email_Type:"Stock Update",StockEmailData});
+    await sendEmail({email:"offical@nailaarts.com",email_Type:"Stock Update",StockEmailData});
     return res
       .status(200)
       .json({ success: true, message: "Stock Updated Successfully" });

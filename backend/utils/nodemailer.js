@@ -388,7 +388,7 @@ export async function sendEmail(data) {
   }
 
   let transport = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.titan.email",
     port: 587,
     secure: false,
     auth: {
