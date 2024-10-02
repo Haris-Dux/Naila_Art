@@ -283,7 +283,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       };
 
       await sendEmail({
-        email: "Nailaarts666@gmail.com",
+        email: "offical@nailaarts.com",
         email_Type: "Buyer Bill",
         BillEmailData,
       });
@@ -574,7 +574,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       };
 
       await sendEmail({
-        email: "Nailaarts666@gmail.com",
+        email: "offical@nailaarts.com",
         email_Type: "Buyer Bill",
         BillEmailData,
       });

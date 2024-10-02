@@ -213,7 +213,7 @@ export const cashIn = async (req, res, next) => {
 
       await sendEmail({
         branchName: branch.branchName,
-        email: "Nailaarts666@gmail.com",
+        email: "offical@nailaarts.com",
         email_Type: "Cash In",
         CashInEmailData,
       });
@@ -357,7 +357,7 @@ export const cashOut = async (req, res, next) => {
         payment_Method: payment_Method,
       };
       await sendEmail({
-        email: "Nailaarts666@gmail.com",
+        email: "offical@nailaarts.com",
         email_Type: "Cash Out",
         CashOutEmailData,
       });
