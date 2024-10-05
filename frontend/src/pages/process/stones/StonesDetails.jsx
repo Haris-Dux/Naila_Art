@@ -384,7 +384,7 @@ const StonesDetails = () => {
     closeGatepassModal();
   };
 
-  const Front_category = SingleStone?.category_quantity.find(
+  const Front_category = SingleStone?.category_quantity?.find(
     (item) => item.category === "Front"
   );
   const T_QuantityForBill = Front_category?.recieved_Data?.r_total;
@@ -400,6 +400,7 @@ const StonesDetails = () => {
         ...SingleStone,
         r_quantity: T_QuantityForBill,
         process_Category: "Stone",
+        Stone_id:SingleStone.id
       };
       dispatch(generateStoneBillAsync(formData));
     
@@ -604,7 +605,7 @@ const StonesDetails = () => {
               Completed
             </button>
           )}
-          {SingleStone?.project_status === "Completed" && (
+          {SingleStone?.project_status === "Completed" && !SingleStone?.bill_generated && (
             <>
               {StnoneBillLoading ? (
                 <button

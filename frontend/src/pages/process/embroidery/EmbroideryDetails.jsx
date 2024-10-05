@@ -142,6 +142,7 @@ const EmbroideryDetails = () => {
     D_Patch_Stitch,
     F_Patch_Stitch,
     tissue,
+    bill_generated
   } = SingleEmbroidery;
 
   const handleSubmit = (event) => {
@@ -232,7 +233,7 @@ const EmbroideryDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleEmbroidery, process_Category: "Embroidery" };
+    const formData = { ...SingleEmbroidery, process_Category: "Embroidery" ,Embroidery_id:SingleEmbroidery?.id };
     dispatch(generateEmbroideryBillAsync(formData));
   };
 
@@ -549,7 +550,7 @@ const EmbroideryDetails = () => {
               Completed
             </button>
           )}
-          {project_status === "Completed" && (
+          {project_status === "Completed" && !bill_generated && (
             <>
               {generateBillLoading ? (
                 <button

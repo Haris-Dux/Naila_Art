@@ -95,6 +95,10 @@ const stitchingSchema = new mongoose.Schema(
         type: [dupatta_schema],
         default:null
       },
+      bill_generated : {
+        type: Boolean,
+        default: false
+      }
   },
   { timestamps: true }
 );

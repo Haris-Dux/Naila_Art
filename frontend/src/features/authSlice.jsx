@@ -60,16 +60,16 @@ export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
   }
 });
 
-// FORGET ASYNC THUNK
 export const forgetuserAsync = createAsyncThunk(
   "user/forget",
-  async (formData) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(forgetPassUrl, formData);
       toast.success(response.data.message);
-    return response.data;
+      return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
+      return rejectWithValue(error.response.data.error); // Return rejected value
     }
   }
 );
@@ -162,6 +162,7 @@ const initialState = {
   routingLoading:false,
   logoutLoading:false,
   loading: false,
+  ForgetPassloading: false,
   userId: null,
   forgetPasswordEmail: null,
   resetPassword: null,
@@ -220,11 +221,15 @@ const authSlice = createSlice({
 
       // FORGET PASSWORD ADD CASE
       .addCase(forgetuserAsync.pending, (state) => {
-        state.loading = true;
+        state.ForgetPassloading = true;
       })
       .addCase(forgetuserAsync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.ForgetPassloading = false;
         state.userId = action.payload.userId;
+      })
+
+      .addCase(forgetuserAsync.rejected, (state, action) => {
+        state.ForgetPassloading = false;
       })
 
 

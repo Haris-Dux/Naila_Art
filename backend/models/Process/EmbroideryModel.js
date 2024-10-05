@@ -150,6 +150,10 @@ const embroiderySchema = new mongoose.Schema(
       type: Number,
       required: [true, "Tissue value required"],
     },
+    bill_generated : {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

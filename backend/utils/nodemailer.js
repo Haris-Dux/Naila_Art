@@ -388,7 +388,7 @@ export async function sendEmail(data) {
   }
 
   let transport = nodemailer.createTransport({
-    host: "smtp.titan.email",
+    host: "smtp.hostinger.com",
     port: 587,
     secure: false,
     auth: {

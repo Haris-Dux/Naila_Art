@@ -224,7 +224,7 @@ const CuttingDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleCutting, process_Category: "Cutting" };
+    const formData = { ...SingleCutting, process_Category: "Cutting" , Cutting_id:SingleCutting.id};
     dispatch(generateCuttingBillAsync(formData));
   };
 
@@ -357,7 +357,7 @@ const CuttingDetails = () => {
             </button>
           )}
 
-          {SingleCutting?.project_status === "Completed" && (
+          {SingleCutting?.project_status === "Completed" && !SingleCutting.bill_generated && (
             <>
               {generateCuttingBillLoading ? (
                 <button

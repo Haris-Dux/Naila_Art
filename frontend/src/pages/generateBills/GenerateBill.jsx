@@ -47,7 +47,7 @@ const GenerateBill = () => {
     },
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
   });
-
+console.log('bill data',billData);
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -258,7 +258,7 @@ const GenerateBill = () => {
       toast.error("Please Select Branch");
       return;
     }
-
+console.log('mbd',modifiedBillData);
     const payloadData = validatePackaging(modifiedBillData);
 
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
@@ -266,6 +266,7 @@ const GenerateBill = () => {
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
           if (res.payload.status === 200) {
             setBillData({
+              branchId: user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
               serialNumber: "",
               name: "",
               city: "",
