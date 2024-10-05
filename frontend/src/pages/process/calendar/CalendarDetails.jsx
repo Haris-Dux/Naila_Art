@@ -191,7 +191,7 @@ const CalendarDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleCalender, process_Category: "Calender" };
+    const formData = { ...SingleCalender, process_Category: "Calender" , Calender_id:SingleCalender.id };
     dispatch(generateCalenderBillAsync(formData));
   };
 
@@ -297,7 +297,7 @@ const CalendarDetails = () => {
               Completed
             </button>
           )}
-          {SingleCalender?.project_status === "Completed" && (
+          {SingleCalender?.project_status === "Completed" && !SingleCalender?.bill_generated && (
             <>
               {generateCAlenderBillLoading ? (
                 <button

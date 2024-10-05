@@ -37,6 +37,10 @@ const calenderSchema = new mongoose.Schema({
     enum: ["Pending", "Completed"],
     default: "Pending",
   },
+  bill_generated : {
+    type: Boolean,
+    default: false
+  }
 
 }, { timestamps: true });
 

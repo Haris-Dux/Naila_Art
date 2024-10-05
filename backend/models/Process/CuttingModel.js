@@ -36,6 +36,10 @@ const cuttingSchema = new mongoose.Schema({
         type: String,
         enum: ["Pending", "Completed"],
         default: "Pending",
+      },
+      bill_generated : {
+        type: Boolean,
+        default: false
       }
 
 }, { timestamps: true });

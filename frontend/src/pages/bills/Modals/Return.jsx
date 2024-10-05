@@ -39,7 +39,8 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
   // Calculate Total Return Amount whenever updatedSuitsData changes
   useEffect(() => {
     const totalReturnAmount = updatedSuitsData.reduce((total, data) => {
-      const price = validateValue(data.price);
+      const price = validateValue(data.price) *  validateValue(data.quantity);
+
       return total + price;
     }, 0);
     setT_Return_Amount(totalReturnAmount);

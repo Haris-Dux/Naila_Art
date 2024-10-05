@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import generatePDF from "../../utils/GeneratePdf.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { CalenderModel } from "../../models/Process/CalenderModel.js";
+import { CuttingModel } from "../../models/Process/CuttingModel.js";
+import { StoneModel } from "../../models/Process/StoneModel.js";
+import { StitchingModel } from "../../models/Process/StitchingModel.js";
 
 export const generateProcessBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -17,7 +22,12 @@ export const generateProcessBill = async (req, res, next) => {
         rate,
         per_suit,
         r_quantity,
-        T_Recieved_Suit
+        T_Recieved_Suit,
+        Embroidery_id,
+        Calender_id,
+        Cutting_id,
+        Stone_id,
+        Stitching_id
       } = req.body;
 
       // Validate required fields
@@ -26,11 +36,11 @@ export const generateProcessBill = async (req, res, next) => {
         !serial_No ||
         !partyName ||
         !design_no ||
-        !date 
+        !date
       ) {
         throw new Error("Required fields are missing");
       }
-      if (process_Category === "Embroidery"  && !T_Recieved_Suit) {
+      if (process_Category === "Embroidery" && !T_Recieved_Suit) {
         throw new Error("Required fields are missing");
       }
       if (process_Category !== "Embroidery" && !r_quantity) {
@@ -39,7 +49,7 @@ export const generateProcessBill = async (req, res, next) => {
 
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
-      if (process_Category === "Embroidery" ) {
+      if (process_Category === "Embroidery") {
         amount = per_suit * T_Recieved_Suit;
       } else {
         amount = rate * r_quantity;
@@ -84,6 +94,69 @@ export const generateProcessBill = async (req, res, next) => {
         ],
         { session }
       );
+
+      //UPATING BILL GENERATED VALUE
+
+      switch (true) {
+        case process_Category === "Embroidery":
+          const embData = await EmbroideryModel.findById(Embroidery_id).session(
+            session
+          );
+          if (embData.bill_generated === true) {
+            throw new Error("Bill has already been generated");
+          } else {
+            embData.bill_generated = true;
+            await embData.save({ session });
+          }
+          break;
+          case process_Category === "Calender":
+            const calenderData = await CalenderModel.findById(Calender_id).session(
+              session
+            );
+            if (calenderData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              calenderData.bill_generated = true;
+              await calenderData.save({ session });
+            }
+            break;
+            case process_Category === "Cutting":
+              const cuttingData = await CuttingModel.findById(Cutting_id).session(
+                session
+              );
+              if (cuttingData.bill_generated === true) {
+                throw new Error("Bill has already been generated");
+              } else {
+                cuttingData.bill_generated = true;
+                await cuttingData.save({ session });
+              }
+              break;
+              case process_Category === "Stone":
+                const stoneData = await StoneModel.findById(Stone_id).session(
+                  session
+                );
+                if (stoneData.bill_generated === true) {
+                  throw new Error("Bill has already been generated");
+                } else {
+                  stoneData.bill_generated = true;
+                  await stoneData.save({ session });
+                }
+                break;
+                case process_Category === "Stitching":
+                  const stitchingData = await StitchingModel.findById(Stitching_id).session(
+                    session
+                  );
+                  if (stitchingData.bill_generated === true) {
+                    throw new Error("Bill has already been generated");
+                  } else {
+                    stitchingData.bill_generated = true;
+                    await stitchingData.save({ session });
+                  }
+                  break;
+        default:
+          "";
+          break;
+      }
 
       return res.status(201).json({
         success: true,
@@ -213,14 +286,14 @@ export const generateGatePassPdfFunction = async (req, res, next) => {
           return (
             items &&
             items.map((item) => {
-              const { category, color , quantity} = item;
-              return { category, color ,quantity};
+              const { category, color, quantity } = item;
+              return { category, color, quantity };
             })
           );
         };
         let extractedData = [];
         extractedData = extractCategoryDetails(data.category_quantity);
-        
+
         pdfData = {
           category: category,
           partyName: data.partyName,
@@ -228,27 +301,29 @@ export const generateGatePassPdfFunction = async (req, res, next) => {
           date: new Date(data.date).toISOString().split("T")[0],
           design_no: data.design_no,
           T_Quantity: data.T_Quantity,
-          categoryData: extractedData
+          categoryData: extractedData,
         };
         break;
-        case category === "Stitching":
-    
+      case category === "Stitching":
         const extractStitchingDetails = (items) => {
           return (
             items &&
             items.map((item) => {
-              const { quantity_in_no, color ,category } = item;
-              return { quantity_in_no, color , category };
+              const { quantity_in_no, color, category } = item;
+              return { quantity_in_no, color, category };
             })
           );
         };
 
         let extractedSuitDataForStitching = [];
         let extractedDuppataDataForStitching = [];
-       
 
-        extractedSuitDataForStitching = extractStitchingDetails(data.suits_category);
-        extractedDuppataDataForStitching = extractStitchingDetails(data.dupatta_category);
+        extractedSuitDataForStitching = extractStitchingDetails(
+          data.suits_category
+        );
+        extractedDuppataDataForStitching = extractStitchingDetails(
+          data.dupatta_category
+        );
 
         pdfData = {
           category: category,
@@ -259,18 +334,16 @@ export const generateGatePassPdfFunction = async (req, res, next) => {
           T_Quantity: data.Quantity,
           suitData: extractedSuitDataForStitching,
           dupattaData: extractedDuppataDataForStitching,
-          
         };
 
       default:
         break;
     }
 
-
     pdfData = Object.fromEntries(
       Object.entries(pdfData).filter(([_, v]) => v !== undefined)
     );
-   
+
     const pdfBuffer = await generatePDF(pdfData);
 
     res.setHeader("Content-Type", "application/pdf");

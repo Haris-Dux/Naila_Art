@@ -106,6 +106,10 @@ const stoneSchema = new mongoose.Schema(
       type: [category_schema],
       required: [true, "Quantity required"],
     },
+    bill_generated : {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

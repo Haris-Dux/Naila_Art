@@ -141,7 +141,7 @@ const StitchingDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleStitching, process_Category: "Stitching" };
+    const formData = { ...SingleStitching, process_Category: "Stitching" ,Stitching_id:SingleStitching?.id };
     dispatch(generateStitchingBillAsync(formData));
   };
 
@@ -399,7 +399,7 @@ const StitchingDetails = () => {
             </button>
           )}
 
-          {SingleStitching?.project_status === "Completed" && (
+          {SingleStitching?.project_status === "Completed" && !SingleStitching?.bill_generated && (
             <>
               {StitchingBillLoading ? (
                 <button
