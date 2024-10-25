@@ -4,20 +4,23 @@ import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import Box from "../../../Component/Embodiary/Box";
-import { getAllDesignNumbersAsync, GETEmbroidery } from "../../../features/EmbroiderySlice";
+import {
+  getAllDesignNumbersAsync,
+  GETEmbroidery,
+  getHeadDataByDesignNoAsync,
+} from "../../../features/EmbroiderySlice";
 import { useDispatch } from "react-redux";
 import Select from "react-select";
-
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const { loading, embroidery,designNumbers } = useSelector((state) => state.Embroidery);
+  const { loading, embroidery, designNumbers, headStitchData } = useSelector(
+    (state) => state.Embroidery
+  );
   const [search, setSearch] = useState();
-
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     partyName: "",
@@ -43,6 +46,12 @@ const Embroidery = () => {
   useEffect(() => {
     dispatch(GETEmbroidery({ search, page }));
   }, [page, dispatch]);
+
+  // Convert your design numbers into options for Select
+  const designOptions = designNumbers.map((num) => ({
+    value: num,
+    label: num,
+  }));
 
   const calculateTotal = (formData1) => {
     const rate = parseFloat(formData.rATE_per_stitching) || 0;
@@ -95,7 +104,6 @@ const Embroidery = () => {
     }
   };
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const [field, subField] = name.split(".");
@@ -114,6 +122,41 @@ const Embroidery = () => {
         [name]: value,
       }));
     }
+  };
+
+  const handleSelected = (e) => {
+    setFormData((prevState) => {
+      return {
+        ...prevState,
+        design_no: e.value,
+      };
+    });
+    dispatch(getHeadDataByDesignNoAsync({ design_no: e.value })).then((res) => {
+      console.log("res", res);
+      const categories = [
+        "Front_Stitch",
+        "Bazo_Stitch",
+        "Gala_Stitch",
+        "Back_Stitch",
+        "Pallu_Stitch",
+        "D_Patch_Stitch",
+        "F_Patch_Stitch",
+        "Trouser_Stitch",
+      ];
+    
+      setFormData((prevState) => {
+        const updatedData = {...prevState};
+        categories.forEach((item) => {
+          if (res.payload[0][item]) {
+            updatedData[item] = {
+              value: res.payload[0][item].value,
+              head: res.payload[0][item].head,
+            };
+          }
+        }); 
+        return updatedData;
+      });
+    });
   };
 
   useEffect(() => {
@@ -178,9 +221,7 @@ const Embroidery = () => {
         return "";
     }
   };
-
-
-
+console.log('formData',formData);
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -476,21 +517,40 @@ const Embroidery = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <div className="grid items-start grid-cols-5 gap-1">
+                  <div className="grid items-start grid-cols-3 gap-1">
                     <input
                       name="design_no"
                       type="text"
-                      placeholder="Design No"
+                      placeholder="Select or Enter D.N"
                       className="bg-gray-50 border col-span-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.design_no}
                       onChange={handleInputChange}
                     />
                     <Select
-                      options={designNumbers}
-                      placeholder="Select"
-                      className="bg-gray-50 col-span-3   text-gray-900 rounded-md"
-                      onChange={handleInputChange}
+                      options={designOptions}
+                      styles={{
+                        control: (baseStyles, state) => ({
+                          ...baseStyles,
+                          borderRadius: 4,
+                          borderColor: "#D1D5DB",
+                          boxShadow: state.isFocused ? "none" : "none",
+                          "&:hover": {
+                            borderColor: "#D1D5DB",
+                          },
+                          padding: "2px",
+                        }),
+                      }}
+                      placeholder=""
+                      className="bg-gray-50   text-gray-900 rounded-md"
+                      onChange={handleSelected}
+                      value={
+                        formData.design_no
+                          ? {
+                              value: formData.design_no,
+                            }
+                          : null
+                      }
                     />
                   </div>
 
@@ -683,6 +743,7 @@ const Embroidery = () => {
                   setFormData1={setFormData}
                   closeModal={closeModal}
                   total={total}
+                  DNO_ategory={headStitchData[0]?.shirt}
                 />
               </div>
             </div>

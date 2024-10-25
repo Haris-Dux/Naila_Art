@@ -10,6 +10,7 @@ const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const getAllDesignNumbersURL = "/api/process/embriodery/getAllDesignNumbers";
+const getHeadDataByDesignNoURL = "/api/process/embriodery/getHeadDataByDesignNo";
 
 
 
@@ -122,9 +123,20 @@ export const generateEmbroideryBillAsync = createAsyncThunk(
   }
 );
 
+//GET ALL DESIGN NUMBERS
 export const getAllDesignNumbersAsync = createAsyncThunk("Embroider/getDesignNumbers", async () => {
   try {
     const response = await axios.post(getAllDesignNumbersURL);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.message);
+  } 
+});
+
+//GET HEAD AND STITCH DATA
+export const getHeadDataByDesignNoAsync = createAsyncThunk("Embroider/getHeadData", async (data) => {
+  try {
+    const response = await axios.post(getHeadDataByDesignNoURL,data);
     return response.data;
   } catch (error) {
     throw new Error(error.message);
@@ -141,7 +153,8 @@ const initialState = {
   UpdatEmbroideryloading: false,
   EmroiderypdfLoading:false,
   generateBillLoading:false,
-  designNumbers:[]
+  designNumbers:[],
+  headStitchData:[]
 };
 
 const EmbroiderySlice = createSlice({
@@ -170,6 +183,18 @@ const EmbroiderySlice = createSlice({
         state.designNumbers = action.payload;
       })
       .addCase(getAllDesignNumbersAsync.rejected, (state, action) => {
+        state.loading = false;
+      })
+
+      // GET HEAD STITCH DATA
+      .addCase(getHeadDataByDesignNoAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(getHeadDataByDesignNoAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.headStitchData = action.payload;
+      })
+      .addCase(getHeadDataByDesignNoAsync.rejected, (state, action) => {
         state.loading = false;
       })
 

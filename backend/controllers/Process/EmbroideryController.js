@@ -170,10 +170,13 @@ export const addEmbriodery = async (req, res, next) => {
       await handleInventory(trouser);
       await handleInventory(tissue);
 
-      const totalQuantityInMForTissue = tissue.reduce(
-        (sum, item) => sum + item.quantity_in_m,
-        0
-      );
+      let totalQuantityInMForTissue = 0;
+      if (req.body.tissue) {
+        totalQuantityInMForTissue = tissue.reduce(
+          (sum, item) => sum + item.quantity_in_m,
+          0
+        );
+      }
 
       const lastDocument = await EmbroideryModel.findOne()
         .sort({ _id: -1 })
@@ -365,7 +368,7 @@ export const updateEmbroidery = async (req, res, next) => {
 export const getAllDesignNumbers = async (req, res, next) => {
   try {
     const data = await EmbroideryModel.distinct("design_no");
-    if (data.length <= 0) throw new Error("No Data found for Design Number");
+    if (data.length === 0) throw new Error("No Data found for Design Number");
     res.status(200).send(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
