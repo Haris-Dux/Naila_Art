@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetAllBaseforEmroidery } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 
-const Box = ({ formData1, setFormData1, closeModal, total }) => {
+const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
   const { loading: IsLoading } = useSelector((state) => state.Embroidery);
 
@@ -223,6 +223,7 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
     return data;
   };
 
+  console.log('DNO_ategory',DNO_ategory);
   //VALIDATE SUTIT DUPATTA TROUSER TISSUE DATA
   const validateData = (meregdata) => {
     const categories = ["shirt", "duppata", "trouser"];
@@ -261,6 +262,17 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
     } else if (meregdata.tissue.length === 0) {
       delete meregdata.tissue;
     }
+  };
+
+  const validateShirtCategories = (meregdata) => {
+    if (meregdata.shirt && meregdata.shirt.length > 0) {
+      const invalidCategory = meregdata.shirt.some(item => item.category !== DNO_ategory);
+      
+      if (invalidCategory) {
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleSubmit = (event) => {
@@ -325,7 +337,6 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
 
     validateData(meregdata);
     validateTissueData(meregdata);
-
     const suitFields = [meregdata.shirt, meregdata.duppata, meregdata.trouser];
     const stitchFields = [
       meregdata.Front_Stitch,
@@ -346,7 +357,9 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
         "Please Enter data for suit,duppata or trouser and one head and it's value"
       );
     } else {
-
+      const result = validateShirtCategories(meregdata);
+      console.log('result',result);
+      if(!result) return toast.error("Invalid Shirt Category For Selected Design Number");
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {
           dispatch(GETEmbroidery({ page: 1 }));
@@ -361,7 +374,8 @@ const Box = ({ formData1, setFormData1, closeModal, total }) => {
       <div className="box">
         <div className="header flex justify-between items-center">
           <p className="mt-3 text-gray-700  dark:text-white">
-            Enter Shirt Colors And Quantity:
+            Enter Shirt Colors And Quantity:{" "}
+            <span className="text-red-500">{DNO_ategory}</span>
           </p>
           <p onClick={() => addNewRow("shirt")}>
             <FiPlus size={24} className=" cursor-pointer dark:text-white" />
