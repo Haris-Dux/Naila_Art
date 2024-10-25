@@ -4,14 +4,15 @@ import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import Box from "../../../Component/Embodiary/Box";
-import { GETEmbroidery } from "../../../features/EmbroiderySlice";
+import { getAllDesignNumbersAsync, GETEmbroidery } from "../../../features/EmbroiderySlice";
 import { useDispatch } from "react-redux";
+import Select from "react-select";
+
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdown1, setdropdown1] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const { loading, embroidery } = useSelector((state) => state.Embroidery);
+  const { loading, embroidery,designNumbers } = useSelector((state) => state.Embroidery);
   const [search, setSearch] = useState();
 
   const [searchParams] = useSearchParams();
@@ -94,9 +95,6 @@ const Embroidery = () => {
     }
   };
 
-  const toggleDropdown = () => {
-    setdropdown1(!dropdown1);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,16 +105,15 @@ const Embroidery = () => {
         ...prevState,
         [field]: {
           ...prevState[field],
-          [subField]: parseFloat(value), 
+          [subField]: parseFloat(value),
         },
       }));
     } else {
       setFormData((prevState) => ({
         ...prevState,
-        [name]: value, 
+        [name]: value,
       }));
     }
-
   };
 
   useEffect(() => {
@@ -124,11 +121,12 @@ const Embroidery = () => {
       const totalAmount = calculateTotal(formData);
       setTotal(totalAmount);
     }
-  }, [formData.rATE_per_stitching]); 
+  }, [formData.rATE_per_stitching]);
 
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
+    dispatch(getAllDesignNumbersAsync());
   };
 
   const closeModal = () => {
@@ -180,6 +178,8 @@ const Embroidery = () => {
         return "";
     }
   };
+
+
 
   return (
     <>
@@ -418,7 +418,7 @@ const Embroidery = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-6xl bg-white rounded-md shadow dark:bg-gray-700 max-h-screen overflow-y-auto">
+          <div className="relative py-4  px-3 w-full max-w-6xl bg-white rounded-md shadow dark:bg-gray-700 max-h-[85vh] scrollable-content overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -476,14 +476,20 @@ const Embroidery = () => {
                       onChange={handleInputChange}
                     />
                   </div>
-                  <div>
+                  <div className="grid items-start grid-cols-5 gap-1">
                     <input
                       name="design_no"
                       type="text"
                       placeholder="Design No"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      className="bg-gray-50 border col-span-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.design_no}
+                      onChange={handleInputChange}
+                    />
+                    <Select
+                      options={designNumbers}
+                      placeholder="Select"
+                      className="bg-gray-50 col-span-3   text-gray-900 rounded-md"
                       onChange={handleInputChange}
                     />
                   </div>

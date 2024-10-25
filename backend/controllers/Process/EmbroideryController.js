@@ -3,6 +3,7 @@ import { BaseModel } from "../../models/Stock/Base.Model.js";
 import mongoose from "mongoose";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
+import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -41,7 +42,6 @@ export const addEmbriodery = async (req, res, next) => {
         "design_no",
         "T_Quantity_In_m",
         "T_Quantity",
-        "tissue",
       ];
 
       const optionalFields1 = [
@@ -120,7 +120,6 @@ export const addEmbriodery = async (req, res, next) => {
       });
 
       //VALIDATING TISSUE DATA
-
       if (req.body.tissue) {
         req.body.tissue.forEach((item, index) => {
           const { category, color, quantity_in_m } = item;
@@ -311,7 +310,7 @@ export const updateEmbroidery = async (req, res, next) => {
           : value;
       };
       const calculateTotalRecieved = () => {
-        let totalRecieved = 0;    
+        let totalRecieved = 0;
         totalRecieved += shirt.reduce(
           (received, item) => received + checkInvalidValue(item.received),
           0
@@ -333,10 +332,10 @@ export const updateEmbroidery = async (req, res, next) => {
           0
         );
         return suit_Recieved;
-      }
+      };
       embroideryData.recieved_suit = calculateTotalRecieved();
       embroideryData.T_Recieved_Suit = calculateShirtRecieved();
-    };
+    }
 
     if (embroideryData.project_status === "Completed") {
       const quantity = embroideryData.T_Quantity - embroideryData.recieved_suit;
@@ -360,5 +359,65 @@ export const updateEmbroidery = async (req, res, next) => {
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAllDesignNumbers = async (req, res, next) => {
+  try {
+    const data = await EmbroideryModel.distinct("design_no");
+    if (data.length <= 0) throw new Error("No Data found for Design Number");
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getHeadDataByDesignNo = async (req, res, next) => {
+  try {
+    const { design_no } = req.body;
+    if (!design_no) throw new Error("No Design Number found");
+    const data = await EmbroideryModel.aggregate([
+      { $match: { design_no } },
+      { $sort: { createdAt: -1 } },
+      { $limit: 1 },
+      {
+        $project: {
+          partyName: 1,
+          Front_Stitch: 1,
+          Bazo_Stitch: 1,
+          Gala_Stitch: 1,
+          Back_Stitch: 1,
+          Pallu_Stitch: 1,
+          D_Patch_Stitch: 1,
+          shirt: { $arrayElemAt: ["$shirt.category", 0] },
+        },
+      },
+    ]);
+    setMongoose();
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPreviousDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const query = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const embData = await EmbroideryModel.find(query, ["partyName"]);
+    const accountData = await processBillsModel.find(query, [
+      "virtual_account",
+    ]);
+    const data = {
+      embroideryData: embData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
