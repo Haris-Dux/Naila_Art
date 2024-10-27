@@ -157,6 +157,10 @@ const embroiderySchema = new mongoose.Schema(
     updated :{
       type: Boolean,
       default: false
+    },
+    pictures_Order : {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

@@ -11,6 +11,7 @@ const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const getAllDesignNumbersURL = "/api/process/embriodery/getAllDesignNumbers";
 const getHeadDataByDesignNoURL = "/api/process/embriodery/getHeadDataByDesignNo";
+const getPreviousDataBypartyNameURL = "/api/process/embriodery/getPreviousDataBypartyName";
 
 
 
@@ -143,6 +144,17 @@ export const getHeadDataByDesignNoAsync = createAsyncThunk("Embroider/getHeadDat
   } 
 })
 
+//GET DATA FOR Old PARTY BY NAME
+
+export const getPreviousDataBypartyNameAsync = createAsyncThunk("Embroider/getPreviousData", async (data) => {
+  try {
+    const response = await axios.post(getPreviousDataBypartyNameURL,data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.message);
+  } 
+})
+
 
 
 // INITIAL STATE
@@ -150,11 +162,13 @@ const initialState = {
   embroidery: [],
   SingleEmbroidery: {},
   loading: false,
+  oldDataLoading:false,
   UpdatEmbroideryloading: false,
   EmroiderypdfLoading:false,
   generateBillLoading:false,
   designNumbers:[],
-  headStitchData:[]
+  headStitchData:[],
+  previousDataByPartyName:[],
 };
 
 const EmbroiderySlice = createSlice({
@@ -185,6 +199,19 @@ const EmbroiderySlice = createSlice({
       .addCase(getAllDesignNumbersAsync.rejected, (state, action) => {
         state.loading = false;
       })
+
+       // GET PREVIOUS DATA BY PARTY NAME
+       .addCase(getPreviousDataBypartyNameAsync.pending, (state, action) => {
+        state.oldDataLoading = true;
+      })
+      .addCase(getPreviousDataBypartyNameAsync.fulfilled, (state, action)  => {
+        state.oldDataLoading = false;
+        state.previousDataByPartyName = action.payload;
+      })
+      .addCase(getPreviousDataBypartyNameAsync.rejected, (state, action) => {
+        state.oldDataLoading = false;
+      })
+
 
       // GET HEAD STITCH DATA
       .addCase(getHeadDataByDesignNoAsync.pending, (state, action) => {

@@ -74,3 +74,16 @@ body::-webkit-scrollbar-thumb {
 }
 
 
+/* Optionally, apply it to all focus events on inputs globally */
+.custom-search-box input:focus {
+
+  outline: none !important;
+  border: 1px solid #D1D5DB !important;
+  box-shadow: none !important;
+}
+
+.custom-reactSelect input:focus {
+  outline: none !important;
+  border:none !important;
+  box-shadow: none !important;
+}
