@@ -407,12 +407,16 @@ export const getPreviousDataBypartyName = async (req, res, next) => {
   try {
     const { partyName } = req.body;
     if (!partyName) throw new Error("No Party Name found");
-    const query = {
+    const Embquery = {
       partyName: { $regex: partyName, $options: "i" },
     };
-    const embData = await EmbroideryModel.find(query, ["partyName"]);
-    const accountData = await processBillsModel.find(query, [
-      "virtual_account",
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category:"Embroidery"
+    }
+    const embData = await EmbroideryModel.find(Embquery, ["partyName"]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account","partyName"
     ]);
     const data = {
       embroideryData: embData,

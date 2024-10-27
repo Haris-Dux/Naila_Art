@@ -223,7 +223,6 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
     return data;
   };
 
-  console.log('DNO_ategory',DNO_ategory);
   //VALIDATE SUTIT DUPATTA TROUSER TISSUE DATA
   const validateData = (meregdata) => {
     const categories = ["shirt", "duppata", "trouser"];
@@ -267,7 +266,6 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
   const validateShirtCategories = (meregdata) => {
     if (meregdata.shirt && meregdata.shirt.length > 0) {
       const invalidCategory = meregdata.shirt.some(item => item.category !== DNO_ategory);
-      
       if (invalidCategory) {
         return false;
       }
@@ -358,7 +356,6 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
       );
     } else {
       const result = validateShirtCategories(meregdata);
-      console.log('result',result);
       if(!result) return toast.error("Invalid Shirt Category For Selected Design Number");
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {

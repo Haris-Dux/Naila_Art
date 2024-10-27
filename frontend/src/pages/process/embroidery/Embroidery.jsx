@@ -8,23 +8,33 @@ import {
   getAllDesignNumbersAsync,
   GETEmbroidery,
   getHeadDataByDesignNoAsync,
+  getPreviousDataBypartyNameAsync,
 } from "../../../features/EmbroiderySlice";
 import { useDispatch } from "react-redux";
 import Select from "react-select";
+import ReactSearchBox from "react-search-box";
+import moment from "moment";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const { loading, embroidery, designNumbers, headStitchData } = useSelector(
-    (state) => state.Embroidery
-  );
+  const [partyValue, setPartyValue] = useState("newParty");
+  const {
+    loading,
+    embroidery,
+    designNumbers,
+    headStitchData,
+    previousDataByPartyName,
+  } = useSelector((state) => state.Embroidery);
   const [search, setSearch] = useState();
+  const [accountData, setAccountData] = useState(null);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const dispatch = useDispatch();
+  const today = moment.tz('Asia/Karachi').format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
     partyName: "",
-    date: "",
+    date: today,
     per_suit: 0,
     rATE_per_stitching: "",
     project_status: "",
@@ -132,7 +142,6 @@ const Embroidery = () => {
       };
     });
     dispatch(getHeadDataByDesignNoAsync({ design_no: e.value })).then((res) => {
-      console.log("res", res);
       const categories = [
         "Front_Stitch",
         "Bazo_Stitch",
@@ -143,9 +152,9 @@ const Embroidery = () => {
         "F_Patch_Stitch",
         "Trouser_Stitch",
       ];
-    
+
       setFormData((prevState) => {
-        const updatedData = {...prevState};
+        const updatedData = { ...prevState };
         categories.forEach((item) => {
           if (res.payload[0][item]) {
             updatedData[item] = {
@@ -153,7 +162,7 @@ const Embroidery = () => {
               head: res.payload[0][item].head,
             };
           }
-        }); 
+        });
         return updatedData;
       });
     });
@@ -175,6 +184,7 @@ const Embroidery = () => {
   const closeModal = () => {
     setIsOpen(false);
     document.body.style.overflow = "auto";
+    setAccountData(null);
   };
 
   const filteredData = searchText
@@ -221,7 +231,58 @@ const Embroidery = () => {
         return "";
     }
   };
-console.log('formData',formData);
+
+  const togleNameField = (e) => {
+    const value = e.target.value;
+    setPartyValue(value);
+    setFormData((prev) => ({
+      ...prev,
+      partyName:""
+    }));
+    setAccountData(null);
+  };
+
+  const handleSearchOldData = (value) => {
+    dispatch(getPreviousDataBypartyNameAsync({ partyName: value }));
+  };
+
+  const searchResults = previousDataByPartyName?.embroideryData?.map((item) => {
+    return {
+      key: item.partyName,
+      value: item.partyName,
+    };
+  });
+
+  const handleSelectedRecord = (value) => {
+    const Data = previousDataByPartyName?.accountData.find(
+      (item) => item.partyName === value
+    );
+    setFormData((prev) => ({
+      ...prev,
+      partyName:value
+    }));
+    if (Data?.partyName === value) {
+      setAccountData(Data?.virtual_account);
+    } else {
+      setAccountData(false);
+    }
+  };
+
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -488,6 +549,38 @@ console.log('formData',formData);
                 <span className="sr-only">Close modal</span>
               </button>
             </div>
+            {/* ACCOUNT DATA */}
+            {partyValue === "oldParty" && accountData === false ? (
+              <div className=" px-8 py-2 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                <p>Embroidery Data Found But No Bill Generated Yet</p>
+              </div>
+            ) : (
+              <>
+                {partyValue === "oldParty" && accountData !== null && (
+                  <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Debit</h3>
+                      <h3>{accountData?.total_debit || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Credit</h3>
+                      <h3>{accountData?.total_credit || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Total Balance</h3>
+                      <h3>{accountData?.total_balance || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Status</h3>
+                      <h3>
+                        {setAccountStatusColor(accountData?.status) ||
+                          "No Status"}
+                      </h3>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
@@ -495,26 +588,79 @@ console.log('formData',formData);
                 {/* INPUT FIELDS DETAILS */}
                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                   {/* FIRST ROW */}
+                  <div className="grid items-center h-full grid-cols-4 gap-1">
+                    <label className="col-span-2 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="oldParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                      />
+                      Old Party
+                    </label>
+                    <label className="col-span-2 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="newParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                        defaultChecked
+                      />
+                      New Party
+                    </label>
+                  </div>
+
                   <div>
-                    <input
-                      name="partyName"
-                      type="text"
-                      placeholder="Party Name"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.partyName}
-                      onChange={handleInputChange}
-                    />
+                    {partyValue === "newParty" ? (
+                      <input
+                        name="partyName"
+                        type="text"
+                        placeholder="Party Name"
+                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                        value={formData.partyName}
+                        onChange={handleInputChange}
+                      />
+                    ) : (
+                      <div className="custom-search-box relative">
+                        <ReactSearchBox
+                          key={searchResults?.key}
+                          onSelect={(value) =>
+                            handleSelectedRecord(value?.item?.key)
+                          }
+                          placeholder="Search Party Name"
+                          data={searchResults}
+                          onChange={(value) => handleSearchOldData(value)}
+                          inputBorderColor="#D1D5DB"
+                          inputBackgroundColor="#F9FAFB"
+                        />
+                        <style jsx>
+                          {`
+                            .react-search-box-dropdown {
+                              position: absolute;
+                              z-index: 50;
+                              top: 100%;
+                              left: 0;
+                              width: 100%;
+                            }
+                          `}
+                        </style>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <input
                       name="date"
-                      type="date"
-                      placeholder="Date"
+                      type="text"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.date}
                       onChange={handleInputChange}
+                      readOnly
                     />
                   </div>
                   <div className="grid items-start grid-cols-3 gap-1">
@@ -527,31 +673,33 @@ console.log('formData',formData);
                       value={formData.design_no}
                       onChange={handleInputChange}
                     />
-                    <Select
-                      options={designOptions}
-                      styles={{
-                        control: (baseStyles, state) => ({
-                          ...baseStyles,
-                          borderRadius: 4,
-                          borderColor: "#D1D5DB",
-                          boxShadow: state.isFocused ? "none" : "none",
-                          "&:hover": {
+                    <div className="custom-reactSelect">
+                      <Select
+                        options={designOptions}
+                        styles={{
+                          control: (baseStyles, state) => ({
+                            ...baseStyles,
+                            borderRadius: 4,
                             borderColor: "#D1D5DB",
-                          },
-                          padding: "2px",
-                        }),
-                      }}
-                      placeholder=""
-                      className="bg-gray-50   text-gray-900 rounded-md"
-                      onChange={handleSelected}
-                      value={
-                        formData.design_no
-                          ? {
-                              value: formData.design_no,
-                            }
-                          : null
-                      }
-                    />
+                            boxShadow: state.isFocused ? "none" : "none",
+                            "&:hover": {
+                              borderColor: "#D1D5DB",
+                            },
+                            padding: "2px",
+                          }),
+                        }}
+                        placeholder=""
+                        className="bg-gray-50   text-gray-900 rounded-md"
+                        onChange={handleSelected}
+                        value={
+                          formData.design_no
+                            ? {
+                                value: formData.design_no,
+                              }
+                            : null
+                        }
+                      />
+                    </div>
                   </div>
 
                   {/* SECOND ROW */}
