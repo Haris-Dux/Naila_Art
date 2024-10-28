@@ -6,7 +6,7 @@ export const verifyrequiredparams = ( body, fields) => {
       let error = false;
       let error_fields = "";
       if (body.length < 1) {
-        return new CustomError('Body is Missing',400)
+        return new CustomError('Body is Missing',404)
       }
       const element = Object.getOwnPropertyNames(body);
       for (const field of fields) {
@@ -28,13 +28,13 @@ export const verifyrequiredparams = ( body, fields) => {
       if (error) {
         throw new CustomError(
             `Required field(s) ${error_fields.slice(0, -2)} is missing`,
-            400
+            404
           );
       } else {
         return Promise.resolve();
       }
     } catch (error) {
-      throw new CustomError(error.message,400)
+      throw new CustomError(error.message,404)
     }
   };
 

@@ -44,8 +44,8 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
         throw new Error(`Missing Fields ${missingFields}`);
 
       //DATA FOR VIRTUAL ACCOUNT
-      const total_credit = total;
-      const total_balance = total;
+      const total_credit = rate;
+      const total_balance = rate;
       let status = "Unpaid";
 
       const virtualAccountData = {
