@@ -28,8 +28,8 @@ import processBillRouter from "./routes/Process/ProcessBillRoutes.js";
 import dashboardRouter from "./routes/Dashboard Data/DashboardRoutes.js";
 import b_PairRouter from "./routes/Process/B_PairRoutes.js";
 import returnRouter from "./routes/Returns/ReturnRoutes.js";
-import { AppErrorHandler } from "./config/exceptionHandlers/handler.js";
 import pictureRouter from "./routes/Process/PictureRoutes.js";
+import { AppErrorHandler } from '../backend/config/exceptionHandlers/handler.js';
 
 const app = express();
 app.use(cookieParser());
@@ -40,7 +40,6 @@ app.use(cors({
 
 app.use(express.json({limit:'5mb'}));
 const MongoDBStoreSession = MongoDBStore(session);
-app.use(AppErrorHandler); // General app error handler
 
 const store = new MongoDBStoreSession({
   uri: process.env.MONGODB_URI,
@@ -82,7 +81,7 @@ app.use(session({
   app.use("/api/dashboardRouter",dashboardRouter);
   app.use("/api/b_PairRouter",b_PairRouter);
   app.use("/api/returns",returnRouter);
-  app.use("/api/pictures",pictureRouter);
+  app.use("/api/process/pictures",pictureRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));
@@ -90,6 +89,8 @@ app.use(session({
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(root, 'dist/index.html'));
 // });
+
+app.use(AppErrorHandler);
 
   
 mongoose
