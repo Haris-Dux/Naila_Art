@@ -10,6 +10,7 @@ import {
 import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -18,6 +19,8 @@ const EmbroideryDetails = () => {
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+  const [picturesModal, setPicturesMOdal] = useState(false);
+
 
   const { loading: IsLoading } = useSelector((state) => state.Calender);
 
@@ -142,7 +145,9 @@ const EmbroideryDetails = () => {
     D_Patch_Stitch,
     F_Patch_Stitch,
     tissue,
-    bill_generated
+    bill_generated,
+    pictures_Order,
+    updated,
   } = SingleEmbroidery;
 
   const handleSubmit = (event) => {
@@ -182,7 +187,7 @@ const EmbroideryDetails = () => {
 
     dispatch(createCalender(CalenderData)).then((res) => {
       if (res.payload.success === true) {
-        closeModal(); 
+        closeModal();
         navigate("/dashboard/calendar");
       }
     });
@@ -233,7 +238,11 @@ const EmbroideryDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleEmbroidery, process_Category: "Embroidery" ,Embroidery_id:SingleEmbroidery?.id };
+    const formData = {
+      ...SingleEmbroidery,
+      process_Category: "Embroidery",
+      Embroidery_id: SingleEmbroidery?.id,
+    };
     dispatch(generateEmbroideryBillAsync(formData));
   };
 
@@ -248,6 +257,14 @@ const EmbroideryDetails = () => {
     }
   };
 
+
+  const openMoodalForPicturesOrder = () => {
+    setPicturesMOdal(true);
+  };
+
+  const closeModalForPicturesOrder = () => {
+    setPicturesMOdal(false);
+  };
 
   return (
     <>
@@ -591,6 +608,14 @@ const EmbroideryDetails = () => {
           >
             Next Step
           </button>
+          {pictures_Order === false && (
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={openMoodalForPicturesOrder}
+            >
+              Pictures Order
+            </button>
+          )}
         </div>
 
         {isOpen && (
@@ -730,9 +755,18 @@ const EmbroideryDetails = () => {
           </div>
         )}
 
+        {/* PICTURES ORDER MODAL */}
+        {picturesModal && (
+          <PictureOrderModal
+            closeModal={closeModalForPicturesOrder}
+            embroidery_Id={id}
+            design_no={design_no}
+          />
+        )}
+
         {isUpdateReceivedConfirmOpen && (
           <ConfirmationModal
-          UpdatEmbroideryloading={UpdatEmbroideryloading}
+            UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Update"
             message="Are you sure you want to update the received items?"
             onConfirm={handleSubmit}
@@ -742,7 +776,7 @@ const EmbroideryDetails = () => {
 
         {isCompletedConfirmOpen && (
           <ConfirmationModal
-          UpdatEmbroideryloading={UpdatEmbroideryloading}
+            UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Complete"
             message="Are you sure you want to Complete ?"
             onConfirm={handleCompleted}
@@ -758,6 +792,8 @@ const EmbroideryDetails = () => {
             onClose={closeGatepassModal}
           />
         )}
+
+        
       </section>
     </>
   );

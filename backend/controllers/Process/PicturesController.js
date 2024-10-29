@@ -5,6 +5,7 @@ import {
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import mongoose from "mongoose";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -32,6 +33,9 @@ export const createPictureOrder = async (req, res, next) => {
         "partyType",
       ]);
 
+      //update embroidery for pictures order
+      await EmbroideryModel.findByIdAndUpdate(embroidery_Id,{pictures_Order : true}).session(session);
+
       if (partyType === "newParty") {
         // Create the new picture Order
         const newPictureOrder = await PicruresModel.create(
@@ -58,7 +62,6 @@ export const createPictureOrder = async (req, res, next) => {
           total_balance,
           status,
         };
-        console.log("newPictureOrder._id", newPictureOrder[0]._id);
         //DATA FOR CREDIT DEBIT HISTORY
         const credit_debit_history_details = [
           {
@@ -101,9 +104,9 @@ export const createPictureOrder = async (req, res, next) => {
         const oldAccountData = await PicruresAccountModel.findById(accountId);
 
         //DATA FOR VIRTUAL ACCOUNT
-        const new_total_credit =
+        let new_total_credit =
           oldAccountData.virtual_account.total_credit + rate;
-        const new_total_debit = oldAccountData.virtual_account.total_debit;
+        let new_total_debit = oldAccountData.virtual_account.total_debit;
         const new_total_balance =
           oldAccountData.virtual_account.total_balance + rate;
         let new_status = "";
@@ -118,20 +121,20 @@ export const createPictureOrder = async (req, res, next) => {
           case new_total_debit === 0 && new_total_balance === new_total_credit:
             new_status = "Unpaid";
             break;
-          case new_total_balance > new_total_credit:
+          case new_total_balance < 0:
             new_status = "Advance Paid";
             break;
           default:
-           new_status = "";
-        };
+            new_status = "";
+        }
 
         //Creating Virtual Account Data
         const virtualAccountData = {
+          total_debit: new_total_debit,
           total_credit: new_total_credit,
           total_balance: new_total_balance,
           status: new_status,
         };
-
 
         //DATA FOR CREDIT DEBIT HISTORY
         const credit_debit_history_details = {
@@ -176,19 +179,77 @@ export const getPictureOrderById = async (req, res, next) => {
 };
 
 // Delete a picture Order by ID
-export const deletePictureOrderById = async (req, res) => {
+export const deletePictureOrderById = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const { id } = req.params;
-    if (!id) throw new CustomError("Picture Order Id is required", 404);
+    await session.withTransaction(async () => {
+      const { id } = req.body;
+      if (!id) throw new CustomError("Picture Order Id is required", 404);
+      const pictureOrder = await PicruresModel.findById(id).session(session);
+      if (!pictureOrder) throw new CustomError("Picture not found", 404);
+      if (pictureOrder.status === "Completed")
+        throw new CustomError("Cannot Delete A Completed Order");
+      //GETTING ACCOUNT DATA
+      const oldAccountData = await PicruresAccountModel.findOne({}).session(
+        session
+      );
+      //UPDATING ACCOUNT DATA
+      const amountToDeduct = pictureOrder.rate;
 
-    const deletedPicture = await PicruresModel.findByIdAndDelete(id);
-    if (!id) throw new CustomError("Picture not found", 404);
+      //DATA FOR VIRTUAL ACCOUNT
+      const new_total_credit =
+        oldAccountData.virtual_account.total_credit - amountToDeduct;
+      const new_total_debit = oldAccountData.virtual_account.total_debit;
+      const new_total_balance =
+        oldAccountData.virtual_account.total_balance - amountToDeduct;
+      let new_status = "";
 
-    res
-      .status(200)
-      .json({ success: true, message: "Picture deleted successfully" });
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit &&
+          new_total_debit > 0 &&
+          new_total_balance > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
+      }
+
+      //Creating Virtual Account Data
+      const virtualAccountData = {
+        total_credit: new_total_credit,
+        total_debit: new_total_debit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+    //   const ObjectId = new mongoose.Types.ObjectId(id);
+      (oldAccountData.virtual_account = virtualAccountData),
+      oldAccountData.credit_debit_history.forEach((item) => {
+        if (item.orderId === id) {
+          item.orderId = "";
+          item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
+        }
+      });
+
+
+        await oldAccountData.save({ session });
+      await PicruresModel.findByIdAndDelete(id).session(session);
+      res
+        .status(200)
+        .json({ success: true, message: "Picture deleted successfully" });
+    });
   } catch (error) {
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -215,7 +276,7 @@ export const updatePictureOrderById = async (req, res) => {
 };
 
 // Get all picture orders
-export const getAllPictureOrders = async (req, res, next) => {
+export const getAllPictureAccounts = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
     const search = req.query.search || "";
@@ -223,11 +284,11 @@ export const getAllPictureOrders = async (req, res, next) => {
     let query = {
       partyName: { $regex: search, $options: "i" },
     };
-    const data = await PicruresModel.find(query)
+    const data = await PicruresAccountModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
-    const total = await PicruresModel.countDocuments(query);
+    const total = await PicruresAccountModel.countDocuments(query);
     const response = {
       totalPages: Math.ceil(total / limit),
       data,
@@ -238,3 +299,19 @@ export const getAllPictureOrders = async (req, res, next) => {
     next(error);
   }
 };
+
+export const searchAccountByPartyName = async (req,res,next) => {
+    try {
+        const { partyName } = req.body;
+        if (!partyName) throw new CustomError("No Party Name found",404);
+        const billQuery = {
+          partyName: { $regex: partyName, $options: "i" },
+        }
+        const accountData = await PicruresAccountModel.find(billQuery, [
+          "virtual_account","partyName"
+        ]);
+          return res.status(200).send(accountData);
+      } catch (error) {
+        next(error)
+      }
+}

@@ -270,9 +270,9 @@ export const updateEmbroidery = async (req, res, next) => {
     const embroideryData = await EmbroideryModel.findById(id);
     if (!embroideryData) throw new Error("Emroidery Data Not Found");
 
-    if (project_status) {
+    if (project_status && embroideryData.updated === true) {
       embroideryData.project_status = project_status;
-    }
+    } else throw new Error("Status cannot be updated.Please Update return quantity first")
     if (shirt) {
       shirt.forEach((item) => {
         const { category, color, received } = item;
@@ -338,6 +338,7 @@ export const updateEmbroidery = async (req, res, next) => {
       };
       embroideryData.recieved_suit = calculateTotalRecieved();
       embroideryData.T_Recieved_Suit = calculateShirtRecieved();
+      embroideryData.updated = true;
     }
 
     if (embroideryData.project_status === "Completed") {

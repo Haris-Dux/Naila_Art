@@ -154,7 +154,7 @@ const embroiderySchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-    updated :{
+    updated : {
       type: Boolean,
       default: false
     },
