@@ -7,11 +7,11 @@ const financialDetails = new mongoose.Schema({
   },
   total_credit: {
     type: Number,
-    required: [true, "Paid Credit is required"],
+    default: 0,
   },
   total_balance: {
     type: Number,
-    required: [true, "Total Balance value is required"],
+    default: 0,
   },
   status: {
     type: String,
@@ -43,8 +43,7 @@ const transaction_details = new mongoose.Schema({
     required: [true, "Balance value is required"],
   },
   orderId: {
-    type: mongoose.Types.ObjectId,
-    ref: "EMB Pictures",
+    type: String,
   },
 });
 
@@ -117,6 +116,21 @@ const picturesAccountsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+picturesAccountsSchema.set("toJSON", (doc, ret, options) => {
+  const {
+    partyName,
+    virtual_account,
+    credit_debit_history,
+    _id: id,
+  } = ret;
+  return {
+    partyName,
+    virtual_account,
+    credit_debit_history,
+    _id: id,
+  };
+});
 
 export const PicruresModel = mongoose.model("EMB Pictures", picturesSchema);
 export const PicruresAccountModel = mongoose.model(

@@ -276,7 +276,7 @@ const Embroidery = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "Unpaid":
         return <span className="text-red-700">{status}</span>;
-      case "Advance":
+      case "Advance Paid":
         return <span className="text-blue-700">{status}</span>;
       default:
         return "";
