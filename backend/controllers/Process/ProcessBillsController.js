@@ -8,6 +8,7 @@ import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { StoneModel } from "../../models/Process/StoneModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import moment from "moment-timezone";
+import { verifyrequiredparams } from "../../middleware/Common.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -53,9 +54,9 @@ export const generateProcessBill = async (req, res, next) => {
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
       if (process_Category === "Embroidery") {
-        amount = (per_suit * T_Recieved_Suit).toFixed(0);
+        amount = Math.round(per_suit * T_Recieved_Suit);
       } else {
-        amount = (rate * r_quantity).toFixed(0);
+        amount = Math.round(rate * r_quantity).toFixed(0);
       }
 
       if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
@@ -229,25 +230,22 @@ export const generateProcessBill = async (req, res, next) => {
           throw new Error("Invalid Process Category");
         }
 
-        const credit_debit_history_details = [
-          {
-            date: today,
-            particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
-            credit: amount,
-            balance: amount,
-            orderId: filrerdId,
-          },
-        ];
-        
+        const credit_debit_history_details = {
+          date: today,
+          particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
+          credit: amount,
+          balance: amount,
+          orderId: filrerdId,
+        };
 
         //SAVING THE OLD ACCOUNT DATA
-        oldAccountData.virtual_account = virtualAccountData,
-        oldAccountData.credit_debit_history.push(
-          credit_debit_history_details
-        );
+        (oldAccountData.virtual_account = virtualAccountData),
+          oldAccountData.credit_debit_history.push(
+            credit_debit_history_details
+          );
 
         await oldAccountData.save({ session });
-      
+
         //UPATING BILL GENERATED VALUE
 
         switch (true) {
@@ -510,5 +508,160 @@ export const generateGatePassPdfFunction = async (req, res, next) => {
     return res.status(200).end(pdfBuffer);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteBillAndProcessOrder = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id, process_Category } = req.body;
+
+      //GETTING ORDER DATA AND ADD STOCK BACK USED
+      let orderData;
+      await verifyrequiredparams(req.body, ["id,process_Category"]);
+      switch (true) {
+        case process_Category === "Embroidery":
+          const embData = await EmbroideryModel.findById(Embroidery_id).session(
+            session
+          );
+          if (embData) {
+            orderData = embData;
+          }
+          break;
+        case process_Category === "Calender":
+          const calenderData = await CalenderModel.findById(
+            Calender_id
+          ).session(session);
+          if (calenderData) {
+            orderData = calenderData;
+          }
+          break;
+        case process_Category === "Cutting":
+          const cuttingData = await CuttingModel.findById(Cutting_id).session(
+            session
+          );
+          if (cuttingData) {
+            orderData = cuttingData;
+          }
+          break;
+        case process_Category === "Stone":
+          const stoneData = await StoneModel.findById(Stone_id).session(
+            session
+          );
+          if (stoneData) {
+            orderData = stoneData;
+          }
+          break;
+        case process_Category === "Stitching":
+          const stitchingData = await StitchingModel.findById(
+            Stitching_id
+          ).session(session);
+          if (stitchingData.bill_generated === true) {
+            orderData = stitchingData;
+          }
+          break;
+        default:
+          "";
+          break;
+      }
+      if (!orderData) throw new CustomError("Order Data not found", 404);
+
+      const addInStock = async (items) => {
+        if (items && items.length > 0) {
+          await Promise.all(
+            items?.map(async (item) => {
+              const matchedRecord = await BaseModel.findOne({
+                category: item.category,
+                colors: item.color,
+              }).session(session);
+              if (matchedRecord) {
+                matchedRecord.TYm += item.quantity_in_m;
+                await matchedRecord.save({ session });
+              } else {
+                throw new Error(
+                  `No Stock Found For category ${item.category} and color ${item.color}`
+                );
+              }
+            })
+          );
+        }
+      };
+
+      if (orderData.shirt) {
+        await addInStock(shirt);
+      }
+      if (orderData.dupatta_category) {
+        await addInStock(duppata);
+      }
+      if (orderData.trouser) {
+        await addInStock(trouser);
+      }
+      if (orderData.trouser) {
+        await addInStock(tissue);
+      }
+
+      //GETTING ACCOUNT DATA
+      const oldAccountData = await processBillsModel
+        .findOne({
+          partyName: orderData.partyName,
+        })
+        .session(session);
+      //UPDATING ACCOUNT DATA
+      const amountToDeduct = orderData.rate;
+
+      //DATA FOR VIRTUAL ACCOUNT
+      const new_total_credit =
+        oldAccountData.virtual_account.total_credit - amountToDeduct;
+      const new_total_debit = oldAccountData.virtual_account.total_debit;
+      const new_total_balance =
+        oldAccountData.virtual_account.total_balance - amountToDeduct;
+      let new_status = "";
+
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit &&
+          new_total_debit > 0 &&
+          new_total_balance > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
+      }
+
+      //Creating Virtual Account Data
+      const virtualAccountData = {
+        total_credit: new_total_credit,
+        total_debit: new_total_debit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+      (oldAccountData.virtual_account = virtualAccountData),
+        oldAccountData.credit_debit_history.forEach((item) => {
+          if (item.orderId === id) {
+            item.orderId = "";
+            item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
+          }
+        });
+
+      await oldAccountData.save({ session });
+      await PicruresModel.findByIdAndDelete(id).session(session);
+      res
+        .status(200)
+        .json({ success: true, message: "Picture deleted successfully" });
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    session.endSession();
   }
 };
