@@ -269,10 +269,14 @@ export const updateEmbroidery = async (req, res, next) => {
     if (!id) throw new Error("Emroidery Id Not Found");
     const embroideryData = await EmbroideryModel.findById(id);
     if (!embroideryData) throw new Error("Emroidery Data Not Found");
-
-    if (project_status && embroideryData.updated === true) {
-      embroideryData.project_status = project_status;
-    } else throw new Error("Status cannot be updated.Please Update return quantity first")
+    if (project_status) {
+      if (project_status === "Completed" && embroideryData.updated === true) {
+        embroideryData.project_status = project_status;
+      } else
+        throw new Error(
+          "Status cannot be updated.Please Update return quantity first"
+        );
+    }
     if (shirt) {
       shirt.forEach((item) => {
         const { category, color, received } = item;
@@ -413,11 +417,12 @@ export const getPreviousDataBypartyName = async (req, res, next) => {
     };
     const billQuery = {
       partyName: { $regex: partyName, $options: "i" },
-      process_Category:"Embroidery"
-    }
+      process_Category: "Embroidery",
+    };
     const embData = await EmbroideryModel.find(Embquery, ["partyName"]);
     const accountData = await processBillsModel.find(billQuery, [
-      "virtual_account","partyName"
+      "virtual_account",
+      "partyName",
     ]);
     const data = {
       embroideryData: embData,

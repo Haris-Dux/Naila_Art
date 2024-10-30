@@ -15,7 +15,7 @@ const getHeadDataByDesignNoURL =
 const getPreviousDataBypartyNameURL =
   "/api/process/embriodery/getPreviousDataBypartyName";
 const searchAccountByPartyNameURL = "/api/process/pictures/searchAccountByPartyName";
-const createPictureOrderURL = "/api/process/pictures/createPictureOrderURL";
+const createPictureOrderURL = "/api/process/pictures/createPictureOrder";
 
 //CREATE ASYNC THUNK
 export const CreateEmbroidery = createAsyncThunk(
@@ -185,7 +185,7 @@ export const getaccountDataForPicturesAsync = createAsyncThunk(
 );
 
 //GET ACCOUNT DATA FOR PICTURES ORDER
-export const createPictureOrderURLAsync = createAsyncThunk(
+export const createPictureOrderAsync = createAsyncThunk(
   "Pictures/createPictureOrder",
   async (data) => {
     try {
@@ -194,7 +194,8 @@ export const createPictureOrderURLAsync = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.error);
+      console.log('error',error);
+      toast.error(error.response.data);
     }
   }
 );
@@ -212,6 +213,7 @@ const initialState = {
   headStitchData: [],
   previousDataByPartyName: [],
   picturesLoading: false,
+  createPictureOrderLoading:false,
   accountDataForPictures: [],
 };
 
@@ -230,6 +232,18 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(CreateEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
+      })
+      
+
+       // PICTURES ORDER Add ADD CASE
+       .addCase(createPictureOrderAsync.pending, (state, action) => {
+        state.createPictureOrderLoading = true;
+      })
+      .addCase(createPictureOrderAsync.fulfilled, (state, action) => {
+        state.createPictureOrderLoading = false;
+      })
+      .addCase(createPictureOrderAsync.rejected, (state, action) => {
+        state.createPictureOrderLoading = false;
       })
 
       // GET DESIGN NUMBERS CASES

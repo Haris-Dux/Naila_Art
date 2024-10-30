@@ -117,21 +117,6 @@ const picturesAccountsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-picturesAccountsSchema.set("toJSON", (doc, ret, options) => {
-  const {
-    partyName,
-    virtual_account,
-    credit_debit_history,
-    _id: id,
-  } = ret;
-  return {
-    partyName,
-    virtual_account,
-    credit_debit_history,
-    _id: id,
-  };
-});
-
 export const PicruresModel = mongoose.model("EMB Pictures", picturesSchema);
 export const PicruresAccountModel = mongoose.model(
   "Pictures Accounts",

@@ -632,7 +632,7 @@ const Embroidery = () => {
                           onSelect={(value) =>
                             handleSelectedRecord(value?.item?.key)
                           }
-                          placeholder="Search Party Name"
+                          placeholder={formData.partyName === "" ? "Search Party Name" : formData.partyName}
                           data={searchResults}
                           onChange={(value) => handleSearchOldData(value)}
                           inputBorderColor="#D1D5DB"

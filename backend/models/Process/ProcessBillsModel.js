@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const financialDetails = new mongoose.Schema({
     total_debit: {
       type: Number,
-      default:null,
+      default:0,
     },
     total_credit: {
       type: Number,
@@ -15,7 +15,7 @@ const financialDetails = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ["Paid", "Unpaid", "Partially Paid"],
+      enum: ["Paid", "Unpaid", "Partially Paid","Advance Paid"],
       default: "Unpaid"
     },
   });
@@ -31,15 +31,19 @@ const financialDetails = new mongoose.Schema({
     },
     debit: {
       type: Number,
-      default:null
+      default:0
     },
     credit: {
       type: Number,
-      default:null
+      default:0
     },
     balance: {
       type: Number,
       required: [true, "Balance value is required"],
+    },
+    orderId: {
+      type: String,
+      required: [true, "Order Id required"],
     },
   });
 
@@ -50,32 +54,9 @@ const processBillsSchema = new mongoose.Schema(
       required: [true, "Process Category Value required"],
       enum: ["Embroidery", "Calender", "Cutting", "Stone", "Stitching"],
     },
-    serial_No: {
-      type: Number,
-      required: [true, "Serial No required"],
-    },
     partyName: {
       type: String,
       required: [true, "Party Name required"],
-    },
-    design_no: {
-      type: String,
-      required: [true, "Design no value required"],
-    },
-    date: {
-      type: String,
-      required: [true, "date required"],
-    },
-    T_Quantity: {
-      type: Number,
-    },
-    rate: {
-      type: Number,
-      required: [true, "Rate value required"],
-    },
-    r_quantity: {
-      type: Number,
-      default: null,
     },
     virtual_account: financialDetails,
     credit_debit_history: [transaction_details],

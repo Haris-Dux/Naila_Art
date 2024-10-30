@@ -27,7 +27,7 @@ export const verifyrequiredparams = ( body, fields) => {
       }
       if (error) {
         throw new CustomError(
-            `Required field(s) ${error_fields.slice(0, -2)} is missing`,
+            `Required fields : ${error_fields.slice(0, -2)} is missing`,
             404
           );
       } else {

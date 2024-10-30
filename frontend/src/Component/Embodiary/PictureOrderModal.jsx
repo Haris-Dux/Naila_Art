@@ -3,28 +3,32 @@ import Select from "react-select";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
-import { getaccountDataForPicturesAsync } from "../../features/EmbroiderySlice";
+import {
+  createPictureOrderAsync,
+  getaccountDataForPicturesAsync,
+} from "../../features/EmbroiderySlice";
+import toast from "react-hot-toast";
 const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
   const dispatch = useDispatch();
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [partyValue, setPartyValue] = useState("newParty");
   const [accountData, setAccountData] = useState(null);
-  const { accountDataForPictures } = useSelector((state) => state.Embroidery);
+  const { accountDataForPictures,createPictureOrderLoading } = useSelector((state) => state.Embroidery);
   const [formData, setFormData] = useState({
     embroidery_Id: embroidery_Id,
-    T_Quantity: 0,
+    T_Quantity: "",
     design_no: design_no,
     date: today,
     partyName: "",
-    rate: 0,
-    partyType: "",
+    rate: "",
+    partyType: partyValue,
     accountId: "",
   });
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'T_Quantity' || name === 'rate' ? Number(value) : value
     }));
   };
   const togleNameField = (e) => {
@@ -33,6 +37,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
     setFormData((prev) => ({
       ...prev,
       partyName: "",
+      partyType:value
     }));
     setAccountData(null);
   };
@@ -43,13 +48,15 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
     const Data = accountDataForPictures?.find(
       (item) => item.partyName === value
     );
+    console.log('Data?.id',Data?.id);
     setFormData((prev) => ({
-      ...prev,
-      partyName: value,
-      accountId: value,
-    }));
+        ...prev,
+        partyName: value,
+        accountId:Data?.id ,
+      }));
     if (Data?.partyName === value) {
       setAccountData(Data?.virtual_account);
+     
     } else {
       setAccountData(false);
     }
@@ -76,18 +83,26 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
     };
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
+    console.log("formData", formData);
+    if(formData.partyName === "") 
+        return toast.error("Please fill all the required fields");
+
+    dispatch(createPictureOrderAsync(formData)).then((res) => {
+        if(res.payload.success === true){
+            closeModal();
+        }
+    })
+
   };
 
-  console.log("accountDataForPictures", accountDataForPictures);
   return (
     <div
       aria-hidden="true"
       className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
     >
-      <div className="relative py-4  px-3 w-full max-w-6xl bg-white rounded-md shadow dark:bg-gray-700 max-h-[85vh] scrollable-content overflow-y-auto">
+      <div className="relative py-4  px-3 w-full max-w-3xl bg-white rounded-md shadow dark:bg-gray-700 max-h-[85vh] scrollable-content overflow-y-auto">
         {/* ------------- HEADER ------------- */}
         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -147,7 +162,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
             {/* INPUT FIELDS DETAILS */}
             <form
               onSubmit={handleSubmit}
-              className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+              className="mb-8 grid items-start grid-cols-1 lg:grid-cols-2 gap-5"
             >
               {/* FIRST ROW */}
               <div className="grid items-center h-full grid-cols-4 gap-1">
@@ -192,9 +207,9 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
                     <ReactSearchBox
                       key={searchResults?.key}
                       onSelect={(value) =>
-                        handleSelectedRecord(value?.item?.key)
+                        handleSelectedRecord(value?.item?.value)
                       }
-                      placeholder="Search Party Name"
+                      placeholder={formData.partyName === "" ? "Search Party Name" : formData.partyName}
                       data={searchResults}
                       onChange={(value) => handleSearchOldData(value)}
                       inputBorderColor="#D1D5DB"
@@ -214,17 +229,15 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
                   </div>
                 )}
               </div>
-              <div>
-                <input
-                  name="date"
-                  type="text"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  required
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  readOnly
-                />
-              </div>
+              <input
+                name="date"
+                type="text"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                required
+                value={formData.date}
+                onChange={handleInputChange}
+                readOnly
+              />
 
               <input
                 name="design_no"
@@ -236,35 +249,35 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
                 readOnly
               />
 
-              <div>
-                <input
-                  name="T_Quantity"
-                  type="number"
-                  placeholder="Enter Quantity"
-                  className=" bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  value={formData.T_Quantity}
-                  onChange={handleInputChange}
-                />
-              </div>
+              <input
+                name="T_Quantity"
+                type="number"
+                placeholder="Enter Quantity"
+                className=" bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                value={formData.T_Quantity}
+                onChange={handleInputChange}
+                required
+              />
+
+              <input
+                name="rate"
+                type="number"
+                placeholder="Rate Per Stitch"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                required
+                value={formData.rate}
+                onChange={handleInputChange}
+              />
 
               <div>
-                <input
-                  name="rate"
-                  type="number"
-                  placeholder="Rate Per Stitch"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  required
-                  value={formData.rate}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
+                <button
+                  type="submit"
+                  disabled={createPictureOrderLoading}
+                  className={`px-4 py-2.5 text-sm ${createPictureOrderLoading && 'bg-gray-400 cursor-not-allowed'} rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800`}
+                >
+                 {createPictureOrderLoading ?  'Loading...' : 'Submit'}
 
-              <button
-                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-              >
-                Submit
-              </button>
+                </button>
               </div>
             </form>
           </div>
