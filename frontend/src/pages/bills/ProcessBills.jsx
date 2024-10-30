@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { GetAllProcessBillAsync } from "../../features/ProcessBillSlice";
+import {
+  GetAllProcessBillAsync,
+  GetAllPictureAccountsAsync,
+} from "../../features/ProcessBillSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const ProcessBills = () => {
@@ -14,7 +17,7 @@ const ProcessBills = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { loading, ProcessBills } = useSelector((state) => state.ProcessBill);
+  const { loading, ProcessBills ,picturesBills} = useSelector((state) => state.ProcessBill);
 
   useEffect(() => {
     const payload = {
@@ -28,11 +31,19 @@ const ProcessBills = () => {
     setSelectedCategory(category);
     setSearch("");
 
-    const payload = {
-      category: category,
-      page: 1,
-    };
-    dispatch(GetAllProcessBillAsync(payload));
+    if (selectedCategory === "Pictures") {
+      const payload = {
+        page: 1,
+      };
+      dispatch(GetAllPictureAccountsAsync(payload));
+    } else {
+      const payload = {
+        category: category,
+        page: 1,
+      };
+      dispatch(GetAllProcessBillAsync(payload));
+    }
+
     navigate(`/dashboard/processbills?page=1`);
   };
 
@@ -83,7 +94,6 @@ const ProcessBills = () => {
     });
   };
 
-
   const setStatusColor = (status) => {
     switch (status) {
       case "Partially Paid":
@@ -92,6 +102,8 @@ const ProcessBills = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "Unpaid":
         return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
       default:
         return "";
     }
@@ -141,21 +153,26 @@ const ProcessBills = () => {
         {/* -------------- TABS -------------- */}
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
-            {["Embroidery", "Calender", "Cutting", "Stone", "Stitching"]?.map(
-              (category) => (
-                <button
-                  key={category}
-                  className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${
-                    selectedCategory === category
-                      ? "bg-gray-800 text-white dark:bg-gray-600  dark:text-white"
-                      : ""
-                  }`}
-                  onClick={() => handleTabClick(category)}
-                >
-                  {category}
-                </button>
-              )
-            )}
+            {[
+              "Embroidery",
+              "Calender",
+              "Cutting",
+              "Stone",
+              "Stitching",
+              "Pictures",
+            ]?.map((category) => (
+              <button
+                key={category}
+                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${
+                  selectedCategory === category
+                    ? "bg-gray-800 text-white dark:bg-gray-600  dark:text-white"
+                    : ""
+                }`}
+                onClick={() => handleTabClick(category)}
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -216,12 +233,12 @@ const ProcessBills = () => {
                       <td className="px-6 py-4">{data?.date}</td>
                       <td className="px-6 py-4">{data?.r_quantity}</td>
                       <td className="px-6 py-4">
-                      {setStatusColor(data?.virtual_account?.status)}
+                        {setStatusColor(data?.virtual_account?.status)}
                       </td>
                       <td className="pl-10 py-4">
                         <Link to={`/dashboard/process-details/${data?.id}`}>
                           <FaEye size={20} className="cursor-pointer" />
-                      </Link>
+                        </Link>
                       </td>
                     </tr>
                   ))

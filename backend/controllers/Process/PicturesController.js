@@ -6,6 +6,7 @@ import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { setMongoose } from "../../utils/Mongoose.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -279,7 +280,7 @@ export const updatePictureOrderById = async (req, res) => {
 export const getAllPictureAccounts = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
-    const search = req.query.search || "";
+    const search = req.query.searchQuery || "";
     const limit = 20;
     let query = {
       partyName: { $regex: search, $options: "i" },
@@ -308,8 +309,9 @@ export const searchAccountByPartyName = async (req,res,next) => {
           partyName: { $regex: partyName, $options: "i" },
         }
         const accountData = await PicruresAccountModel.find(billQuery, [
-          "virtual_account","partyName"
+          "virtual_account","partyName",'id'
         ]);
+        setMongoose()
           return res.status(200).send(accountData);
       } catch (error) {
         next(error)

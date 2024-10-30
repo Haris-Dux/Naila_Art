@@ -559,7 +559,7 @@ const EmbroideryDetails = () => {
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-6 flex justify-center items-center gap-x-3">
-          {project_status !== "Completed" && (
+          {project_status !== "Completed" && updated && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={handleCompletedClick}
@@ -567,7 +567,8 @@ const EmbroideryDetails = () => {
               Completed
             </button>
           )}
-          {project_status === "Completed" && !bill_generated && (
+          {project_status === "Completed" && !bill_generated  && (
+
             <>
               {generateBillLoading ? (
                 <button
@@ -613,7 +614,7 @@ const EmbroideryDetails = () => {
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={openMoodalForPicturesOrder}
             >
-              Pictures Order
+              Order Pictures 
             </button>
           )}
         </div>
