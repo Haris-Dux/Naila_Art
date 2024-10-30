@@ -35,7 +35,9 @@ export const createPictureOrder = async (req, res, next) => {
       ]);
 
       //update embroidery for pictures order
-      await EmbroideryModel.findByIdAndUpdate(embroidery_Id,{pictures_Order : true}).session(session);
+      await EmbroideryModel.findByIdAndUpdate(embroidery_Id, {
+        pictures_Order: true,
+      }).session(session);
 
       if (partyType === "newParty") {
         // Create the new picture Order
@@ -191,9 +193,9 @@ export const deletePictureOrderById = async (req, res, next) => {
       if (pictureOrder.status === "Completed")
         throw new CustomError("Cannot Delete A Completed Order");
       //GETTING ACCOUNT DATA
-      const oldAccountData = await PicruresAccountModel.findOne({}).session(
-        session
-      );
+      const oldAccountData = await PicruresAccountModel.findOne({
+        partyName: pictureOrder.partyName,
+      }).session(session);
       //UPDATING ACCOUNT DATA
       const amountToDeduct = pictureOrder.rate;
 
@@ -231,17 +233,16 @@ export const deletePictureOrderById = async (req, res, next) => {
         total_balance: new_total_balance,
         status: new_status,
       };
-    //   const ObjectId = new mongoose.Types.ObjectId(id);
+      //   const ObjectId = new mongoose.Types.ObjectId(id);
       (oldAccountData.virtual_account = virtualAccountData),
-      oldAccountData.credit_debit_history.forEach((item) => {
-        if (item.orderId === id) {
-          item.orderId = "";
-          item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
-        }
-      });
+        oldAccountData.credit_debit_history.forEach((item) => {
+          if (item.orderId === id) {
+            item.orderId = "";
+            item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
+          }
+        });
 
-
-        await oldAccountData.save({ session });
+      await oldAccountData.save({ session });
       await PicruresModel.findByIdAndDelete(id).session(session);
       res
         .status(200)
@@ -301,19 +302,21 @@ export const getAllPictureAccounts = async (req, res, next) => {
   }
 };
 
-export const searchAccountByPartyName = async (req,res,next) => {
-    try {
-        const { partyName } = req.body;
-        if (!partyName) throw new CustomError("No Party Name found",404);
-        const billQuery = {
-          partyName: { $regex: partyName, $options: "i" },
-        }
-        const accountData = await PicruresAccountModel.find(billQuery, [
-          "virtual_account","partyName",'id'
-        ]);
-        setMongoose()
-          return res.status(200).send(accountData);
-      } catch (error) {
-        next(error)
-      }
-}
+export const searchAccountByPartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new CustomError("No Party Name found", 404);
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const accountData = await PicruresAccountModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+      "id",
+    ]);
+    setMongoose();
+    return res.status(200).send(accountData);
+  } catch (error) {
+    next(error);
+  }
+};
