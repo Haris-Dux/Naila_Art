@@ -9,6 +9,7 @@ import { StoneModel } from "../../models/Process/StoneModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
+import { BaseModel } from "../../models/Stock/Base.Model.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -516,13 +517,13 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id, process_Category } = req.body;
+      await verifyrequiredparams(req.body, ["id","process_Category"]);
 
       //GETTING ORDER DATA AND ADD STOCK BACK USED
       let orderData;
-      await verifyrequiredparams(req.body, ["id,process_Category"]);
       switch (true) {
         case process_Category === "Embroidery":
-          const embData = await EmbroideryModel.findById(Embroidery_id).session(
+          const embData = await EmbroideryModel.findById(id).session(
             session
           );
           if (embData) {
@@ -531,14 +532,14 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           break;
         case process_Category === "Calender":
           const calenderData = await CalenderModel.findById(
-            Calender_id
+            id
           ).session(session);
           if (calenderData) {
             orderData = calenderData;
           }
           break;
         case process_Category === "Cutting":
-          const cuttingData = await CuttingModel.findById(Cutting_id).session(
+          const cuttingData = await CuttingModel.findById(id).session(
             session
           );
           if (cuttingData) {
@@ -546,7 +547,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           }
           break;
         case process_Category === "Stone":
-          const stoneData = await StoneModel.findById(Stone_id).session(
+          const stoneData = await StoneModel.findById(id).session(
             session
           );
           if (stoneData) {
@@ -555,7 +556,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           break;
         case process_Category === "Stitching":
           const stitchingData = await StitchingModel.findById(
-            Stitching_id
+            id
           ).session(session);
           if (stitchingData.bill_generated === true) {
             orderData = stitchingData;
@@ -568,7 +569,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
       if (!orderData) throw new CustomError("Order Data not found", 404);
 
       const addInStock = async (items) => {
-        if (items && items.length > 0) {
+         if (items && items.length > 0) {
           await Promise.all(
             items?.map(async (item) => {
               const matchedRecord = await BaseModel.findOne({
@@ -588,28 +589,31 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         }
       };
 
-      if (orderData.shirt) {
-        await addInStock(shirt);
-      }
-      if (orderData.dupatta_category) {
-        await addInStock(duppata);
-      }
-      if (orderData.trouser) {
-        await addInStock(trouser);
-      }
-      if (orderData.trouser) {
-        await addInStock(tissue);
-      }
+      const processStockUpdate = async (oderData) => {
+        const stockItmes = [
+          { key: "shirt", items: orderData.shirt },
+          { key: "trouser", items: orderData.trouser },
+          { key: "duppata", items: orderData.duppata },
+        ];
+        for (const { key, items } of stockItmes) {
+          if (oderData[key]) {
+            await addInStock(items);
+          }
+        }
+      };
+
+      await processStockUpdate(orderData);
 
       //GETTING ACCOUNT DATA
       const oldAccountData = await processBillsModel
         .findOne({
           partyName: orderData.partyName,
+          process_Category: process_Category,
         })
         .session(session);
-      //UPDATING ACCOUNT DATA
-      const amountToDeduct = orderData.rate;
 
+        //UPDATING ACCOUNT DATA
+      const amountToDeduct = Math.round(orderData.per_suit * orderData.T_Recieved_Suit)
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit =
         oldAccountData.virtual_account.total_credit - amountToDeduct;
@@ -645,19 +649,20 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         status: new_status,
       };
 
+
       (oldAccountData.virtual_account = virtualAccountData),
         oldAccountData.credit_debit_history.forEach((item) => {
           if (item.orderId === id) {
             item.orderId = "";
-            item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
+            item.particular = `Deleted Bill For D.NO : ${orderData.design_no}`;
           }
         });
 
       await oldAccountData.save({ session });
-      await PicruresModel.findByIdAndDelete(id).session(session);
+      await EmbroideryModel.findByIdAndDelete(id).session(session);
       res
         .status(200)
-        .json({ success: true, message: "Picture deleted successfully" });
+        .json({ success: true, message: "Order And Bill deleted successfully" });
     });
   } catch (error) {
     next(error);

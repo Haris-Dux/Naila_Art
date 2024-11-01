@@ -42,8 +42,7 @@ const financialDetails = new mongoose.Schema({
       required: [true, "Balance value is required"],
     },
     orderId: {
-      type: String,
-      required: [true, "Order Id required"],
+      type: String
     },
   });
 

@@ -1,6 +1,7 @@
 import express from "express";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 import {
+  deleteBillAndProcessOrder,
   generateGatePassPdfFunction,
   generateProcessBill,
   getAllProcessBills,
@@ -28,6 +29,11 @@ processBillRouter.post(
     "/generateGatePassPdfFunction",
     superAdminAndAdminOnly,
     generateGatePassPdfFunction
+  );
+  processBillRouter.post(
+    "/deleteBillAndProcessOrder",
+    superAdminAndAdminOnly,
+    deleteBillAndProcessOrder
   );
 
 
