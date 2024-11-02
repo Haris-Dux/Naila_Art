@@ -7,6 +7,7 @@ const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
 const getEmbroidery = "/api/process/embriodery/getAllEmbroidery";
 const getEmbroiderydetails = "/api/process/embriodery/getEmbroideryById";
 const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
+const deleteEmbroideryUrl = "/api/process/embriodery/deleteEmbroidery";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const getAllDesignNumbersURL = "/api/process/embriodery/getAllDesignNumbers";
@@ -200,6 +201,20 @@ export const createPictureOrderAsync = createAsyncThunk(
   }
 );
 
+//GET HEAD AND STITCH DATA
+export const deleteEmbroideryAsync = createAsyncThunk(
+  "Embroider/deleteEmbroidery",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteEmbroideryUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   embroidery: [],
@@ -215,6 +230,7 @@ const initialState = {
   picturesLoading: false,
   createPictureOrderLoading:false,
   accountDataForPictures: [],
+  deleteLoadings: false,
 };
 
 const EmbroiderySlice = createSlice({
@@ -323,6 +339,17 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(UpdateEmbroidery.fulfilled, (state, action) => {
         state.UpdatEmbroideryloading = false;
+      })
+
+      //DELETE EMBROIDERY
+      .addCase(deleteEmbroideryAsync.pending, (state, action) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(deleteEmbroideryAsync.fulfilled, (state, action) => {
+        state.deleteLoadings = false;
+      })
+      .addCase(deleteEmbroideryAsync.rejected, (state, action) => {
+        state.deleteLoadings = false;
       })
 
       //DOWNLOAD PDF
