@@ -434,3 +434,66 @@ export const getPreviousDataBypartyName = async (req, res, next) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const deleteEmbroidery = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id } = req.body;
+      await verifyrequiredparams(req.body, ["id"]);
+      const embroideryData = await EmbroideryModel.findById(id).session(
+        session
+      );
+      if (embroideryData.bill_generated === true)
+        throw new Error("Cannot Delete Embroidery");
+
+      const addInStock = async (items) => {
+        if (items && items.length > 0) {
+          await Promise.all(
+            items?.map(async (item) => {
+              const matchedRecord = await BaseModel.findOne({
+                category: item.category,
+                colors: item.color,
+              }).session(session);
+              if (matchedRecord) {
+                matchedRecord.TYm += item.quantity_in_m;
+                await matchedRecord.save({ session });
+              } else {
+                throw new Error(
+                  `No Stock Found For category ${item.category} and color ${item.color}`
+                );
+              }
+            })
+          );
+        }
+      };
+
+      const processStockUpdate = async (oderData) => {
+        const stockItmes = [
+          { key: "shirt", items: orderData.shirt },
+          { key: "trouser", items: orderData.trouser },
+          { key: "duppata", items: orderData.duppata },
+        ];
+        for (const { key, items } of stockItmes) {
+          if (oderData[key]) {
+            await addInStock(items);
+          }
+        }
+      };
+
+      await processStockUpdate(orderData);
+
+      await EmbroideryModel.findByIdAndDelete(id).session(session);
+      res
+        .status(200)
+        .json({
+          success: true,
+          message: "Embroidery deleted successfully",
+        });
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};

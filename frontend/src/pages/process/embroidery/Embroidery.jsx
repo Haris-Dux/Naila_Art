@@ -4,7 +4,9 @@ import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import Box from "../../../Component/Embodiary/Box";
+import { MdOutlineDelete } from "react-icons/md";
 import {
+  deleteEmbroideryAsync,
   getAllDesignNumbersAsync,
   GETEmbroidery,
   getHeadDataByDesignNoAsync,
@@ -14,9 +16,12 @@ import { useDispatch } from "react-redux";
 import Select from "react-select";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
+import DeleteModal from "../../../Component/Modal/DeleteModal";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
   const [searchText, setSearchText] = useState("");
   const [partyValue, setPartyValue] = useState("newParty");
   const {
@@ -25,13 +30,14 @@ const Embroidery = () => {
     designNumbers,
     headStitchData,
     previousDataByPartyName,
+    deleteLoadings,
   } = useSelector((state) => state.Embroidery);
   const [search, setSearch] = useState();
   const [accountData, setAccountData] = useState(null);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const dispatch = useDispatch();
-  const today = moment.tz('Asia/Karachi').format("YYYY-MM-DD");
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
     partyName: "",
     date: today,
@@ -237,7 +243,7 @@ const Embroidery = () => {
     setPartyValue(value);
     setFormData((prev) => ({
       ...prev,
-      partyName:""
+      partyName: "",
     }));
     setAccountData(null);
   };
@@ -259,7 +265,7 @@ const Embroidery = () => {
     );
     setFormData((prev) => ({
       ...prev,
-      partyName:value
+      partyName: value,
     }));
     if (Data?.partyName === value) {
       setAccountData(Data?.virtual_account);
@@ -281,6 +287,24 @@ const Embroidery = () => {
       default:
         return "";
     }
+  };
+
+  const openDeleteModal = (id) => {
+    setDeleteModal(true);
+    setSelectedId(id);
+  };
+
+  const closedeleteModal = () => {
+    setDeleteModal(false);
+  };
+
+  const handleDelete = () => {
+    dispatch(deleteEmbroideryAsync({ id: selectedId })).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GETEmbroidery({ page: page }));
+        closedeleteModal();
+      }
+    });
   };
 
   return (
@@ -365,7 +389,7 @@ const Embroidery = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
-                      Details
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -391,10 +415,16 @@ const Embroidery = () => {
                         <td className="px-6 py-4">
                           {setStatusColor(data.project_status)}
                         </td>
-                        <td className="pl-10 py-4">
+                        <td className="pl-10 py-4 flex items-center  gap-3">
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
+                          <button onClick={() => openDeleteModal(data.id)}>
+                            <MdOutlineDelete
+                              size={20}
+                              className="cursor-pointer text-red-500"
+                            />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -632,7 +662,11 @@ const Embroidery = () => {
                           onSelect={(value) =>
                             handleSelectedRecord(value?.item?.key)
                           }
-                          placeholder={formData.partyName === "" ? "Search Party Name" : formData.partyName}
+                          placeholder={
+                            formData.partyName === ""
+                              ? "Search Party Name"
+                              : formData.partyName
+                          }
                           data={searchResults}
                           onChange={(value) => handleSearchOldData(value)}
                           inputBorderColor="#D1D5DB"
@@ -893,10 +927,21 @@ const Embroidery = () => {
                   total={total}
                   DNO_ategory={headStitchData[0]?.shirt}
                 />
+
+                {/* DELETE MODAL */}
               </div>
             </div>
           </div>
         </div>
+      )}
+      {deleteModal && (
+        <DeleteModal
+          title={"Delete Embroidery"}
+          message={"Are you sure want to delete this embroidery ?"}
+          onClose={closedeleteModal}
+          Loading={deleteLoadings}
+          onConfirm={handleDelete}
+        />
       )}
     </>
   );
