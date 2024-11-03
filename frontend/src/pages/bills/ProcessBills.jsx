@@ -205,9 +205,6 @@ const ProcessBills = () => {
                     Date
                   </th>
                   <th className="px-6 py-3 font-medium" scope="col">
-                    Quantity
-                  </th>
-                  <th className="px-6 py-3 font-medium" scope="col">
                     Status
                   </th>
                   <th className="px-6 py-3 font-medium" scope="col">
@@ -231,7 +228,6 @@ const ProcessBills = () => {
                       <td className="px-6 py-4">{data?.partyName}</td>
                       <td className="px-6 py-4">{data?.design_no}</td>
                       <td className="px-6 py-4">{data?.date}</td>
-                      <td className="px-6 py-4">{data?.r_quantity}</td>
                       <td className="px-6 py-4">
                         {setStatusColor(data?.virtual_account?.status)}
                       </td>

@@ -419,12 +419,12 @@ const Embroidery = () => {
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
-                          <button onClick={() => openDeleteModal(data.id)}>
+                         {!data.bill_generated && <button onClick={() => openDeleteModal(data.id)}>
                             <MdOutlineDelete
                               size={20}
                               className="cursor-pointer text-red-500"
                             />
-                          </button>
+                          </button>}
                         </td>
                       </tr>
                     ))

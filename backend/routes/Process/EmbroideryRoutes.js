@@ -45,7 +45,7 @@ embrioderyRouter.post(
   getHeadDataByDesignNo
 );
 embrioderyRouter.post(
-  "/deleteEmbroidery",
+  "/deleteEmbroiderybyId",
   superAdminAndAdminOnly,
   deleteEmbroidery
 );
