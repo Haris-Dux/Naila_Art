@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
+import CustomError from "../../config/errors/CustomError.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -440,7 +441,7 @@ export const deleteEmbroidery = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id } = req.body;
-      await verifyrequiredparams(req.body, ["id"]);
+      if(!id) throw new CustomError("Embroidery Id Required",404);
       const embroideryData = await EmbroideryModel.findById(id).session(
         session
       );
@@ -470,9 +471,9 @@ export const deleteEmbroidery = async (req, res, next) => {
 
       const processStockUpdate = async (oderData) => {
         const stockItmes = [
-          { key: "shirt", items: orderData.shirt },
-          { key: "trouser", items: orderData.trouser },
-          { key: "duppata", items: orderData.duppata },
+          { key: "shirt", items: embroideryData.shirt },
+          { key: "trouser", items: embroideryData.trouser },
+          { key: "duppata", items: embroideryData.duppata },
         ];
         for (const { key, items } of stockItmes) {
           if (oderData[key]) {
@@ -481,7 +482,7 @@ export const deleteEmbroidery = async (req, res, next) => {
         }
       };
 
-      await processStockUpdate(orderData);
+      await processStockUpdate(embroideryData);
 
       await EmbroideryModel.findByIdAndDelete(id).session(session);
       res

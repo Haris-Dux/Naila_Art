@@ -11,10 +11,12 @@ import { useSelector } from "react-redux";
 import { createCalender } from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
+import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
+  const [processBillModal, setProcessBillModal] = useState(false);
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
@@ -246,6 +248,11 @@ const EmbroideryDetails = () => {
     dispatch(generateEmbroideryBillAsync(formData));
   };
 
+  const openGenerateBillForm = () => {
+    setProcessBillModal(true);
+  };
+
+
   const setStatusColor = (status) => {
     switch (status) {
       case "Pending":
@@ -461,9 +468,9 @@ const EmbroideryDetails = () => {
                           handleInputChange(
                             item.category,
                             item.color,
-                            parseInt(e.target.value), // Ensure the correct value is passed
+                            parseInt(e.target.value),
                             index,
-                            "shirt" // Update this accordingly for different sections
+                            "shirt" 
                           )
                         }
                         readOnly={project_status === "Completed"}
@@ -579,7 +586,7 @@ const EmbroideryDetails = () => {
                 </button>
               ) : (
                 <button
-                  onClick={generateBill}
+                  onClick={openGenerateBillForm}
                   className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
                 >
                   Generate Bill
@@ -793,6 +800,11 @@ const EmbroideryDetails = () => {
             onClose={closeGatepassModal}
           />
         )}
+
+        {/* PROCESS BILL MODAL */}
+        <ProcessBillModal
+        processBillAmount={Math.round(SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit)}
+        />
 
         
       </section>

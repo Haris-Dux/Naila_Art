@@ -7,7 +7,7 @@ const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
 const getEmbroidery = "/api/process/embriodery/getAllEmbroidery";
 const getEmbroiderydetails = "/api/process/embriodery/getEmbroideryById";
 const editEmbroidery = "/api/process/embriodery/updateEmbroidery";
-const deleteEmbroideryUrl = "/api/process/embriodery/deleteEmbroidery";
+const deleteEmbroideryUrl = "/api/process/embriodery/deleteEmbroiderybyId";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const getAllDesignNumbersURL = "/api/process/embriodery/getAllDesignNumbers";
@@ -201,11 +201,12 @@ export const createPictureOrderAsync = createAsyncThunk(
   }
 );
 
-//GET HEAD AND STITCH DATA
+//Delete Embroidery
 export const deleteEmbroideryAsync = createAsyncThunk(
-  "Embroider/deleteEmbroidery",
+  "Embroidery/deleteEmbroidery",
   async (data) => {
     try {
+      console.log('calling api');
       const response = await axios.post(deleteEmbroideryUrl, data);
       toast.success(response.data.message);
       return response.data;
@@ -346,9 +347,6 @@ const EmbroiderySlice = createSlice({
         state.deleteLoadings = true;
       })
       .addCase(deleteEmbroideryAsync.fulfilled, (state, action) => {
-        state.deleteLoadings = false;
-      })
-      .addCase(deleteEmbroideryAsync.rejected, (state, action) => {
         state.deleteLoadings = false;
       })
 

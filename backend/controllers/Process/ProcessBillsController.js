@@ -31,9 +31,8 @@ export const generateProcessBill = async (req, res, next) => {
         Cutting_id,
         Stone_id,
         Stitching_id,
+        Manual_No
       } = req.body;
-
-      const Manual_No = 10;
 
       // Validate required fields
       if (
@@ -111,6 +110,10 @@ export const generateProcessBill = async (req, res, next) => {
           [
             {
               process_Category,
+              design_no,
+              date,
+              Manual_No,
+              serial_No,
               partyName,
               credit_debit_history: credit_debit_history_details,
               virtual_account: virtualAccountData,
@@ -240,6 +243,10 @@ export const generateProcessBill = async (req, res, next) => {
         };
 
         //SAVING THE OLD ACCOUNT DATA
+        oldAccountData.design_no = design_no,
+        oldAccountData.date = date,
+        oldAccountData.Manual_No = Manual_No,
+        oldAccountData.serial_No = serial_No,
         (oldAccountData.virtual_account = virtualAccountData),
           oldAccountData.credit_debit_history.push(
             credit_debit_history_details

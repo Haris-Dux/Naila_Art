@@ -42,4 +42,5 @@ pictureRouter.post(
   searchAccountByPartyName
 );
 
+
 export default pictureRouter;
