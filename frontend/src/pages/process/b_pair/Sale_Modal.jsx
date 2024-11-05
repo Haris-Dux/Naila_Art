@@ -14,7 +14,7 @@ const Sale_Modal = ({
 
 }) => {
   const dispatch = useDispatch();
-  const { saleB_pairLoading,B_pairData } = useSelector((state) => state.B_Pair);
+  const { saleB_pairLoading } = useSelector((state) => state.B_Pair);
 
   const payload = {
     category:selectedCategory,
@@ -25,10 +25,10 @@ const Sale_Modal = ({
   // State variables to hold form data
   const [formData, setFormData] = useState({
     id: id,
-    status: "Sold",
     amount: '',
     contact: "",
     name: "",
+    sold_quantity:""
   });
 
   // Function to handle changes in form inputs
@@ -36,7 +36,7 @@ const Sale_Modal = ({
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: name === "amount" ? (value === "" ? "" : Number(value)) : value,
+      [name]: name === "amount" || name === "sold_quantity"  ? (value === "" ? "" : Number(value)) : value,
     }));
   };
 
@@ -59,10 +59,10 @@ const Sale_Modal = ({
       amount: "",
       contact: "",
       name: "",
+      sold_quantity:""
     });
   };
 
-  const soldBPairDetails = B_pairData?.data?.find((item) => item.id === id);
 
   return (
     <>
@@ -110,15 +110,10 @@ const Sale_Modal = ({
                     name="name"
                     type="text"
                     placeholder="Name"
-                    value={
-                      soldBPairDetails?.status === "Sold"
-                        ? soldBPairDetails?.seller_Details?.name
-                        : formData.name
-                    }
+                    value={formData.name}
                     onChange={handleChange}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     required
-                    readOnly={soldBPairDetails?.status === "Sold"}
                   />
                 </div>
 
@@ -128,15 +123,10 @@ const Sale_Modal = ({
                     name="contact"
                     type="text"
                     placeholder="Contact"
-                    value={
-                      soldBPairDetails?.status === "Sold"
-                        ? soldBPairDetails.seller_Details.contact
-                        : formData.contact
-                    }
+                    value={formData.contact}
                     onChange={handleChange}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     required
-                    readOnly={soldBPairDetails?.status === "Sold"}
                   />
                 </div>
 
@@ -146,34 +136,27 @@ const Sale_Modal = ({
                     name="amount"
                     type="number"
                     placeholder="Amount"
-                    value={
-                      soldBPairDetails?.status === "Sold"
-                        ? soldBPairDetails.seller_Details.amount
-                        : formData.amount
-                    }
+                    value={ formData.amount}
                     onChange={handleChange}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     required
-                    readOnly={soldBPairDetails?.status === "Sold"}
                   />
                 </div>
-
-                {/* DATE */}
-
-                {soldBPairDetails && soldBPairDetails?.status === "Sold" && (
+                  {/* SOLD QUANTITY */}
                   <div>
-                    <input
-                      name="date"
-                      type="text"
-                      value={soldBPairDetails.seller_Details.date}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      readOnly
-                    />
-                  </div>
-                )}
+                  <input
+                    name="sold_quantity"
+                    type="number"
+                    placeholder="Sold Quantity"
+                    value={formData.sold_quantity}
+                    onChange={handleChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    required
+                  />
+                </div>
               </div>
 
-             {soldBPairDetails && soldBPairDetails?.status !== "Sold" && <div className="flex justify-center mt-6">
+             <div className="flex justify-center mt-6">
                 {saleB_pairLoading ? (
                   <button
                     disabled
@@ -207,7 +190,7 @@ const Sale_Modal = ({
                     Submit
                   </button>
                 )}
-              </div>}
+              </div>
             </form>
           </div>
         </div>
