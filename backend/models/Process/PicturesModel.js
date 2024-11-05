@@ -111,6 +111,18 @@ const picturesAccountsSchema = new mongoose.Schema(
       type: String,
       required: [true, "Party Name required"],
     },
+    date: {
+      type: String,
+      required: [true, "Date is required"],
+    },
+    design_no: {
+      type: String,
+      required: [true, "Design_no is required"],
+    },
+    serial_No: {
+      type: String,
+      required: [true, "Serial_No is required"],
+    },
     virtual_account: financialDetails,
     credit_debit_history: [transaction_details],
   },

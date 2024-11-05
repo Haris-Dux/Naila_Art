@@ -231,7 +231,7 @@ export const updateStitching = async (req, res, next) => {
       const stitching = await StitchingModel.findById(id).session(session);
       if (!stitching) throw new Error("Stitching not Found");
       //ADDING STOCK AND UPDATING PROJECT STATUS
-      
+
       if (project_status === "Completed") {
         stitching.project_status = project_status;
         let salePrice = 0;
@@ -247,22 +247,25 @@ export const updateStitching = async (req, res, next) => {
             if (res.error) {
               throw new Error(res.error);
             }
-          };
-          
-
-          //ADD BPAIR
-          const b_pairData = {
-            b_PairCategory: "Stitching",
-            quantity: stitching.Quantity - stitching.r_quantity,
-            rate: (stitching.Quantity - stitching.r_quantity) * salePrice,
-            partyName: stitching.partyName,
-            serial_No: stitching.serial_No,
-            design_no: stitching.design_no,
-          };
-          const res = await addBPair(b_pairData, session);
-          if (res.error) {
-            throw new Error(res.error);
           }
+
+          const bpair_Quantity = stitching.Quantity - stitching.r_quantity;
+          //ADD BPAIR
+          if(bpair_Quantity > 0) {
+            const b_pairData = {
+              b_PairCategory: "Stitching",
+              quantity: bpair_Quantity,
+              rate: (stitching.Quantity - stitching.r_quantity) * salePrice,
+              partyName: stitching.partyName,
+              serial_No: stitching.serial_No,
+              design_no: stitching.design_no,
+            };
+            const res = await addBPair(b_pairData, session);
+            if (res.error) {
+              throw new Error(res.error);
+            }
+          }
+         
         }
       }
 

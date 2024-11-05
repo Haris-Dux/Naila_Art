@@ -98,8 +98,10 @@ const B_Pair = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "UnSold":
         return <span className="text-red-700">{status}</span>;
-      default:
-        return "";
+        case "Partially Sold":
+          return <span className="text-[#FFC107]">{status}</span>;
+        default:
+        return "No Status";
     }
   };
 
@@ -111,6 +113,10 @@ const B_Pair = () => {
   const closeModal = () => {
     setIsOpen(false);
   };
+
+  const openSaleHistoryModal = (data) => {
+    
+  }
 
 
   return (
@@ -213,7 +219,7 @@ const B_Pair = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 font-medium" scope="col">
-                    Sale
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -239,15 +245,15 @@ const B_Pair = () => {
                         {setStatusColor(data?.status)}
                       </td>
                       <td className="pl-8 py-4">
-                        {data?.status === "UnSold" ? (
+                        {data?.status !== "Sold" &&
                           <Link onClick={() => openModal(data.id)}>
                             <FaCartPlus size={20} className="cursor-pointer" />
-                          </Link>
-                        ) : (
-                          <Link onClick={() => openModal(data.id)}>
+                          </Link>}
+                        
+                      {data?.status !== "UnSold" &&    <Link onClick={() => openSaleHistoryModal(data.seller_Details)}>
                             <FaEye size={20} className="cursor-pointer" />
-                          </Link>
-                        )}
+                          </Link>}
+                        
                       </td>
                     </tr>
                   ))

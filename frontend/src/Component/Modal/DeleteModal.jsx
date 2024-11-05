@@ -9,7 +9,7 @@ const DeleteModal = ({ onClose, onConfirm, message, title, Loading}) => {
     >
       <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
         <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold text-red-600">
             {title}
           </h3>
         </div>

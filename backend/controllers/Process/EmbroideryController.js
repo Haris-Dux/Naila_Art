@@ -345,10 +345,9 @@ export const updateEmbroidery = async (req, res, next) => {
       embroideryData.T_Recieved_Suit = calculateShirtRecieved();
       embroideryData.updated = true;
     }
-
-    if (embroideryData.project_status === "Completed") {
-      const quantity = embroideryData.T_Quantity - embroideryData.recieved_suit;
-      const rate = quantity * embroideryData.per_suit;
+    const quantity = embroideryData.T_Quantity - embroideryData.recieved_suit;
+    if (embroideryData.project_status === "Completed" && quantity > 0) {
+      const rate = Math.round(quantity * embroideryData.per_suit);
       const data = {
         design_no: embroideryData.design_no,
         serial_No: embroideryData.serial_No,

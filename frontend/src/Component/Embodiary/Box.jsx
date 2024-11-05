@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetAllBaseforEmroidery } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 
-const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
+const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
   const { loading: IsLoading } = useSelector((state) => state.Embroidery);
 
@@ -356,7 +356,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory }) => {
       );
     } else {
       const result = validateShirtCategories(meregdata);
-      if(!result) return toast.error("Invalid Shirt Category For Selected Design Number");
+      if(!result && partyValue === "oldParty") return toast.error("Invalid Shirt Category For Selected Design Number");
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {
           dispatch(GETEmbroidery({ page: 1 }));

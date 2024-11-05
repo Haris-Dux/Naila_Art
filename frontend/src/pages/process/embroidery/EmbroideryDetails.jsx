@@ -23,7 +23,6 @@ const EmbroideryDetails = () => {
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
   const [picturesModal, setPicturesMOdal] = useState(false);
 
-
   const { loading: IsLoading } = useSelector((state) => state.Calender);
 
   const navigate = useNavigate();
@@ -35,7 +34,7 @@ const EmbroideryDetails = () => {
     EmroiderypdfLoading,
     generateBillLoading,
   } = useSelector((state) => state.Embroidery);
-
+  const [processBillData, setProcessBillData] = useState({});
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
     partyName: "",
@@ -239,19 +238,33 @@ const EmbroideryDetails = () => {
     closeGatepassModal();
   };
 
-  const generateBill = () => {
+  const generateBill = (e) => {
+    e.preventDefault();
     const formData = {
       ...SingleEmbroidery,
       process_Category: "Embroidery",
+      Manual_No: processBillData.Manual_No,
+      additionalExpenditure: processBillData.additionalExpenditure,
       Embroidery_id: SingleEmbroidery?.id,
     };
-    dispatch(generateEmbroideryBillAsync(formData));
+    dispatch(generateEmbroideryBillAsync(formData)).then((res) => {
+      if(res.payload.success === true) {
+        setProcessBillModal(false);
+      }
+    })
   };
 
   const openGenerateBillForm = () => {
     setProcessBillModal(true);
   };
 
+  const closeBillModal = () => {
+    setProcessBillModal(false);
+  };
+
+  const HandleProcessBillDataChange = (data) => {
+    setProcessBillData(data);
+  };
 
   const setStatusColor = (status) => {
     switch (status) {
@@ -263,7 +276,6 @@ const EmbroideryDetails = () => {
         return "";
     }
   };
-
 
   const openMoodalForPicturesOrder = () => {
     setPicturesMOdal(true);
@@ -470,7 +482,7 @@ const EmbroideryDetails = () => {
                             item.color,
                             parseInt(e.target.value),
                             index,
-                            "shirt" 
+                            "shirt"
                           )
                         }
                         readOnly={project_status === "Completed"}
@@ -574,25 +586,13 @@ const EmbroideryDetails = () => {
               Completed
             </button>
           )}
-          {project_status === "Completed" && !bill_generated  && (
-
-            <>
-              {generateBillLoading ? (
-                <button
-                  disabled
-                  className="px-4 py-2.5 hover:cursor-progress text-sm rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              ) : (
-                <button
-                  onClick={openGenerateBillForm}
-                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              )}
-            </>
+          {project_status === "Completed" && !bill_generated && (
+            <button
+              onClick={openGenerateBillForm}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              Generate Bill
+            </button>
           )}
           {EmroiderypdfLoading ? (
             <button
@@ -621,7 +621,7 @@ const EmbroideryDetails = () => {
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={openMoodalForPicturesOrder}
             >
-              Order Pictures 
+              Order Pictures
             </button>
           )}
         </div>
@@ -802,11 +802,17 @@ const EmbroideryDetails = () => {
         )}
 
         {/* PROCESS BILL MODAL */}
-        <ProcessBillModal
-        processBillAmount={Math.round(SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit)}
-        />
-
-        
+        {processBillModal && (
+          <ProcessBillModal
+            onDataChange={HandleProcessBillDataChange}
+            handleSubmit={generateBill}
+            loading={generateBillLoading}
+            closeModal={closeBillModal}
+            processBillAmount={Math.round(
+              SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit
+            )}
+          />
+        )}
       </section>
     </>
   );

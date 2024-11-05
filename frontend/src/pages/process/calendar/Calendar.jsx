@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from 'react-icons/fa';
 import { Link, useSearchParams } from "react-router-dom";
-import { GetAllCalender } from '../../../features/CalenderSlice';
+import { deleteCalenderAsync, GetAllCalender } from '../../../features/CalenderSlice';
+import DeleteModal from '../../../Component/Modal/DeleteModal';
+import { MdOutlineDelete } from 'react-icons/md';
 
 const Calendar = () => {
   const dispatch = useDispatch();
-  const { loading, Calender } = useSelector((state) => state.Calender);
+  const { loading, Calender,deleteLoading } = useSelector((state) => state.Calender);
   const [searchText, setSearchText] = useState('');
-
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
   const [search, setSearch] = useState('');
 
   const [searchParams] = useSearchParams();
@@ -71,6 +74,24 @@ const Calendar = () => {
       default:
         return "";
     }
+  };
+
+  const openDeleteModal = (id) => {
+    setDeleteModal(true);
+    setSelectedId(id);
+  };
+
+  const closedeleteModal = () => {
+    setDeleteModal(false);
+  };
+
+  const handleDelete = () => {
+    dispatch(deleteCalenderAsync({ id: selectedId })).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GetAllCalender({ page: page }));
+        closedeleteModal();
+      }
+    });
   };
 
   return (
@@ -142,7 +163,7 @@ const Calendar = () => {
                       Status
                     </th>
                     <th className='px-6 py-3 font-medium' scope='col'>
-                      Details
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -158,10 +179,16 @@ const Calendar = () => {
                         <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
                         <td className='px-6 py-4'>{entry.T_Quantity} m</td>
                         <td className='px-6 py-4'>{setStatusColor(entry.project_status)}</td>
-                        <td className='pl-10 py-4'>
+                        <td className='pl-10 py-4 flex items-center gap-3'>
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
                             <FaEye size={20} className='cursor-pointer' />
                           </Link>
+                          {!entry.bill_generated && <button onClick={() => openDeleteModal(entry.id)}>
+                            <MdOutlineDelete
+                              size={20}
+                              className="cursor-pointer text-red-500"
+                            />
+                          </button>}
                         </td>
                       </tr>
                     ))) : (
@@ -281,6 +308,16 @@ const Calendar = () => {
           </ul>
         </nav>
       </section>
+        {/* DELETE MODAL */}
+        {deleteModal && (
+        <DeleteModal
+          title={"Delete Calender"}
+          message={"Are you sure want to delete this Calender ?"}
+          onClose={closedeleteModal}
+          Loading={deleteLoading}
+          onConfirm={handleDelete}
+        />
+      )}
     </>
   );
 };

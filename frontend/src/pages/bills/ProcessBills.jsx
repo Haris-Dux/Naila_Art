@@ -232,7 +232,7 @@ const ProcessBills = () => {
                         {setStatusColor(data?.virtual_account?.status)}
                       </td>
                       <td className="pl-10 py-4">
-                        <Link to={`/dashboard/process-details/${data?.id}`}>
+                        <Link to={`/dashboard/process-details/${data?.id}/${selectedCategory}`}>
                           <FaEye size={20} className="cursor-pointer" />
                         </Link>
                       </td>
