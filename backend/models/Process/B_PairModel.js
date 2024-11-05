@@ -11,6 +11,10 @@ const B_PairSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Quantity is Required"],
     },
+    sold_quantity: {
+      type: Number,
+     default:0
+    },
     rate: {
       type: Number,
       required: [true, "Rate is Required"],
@@ -35,27 +39,36 @@ const B_PairSchema = new mongoose.Schema(
     },
     status:{
       type: String,
-      enum: ["Sold", "UnSold"],
+      enum: ["Sold", "UnSold","Partially Sold"],
       default: "UnSold",
     },
-    seller_Details: {
+    seller_Details: [{
       name: {
         type: String,
-        default: "",
+        required: [true, "Name is Required"],
       },
       contact: {
         type: String,
-        default: "",
+        required: [true, "Contact No is Required"],
       },
       amount: {
         type: Number,
-        default: 0,
+        required: [true, "Amount is Required"],
+      },
+      quantity:{
+        type: Number,
+        required: [true, "Quantity No is Required"],
+      },
+      payment_Method:{
+        type: String,
+        required: [true, "Payment Method is Required"],
       },
       date: {
         type: String,
-       date:''
+        required: [true, "Date is Required"],
+
       },
-    },
+    }],
   },
   { timestamps: true }
 );

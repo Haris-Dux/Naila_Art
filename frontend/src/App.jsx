@@ -101,7 +101,7 @@ useEffect(() => {
             {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
             <Route path="processbills" element={<ProcessBills />} />
-            <Route path="process-details/:id" element={<ProcessDetails />} />
+            <Route path="process-details/:id/:category" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
             <Route path="naila-arts-return-bills" element={<ReturnBills />} />
 

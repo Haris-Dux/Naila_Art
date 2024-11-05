@@ -7,6 +7,7 @@ const generateProcessBill = "/api/processBillRouter/generateProcessBill";
 const getAllProcessBill = "/api/processBillRouter/getAllProcessBills";
 const getProcessBillById = "/api/processBillRouter/getProcessillById";
 const getAllPictureAccountsURL = "/api/process/pictures/getAllPictureAccounts";
+const deleteBillAndProcessOrderURL = "/api/processBillRouter/deleteBillAndProcessOrder";
 
 // GENERATE PROCESS BILL ASYNC
 export const GenerateProcessBillAsync = createAsyncThunk(
@@ -78,11 +79,26 @@ export const GetAllPictureAccountsAsync = createAsyncThunk(
   }
 );
 
+//Delete Order And BIll
+export const deleteProcessBillAndOrderAsync = createAsyncThunk(
+  "Process/deleteProcessBill",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteBillAndProcessOrderURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 const initialState = {
   ProcessBills: [],
   picturesBills: [],
   ProcessBillsDetails: [],
   loading: false,
+  deleteLoadings:false
 };
 
 const ProcessBillSlice = createSlice({
@@ -93,6 +109,15 @@ const ProcessBillSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+        //DELETE EMBROIDERY
+        .addCase(deleteProcessBillAndOrderAsync.pending, (state, action) => {
+          state.deleteLoadings = true;
+        })
+        .addCase(deleteProcessBillAndOrderAsync.fulfilled, (state, action) => {
+          state.deleteLoadings = false;
+        })
+  
 
       // GENERATE PROCESS BILL
       .addCase(GenerateProcessBillAsync.pending, (state, action) => {

@@ -148,8 +148,8 @@ export const updateStone = async (req, res, next) => {
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
       });
     };
-    if (stone.project_status === "Completed") {
-      const quantity = T_Quantity - stone.r_quantity;
+    const quantity = T_Quantity - stone.r_quantity;
+    if (stone.project_status === "Completed" && quantity > 0) {
       const rate = quantity * stone.rate;
       const data = {
         design_no: stone.design_no,

@@ -56,8 +56,8 @@ export const updateCutting = async (req,res,next) => {
             updateQuery = {...updateQuery,project_status};
         };
         const result = await CuttingModel.findByIdAndUpdate(id,updateQuery,{ new: true });
-        if (result.project_status === "Completed") {
-          const quantity = result.T_Quantity - result.r_quantity;
+        const quantity = result.T_Quantity - result.r_quantity;
+        if (result.project_status === "Completed" && quantity > 0) {
           const rate = quantity * result.rate;
           const data = {
             design_no: result.design_no,

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ProcessBillModal = ({loading,closeModal,handleSubmit,data,processBillAmount}) => {
+const ProcessBillModal = ({loading,closeModal,handleSubmit,processBillAmount,onDataChange}) => {
   // State variables to hold form data
   const [formData, setFormData] = useState({
     additionalExpenditure:"",
@@ -9,20 +9,22 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,data,processBillAmoun
   });
 
   const validateValue = (value) => {
-    if(value === undefined || value === null || isNaN(value)) 
-  }
+    return value === "" || isNaN(value) ? 0 : parseInt(value);
+  };
 
   // Function to handle changes in form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
+    const updatedFormData = {
+      ...formData,
       [name]: name === "additionalExpenditure" ? parseInt(value) : value,
-    }));
+    };
+    setFormData(updatedFormData);
+    onDataChange(updatedFormData);
   };
 
   const calculateTotalAmount = () => {
-    const totalAmount = processBillAmount + formData.additionalExpenditure;
+    const totalAmount = processBillAmount + validateValue(formData.additionalExpenditure);
     return totalAmount;
   };
 
@@ -91,7 +93,7 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,data,processBillAmoun
            
                 <input
                   name="additionalExpenditure"
-                  type="text"
+                  type="number"
                   placeholder="A.E"
                   value={formData.additionalExpenditure}
                   onChange={handleChange}
@@ -118,7 +120,7 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,data,processBillAmoun
                 <button
                   disabled
                   type="button"
-                  class="text-white border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                  class="text-white cursor-not-allowed border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
                 >
                   <svg
                     aria-hidden="true"

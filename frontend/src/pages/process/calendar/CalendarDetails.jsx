@@ -50,6 +50,7 @@ const CalendarDetails = () => {
   const [CalenderData, setCalenderData] = useState({
     id: id,
     r_quantity: "",
+    r_unit: "",
   });
 
   useEffect(() => {
@@ -79,7 +80,7 @@ const CalendarDetails = () => {
 
   const handleInputChangeCalender = (e) => {
     const { name, value } = e.target;
- 
+    console.log('Input Change:', name, value);
     setCalenderData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -88,7 +89,6 @@ const CalendarDetails = () => {
 
   const handleSubmitCutting = (e) => {
     e.preventDefault();
-
 
     dispatch(createCutting(CuttingData)).then((res) => {
       if (res.payload.success === true) {
@@ -191,7 +191,11 @@ const CalendarDetails = () => {
   };
 
   const generateBill = () => {
-    const formData = { ...SingleCalender, process_Category: "Calender" , Calender_id:SingleCalender.id };
+    const formData = {
+      ...SingleCalender,
+      process_Category: "Calender",
+      Calender_id: SingleCalender.id,
+    };
     dispatch(generateCalenderBillAsync(formData));
   };
 
@@ -205,7 +209,7 @@ const CalendarDetails = () => {
         return "";
     }
   };
-
+console.log('fd',CalenderData);
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -250,31 +254,46 @@ const CalendarDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>
-              <span> {SingleCalender?.T_Quantity} </span>
+              <span> {SingleCalender?.T_Quantity} m </span>
             </div>
             <div className="box">
               <span className="font-medium">R. Quantity:</span>
-              <span> {SingleCalender?.r_quantity}</span>
+              <span> {SingleCalender?.r_quantity} {SingleCalender?.r_unit}</span>
             </div>
           </div>
         </div>
 
         {/* ENTER RECEIVED QUANTITY */}
-        <div className="my-10 px-3 text-gray-800 dark:text-gray-200">
+        <div className="my-10 px-3 text-gray-800  dark:text-gray-200">
           <label htmlFor="received_quantity" className="font-semibold">
             Enter Received Quantity
           </label>
-          <input
-            id="r_quantity"
-            name="r_quantity"
-            type="text"
-            placeholder="Quantity"
-            className="bg-gray-50 mt-2 border max-w-xs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-            required
-            value={CalenderData.r_quantity}
-            onChange={handleInputChangeCalender}
-            disabled={SingleCalender?.project_status === "Completed"}
-          />
+          <div className="flex gap-3">
+            <input
+              id="r_quantity"
+              name="r_quantity"
+              type="text"
+              placeholder="Quantity"
+              className="bg-gray-50 mt-2 border max-w-40 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              required
+              value={CalenderData.r_quantity}
+              onChange={handleInputChangeCalender}
+              disabled={SingleCalender?.project_status === "Completed"}
+            />
+            <select
+              id="r_unit"
+              name="r_unit"
+              type="text"
+              className="bg-gray-50 mt-2 border max-w-20 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              required
+              value={CalenderData.r_unit}
+              onChange={handleInputChangeCalender}
+              disabled={SingleCalender?.project_status === "Completed"}
+            >
+              <option value={'m'}>m</option>
+              <option value={'y'}>y</option> 
+            </select>
+          </div>
         </div>
 
         <div className="flex justify-center items-center">
@@ -289,7 +308,7 @@ const CalendarDetails = () => {
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-6 flex justify-center items-center gap-x-5">
-          {SingleCalender?.project_status !== "Completed" && (
+          {SingleCalender?.project_status !== "Completed" && SingleCalender?.updated && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={handleCompletedClick}
@@ -297,25 +316,26 @@ const CalendarDetails = () => {
               Completed
             </button>
           )}
-          {SingleCalender?.project_status === "Completed" && !SingleCalender?.bill_generated && (
-            <>
-              {generateCAlenderBillLoading ? (
-                <button
-                  disabled
-                  className="px-4 py-2.5 text-sm cursor-progress rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              ) : (
-                <button
-                  onClick={generateBill}
-                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              )}
-            </>
-          )}
+          {SingleCalender?.project_status === "Completed" &&
+            !SingleCalender?.bill_generated && (
+              <>
+                {generateCAlenderBillLoading ? (
+                  <button
+                    disabled
+                    className="px-4 py-2.5 text-sm cursor-progress rounded bg-gray-400 dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Generate Bill
+                  </button>
+                ) : (
+                  <button
+                    onClick={generateBill}
+                    className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Generate Bill
+                  </button>
+                )}
+              </>
+            )}
           {CalenderpdfLoading ? (
             <button
               disabled

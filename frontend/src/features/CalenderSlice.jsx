@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 //API URL
 const addCalender = "/api/process/calender/addCalender";
 const UpdateCalender = "/api/process/calender/updateCalender";
+const deleteCalenderURL = "/api/process/calender/deleteCalender";
 const getAllCalender = "/api/process/calender/getAllCalender";
 const getSingleCalender = "/api/process/calender/getCalenderById";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
@@ -123,11 +124,27 @@ export const generateCalenderBillAsync = createAsyncThunk(
   }
 );
 
+// CREATE CALENDER THUNK
+export const deleteCalenderAsync = createAsyncThunk(
+  "Calender/DeleteCalender",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteCalenderURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+
 // INITIAL STATE
 const initialState = {
   Calender: [],
   SingleCalender: {},
   loading: false,
+  deleteLoading:false,
   CalenderpdfLoading: false,
   generateCAlenderBillLoading: false,
 };
@@ -148,6 +165,14 @@ const CalenderSlice = createSlice({
       .addCase(generateCalenderBillAsync.fulfilled, (state, action) => {
         state.generateCAlenderBillLoading = false;
       })
+
+         //DELETE CALENDER BILL
+         .addCase(deleteCalenderAsync.pending, (state, action) => {
+          state.deleteLoading = true;
+        })
+        .addCase(deleteCalenderAsync.fulfilled, (state, action) => {
+          state.deleteLoading = false;
+        })
 
       //DOWNLOAD PDF
       .addCase(generateCalenderGatePssPdfAsync.pending, (state) => {

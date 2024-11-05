@@ -32,6 +32,10 @@ const calenderSchema = new mongoose.Schema({
     type:Number,
     default:null
   },
+  r_unit:{
+    type:String,
+    default:'m'
+  },
   project_status: {
     type: String,
     enum: ["Pending", "Completed"],
@@ -40,7 +44,11 @@ const calenderSchema = new mongoose.Schema({
   bill_generated : {
     type: Boolean,
     default: false
-  }
+  },
+  updated : {
+    type: Boolean,
+    default: false
+  },
 
 }, { timestamps: true });
 

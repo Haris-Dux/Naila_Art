@@ -40,7 +40,11 @@ const cuttingSchema = new mongoose.Schema({
       bill_generated : {
         type: Boolean,
         default: false
-      }
+      },
+      updated : {
+        type: Boolean,
+        default: false
+      },
 
 }, { timestamps: true });
 

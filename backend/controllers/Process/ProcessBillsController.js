@@ -10,6 +10,7 @@ import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
+import CustomError from "../../config/errors/CustomError.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -31,7 +32,8 @@ export const generateProcessBill = async (req, res, next) => {
         Cutting_id,
         Stone_id,
         Stitching_id,
-        Manual_No
+        Manual_No,
+        additionalExpenditure
       } = req.body;
 
       // Validate required fields
@@ -54,9 +56,9 @@ export const generateProcessBill = async (req, res, next) => {
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
       if (process_Category === "Embroidery") {
-        amount = Math.round(per_suit * T_Recieved_Suit);
+        amount = Math.round(per_suit * T_Recieved_Suit + additionalExpenditure);
       } else {
-        amount = Math.round(rate * r_quantity).toFixed(0);
+        amount = Math.round(rate * r_quantity + additionalExpenditure);
       }
 
       if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
@@ -111,7 +113,7 @@ export const generateProcessBill = async (req, res, next) => {
             {
               process_Category,
               design_no,
-              date,
+              date:today,
               Manual_No,
               serial_No,
               partyName,
@@ -244,7 +246,7 @@ export const generateProcessBill = async (req, res, next) => {
 
         //SAVING THE OLD ACCOUNT DATA
         oldAccountData.design_no = design_no,
-        oldAccountData.date = date,
+        oldAccountData.date = today,
         oldAccountData.Manual_No = Manual_No,
         oldAccountData.serial_No = serial_No,
         (oldAccountData.virtual_account = virtualAccountData),

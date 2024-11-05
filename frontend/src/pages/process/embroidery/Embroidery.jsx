@@ -419,12 +419,14 @@ const Embroidery = () => {
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
-                         {!data.bill_generated && <button onClick={() => openDeleteModal(data.id)}>
-                            <MdOutlineDelete
-                              size={20}
-                              className="cursor-pointer text-red-500"
-                            />
-                          </button>}
+                          {!data.bill_generated && (
+                            <button onClick={() => openDeleteModal(data.id)}>
+                              <MdOutlineDelete
+                                size={20}
+                                className="cursor-pointer text-red-500"
+                              />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -922,18 +924,18 @@ const Embroidery = () => {
 
                 <Box
                   formData1={formData}
+                  partyValue={partyValue}
                   setFormData1={setFormData}
                   closeModal={closeModal}
                   total={total}
                   DNO_ategory={headStitchData[0]?.shirt}
                 />
-
-                {/* DELETE MODAL */}
               </div>
             </div>
           </div>
         </div>
       )}
+      {/* DELETE MODAL */}
       {deleteModal && (
         <DeleteModal
           title={"Delete Embroidery"}

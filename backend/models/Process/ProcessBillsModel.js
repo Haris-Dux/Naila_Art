@@ -69,10 +69,6 @@ const processBillsSchema = new mongoose.Schema(
       type: String,
       required: [true, "Serial_No is required"],
     },
-    serial_No: {
-      type: String,
-      required: [true, "Serial_No is required"],
-    },
     Manual_No: {
       type: String,
       required: [true, "Manual_No is required"],
