@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getbPairDataAsync } from "../../../features/B_pairSlice";
 import Sale_Modal from "./Sale_Modal";
+import SaleHistoryModal from "./SaleHistoryModal";
 
 const B_Pair = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,8 @@ const B_Pair = () => {
 
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [OpenSaleModal, setOpenSaleModal] = useState(false);
+  const [saleHistoryData, setSaleHistoryData] = useState([]);
   const [bppairId, setBppairId] = useState("");
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || 1, 10);
@@ -98,9 +101,9 @@ const B_Pair = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "UnSold":
         return <span className="text-red-700">{status}</span>;
-        case "Partially Sold":
-          return <span className="text-[#FFC107]">{status}</span>;
-        default:
+      case "Partially Sold":
+        return <span className="text-[#FFC107]">{status}</span>;
+      default:
         return "No Status";
     }
   };
@@ -115,9 +118,14 @@ const B_Pair = () => {
   };
 
   const openSaleHistoryModal = (data) => {
-    
-  }
+    setOpenSaleModal(true);
+    setSaleHistoryData(data);
+  };
 
+  const closeSaleHistoryModal = () => {
+    setOpenSaleModal(false);
+    setSaleHistoryData([]);
+  };
 
   return (
     <>
@@ -213,6 +221,9 @@ const B_Pair = () => {
                     Quantity
                   </th>
                   <th className="px-6 py-3 font-medium" scope="col">
+                    Sold Quantity
+                  </th>
+                  <th className="px-6 py-3 font-medium" scope="col">
                     Rate
                   </th>
                   <th className="px-6 py-3 font-medium" scope="col">
@@ -240,20 +251,27 @@ const B_Pair = () => {
                       <td className="px-6 py-4">{data?.design_no}</td>
                       <td className="px-6 py-4">{data?.date}</td>
                       <td className="px-6 py-4">{data?.quantity}</td>
+                      <td className="px-6 py-4">{data?.sold_quantity}</td>
                       <td className="px-6 py-4">{data?.rate}</td>
                       <td className="px-6 py-4">
                         {setStatusColor(data?.status)}
                       </td>
                       <td className="pl-8 py-4">
-                        {data?.status !== "Sold" &&
+                        {data?.status !== "Sold" && (
                           <Link onClick={() => openModal(data.id)}>
                             <FaCartPlus size={20} className="cursor-pointer" />
-                          </Link>}
-                        
-                      {data?.status !== "UnSold" &&    <Link onClick={() => openSaleHistoryModal(data.seller_Details)}>
+                          </Link>
+                        )}
+
+                        {data?.status !== "UnSold" && (
+                          <Link
+                            onClick={() =>
+                              openSaleHistoryModal(data.seller_Details)
+                            }
+                          >
                             <FaEye size={20} className="cursor-pointer" />
-                          </Link>}
-                        
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -375,15 +393,21 @@ const B_Pair = () => {
 
       {/* SALE MODAL */}
       {isOpen && (
-      <Sale_Modal
-      selectedCategory={selectedCategory}
-      page={page}
-      search={search}
-      closeModal={closeModal}
-      id={bppairId}
-
-      />
-    )}
+        <Sale_Modal
+          selectedCategory={selectedCategory}
+          page={page}
+          search={search}
+          closeModal={closeModal}
+          id={bppairId}
+        />
+      )}
+      {/* HIATORY MODAL */}
+      {OpenSaleModal && (
+        <SaleHistoryModal
+          saleData={saleHistoryData}
+          closeModal={closeSaleHistoryModal}
+        />
+      )}
     </>
   );
 };
