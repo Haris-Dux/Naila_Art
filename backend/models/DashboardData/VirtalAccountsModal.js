@@ -26,7 +26,17 @@ const historySchema = new mongoose.Schema({
     type: String,
     required: [true, "Note is required"],
   },
+  deleted:{
+    type: Boolean,
+    default: false,
+  }
 },{ timestamps: true });
+
+export const VA_HistoryModal = mongoose.model(
+  "V.A Transactions",
+  historySchema
+);
+
 
 const AccountsSchema = new mongoose.Schema(
   {
