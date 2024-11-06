@@ -66,8 +66,11 @@ const B_PairSchema = new mongoose.Schema(
       date: {
         type: String,
         required: [true, "Date is Required"],
-
       },
+      deleted : {
+        type: Boolean,
+        default: false,
+      }
     }],
   },
   { timestamps: true }

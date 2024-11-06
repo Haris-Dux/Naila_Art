@@ -4,7 +4,10 @@ import { UserModel } from "../../models/User.Model.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
-import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../../models/DashboardData/VirtalAccountsModal.js";
 
 export const addBPair = async (data, session = null) => {
   try {
@@ -51,6 +54,14 @@ export const saleBPair = async (req, res, next) => {
       if (!id || !amount || !contact || !name || !sold_quantity) {
         throw new Error("Missing required fields for B Pair Sale Data");
       }
+
+      //VERIFYING ROLE
+      const userId = req.session.userId;
+      const user = await UserModel.findById(userId).session(session);
+      if (user.role !== "admin") {
+        throw new Error("Unauthorized : Login with Admin Account");
+      }
+
       const bPair = await B_PairModel.findById(id).session(session);
       if (!bPair) throw new Error("B Pair Data not found");
       if (bPair.status === "Sold") throw new Error("B Pair Sold");
@@ -70,6 +81,7 @@ export const saleBPair = async (req, res, next) => {
           bPair.status = "UnSold";
           break;
       }
+
       const seller_Details = {
         amount,
         contact,
@@ -78,15 +90,11 @@ export const saleBPair = async (req, res, next) => {
         quantity: sold_quantity,
         payment_Method,
       };
+
       bPair.seller_Details.push(seller_Details);
       await bPair.save({ session });
 
       //ADDING IN DAILY SALE
-      const userId = req.session.userId;
-      const user = await UserModel.findById(userId).session(session);
-      if (user.role !== "admin") {
-        throw new Error("Unauthorized : Login with Admin Account");
-      }
       const dailySaleForToday = await DailySaleModel.findOne({
         branchId: user.branchId,
         date: date,
@@ -102,24 +110,40 @@ export const saleBPair = async (req, res, next) => {
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-        amount;
-      };
+          amount;
+      }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
       //UPDATING VIRTUAL ACCOUNTS
+
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
         let updatedAccount = {
           ...virtualAccounts,
           [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
-      };
+
+        //updating transaction history
+        await VA_HistoryModal.create(
+          [
+            {
+              date,
+              transactionType: "Deposit",
+              payment_Method,
+              amount,
+              note: `B Pair Sale To ${name}`,
+              new_balance: updatedAccount[0][payment_Method],
+            },
+          ],
+          { session }
+        );
+      }
 
       return res
         .status(200)
@@ -134,7 +158,7 @@ export const saleBPair = async (req, res, next) => {
 
 export const getAllBPairs = async (req, res, next) => {
   try {
-    const limit = 20;
+    const limit = 30;
     const search = req.query.search;
     const category = req.query.category;
     const page = parseInt(req.query.page) || 1;
@@ -175,11 +199,19 @@ export const reverseBpairSale = async (req, res, next) => {
     await session.withTransaction(async () => {
       const { id, saleId } = req.body;
       if (!id || !saleId) {
-        throw new Error("BPair Id is Missing");
+        throw new Error("Required Fields Are Missing");
       }
+
+      //VERIFYING ROLE
+      const userId = req.session.userId;
+      const user = await UserModel.findById(userId).session(session);
+      if (user.role !== "admin") {
+        throw new Error("Unauthorized : Login with Admin Account");
+      }
+
       const bPair = await B_PairModel.findById(id).session(session);
       const saleData = bPair.seller_Details.find((s) => s._id === saleId);
-      if (!bPair) throw new Error("B Pair Data not found");
+      if (!bPair || !saleData) throw new Error("B Pair Data not found");
       const date = moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 
       //UPDATING DATA
@@ -197,14 +229,13 @@ export const reverseBpairSale = async (req, res, next) => {
           break;
       }
 
+      saleData.deleted = true;
       await bPair.save({ session });
 
+      const amount = saleData.amount;
+      const payment_Method = saleData.payment_Method;
+
       //ADDING IN DAILY SALE
-      const userId = req.session.userId;
-      const user = await UserModel.findById(userId).session(session);
-      if (user.role !== "admin") {
-        throw new Error("Unauthorized : Login with Admin Account");
-      }
       const dailySaleForToday = await DailySaleModel.findOne({
         branchId: user.branchId,
         date: date,
@@ -212,32 +243,72 @@ export const reverseBpairSale = async (req, res, next) => {
       if (!dailySaleForToday) {
         throw new Error("Daily Sale Not Found");
       }
+
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
         payment_Method: (dailySaleForToday.saleData[payment_Method] -= amount),
         totalSale: (dailySaleForToday.saleData.totalSale -= amount),
-        totalProfit: (dailySaleForToday.saleData.totalProfit -= TotalProfit),
       };
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash -=
-        amount;
+          amount;
       }
+
+      function validateUpdatesaleData(updatedSaleData) {
+        let errors = [];
+        if (updatedSaleData.totalCash < 0) {
+          errors.push("Insufficient Cash in Total Cash");
+        };
+        if (updatedSaleData.totalSale < 0) {
+          errors.push("Insufficient Sale in Total Sale");
+        };
+        if (updatedSaleData.saleData[payment_Method] < 0) {
+          errors.push("Insufficient Sale in Selected Payment Method");
+        };
+        return errors;
+      }
+
+      // Validate the transaction
+      const transactionErrors = validateUpdatesaleData(updatedSaleData);
+
+      if (transactionErrors.length > 0) {
+        throw new Error(`Transaction failed:${transactionErrors}`);
+      };
+
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
-       //UPDATING VIRTUAL ACCOUNTS
-       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
         let updatedAccount = {
           ...virtualAccounts,
           [payment_Method]: (virtualAccounts[0][payment_Method] -= amount),
         };
+        if (updatedAccount[0][payment_Method] < 0) {
+          throw new Error("Insufficient Account Balance");
+        }
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
-      };
+        //updating transaction history
+        await VA_HistoryModal.create(
+          [
+            {
+              date,
+              transactionType: "WithDraw",
+              payment_Method,
+              amount,
+              note: `Deleted B Pair Sale For ${saleData.name}`,
+              new_balance: updatedAccount[0][payment_Method],
+            },
+          ],
+          { session }
+        );
+      }
+
       return res
         .status(200)
         .json({ success: true, message: "B Pair Sale successfull" });
