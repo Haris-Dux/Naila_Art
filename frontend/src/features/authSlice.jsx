@@ -7,13 +7,13 @@ const signupUrl = "/api/users/signup";
 const loginUrl = "/api/users/login";
 const userSessionUrl = "/api/users/persistUserSession";
 const logoutUrl = "/api/users/logout";
-const authUserSessionUrl = "/api/users/persistUserSession"
+const authUserSessionUrl = "/api/users/persistUserSession";
 const forgetPassUrl = "/api/users/sendResetPasswordOTP";
 const verifyOtpPassUrl = "/api/users/verifyOtp";
 const resetPassUrl = "/api/users/updatePassword";
 const getUsersForBranch = "/api/users/getUsersForBranch";
-const updateUser  = '/api/users/updateUser'
-const pendingRequest = '/api/users/getPendingRequests'
+const updateUser = "/api/users/updateUser";
+const pendingRequest = "/api/users/getPendingRequests";
 
 //CREATE ASYNC THUNK
 export const createuserAsync = createAsyncThunk(
@@ -110,7 +110,6 @@ export const GetUserBYBranch = createAsyncThunk(
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
-      
     }
   }
 );
@@ -127,40 +126,39 @@ export const getPendingRequests = createAsyncThunk(
   }
 );
 
-export const UpdateUser = createAsyncThunk(
-  "user/uppdateUser",
-  async (data) => {
-    try {
-      const response = await axios.post(updateUser, data);
-      toast.success(response.data.message);  
-      return response.data;
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
-  }
-);
-
-// AUTH USER ASYNC THUNK - UPDATED
-export const authUserAsync = createAsyncThunk("users/authClientSessionEverytime", async (_, thunkAPI) => {
-  thunkAPI.dispatch(setLoading(true));
+export const UpdateUser = createAsyncThunk("user/uppdateUser", async (data) => {
   try {
-    const response = await axios.get(authUserSessionUrl);
+    const response = await axios.post(updateUser, data);
+    toast.success(response.data.message);
     return response.data;
   } catch (error) {
-    localStorage.removeItem("lastPath");
-    throw new Error(error)
-  } finally {
-    thunkAPI.dispatch(setLoading(false));
+    toast.error(error.response.data.error);
   }
 });
 
+// AUTH USER ASYNC THUNK - UPDATED
+export const authUserAsync = createAsyncThunk(
+  "users/authClientSessionEverytime",
+  async (_, thunkAPI) => {
+    thunkAPI.dispatch(setLoading(true));
+    try {
+      const response = await axios.get(authUserSessionUrl);
+      return response.data;
+    } catch (error) {
+      localStorage.removeItem("lastPath");
+      throw new Error(error);
+    } finally {
+      thunkAPI.dispatch(setLoading(false));
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
   createUser: null,
   user: null,
-  routingLoading:false,
-  logoutLoading:false,
+  routingLoading: false,
+  logoutLoading: false,
   loading: false,
   ForgetPassloading: false,
   userId: null,
@@ -168,8 +166,8 @@ const initialState = {
   resetPassword: null,
   validateToken: null,
   getUsersForBranch: [],
-  pendingRequest:[],
-  pendingRequestsLoading:false
+  pendingRequest: [],
+  pendingRequestsLoading: false,
 };
 
 const authSlice = createSlice({
@@ -232,7 +230,6 @@ const authSlice = createSlice({
         state.ForgetPassloading = false;
       })
 
-
       // VERIFY OTP ADD CASE
       .addCase(verifyOtpAsync.pending, (state) => {
         state.loading = true;
@@ -248,7 +245,6 @@ const authSlice = createSlice({
       .addCase(resetPassAsync.fulfilled, (state) => {
         state.loading = false;
       })
-
 
       .addCase(GetUserBYBranch.pending, (state) => {
         state.loading = true;
@@ -269,20 +265,17 @@ const authSlice = createSlice({
       .addCase(UpdateUser.pending, (state) => {
         state.loading = true;
       })
-      .addCase(UpdateUser.fulfilled, (state, ) => {
+      .addCase(UpdateUser.fulfilled, (state) => {
         state.loading = false;
-      
       })
-
 
       .addCase(getPendingRequests.pending, (state) => {
         state.pendingRequestsLoading = true;
       })
-      .addCase(getPendingRequests.fulfilled, (state,action ) => {
+      .addCase(getPendingRequests.fulfilled, (state, action) => {
         state.pendingRequestsLoading = false;
         state.pendingRequest = action.payload;
       })
-
 
       .addCase(logoutUserAsync.pending, (state) => {
         state.logoutLoading = true;
@@ -291,10 +284,9 @@ const authSlice = createSlice({
         state.logoutLoading = false;
         state.user = null;
       });
-
   },
 });
 
-export const {setLoading, reset } = authSlice.actions;
+export const { setLoading, reset } = authSlice.actions;
 
 export default authSlice.reducer;

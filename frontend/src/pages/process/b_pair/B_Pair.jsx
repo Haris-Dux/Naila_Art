@@ -256,7 +256,7 @@ const B_Pair = () => {
                       <td className="px-6 py-4">
                         {setStatusColor(data?.status)}
                       </td>
-                      <td className="pl-8 py-4">
+                      <td className="pl-8 py-4 flex gap-3">
                         {data?.status !== "Sold" && (
                           <Link onClick={() => openModal(data.id)}>
                             <FaCartPlus size={20} className="cursor-pointer" />
@@ -266,7 +266,7 @@ const B_Pair = () => {
                         {data?.status !== "UnSold" && (
                           <Link
                             onClick={() =>
-                              openSaleHistoryModal(data.seller_Details)
+                              openSaleHistoryModal(data)
                             }
                           >
                             <FaEye size={20} className="cursor-pointer" />
@@ -404,7 +404,10 @@ const B_Pair = () => {
       {/* HIATORY MODAL */}
       {OpenSaleModal && (
         <SaleHistoryModal
-          saleData={saleHistoryData}
+          data={saleHistoryData}
+          selectedCategory={selectedCategory}
+          page={page}
+          search={search}
           closeModal={closeSaleHistoryModal}
         />
       )}

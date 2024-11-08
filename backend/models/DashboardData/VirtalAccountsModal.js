@@ -27,10 +27,7 @@ const historySchema = new mongoose.Schema(
       type: String,
       required: [true, "Note is required"],
     },
-    deleted: {
-      type: Boolean,
-      default: false,
-    },
+   
   },
   { timestamps: true }
 );

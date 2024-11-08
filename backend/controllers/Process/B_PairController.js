@@ -69,6 +69,9 @@ export const saleBPair = async (req, res, next) => {
 
       //UPDATING DATA
       bPair.sold_quantity += sold_quantity;
+      if (bPair.sold_quantity > bPair.quantity) {
+        throw new Error("Invalid Sale Quantity");
+      }
       //SETTTING STATUS
       switch (true) {
         case bPair.sold_quantity === bPair.quantity:
@@ -198,6 +201,7 @@ export const reverseBpairSale = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id, saleId } = req.body;
+
       if (!id || !saleId) {
         throw new Error("Required Fields Are Missing");
       }
@@ -210,12 +214,14 @@ export const reverseBpairSale = async (req, res, next) => {
       }
 
       const bPair = await B_PairModel.findById(id).session(session);
-      const saleData = bPair.seller_Details.find((s) => s._id === saleId);
+      const saleData = bPair.seller_Details.find(
+        (s) => s._id.toString() === saleId
+      );
       if (!bPair || !saleData) throw new Error("B Pair Data not found");
       const date = moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 
       //UPDATING DATA
-      bPair.quantity += saleData.quantity;
+      bPair.sold_quantity -= saleData.quantity;
       //SETTTING STATUS
       switch (true) {
         case bPair.sold_quantity === bPair.quantity:
@@ -246,7 +252,8 @@ export const reverseBpairSale = async (req, res, next) => {
 
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] -= amount),
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] -=
+          amount),
         totalSale: (dailySaleForToday.saleData.totalSale -= amount),
       };
 
@@ -257,24 +264,27 @@ export const reverseBpairSale = async (req, res, next) => {
 
       function validateUpdatesaleData(updatedSaleData) {
         let errors = [];
-        if (updatedSaleData.totalCash < 0) {
-          errors.push("Insufficient Cash in Total Cash");
+        if (payment_Method === "cashSale") {
+          if (updatedSaleData.totalCash < 0) {
+            errors.push("Total Cash");
+          }
+        } else {
+          if (updatedSaleData.totalSale < 0) {
+            errors.push("Total Sale");
+          }
+          if (updatedSaleData[payment_Method] < 0) {
+            errors.push("Selected Payment Method");
+          }
         };
-        if (updatedSaleData.totalSale < 0) {
-          errors.push("Insufficient Sale in Total Sale");
-        };
-        if (updatedSaleData.saleData[payment_Method] < 0) {
-          errors.push("Insufficient Sale in Selected Payment Method");
-        };
+
         return errors;
       }
-
       // Validate the transaction
       const transactionErrors = validateUpdatesaleData(updatedSaleData);
 
       if (transactionErrors.length > 0) {
-        throw new Error(`Transaction failed:${transactionErrors}`);
-      };
+        throw new Error(`Transaction failed: Insufficient Balance in ${transactionErrors}`);
+      }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
@@ -311,7 +321,7 @@ export const reverseBpairSale = async (req, res, next) => {
 
       return res
         .status(200)
-        .json({ success: true, message: "B Pair Sale successfull" });
+        .json({ success: true, message: "B Pair Deleted successfully" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
