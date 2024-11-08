@@ -7,4 +7,5 @@ export const PaymentData = [
   { value: "H_Meezan", label: "H_Meezan" },
   { value: "A_Meezan", label: "A_Meezan" },
   { value: "Bank_Al_Habib", label: "Bank_Al_Habib" },
+  { value: "cashSale", label: "cashSale" },
 ];
