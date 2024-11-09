@@ -1,4 +1,5 @@
 import { CalenderModel } from "../../models/Process/CalenderModel.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 
@@ -31,7 +32,7 @@ export const addCalender = async (req, res, next) => {
         throw new Error(`Missing Fields ${field}`);
       }
     });
-    await CalenderModel.create({
+     await CalenderModel.create({
       embroidery_Id,
       partyName,
       rate,
@@ -40,6 +41,11 @@ export const addCalender = async (req, res, next) => {
       date,
       design_no,
     });
+
+    //UPDATE MAIN EMBROIDERY NextStep
+    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id)
+    mainEmbroidery.next_steps.calender = true;
+    await mainEmbroidery.save();
     return res
       .status(200)
       .json({ success: true, message: "Added Successfully" });

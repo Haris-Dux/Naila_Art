@@ -3,7 +3,6 @@ import { setMongoose } from "../../utils/Mongoose.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { addBPair } from "./B_PairController.js";
 
-
 export const addStone = async (req, res, next) => {
   try {
     const {
@@ -49,6 +48,10 @@ export const addStone = async (req, res, next) => {
       date,
       design_no,
     });
+    //UPDATE MAIN EMBROIDERY NextStep
+    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
+    mainEmbroidery.next_steps.stones = true;
+    await mainEmbroidery.save();
     return res
       .status(200)
       .json({ success: true, message: "Added Successfully" });
@@ -109,45 +112,51 @@ export const getStoneByEmbroideryId = async (req, res, next) => {
 
 export const updateStone = async (req, res, next) => {
   try {
-    const { id, category_quantity, project_status,T_Quantity } = req.body;
+    const { id, category_quantity, project_status, T_Quantity } = req.body;
     if (!id) throw new Error("Id not Found");
     const stone = await StoneModel.findById(id);
     if (!stone) throw new Error("Stone not Found");
     if (project_status) {
       stone.project_status = project_status;
-    };
+    }
     if (category_quantity && category_quantity.length > 0) {
       category_quantity.forEach((item) => {
         const { first, second, third, id } = item;
-        const date = new Date().toLocaleString('en-PK');
-        let toUpdate = stone.category_quantity.find((obj) => (obj._id == id));
-        let new_r_quantity = stone.r_quantity -  toUpdate.recieved_Data.r_total;
+        const date = new Date().toLocaleString("en-PK");
+        let toUpdate = stone.category_quantity.find((obj) => obj._id == id);
+        let new_r_quantity = stone.r_quantity - toUpdate.recieved_Data.r_total;
         if (toUpdate) {
           if (first) {
-           let total = toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.first.quantity;
+            let total =
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.first.quantity;
             toUpdate.recieved_Data.first.quantity = first;
             toUpdate.recieved_Data.first.date = date;
             toUpdate.recieved_Data.r_total = first + total;
-          };
+          }
 
           if (second) {
-            let total = toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.second.quantity;
+            let total =
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.second.quantity;
             toUpdate.recieved_Data.second.quantity = second;
             toUpdate.recieved_Data.second.date = date;
             toUpdate.recieved_Data.r_total = second + total;
-          };
+          }
 
           if (third) {
-            let total = toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.third.quantity;
+            let total =
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.third.quantity;
             toUpdate.recieved_Data.third.quantity = third;
             toUpdate.recieved_Data.third.date = date;
             toUpdate.recieved_Data.r_total = third + total;
-          };
+          }
         }
         toUpdate.recieved_Data.r_date = date;
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
       });
-    };
+    }
     const quantity = T_Quantity - stone.r_quantity;
     if (stone.project_status === "Completed" && quantity > 0) {
       const rate = quantity * stone.rate;
@@ -161,8 +170,9 @@ export const updateStone = async (req, res, next) => {
       };
       const response = await addBPair(data);
       if (response.error) throw new Error(response.error);
-    }  
+    }
     await stone.save();
+
     return res
       .status(200)
       .json({ success: true, message: "Updated Successfully" });
@@ -171,17 +181,22 @@ export const updateStone = async (req, res, next) => {
   }
 };
 
-export const getColorsForCurrentEmbroidery = async(req,res,next) => {
+export const getColorsForCurrentEmbroidery = async (req, res, next) => {
   try {
-    const {serial_No} = req.body;
-    if(!serial_No) throw new Error("Serial No required");
-    const embroidery = await EmbroideryModel.findOne({serial_No});
-    if(embroidery.length == 0) throw new Error("No Data found On This serial Number");
-    const allItems = [...embroidery.shirt, ...embroidery.duppata, ...embroidery.trouser];
- 
-   const colors = [...new Set(allItems.map(item => item.color))];
+    const { serial_No } = req.body;
+    if (!serial_No) throw new Error("Serial No required");
+    const embroidery = await EmbroideryModel.findOne({ serial_No });
+    if (embroidery.length == 0)
+      throw new Error("No Data found On This serial Number");
+    const allItems = [
+      ...embroidery.shirt,
+      ...embroidery.duppata,
+      ...embroidery.trouser,
+    ];
+
+    const colors = [...new Set(allItems.map((item) => item.color))];
     return res.status(200).json({ success: true, colors: colors });
   } catch (error) {
-    return res.status(500).json({error:error.message})
+    return res.status(500).json({ error: error.message });
   }
-}
+};
