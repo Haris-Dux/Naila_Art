@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { addBPair } from "./B_PairController.js";
 import moment from "moment-timezone";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -94,6 +95,11 @@ export const addStitching = async (req, res, next) => {
         { session }
       );
     });
+
+        //UPDATE MAIN EMBROIDERY NextStep
+        const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
+        mainEmbroidery.next_steps.stitching = true;
+        await mainEmbroidery.save({session});
 
     return res
       .status(200)

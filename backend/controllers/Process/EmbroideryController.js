@@ -444,6 +444,10 @@ export const deleteEmbroidery = async (req, res, next) => {
       const embroideryData = await EmbroideryModel.findById(id).session(
         session
       );
+
+      if(embroideryData){
+      }
+
       if (embroideryData.bill_generated === true)
         throw new Error("Cannot Delete Embroidery");
 

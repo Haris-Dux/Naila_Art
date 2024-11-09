@@ -63,7 +63,7 @@ const stitchSchema = new mongoose.Schema({
   },
   head: {
     type: Number,
-  }
+  },
 });
 
 const embroiderySchema = new mongoose.Schema(
@@ -107,7 +107,7 @@ const embroiderySchema = new mongoose.Schema(
     },
     recieved_suit: {
       type: Number,
-      default:null
+      default: null,
     },
     T_Quantity_In_m: {
       type: Number,
@@ -120,7 +120,7 @@ const embroiderySchema = new mongoose.Schema(
     },
     T_Recieved_Suit: {
       type: Number,
-      default:0
+      default: 0,
     },
     Front_Stitch: {
       type: stitchSchema,
@@ -150,18 +150,41 @@ const embroiderySchema = new mongoose.Schema(
       type: Number,
       required: [true, "Tissue value required"],
     },
-    bill_generated : {
+    bill_generated: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    updated : {
+    updated: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    pictures_Order : {
+    pictures_Order: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
+    next_steps: 
+      {
+        calender: {
+          type: Boolean,
+          default: false,
+        },
+        cutting: {
+          type: Boolean,
+          default: false,
+        },
+        stitching: {
+          type: Boolean,
+          default: false,
+        },
+        stones: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    additionalExpenditure: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

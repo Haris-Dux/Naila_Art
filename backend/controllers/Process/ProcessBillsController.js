@@ -33,7 +33,8 @@ export const generateProcessBill = async (req, res, next) => {
         Stone_id,
         Stitching_id,
         Manual_No,
-        additionalExpenditure
+        additionalExpenditure,
+        embroidery_Id
       } = req.body;
 
       // Validate required fields
@@ -42,7 +43,8 @@ export const generateProcessBill = async (req, res, next) => {
         !serial_No ||
         !partyName ||
         !design_no ||
-        !Manual_No
+        !Manual_No ||
+        !embroidery_Id
       ) {
         throw new Error("Required fields are missing");
       }
@@ -51,14 +53,14 @@ export const generateProcessBill = async (req, res, next) => {
       }
       if (process_Category !== "Embroidery" && !r_quantity) {
         throw new Error("Required fields are missing");
-      }
+      };
 
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
       if (process_Category === "Embroidery") {
-        amount = Math.round(per_suit * T_Recieved_Suit + additionalExpenditure);
+        amount = Math.round(per_suit * T_Recieved_Suit );
       } else {
-        amount = Math.round(rate * r_quantity + additionalExpenditure);
+        amount = Math.round(rate * r_quantity );
       }
 
       if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
@@ -318,7 +320,12 @@ export const generateProcessBill = async (req, res, next) => {
             "";
             break;
         }
-      }
+      };
+
+      //UPDATE MAIN EMBROIDERY AdditionalExpenditure
+      const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
+      mainEmbroidery.additionalExpenditure = additionalExpenditure;
+      await mainEmbroidery.save({ session });
 
       return res.status(201).json({
         success: true,
@@ -384,7 +391,6 @@ export const getAllProcessBills = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
 export const generateGatePassPdfFunction = async (req, res, next) => {
   try {
     const { data, category } = req.body;
