@@ -162,25 +162,28 @@ const embroiderySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    next_steps: 
-      {
-        calender: {
-          type: Boolean,
-          default: false,
-        },
-        cutting: {
-          type: Boolean,
-          default: false,
-        },
-        stitching: {
-          type: Boolean,
-          default: false,
-        },
-        stones: {
-          type: Boolean,
-          default: false,
-        },
+    next_steps: {
+      calender: {
+        type: Boolean,
+        default: false,
       },
+      cutting: {
+        type: Boolean,
+        default: false,
+      },
+      stitching: {
+        type: Boolean,
+        default: false,
+      },
+      stones: {
+        type: Boolean,
+        default: false,
+      },
+      packing: {
+        type: Boolean,
+        default: false,
+      },
+    },
     additionalExpenditure: {
       type: Number,
       default: 0,

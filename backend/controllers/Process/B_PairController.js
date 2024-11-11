@@ -8,6 +8,7 @@ import {
   VA_HistoryModal,
   VirtalAccountModal,
 } from "../../models/DashboardData/VirtalAccountsModal.js";
+import CustomError from "../../config/errors/CustomError.js";
 
 export const addBPair = async (data, session = null) => {
   try {
@@ -327,5 +328,19 @@ export const reverseBpairSale = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
+  }
+};
+
+export const deletebPair = async (req,res,next) => {
+  try {
+    const id = req.params.id;
+    if(!id) throw new CustomError("b Pair Id Not Found",404);
+    const Bpairdata = await B_PairModel.findById(id);
+    if(!Bpairdata) throw new CustomError("B Pair Not Found",404);
+    if(Bpairdata.status !== "UnSold") throw new CustomError("Can Not Delete This B pair",403);
+    await B_PairModel.findByIdAndDelete(id);
+    res.status(200).json({success:true , message: "B Pair deleted successfully" });
+  } catch (error) {
+    next(error);
   }
 };
