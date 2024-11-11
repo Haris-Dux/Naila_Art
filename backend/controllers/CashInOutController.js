@@ -395,6 +395,37 @@ export const getTodaysCashInOut = async (req, res, next) => {
   }
 };
 
+export const markAsPaidForBuyers = async (req,res,next) => {
+  try {
+    const {id} = req.body;
+    await verifyrequiredparams(req.body , ['id']);
+    const accountData = await BuyersModel.findById(id);
+    if(!accountData) throw new CustomError("Account not found",404);
+
+    //UPDATING ACCOUNT STATUS
+    accountData.virtual_account.status = "Paid";
+
+    const historydata = {
+      date: today,
+      particular: `Account Marked As Paid`,
+      credit: accountData.virtual_account.total_balance,
+      balance:0,
+      debit: 0
+    };
+
+    //UPDATING ACC CREDIT DEBIT AND BALANCE
+    accountData.virtual_account.total_debit = 0;
+    accountData.virtual_account.total_credit += accountData.virtual_account.total_balance;
+    accountData.virtual_account.total_balance = 0;
+    //UPDATING CREDIT DEBIT HISTORY
+    accountData.credit_debit_history.push(historydata);
+    await accountData.save();
+    res.status(200).json({ success: true, message: "Account marked as paid"});
+  } catch (error) {
+    next(error)
+  }
+}
+
 corn.schedule(
   "01 00 * * *",
   async () => {

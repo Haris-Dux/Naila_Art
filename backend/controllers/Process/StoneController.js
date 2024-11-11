@@ -8,6 +8,7 @@ export const addStone = async (req, res, next) => {
     const {
       embroidery_Id,
       partyName,
+      partytype,
       serial_No,
       design_no,
       date,
@@ -16,6 +17,7 @@ export const addStone = async (req, res, next) => {
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
+      "partytype",
       "partyName",
       "rate",
       "design_no",
@@ -23,6 +25,14 @@ export const addStone = async (req, res, next) => {
       "category_quantity",
       "date",
     ];
+    if (partytype === "newParty") {
+      const checkExistingStone = await StoneModel.findOne({
+        partyName: { $regex: partyName, $options: "i" },
+      })
+      if (checkExistingStone) {
+        throw new Error("Duplicate Party Name Error");
+      }
+    };
     const missingFields = [];
     requiredFields.forEach((field) => {
       if (!req.body[field]) {
@@ -155,8 +165,11 @@ export const updateStone = async (req, res, next) => {
         }
         toUpdate.recieved_Data.r_date = date;
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
+        if(stone.r_quantity > stone.T_Quantity) {
+          throw new Error("Invalid Update Quantity Value")
+        }
       });
-    }
+    };
     const quantity = T_Quantity - stone.r_quantity;
     if (stone.project_status === "Completed" && quantity > 0) {
       const rate = quantity * stone.rate;
@@ -170,7 +183,7 @@ export const updateStone = async (req, res, next) => {
       };
       const response = await addBPair(data);
       if (response.error) throw new Error(response.error);
-    }
+    };
     await stone.save();
 
     return res
@@ -198,5 +211,47 @@ export const getColorsForCurrentEmbroidery = async (req, res, next) => {
     return res.status(200).json({ success: true, colors: colors });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteStone = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Stone Id Required");
+    const data = await StoneModel.findByIdAndDelete(id);
+    if (!data) throw new Error("Stone Not Found");
+    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This Stone");
+    return res
+      .status(200)
+      .json({ success: true, message: "Deleted Successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getStoneDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const StoneQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category: "Stone",
+    };
+    const stoneData = await StoneModel.find(StoneQuery, ["partyName"]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+    ]);
+    const data = {
+      stoneData: stoneData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

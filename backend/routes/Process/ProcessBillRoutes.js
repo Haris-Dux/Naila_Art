@@ -6,6 +6,7 @@ import {
   generateProcessBill,
   getAllProcessBills,
   getProcessillById,
+  markAsPaid,
 } from "../../controllers/Process/ProcessBillsController.js";
 
 const processBillRouter = express.Router();
@@ -35,6 +36,10 @@ processBillRouter.post(
     superAdminAndAdminOnly,
     deleteBillAndProcessOrder
   );
-
+  processBillRouter.post(
+    "/markAsPaid",
+    superAdminAndAdminOnly,
+    markAsPaid
+  );
 
 export default processBillRouter;

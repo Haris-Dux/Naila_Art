@@ -324,7 +324,7 @@ export const generateProcessBill = async (req, res, next) => {
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
       const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
-      mainEmbroidery.additionalExpenditure = additionalExpenditure;
+      mainEmbroidery.additionalExpenditure += additionalExpenditure;
       await mainEmbroidery.save({ session });
 
       return res.status(201).json({
@@ -542,6 +542,13 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
             session
           );
           if (embData) {
+              const trueSteps = Object.values(embData.next_steps)
+              .filter(([step,value]) => value === true)
+              .map(([step]) => step);
+      
+              if(trueSteps.length > 0) {
+                throw new Error(`Cannot Delete Embroidery While These Are Found ${trueSteps}`);
+              }
             orderData = embData;
           }
           break;
@@ -610,6 +617,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           { key: "trouser", items: orderData.trouser },
           { key: "duppata", items: orderData.duppata },
         ];
+
         for (const { key, items } of stockItmes) {
           if (oderData[key]) {
             await addInStock(items);
@@ -685,3 +693,39 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
     session.endSession();
   }
 };
+
+export const markAsPaid = async (req,res,next) => {
+  try {
+    const {id,category} = req.body;
+    await verifyrequiredparams(req.body , ['id','category']);
+    let accountData = {};
+    if(category === "Process") {
+     accountData = await processBillsModel.findById(id);
+    } else if(category === "selles") {
+      accountData = await processBillsModel.findById(id);
+    }
+    if(!accountData) throw new CustomError("Account not found",404);
+
+    //UPDATING ACCOUNT STATUS
+    accountData.virtual_account.status = "Paid";
+
+    const historydata = {
+      date: today,
+      particular: `Account Marked As Paid`,
+      credit: 0,
+      balance:0,
+      debit: accountData.virtual_account.total_balance
+    };
+
+    //UPDATING ACC CREDIT DEBIT AND BALANCE
+    accountData.virtual_account.total_debit += accountData.virtual_account.total_balance;
+    accountData.virtual_account.total_credit = 0;
+    accountData.virtual_account.total_balance = 0;
+    //UPDATING CREDIT DEBIT HISTORY
+    accountData.credit_debit_history.push(historydata);
+    await accountData.save();
+    res.status(200).json({ success: true, message: "Account marked as paid"});
+  } catch (error) {
+    next(error)
+  }
+}

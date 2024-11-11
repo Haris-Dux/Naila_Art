@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 const getbPairUrl = "/api/b_PairRouter/getAllBPairs";
 const saleBPairUrl = "/api/b_PairRouter/saleBPair";
 const reverseBpairSaleUrl = "/api/b_PairRouter/reverseBpairSale";
+const deletebPairUrl = `/api/b_PairRouter/deletebPair`;
 
 export const getbPairDataAsync = createAsyncThunk(
   "b_pair/getBpair",
@@ -25,7 +26,7 @@ export const getbPairDataAsync = createAsyncThunk(
 );
 
 export const salebPairAsync = createAsyncThunk(
-  "b_pair/saleBPAir",
+  "b_pair/saleBPairSale",
   async (data) => {
     try {
       const response = await axios.post(saleBPairUrl, data);
@@ -38,7 +39,7 @@ export const salebPairAsync = createAsyncThunk(
 );
 
 export const DeleteBpairSaleAsync = createAsyncThunk(
-  "b_pair/deleteBPAir",
+  "b_pair/deleteBPairSale",
   async (data) => {
     try {
       const response = await axios.post(reverseBpairSaleUrl, data);
@@ -46,6 +47,19 @@ export const DeleteBpairSaleAsync = createAsyncThunk(
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const DeleteBpairAsync = createAsyncThunk(
+  "b_pair/deleteBPairAsync",
+  async (data) => {
+    try {
+      const response = await axios.delete(`${deletebPairUrl}/${data.id}`);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
     }
   }
 );
@@ -73,11 +87,19 @@ const B_PairSlice = createSlice({
         state.B_pairData = action.payload;
       })
 
-      //DELETE BPAIR DATA
+      //DELETE BPAIR SAlE DATA
       .addCase(DeleteBpairSaleAsync.pending, (state) => {
         state.deleteLoadings = true;
       })
       .addCase(DeleteBpairSaleAsync.fulfilled, (state) => {
+        state.deleteLoadings = false;
+      })
+
+      //DELETE BPAIR SAlE DATA
+      .addCase(DeleteBpairAsync.pending, (state) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(DeleteBpairAsync.fulfilled, (state) => {
         state.deleteLoadings = false;
       })
 

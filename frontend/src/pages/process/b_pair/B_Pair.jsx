@@ -2,14 +2,19 @@ import React, { useEffect, useState } from "react";
 import { FaCartPlus, FaEye } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getbPairDataAsync } from "../../../features/B_pairSlice";
+import {
+  DeleteBpairAsync,
+  getbPairDataAsync,
+} from "../../../features/B_pairSlice";
 import Sale_Modal from "./Sale_Modal";
 import SaleHistoryModal from "./SaleHistoryModal";
+import { MdOutlineDelete } from "react-icons/md";
+import DeleteModal from "../../../Component/Modal/DeleteModal";
 
 const B_Pair = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { B_pairDataLoading, B_pairData } = useSelector(
+  const { B_pairDataLoading, B_pairData, deleteLoadings } = useSelector(
     (state) => state.B_Pair
   );
 
@@ -22,13 +27,15 @@ const B_Pair = () => {
   const [bppairId, setBppairId] = useState("");
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || 1, 10);
+  const [deleteModal, setDeleteModal] = useState(false);
+
+  const payload = {
+    search,
+    page,
+    category: selectedCategory,
+  };
 
   useEffect(() => {
-    const payload = {
-      search,
-      page,
-      category: selectedCategory,
-    };
     dispatch(getbPairDataAsync(payload));
   }, [dispatch, page]);
 
@@ -125,6 +132,24 @@ const B_Pair = () => {
   const closeSaleHistoryModal = () => {
     setOpenSaleModal(false);
     setSaleHistoryData([]);
+  };
+
+  const openDeleteModal = (id) => {
+    setDeleteModal(true);
+    setBppairId(id);
+  };
+
+  const closedeleteModal = () => {
+    setDeleteModal(false);
+  };
+
+  const handleDelete = () => {
+    dispatch(DeleteBpairAsync({ id: bppairId })).then((res) => {
+      if (res.payload.success === true) {
+        setDeleteModal(false);
+        dispatch(getbPairDataAsync(payload));
+      }
+    });
   };
 
   return (
@@ -264,13 +289,17 @@ const B_Pair = () => {
                         )}
 
                         {data?.status !== "UnSold" && (
-                          <Link
-                            onClick={() =>
-                              openSaleHistoryModal(data)
-                            }
-                          >
+                          <Link onClick={() => openSaleHistoryModal(data)}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
+                        )}
+                        {data?.status === "UnSold" && (
+                          <button onClick={() => openDeleteModal(data?.id)}>
+                            <MdOutlineDelete
+                              size={20}
+                              className="cursor-pointer text-red-500"
+                            />
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -409,6 +438,16 @@ const B_Pair = () => {
           page={page}
           search={search}
           closeModal={closeSaleHistoryModal}
+        />
+      )}
+      {/* DELETE MODAL */}
+      {deleteModal && (
+        <DeleteModal
+          title={"Delete B Pair"}
+          message={"Are you sure want to delete this B Pair ?"}
+          onClose={closedeleteModal}
+          Loading={deleteLoadings}
+          onConfirm={handleDelete}
         />
       )}
     </>

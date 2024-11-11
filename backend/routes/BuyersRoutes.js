@@ -10,6 +10,7 @@ import {
   validateAndGetOldBuyerData,
   validateD_NoAndGetSuitData,
 } from "../controllers/BuyersController.js";
+import { markAsPaidForBuyers } from "../controllers/CashInOutController.js";
 
 const buyerRouter = express.Router();
 
@@ -40,6 +41,11 @@ buyerRouter.post(
   "/getBuyerBillHistoryForBranch",
   verifyUser,
   getBuyerBillHistoryForBranch
+);
+buyerRouter.post(
+  "/markAsPaidForBuyers",
+  verifyUser,
+  markAsPaidForBuyers
 );
 
 export default buyerRouter;

@@ -40,6 +40,7 @@ const Embroidery = () => {
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
     partyName: "",
+    partytype:partyValue,
     date: today,
     per_suit: 0,
     rATE_per_stitching: "",

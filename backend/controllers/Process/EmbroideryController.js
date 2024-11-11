@@ -13,6 +13,7 @@ export const addEmbriodery = async (req, res, next) => {
     await session.withTransaction(async () => {
       const {
         partyName,
+        partytype,
         date,
         per_suit,
         project_status,
@@ -37,6 +38,7 @@ export const addEmbriodery = async (req, res, next) => {
 
       const requiredFields = [
         "partyName",
+        "partytype",
         "date",
         "per_suit",
         "project_status",
@@ -44,6 +46,15 @@ export const addEmbriodery = async (req, res, next) => {
         "T_Quantity_In_m",
         "T_Quantity",
       ];
+
+      if (partytype === "newParty") {
+        const checkExistingEmbroidery = await EmbroideryModel.findOne({
+          partyName: { $regex: partyName, $options: "i" },
+        }).session(session);
+        if (checkExistingEmbroidery) {
+          throw new CustomError("Duplicate Party Name Error", 400);
+        }
+      };
 
       const optionalFields1 = [
         "Front_Stitch",
@@ -440,12 +451,21 @@ export const deleteEmbroidery = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id } = req.body;
-      if(!id) throw new CustomError("Embroidery Id Required",404);
+      if (!id) throw new CustomError("Embroidery Id Required", 404);
       const embroideryData = await EmbroideryModel.findById(id).session(
         session
       );
 
-      if(embroideryData){
+      if (embroideryData) {
+        const trueSteps = Object.values(embroideryData.next_steps)
+          .filter(([step, value]) => value === true)
+          .map(([step]) => step);
+
+        if (trueSteps.length > 0) {
+          throw new Error(
+            `Cannot Delete Embroidery While These Steps Are Found ${trueSteps}`
+          );
+        }
       }
 
       if (embroideryData.bill_generated === true)
@@ -488,12 +508,10 @@ export const deleteEmbroidery = async (req, res, next) => {
       await processStockUpdate(embroideryData);
 
       await EmbroideryModel.findByIdAndDelete(id).session(session);
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Embroidery deleted successfully",
-        });
+      res.status(200).json({
+        success: true,
+        message: "Embroidery deleted successfully",
+      });
     });
   } catch (error) {
     next(error);

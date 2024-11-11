@@ -8,6 +8,7 @@ export const addCutting = async (req, res, next) => {
     const {
       embroidery_Id,
       partyName,
+      partytype,
       rate,
       serial_No,
       T_Quantity,
@@ -16,6 +17,7 @@ export const addCutting = async (req, res, next) => {
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
+      "partytype",
       "partyName",
       "rate",
       "design_no",
@@ -23,6 +25,15 @@ export const addCutting = async (req, res, next) => {
       "T_Quantity",
       "date",
     ];
+
+    if (partytype === "newParty") {
+      const checkExistingCutting = await CuttingModel.findOne({
+        partyName: { $regex: partyName, $options: "i" },
+      }).session(session);
+      if (checkExistingCutting) {
+        throw new Error("Duplicate Party Name Error");
+      }
+    };
 
     const missingFields = [];
     requiredFields.forEach((field) => {
@@ -64,6 +75,9 @@ export const updateCutting = async (req, res, next) => {
     if (!cutting) throw new Error("cutting not Found");
     let updateQuery = {};
     if (r_quantity) {
+      if(r_quantity > cutting.T_Quantity){
+        throw new Error("Invalid Recieved quantity")
+      }
       updateQuery = { ...updateQuery, r_quantity };
     }
     if (project_status) {
@@ -141,5 +155,47 @@ export const getCuttingByEmbroideryId = async (req, res, next) => {
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteCutting = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Cutting Id Required");
+    const data = await CuttingModel.findByIdAndDelete(id);
+    if (!data) throw new Error("Cutting Not Found");
+    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This Cutting");
+    return res
+      .status(200)
+      .json({ success: true, message: "Deleted Successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getCuttingDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const cuttingQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category: "Cutting",
+    };
+    const cuttingData = await CuttingModel.find(cuttingQuery, ["partyName"]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+    ]);
+    const data = {
+      cuttingData: cuttingData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

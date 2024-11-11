@@ -16,6 +16,7 @@ export const addStitching = async (req, res, next) => {
         embroidery_Id,
         Quantity,
         partyName,
+        partytype,
         serial_No,
         design_no,
         date,
@@ -26,6 +27,7 @@ export const addStitching = async (req, res, next) => {
         dupatta_category,
       } = req.body;
       const requiredFields = [
+        "partytype",
         "embroidery_Id",
         "partyName",
         "rate",
@@ -36,6 +38,16 @@ export const addStitching = async (req, res, next) => {
         "lace_quantity",
         "Quantity",
       ];
+
+      if (partytype === "newParty") {
+        const checkExistingStitching = await StitchingModel.findOne({
+          partyName: { $regex: partyName, $options: "i" },
+        }).session(session);
+        if (checkExistingStitching) {
+          throw new Error("Duplicate Party Name Error");
+        }
+      };
+
       const missingFields = [];
       requiredFields.forEach((field) => {
         if (req.body[field] === undefined || req.body[field] === null) {
@@ -305,6 +317,10 @@ export const updateStitching = async (req, res, next) => {
         updateFunction({ dupatta_category });
       }
 
+      if(stitching.r_quantity > stitching.Quantity) {
+        throw new Error("Invalid Update Quantity")
+      };
+      
       await stitching.save({ session });
       return res
         .status(200)
@@ -314,5 +330,47 @@ export const updateStitching = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
+  }
+};
+
+export const deleteStitching = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Stitching Id Required");
+    const data = await StitchingModel.findByIdAndDelete(id);
+    if (!data) throw new Error("Stitching Not Found");
+    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This stitching");
+    return res
+      .status(200)
+      .json({ success: true, message: "Deleted Successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getStitchingDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const StitchingQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category: "Stitching",
+    };
+    const stitchingData = await StitchingModel.find(StitchingQuery, ["partyName"]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+    ]);
+    const data = {
+      stitchingData: stitchingData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

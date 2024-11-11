@@ -8,6 +8,7 @@ export const addCalender = async (req, res, next) => {
     const {
       embroidery_Id,
       partyName,
+      partytype,
       rate,
       serial_No,
       T_Quantity,
@@ -16,6 +17,7 @@ export const addCalender = async (req, res, next) => {
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
+      "partytype",
       "partyName",
       "rate",
       "design_no",
@@ -23,6 +25,14 @@ export const addCalender = async (req, res, next) => {
       "T_Quantity",
       "date",
     ];
+    if (partytype === "newParty") {
+      const checkExistingCalender = await CalenderModel.findOne({
+        partyName: { $regex: partyName, $options: "i" },
+      })
+      if (checkExistingCalender) {
+        throw new Error("Duplicate Party Name Error");
+      }
+    };
     const missingFields = [];
     requiredFields.forEach((field) => {
       if (req.body[field] === undefined || req.body[field] === null) {
@@ -153,6 +163,7 @@ export const deleteCalender = async (req, res, next) => {
     if (!id) throw new Error("Calender Id Required");
     const data = await CalenderModel.findByIdAndDelete(id);
     if (!data) throw new Error("Calender Not Found");
+    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This calender");
     return res
       .status(200)
       .json({ success: true, message: "Deleted Successfully" });
@@ -160,3 +171,31 @@ export const deleteCalender = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const getCalenderDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const CalenderQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category: "Calender",
+    };
+    const calenderData = await CalenderModel.find(CalenderQuery, ["partyName"]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+    ]);
+    const data = {
+      calenderData: calenderData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

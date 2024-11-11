@@ -53,11 +53,11 @@ const transaction_details = new mongoose.Schema({
   },
   debit: {
     type: Number,
-    default: null,
+    default: 0,
   },
   credit: {
     type: Number,
-    default: null,
+    default: 0,
   },
   balance: {
     type: Number,

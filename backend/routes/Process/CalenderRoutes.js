@@ -6,6 +6,7 @@ import {
   getAllCalender,
   getCalenderByEmbroideryId,
   getCalenderById,
+  getCalenderDataBypartyName,
   updateCalender,
 } from "../../controllers/Process/CalenderController.js";
 
@@ -20,6 +21,11 @@ calenderRouter.post(
   "/getCalenderById",
   superAdminAndAdminOnly,
   getCalenderById
+);
+calenderRouter.post(
+  "/getCalenderDataBypartyName",
+  superAdminAndAdminOnly,
+  getCalenderDataBypartyName
 );
 
 
