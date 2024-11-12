@@ -930,6 +930,7 @@ const Embroidery = () => {
                   closeModal={closeModal}
                   total={total}
                   DNO_ategory={headStitchData[0]?.shirt}
+                  D_NO={headStitchData[0]?.design_no}
                 />
               </div>
             </div>

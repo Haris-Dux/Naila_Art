@@ -7,7 +7,9 @@ const generateProcessBill = "/api/processBillRouter/generateProcessBill";
 const getAllProcessBill = "/api/processBillRouter/getAllProcessBills";
 const getProcessBillById = "/api/processBillRouter/getProcessillById";
 const getAllPictureAccountsURL = "/api/process/pictures/getAllPictureAccounts";
-const deleteBillAndProcessOrderURL = "/api/processBillRouter/deleteBillAndProcessOrder";
+const deleteBillAndProcessOrderURL =
+  "/api/processBillRouter/deleteBillAndProcessOrder";
+const markAsPaidURL = "/api/processBillRouter/markAsPaid";
 
 // GENERATE PROCESS BILL ASYNC
 export const GenerateProcessBillAsync = createAsyncThunk(
@@ -62,7 +64,7 @@ export const GetProcessBillByIdAsync = createAsyncThunk(
 export const GetAllPictureAccountsAsync = createAsyncThunk(
   "pictures/getAllPictureAccounts",
   async (data) => {
-    console.log('pictures being hit');
+    console.log("pictures being hit");
 
     const searchQuery =
       data?.search !== undefined && data?.search !== null
@@ -93,12 +95,26 @@ export const deleteProcessBillAndOrderAsync = createAsyncThunk(
   }
 );
 
+//Delete Order And BIll
+export const markAsPaidAsync = createAsyncThunk(
+  "Process/markAsPaid",
+  async (data) => {
+    try {
+      const response = await axios.post(markAsPaidURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 const initialState = {
   ProcessBills: [],
   picturesBills: [],
   ProcessBillsDetails: [],
   loading: false,
-  deleteLoadings:false
+  deleteLoadings: false,
 };
 
 const ProcessBillSlice = createSlice({
@@ -110,14 +126,21 @@ const ProcessBillSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-        //DELETE EMBROIDERY
-        .addCase(deleteProcessBillAndOrderAsync.pending, (state, action) => {
-          state.deleteLoadings = true;
-        })
-        .addCase(deleteProcessBillAndOrderAsync.fulfilled, (state, action) => {
-          state.deleteLoadings = false;
-        })
-  
+      //DELETE PROCESS BILL
+      .addCase(deleteProcessBillAndOrderAsync.pending, (state, action) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(deleteProcessBillAndOrderAsync.fulfilled, (state, action) => {
+        state.deleteLoadings = false;
+      })
+
+      //MARK AS PAID ACCOUNT
+      .addCase(markAsPaidAsync.pending, (state, action) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(markAsPaidAsync.fulfilled, (state, action) => {
+        state.deleteLoadings = false;
+      })
 
       // GENERATE PROCESS BILL
       .addCase(GenerateProcessBillAsync.pending, (state, action) => {

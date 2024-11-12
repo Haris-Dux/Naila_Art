@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 
-const ProcessBillModal = ({loading,closeModal,handleSubmit,processBillAmount,onDataChange}) => {
+const ProcessBillModal = ({
+  loading,
+  closeModal,
+  handleSubmit,
+  processBillAmount,
+  onDataChange,
+}) => {
   // State variables to hold form data
   const [formData, setFormData] = useState({
-    additionalExpenditure:"",
-    Manual_No:""
-
+    additionalExpenditure: "",
+    Manual_No: "",
   });
-
-  const validateValue = (value) => {
-    return value === "" || isNaN(value) ? 0 : parseInt(value);
-  };
 
   // Function to handle changes in form inputs
   const handleChange = (e) => {
@@ -21,11 +22,6 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,processBillAmount,onD
     };
     setFormData(updatedFormData);
     onDataChange(updatedFormData);
-  };
-
-  const calculateTotalAmount = () => {
-    const totalAmount = processBillAmount + validateValue(formData.additionalExpenditure);
-    return totalAmount;
   };
 
   return (
@@ -66,7 +62,7 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,processBillAmount,onD
         {/* ------------- BODY ------------- */}
         <div className="p-4 md:p-5">
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-1 lg:gap-x-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-x-4">
               {/* Manual_No */}
               <div>
                 <input
@@ -80,39 +76,25 @@ const ProcessBillModal = ({loading,closeModal,handleSubmit,processBillAmount,onD
                 />
               </div>
 
-              <div className="flex gap-3 justify-center items-center">
-                <input
-                  name="processBillAmount"
-                  type="text"
-                  value={processBillAmount}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  readOnly
-                />
-                  +
               {/* Additional Expenditure */}
-           
-                <input
-                  name="additionalExpenditure"
-                  type="number"
-                  placeholder="A.E"
-                  value={formData.additionalExpenditure}
-                  onChange={handleChange}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  required
-                />
-                =
-                  <input
-                  name="total"
-                  type="text"
-                  placeholder="0"
-                  value={calculateTotalAmount()}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  readOnly
-                />
-              </div>
-            
-            
 
+              <input
+                name="additionalExpenditure"
+                type="number"
+                placeholder="A.E"
+                value={formData.additionalExpenditure}
+                onChange={handleChange}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                required
+              />
+
+              <input
+                name="processBillAmount"
+                type="text"
+                value={processBillAmount}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                readOnly
+              />
             </div>
 
             <div className="flex justify-center mt-6">

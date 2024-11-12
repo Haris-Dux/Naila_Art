@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetAllBaseforEmroidery } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 
-const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue }) => {
+const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue,D_NO }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
   const { loading: IsLoading } = useSelector((state) => state.Embroidery);
 
@@ -297,6 +297,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     const meregdata = {
       ...restFormData1,
       ...formData,
+      partytype:partyValue,
       per_suit: total.toFixed(3),
       T_Suit: formData.shirt.reduce(
         (total, item) => total + toValidNumber(item.quantity_in_no),
@@ -346,7 +347,6 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
       meregdata.D_Patch_Stitch,
       meregdata.F_Patch_Stitch,
     ];
-
     if (
       suitFields.every((field) => !field) ||
       stitchFields.every((field) => !field)
@@ -355,8 +355,10 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         "Please Enter data for suit,duppata or trouser and one head and it's value"
       );
     } else {
-      const result = validateShirtCategories(meregdata);
-      if(!result && partyValue === "oldParty") return toast.error("Invalid Shirt Category For Selected Design Number");
+      if(meregdata.design_no === D_NO){
+        const result = validateShirtCategories(meregdata);
+        if(!result) return toast.error("Invalid Shirt Category For Selected Design Number");
+      };
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {
           dispatch(GETEmbroidery({ page: 1 }));
@@ -372,7 +374,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         <div className="header flex justify-between items-center">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Shirt Colors And Quantity:{" "}
-            <span className="text-red-500">{DNO_ategory}</span>
+           {formData1.design_no === D_NO && <span className="text-red-500">{DNO_ategory}</span>}
           </p>
           <p onClick={() => addNewRow("shirt")}>
             <FiPlus size={24} className=" cursor-pointer dark:text-white" />
