@@ -8,7 +8,6 @@ import CustomError from "../../config/errors/CustomError.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
-
   try {
     await session.withTransaction(async () => {
       const {
@@ -46,15 +45,6 @@ export const addEmbriodery = async (req, res, next) => {
         "T_Quantity_In_m",
         "T_Quantity",
       ];
-
-      if (partytype === "newParty") {
-        const checkExistingEmbroidery = await EmbroideryModel.findOne({
-          partyName: { $regex: partyName, $options: "i" },
-        }).session(session);
-        if (checkExistingEmbroidery) {
-          throw new CustomError("Duplicate Party Name Error", 400);
-        }
-      };
 
       const optionalFields1 = [
         "Front_Stitch",
@@ -149,6 +139,15 @@ export const addEmbriodery = async (req, res, next) => {
 
       if (missingFields.length > 0) {
         throw new Error(`Missing fields : ${missingFields}`);
+      }
+
+      if (partytype === "newParty") {
+        const checkExistingEmbroidery = await EmbroideryModel.findOne({
+          partyName: { $regex: partyName, $options: "i" },
+        }).session(session);
+        if (checkExistingEmbroidery) {
+          throw new CustomError("Duplicate Party Name Error", 400);
+        }
       }
 
       // INVENTORY DEDUCTION THROUGH TRANSACTIONS
@@ -402,6 +401,7 @@ export const getHeadDataByDesignNo = async (req, res, next) => {
       {
         $project: {
           partyName: 1,
+          design_no: 1,
           Front_Stitch: 1,
           Bazo_Stitch: 1,
           Gala_Stitch: 1,
@@ -457,16 +457,15 @@ export const deleteEmbroidery = async (req, res, next) => {
       );
 
       if (embroideryData) {
-        const trueSteps = Object.values(embroideryData.next_steps)
+        const trueSteps = Object.entries(embroideryData.next_steps)
           .filter(([step, value]) => value === true)
           .map(([step]) => step);
-
         if (trueSteps.length > 0) {
           throw new Error(
-            `Cannot Delete Embroidery While These Steps Are Found ${trueSteps}`
+            `Cannot Delete Embroidery While ${trueSteps} Found `
           );
         }
-      }
+      };
 
       if (embroideryData.bill_generated === true)
         throw new Error("Cannot Delete Embroidery");

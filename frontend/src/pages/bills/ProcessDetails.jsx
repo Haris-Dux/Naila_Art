@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteProcessBillAndOrderAsync, GetProcessBillByIdAsync } from "../../features/ProcessBillSlice";
+import {
+  deleteProcessBillAndOrderAsync,
+  GetProcessBillByIdAsync,
+  markAsPaidAsync,
+} from "../../features/ProcessBillSlice";
 import { FaEye } from "react-icons/fa";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../Component/Modal/DeleteModal";
+import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
 const ProcessDetails = () => {
   const dispatch = useDispatch();
-  const { id , category} = useParams();
+  const { id, category } = useParams();
   const [deleteModal, setDeleteModal] = useState(false);
+  const [openCModal, setCModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-  const { loading, ProcessBillsDetails,deleteLoadings } = useSelector(
+  const { loading, ProcessBillsDetails, deleteLoadings } = useSelector(
     (state) => state.ProcessBill
   );
 
@@ -31,7 +37,12 @@ const ProcessDetails = () => {
   };
 
   const handleDelete = () => {
-    dispatch(deleteProcessBillAndOrderAsync({ id: selectedId,process_Category:category })).then((res) => {
+    dispatch(
+      deleteProcessBillAndOrderAsync({
+        id: selectedId,
+        process_Category: category,
+      })
+    ).then((res) => {
       if (res.payload.success === true) {
         dispatch(GetProcessBillByIdAsync({ id }));
         closedeleteModal();
@@ -39,6 +50,23 @@ const ProcessDetails = () => {
     });
   };
 
+  const openConfirmationModaL = () => {
+    setCModal(true);
+  };
+
+  const closeConfirmationModal = () => {
+    setCModal(false);
+  };
+
+  const UpdateAccount = () => {
+    dispatch(markAsPaidAsync({ id, category: "Process" })).then((res) => {
+      if (res.payload.success === true) {
+        console.log("doing this");
+        dispatch(GetProcessBillByIdAsync({ id }));
+        setCModal(false);
+      }
+    });
+  };
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
@@ -119,13 +147,17 @@ const ProcessDetails = () => {
                     .map((data, index) => (
                       <tr
                         key={index}
-                        className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        className={`border-b ${
+                          data?.orderId === ""
+                            ? "bg-red-500 text-white"
+                            : "bg-white text-black"
+                        } text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white`}
                       >
                         <th
-                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          className="px-6 py-4 font-medium  whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <p>{new Date(data.date).toLocaleDateString()}</p>
+                          <p>{data.date}</p>
                         </th>
                         <td className="px-6 py-4 font-medium">
                           {data.particular}
@@ -145,19 +177,26 @@ const ProcessDetails = () => {
                             ? "-"
                             : data.balance}
                         </td>
-                       {data.orderId !== "" && <td className="pl-10 py-4 flex items-center  gap-3">
-                          <Link to={`/dashboard/embroidery-details/${data.orderId}`}>
-                            <FaEye size={20} className="cursor-pointer" />
-                          </Link>
-                      
-                            <button onClick={() => openDeleteModal(data.orderId)}>
+                        {data.orderId !== "" ? (
+                          <td className="pl-10 py-4 flex items-center  gap-3">
+                            <Link
+                              to={`/dashboard/embroidery-details/${data.orderId}`}
+                            >
+                              <FaEye size={20} className="cursor-pointer" />
+                            </Link>
+
+                            <button
+                              onClick={() => openDeleteModal(data.orderId)}
+                            >
                               <MdOutlineDelete
                                 size={20}
                                 className="cursor-pointer text-red-500"
                               />
                             </button>
-                         
-                        </td>}
+                          </td>
+                        ) : (
+                          <td className="px-6 py-4 font-medium">--</td>
+                        )}
                       </tr>
                     ))
                 ) : (
@@ -170,6 +209,14 @@ const ProcessDetails = () => {
           </div>
         )}
       </section>
+      {ProcessBillsDetails?.virtual_account?.status !== "Paid" && (
+        <button
+          onClick={openConfirmationModaL}
+          className="mx-6 mt-5 bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+        >
+          Mark As Paid
+        </button>
+      )}
       {deleteModal && (
         <DeleteModal
           title={"Delete Bill And Order"}
@@ -177,6 +224,16 @@ const ProcessDetails = () => {
           onClose={closedeleteModal}
           Loading={deleteLoadings}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {openCModal && (
+        <ConfirmationModal
+          onClose={closeConfirmationModal}
+          onConfirm={UpdateAccount}
+          message={"Are You sure want To Math This Account AS Paid."}
+          title={"Mark Account As Paid"}
+          updateStitchingLoading={loading}
         />
       )}
     </>

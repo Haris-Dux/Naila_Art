@@ -17,7 +17,9 @@ const ProcessBills = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { loading, ProcessBills ,picturesBills} = useSelector((state) => state.ProcessBill);
+  const { loading, ProcessBills, picturesBills } = useSelector(
+    (state) => state.ProcessBill
+  );
 
   useEffect(() => {
     const payload = {
@@ -232,7 +234,9 @@ const ProcessBills = () => {
                         {setStatusColor(data?.virtual_account?.status)}
                       </td>
                       <td className="pl-10 py-4">
-                        <Link to={`/dashboard/process-details/${data?.id}/${selectedCategory}`}>
+                        <Link
+                          to={`/dashboard/process-details/${data?.id}/${selectedCategory}`}
+                        >
                           <FaEye size={20} className="cursor-pointer" />
                         </Link>
                       </td>

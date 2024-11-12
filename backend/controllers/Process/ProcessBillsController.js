@@ -44,7 +44,7 @@ export const generateProcessBill = async (req, res, next) => {
         !partyName ||
         !design_no ||
         !Manual_No ||
-        !embroidery_Id
+        !Embroidery_id
       ) {
         throw new Error("Required fields are missing");
       }
@@ -323,7 +323,7 @@ export const generateProcessBill = async (req, res, next) => {
       };
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
-      const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
+      const mainEmbroidery = await EmbroideryModel.findById(Embroidery_id).session(session);
       mainEmbroidery.additionalExpenditure += additionalExpenditure;
       await mainEmbroidery.save({ session });
 
@@ -542,12 +542,12 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
             session
           );
           if (embData) {
-              const trueSteps = Object.values(embData.next_steps)
+              const trueSteps = Object.entries(embData.next_steps)
               .filter(([step,value]) => value === true)
               .map(([step]) => step);
       
               if(trueSteps.length > 0) {
-                throw new Error(`Cannot Delete Embroidery While These Are Found ${trueSteps}`);
+                throw new CustomError(`Cannot Delete Embroidery While These Are Found ${trueSteps}`,401);
               }
             orderData = embData;
           }
@@ -677,7 +677,6 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         oldAccountData.credit_debit_history.forEach((item) => {
           if (item.orderId === id) {
             item.orderId = "";
-            item.particular = `Deleted Bill For D.NO : ${orderData.design_no}`;
           }
         });
 
@@ -701,8 +700,8 @@ export const markAsPaid = async (req,res,next) => {
     let accountData = {};
     if(category === "Process") {
      accountData = await processBillsModel.findById(id);
-    } else if(category === "selles") {
-      accountData = await processBillsModel.findById(id);
+    } else if(category === "sellers") {
+      throw new Error("Need to Work On Category yet")
     }
     if(!accountData) throw new CustomError("Account not found",404);
 
@@ -714,6 +713,7 @@ export const markAsPaid = async (req,res,next) => {
       particular: `Account Marked As Paid`,
       credit: 0,
       balance:0,
+      orderId:"",
       debit: accountData.virtual_account.total_balance
     };
 

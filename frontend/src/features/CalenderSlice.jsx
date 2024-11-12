@@ -10,6 +10,8 @@ const getAllCalender = "/api/process/calender/getAllCalender";
 const getSingleCalender = "/api/process/calender/getCalenderById";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
+const calenderDataBypartyNameURL =
+  "/api/processBillRouter/getCalenderDataBypartyName";
 
 // CREATE CALENDER THUNK
 export const createCalender = createAsyncThunk(
@@ -61,7 +63,7 @@ export const GetSingleCalender = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleCalender, id);
- 
+
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
@@ -138,15 +140,28 @@ export const deleteCalenderAsync = createAsyncThunk(
   }
 );
 
+// GET SINGLE CALENDER THUNK
+export const calenderDataBypartyNameAsync = createAsyncThunk(
+  "Calender/GetCalenderDataByPartyName",
+  async (data) => {
+    try {
+      const response = await axios.post(calenderDataBypartyNameURL, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
   Calender: [],
   SingleCalender: {},
   loading: false,
-  deleteLoading:false,
+  deleteLoading: false,
   CalenderpdfLoading: false,
   generateCAlenderBillLoading: false,
+  calenderDataByPartyName: [],
 };
 
 const CalenderSlice = createSlice({
@@ -166,13 +181,22 @@ const CalenderSlice = createSlice({
         state.generateCAlenderBillLoading = false;
       })
 
-         //DELETE CALENDER BILL
-         .addCase(deleteCalenderAsync.pending, (state, action) => {
-          state.deleteLoading = true;
-        })
-        .addCase(deleteCalenderAsync.fulfilled, (state, action) => {
-          state.deleteLoading = false;
-        })
+      // CALENDER DATA BY PARTY NAME
+      .addCase(calenderDataBypartyNameAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(calenderDataBypartyNameAsync.fulfilled, (state, action) => {
+        state.calenderDataByPartyName = false;
+        state.loading = true;
+      })
+
+      //DELETE CALENDER BILL
+      .addCase(deleteCalenderAsync.pending, (state, action) => {
+        state.deleteLoading = true;
+      })
+      .addCase(deleteCalenderAsync.fulfilled, (state, action) => {
+        state.deleteLoading = false;
+      })
 
       //DOWNLOAD PDF
       .addCase(generateCalenderGatePssPdfAsync.pending, (state) => {
