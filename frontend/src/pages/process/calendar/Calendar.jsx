@@ -176,7 +176,7 @@ const Calendar = () => {
                         </th>
                         <td className='px-6 py-4'>{entry.partyName}</td>
                         <td className='px-6 py-4'>{entry.design_no}</td>
-                        <td className="px-6 py-4">{new Date(entry.date).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">{entry.date}</td>
                         <td className='px-6 py-4'>{entry.T_Quantity} m</td>
                         <td className='px-6 py-4'>{setStatusColor(entry.project_status)}</td>
                         <td className='pl-10 py-4 flex items-center gap-3'>

@@ -30,7 +30,7 @@ export const addStone = async (req, res, next) => {
         partyName: { $regex: partyName, $options: "i" },
       })
       if (checkExistingStone) {
-        throw new Error("Duplicate Party Name Error");
+        throw new Error("Party Name Already In Use");
       }
     };
     const missingFields = [];

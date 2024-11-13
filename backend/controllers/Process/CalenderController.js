@@ -1,5 +1,6 @@
 import { CalenderModel } from "../../models/Process/CalenderModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 
@@ -25,14 +26,6 @@ export const addCalender = async (req, res, next) => {
       "T_Quantity",
       "date",
     ];
-    if (partytype === "newParty") {
-      const checkExistingCalender = await CalenderModel.findOne({
-        partyName: { $regex: partyName, $options: "i" },
-      })
-      if (checkExistingCalender) {
-        throw new Error("Duplicate Party Name Error");
-      }
-    };
     const missingFields = [];
     requiredFields.forEach((field) => {
       if (req.body[field] === undefined || req.body[field] === null) {
@@ -42,6 +35,14 @@ export const addCalender = async (req, res, next) => {
         throw new Error(`Missing Fields ${field}`);
       }
     });
+    if (partytype === "newParty") {
+      const checkExistingCalender = await CalenderModel.findOne({
+        partyName: { $regex: partyName, $options: "i" },
+      })
+      if (checkExistingCalender) {
+        throw new Error("Party Name Already In Use");
+      }
+    };
      await CalenderModel.create({
       embroidery_Id,
       partyName,
@@ -72,10 +73,7 @@ export const updateCalender = async (req, res, next) => {
     if (!calender) throw new Error("Calender not Found");
     let updateQuery = {};
     if (r_quantity) {
-      if (r_unit === "y") {
-        r_quantity = (r_quantity * 1.09361).toFixed(2);
-      }
-      updateQuery = { ...updateQuery, r_quantity, updated: true, r_unit };
+      updateQuery = { ...updateQuery, r_quantity, updated: true };
     }
     if (project_status) {
       if (project_status === "Completed" && calender.updated === true) {

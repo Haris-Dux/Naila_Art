@@ -31,7 +31,7 @@ export const addCutting = async (req, res, next) => {
         partyName: { $regex: partyName, $options: "i" },
       }).session(session);
       if (checkExistingCutting) {
-        throw new Error("Duplicate Party Name Error");
+        throw new Error("Party Name Already In Use");
       }
     };
 

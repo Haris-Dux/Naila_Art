@@ -11,7 +11,7 @@ const getSingleCalender = "/api/process/calender/getCalenderById";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const calenderDataBypartyNameURL =
-  "/api/processBillRouter/getCalenderDataBypartyName";
+  "/api/process/calender/getCalenderDataBypartyName";
 
 // CREATE CALENDER THUNK
 export const createCalender = createAsyncThunk(
@@ -161,7 +161,8 @@ const initialState = {
   deleteLoading: false,
   CalenderpdfLoading: false,
   generateCAlenderBillLoading: false,
-  calenderDataByPartyName: [],
+  previousDataByPartyName: [],
+  previousDataLoading: false,
 };
 
 const CalenderSlice = createSlice({
@@ -183,11 +184,11 @@ const CalenderSlice = createSlice({
 
       // CALENDER DATA BY PARTY NAME
       .addCase(calenderDataBypartyNameAsync.pending, (state, action) => {
-        state.loading = true;
+        state.previousDataLoading = false;
       })
       .addCase(calenderDataBypartyNameAsync.fulfilled, (state, action) => {
-        state.calenderDataByPartyName = false;
-        state.loading = true;
+        state.previousDataByPartyName = action.payload;
+        state.previousDataLoading = true;
       })
 
       //DELETE CALENDER BILL
