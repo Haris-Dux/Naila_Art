@@ -146,7 +146,7 @@ export const addEmbriodery = async (req, res, next) => {
           partyName: { $regex: partyName, $options: "i" },
         }).session(session);
         if (checkExistingEmbroidery) {
-          throw new CustomError("Duplicate Party Name Error", 400);
+          throw new CustomError("Party Name Already In Use", 400);
         }
       }
 

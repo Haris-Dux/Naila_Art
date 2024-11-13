@@ -7,14 +7,18 @@ import {
   GETEmbroiderySIngle,
   UpdateEmbroidery,
 } from "../../../features/EmbroiderySlice";
+import ReactSearchBox from "react-search-box";
 import { useSelector } from "react-redux";
-import { createCalender } from "../../../features/CalenderSlice";
+import { calenderDataBypartyNameAsync, createCalender } from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import moment from "moment-timezone";
+
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [isOpen, setIsOpen] = useState(false);
   const [processBillModal, setProcessBillModal] = useState(false);
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
@@ -23,7 +27,7 @@ const EmbroideryDetails = () => {
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
   const [picturesModal, setPicturesMOdal] = useState(false);
 
-  const { loading: IsLoading } = useSelector((state) => state.Calender);
+  const { loading: IsLoading,previousDataByPartyName } = useSelector((state) => state.Calender);
 
   const navigate = useNavigate();
 
@@ -35,11 +39,14 @@ const EmbroideryDetails = () => {
     generateBillLoading,
   } = useSelector((state) => state.Embroidery);
   const [processBillData, setProcessBillData] = useState({});
+  const [partyValue, setPartyValue] = useState("newParty");
+  const [accountData, setAccountData] = useState(null);
   const [CalenderData, setCalenderData] = useState({
     serial_No: "",
     partyName: "",
+    partytype: partyValue,
     design_no: "",
-    date: "",
+    date: today,
     T_Quantity: 0,
     rate: 0,
     embroidery_Id: SingleEmbroidery?.id || "",
@@ -47,12 +54,14 @@ const EmbroideryDetails = () => {
 
   useEffect(() => {
     setCalenderData({
+      partytype: partyValue,
+       partyName: "",
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
-      date: SingleEmbroidery?.date ? SingleEmbroidery?.date?.split("T")[0] : "",
+      date: today,
       embroidery_Id: SingleEmbroidery?.id || "",
     });
-  }, [SingleEmbroidery]);
+  }, [SingleEmbroidery,partyValue]);
 
   const initialShirtRow = { category: "", color: "", received: 0 };
   const initialDupattaRow = { category: "", color: "", received: 0 };
@@ -201,6 +210,7 @@ const EmbroideryDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setPartyValue("newParty")
     document.body.style.overflow = "auto";
   };
 
@@ -248,10 +258,10 @@ const EmbroideryDetails = () => {
       Embroidery_id: SingleEmbroidery?.id,
     };
     dispatch(generateEmbroideryBillAsync(formData)).then((res) => {
-      if(res.payload.success === true) {
+      if (res.payload.success === true) {
         setProcessBillModal(false);
       }
-    })
+    });
   };
 
   const openGenerateBillForm = () => {
@@ -285,6 +295,42 @@ const EmbroideryDetails = () => {
     setPicturesMOdal(false);
   };
 
+  const handleSelectedRecord = (value) => {
+    const Data = previousDataByPartyName?.accountData.find(
+      (item) => item.partyName === value
+    );
+    setCalenderData((prev) => ({
+      ...prev,
+      partyName: value,
+    }));
+    if (Data?.partyName === value) {
+      setAccountData(Data?.virtual_account);
+    } else {
+      setAccountData(false);
+    }
+  };
+
+  const togleNameField = (e) => {
+    const value = e.target.value;
+    setPartyValue(value);
+    setCalenderData((prev) => ({
+      ...prev,
+      partyName: ""     
+    }));
+    setAccountData(null);
+
+  };
+
+  const handleSearchOldData = (value) => {
+    dispatch(calenderDataBypartyNameAsync({ partyName: value }));
+  };
+
+  const searchResults = previousDataByPartyName?.calenderData?.map((item) => {
+    return {
+      key: item.partyName,
+      value: item.partyName,
+    };
+  });
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -626,6 +672,7 @@ const EmbroideryDetails = () => {
           )}
         </div>
 
+        {/* CALENDER DETAILS */}
         {isOpen && (
           <div
             aria-hidden="true"
@@ -661,31 +708,109 @@ const EmbroideryDetails = () => {
               </div>
 
               <div className="p-4 md:p-5">
-                <form className="space-y-4" onSubmit={handleSubmitCalender}>
-                  <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div>
-                      <input
-                        name="serialNo"
-                        type="text"
-                        placeholder="serial No"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={CalenderData?.serial_No}
-                        onChange={handleInputChangeCalender}
-                        required
-                        readOnly
-                      />
+                  {/* ACCOUNT DATA */}
+            {partyValue === "oldParty" && accountData === false ? (
+              <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                <p>Calender Data Found But No Bill Generated Yet</p>
+              </div>
+            ) : (
+              <>
+                {partyValue === "oldParty" && accountData !== null && (
+                  <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Debit</h3>
+                      <h3>{accountData?.total_debit || 0}</h3>
                     </div>
-                    <div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Credit</h3>
+                      <h3>{accountData?.total_credit || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Total Balance</h3>
+                      <h3>{accountData?.total_balance || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Status</h3>
+                      <h3>
+                        {setAccountStatusColor(accountData?.status) ||
+                          "No Status"}
+                      </h3>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+                <form className="space-y-4" onSubmit={handleSubmitCalender}>
+                  <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+
+
+                    {/* RADIO BUTTONS */}
+                    <label className="col-span-1 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="oldParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                      />
+                      Old Party
+                    </label>
+                    <label className="col-span-1 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="newParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                        defaultChecked
+                      />
+                      New Party
+                    </label>
+                
+                  <div>
+                    {partyValue === "newParty" ? (
                       <input
                         name="partyName"
                         type="text"
                         placeholder="Party Name"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
                         value={CalenderData.partyName}
                         onChange={handleInputChangeCalender}
-                        required
                       />
-                    </div>
+                    ) : (
+                      <div className="custom-search-box relative">
+                        <ReactSearchBox
+                          key={searchResults?.key}
+                          onSelect={(value) =>
+                            handleSelectedRecord(value?.item?.key)
+                          }
+                          placeholder={
+                            CalenderData.partyName === ""
+                              ? "Search"
+                              : CalenderData.partyName
+                          }
+                          data={searchResults}
+                          onChange={(value) => handleSearchOldData(value)}
+                          inputBorderColor="#D1D5DB"
+                          inputBackgroundColor="#F9FAFB"
+                        />
+                        <style jsx>
+                          {`
+                            .react-search-box-dropdown {
+                              position: absolute;
+                              z-index: 50;
+                              top: 100%;
+                              left: 0;
+                              width: 100%;
+                            }
+                          `}
+                        </style>
+                      </div>
+                    )}
+                  </div>
 
                     <div>
                       <input
@@ -707,8 +832,8 @@ const EmbroideryDetails = () => {
                         placeholder="Date"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CalenderData.date}
-                        onChange={handleInputChangeCalender}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -733,6 +858,20 @@ const EmbroideryDetails = () => {
                         value={CalenderData.rate}
                         onChange={handleInputChangeCalender}
                         required
+                      />
+                    </div>
+
+                    
+                    <div>
+                      <input
+                        name="serialNo"
+                        type="text"
+                        placeholder="serial No"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={CalenderData?.serial_No}
+                        onChange={handleInputChangeCalender}
+                        required
+                        readOnly
                       />
                     </div>
 

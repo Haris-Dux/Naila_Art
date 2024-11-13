@@ -17,7 +17,7 @@ const calenderSchema = new mongoose.Schema({
     required: [true, "Design no value required"],
   },
   date: {
-    type: Date,
+    type: String,
     required: [true, "date required"],
   },
   partyName: {
@@ -31,10 +31,6 @@ const calenderSchema = new mongoose.Schema({
   r_quantity:{
     type:Number,
     default:null
-  },
-  r_unit:{
-    type:String,
-    default:'m'
   },
   project_status: {
     type: String,
