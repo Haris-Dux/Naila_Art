@@ -59,6 +59,9 @@ const CalendarDetails = () => {
     additionalExpenditure: "",
   });
 
+  const [convertedQuantity, setConvertedQuantity] = useState(0);
+  const [convertedAmount, setConvertedAmount] = useState(0);
+
   useEffect(() => {
     const data = {
       id: id,
@@ -82,6 +85,8 @@ const CalendarDetails = () => {
       id: id,
       r_quantity: SingleCalender?.r_quantity || "",
     });
+    setConvertedQuantity(SingleCalender?.r_quantity);
+    setConvertedAmount(SingleCalender?.r_quantity * SingleCalender?.rate);
   }, [SingleCalender]);
 
   const handleInputChangeCalender = (e) => {
@@ -196,13 +201,20 @@ const CalendarDetails = () => {
     closeGatepassModal();
   };
 
-  const generateBill = () => {
+  const generateBill = (e) => {
+    e.preventDefault();
     const formData = {
       ...SingleCalender,
+      ...billData,
+      r_quantity:convertedQuantity,
       process_Category: "Calender",
       Calender_id: SingleCalender.id,
     };
-    dispatch(generateCalenderBillAsync(formData));
+    dispatch(generateCalenderBillAsync(formData)).then((res) => {
+      if(res.payload.success) {
+        closeBillModal(l)
+      }
+    });
   };
 
   const openGenerateBillForm = () => {
@@ -211,6 +223,12 @@ const CalendarDetails = () => {
 
   const closeBillModal = () => {
     setProcessBillModal(false);
+    setConvertedQuantity(SingleCalender?.r_quantity);
+    setConvertedAmount(SingleCalender?.r_quantity * SingleCalender?.rate);
+    setBilldata({
+    Manual_No: "",
+    additionalExpenditure: "",
+   })
   };
 
   const handleBillDataChange = (e) => {
@@ -223,16 +241,17 @@ const CalendarDetails = () => {
 
   const handleUnitChange = (e) => {
     const unit = e.target.value;
-    let convertedQuantity = 0;
-    let convertedAmount = 0;
-    if(unit === "y"){
+    let convertedQuantity = '';
+    let convertedAmount = '';
+    if (unit === "y") {
       convertedQuantity = SingleCalender?.r_quantity * 1.09361;
-      convertedAmount = convertedQuantity * SingleCalender?.rate;
+      convertedAmount = Math.round(convertedQuantity * SingleCalender?.rate);
     } else if (unit === "m") {
       convertedQuantity = SingleCalender.r_quantity;
       convertedAmount = convertedQuantity * SingleCalender?.rate;
-    };
-    return {convertedQuantity,convertedAmount}
+    }
+    setConvertedQuantity(convertedQuantity);
+    setConvertedAmount(convertedAmount);
   };
 
   const setStatusColor = (status) => {
@@ -245,6 +264,7 @@ const CalendarDetails = () => {
         return "";
     }
   };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -599,24 +619,37 @@ const CalendarDetails = () => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
+                    <div className=" items-center grid grid-cols-4 gap-1 justify-center">
+                      <input
+                        name="processBillAmount"
+                        type="text"
+                        value={convertedQuantity}
+                        className="bg-gray-50 col-span-2 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        readOnly
+                      />
 
-                    <select
-                      type="text"
-                      className="bg-gray-50 mt-2 border max-w-20 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      onChange={handleUnitChange}
-                    >
-                      <option selected value={"m"}>m</option>
-                      <option value={"y"}>y</option>
-                    </select>
-
+                      <select
+                        type="text"
+                        className="bg-gray-50 col-span-2 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                        onChange={handleUnitChange}
+                      >
+                        <option selected value={"m"}>
+                          m
+                        </option>
+                        <option value={"y"}>y</option>
+                      </select>
+                    </div>
+                    <div className=" items-center grid grid-cols-4 gap-1 justify-center">
+                      <h3 className="col-span-2">Bill Amount :</h3>
                     <input
                       name="processBillAmount"
                       type="text"
-                      value={handleUnitChange().convertedAmount}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={convertedAmount}
+                      className="bg-gray-50 border col-span-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       readOnly
                     />
+                  </div>
                   </div>
 
                   <div className="flex justify-center mt-6">

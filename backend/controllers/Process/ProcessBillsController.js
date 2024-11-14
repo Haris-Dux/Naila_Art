@@ -44,7 +44,7 @@ export const generateProcessBill = async (req, res, next) => {
         !partyName ||
         !design_no ||
         !Manual_No ||
-        !Embroidery_id
+        !embroidery_Id
       ) {
         throw new Error("Required fields are missing");
       }
@@ -323,7 +323,7 @@ export const generateProcessBill = async (req, res, next) => {
       };
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
-      const mainEmbroidery = await EmbroideryModel.findById(Embroidery_id).session(session);
+      const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
       mainEmbroidery.additionalExpenditure += additionalExpenditure;
       await mainEmbroidery.save({ session });
 
