@@ -324,7 +324,7 @@ export const generateProcessBill = async (req, res, next) => {
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
       const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
-      mainEmbroidery.additionalExpenditure += additionalExpenditure;
+      mainEmbroidery.additionalExpenditure += parseInt(additionalExpenditure);
       await mainEmbroidery.save({ session });
 
       return res.status(201).json({

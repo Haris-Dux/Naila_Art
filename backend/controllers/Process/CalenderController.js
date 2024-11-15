@@ -162,6 +162,10 @@ export const deleteCalender = async (req, res, next) => {
     const data = await CalenderModel.findByIdAndDelete(id);
     if (!data) throw new Error("Calender Not Found");
     if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This calender");
+    const embData = await EmbroideryModel.findById(data.embroidery_Id);
+    if (!embData) throw new Error("Embroidery Data not Found For this Calender");
+    embData.next_steps.calender = false;
+    await embData.save();
     return res
       .status(200)
       .json({ success: true, message: "Deleted Successfully" });

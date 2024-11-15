@@ -8,10 +8,14 @@ import {
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
-import { createCutting } from "../../../features/CuttingSlice";
+import {
+  createCutting,
+  getCuttingDataBypartyNameAsync,
+} from "../../../features/CuttingSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import toast from "react-hot-toast";
-import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import ReactSearchBox from "react-search-box";
+import moment from "moment-timezone";
+
 const CalendarDetails = () => {
   const { id } = useParams();
   const {
@@ -20,8 +24,11 @@ const CalendarDetails = () => {
     generateCAlenderBillLoading,
     CalenderpdfLoading,
   } = useSelector((state) => state.Calender);
-  const { loading: IsLoading } = useSelector((state) => state.Cutting);
-
+  const {
+    loading: IsLoading,
+    previousDataByPartyName,
+  } = useSelector((state) => state.Cutting);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -29,6 +36,8 @@ const CalendarDetails = () => {
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+  const [partyValue, setPartyValue] = useState("newParty");
+  const [accountData, setAccountData] = useState(null);
   const [processBillModal, setProcessBillModal] = useState(false);
 
   const [CuttingData, setCuttingData] = useState({
@@ -74,11 +83,12 @@ const CalendarDetails = () => {
       serial_No: SingleCalender?.serial_No || "",
       design_no: SingleCalender?.design_no || "",
       T_Quantity: "",
-      date: "",
+      partytype:partyValue,
+      date: today,
       partyName: "",
       embroidery_Id: SingleCalender?.embroidery_Id || "",
     });
-  }, [SingleCalender]);
+  }, [SingleCalender,partyValue]);
 
   useEffect(() => {
     setCalenderData({
@@ -91,7 +101,6 @@ const CalendarDetails = () => {
 
   const handleInputChangeCalender = (e) => {
     const { name, value } = e.target;
-    console.log("Input Change:", name, value);
     setCalenderData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -148,6 +157,7 @@ const CalendarDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setPartyValue("newParty");
     document.body.style.overflow = "auto";
   };
 
@@ -206,13 +216,17 @@ const CalendarDetails = () => {
     const formData = {
       ...SingleCalender,
       ...billData,
-      r_quantity:convertedQuantity,
+      r_quantity: convertedQuantity,
       process_Category: "Calender",
       Calender_id: SingleCalender.id,
     };
     dispatch(generateCalenderBillAsync(formData)).then((res) => {
-      if(res.payload.success) {
-        closeBillModal(l)
+      if (res.payload.success) {
+        closeBillModal();
+        const data = {
+          id: id,
+        };
+        dispatch(GetSingleCalender(data));
       }
     });
   };
@@ -226,9 +240,9 @@ const CalendarDetails = () => {
     setConvertedQuantity(SingleCalender?.r_quantity);
     setConvertedAmount(SingleCalender?.r_quantity * SingleCalender?.rate);
     setBilldata({
-    Manual_No: "",
-    additionalExpenditure: "",
-   })
+      Manual_No: "",
+      additionalExpenditure: "",
+    });
   };
 
   const handleBillDataChange = (e) => {
@@ -241,8 +255,8 @@ const CalendarDetails = () => {
 
   const handleUnitChange = (e) => {
     const unit = e.target.value;
-    let convertedQuantity = '';
-    let convertedAmount = '';
+    let convertedQuantity = "";
+    let convertedAmount = "";
     if (unit === "y") {
       convertedQuantity = SingleCalender?.r_quantity * 1.09361;
       convertedAmount = Math.round(convertedQuantity * SingleCalender?.rate);
@@ -264,6 +278,58 @@ const CalendarDetails = () => {
         return "";
     }
   };
+
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
+  const handleSelectedRecord = (value) => {
+    const Data = previousDataByPartyName?.accountData.find(
+      (item) => item.partyName === value
+    );
+    setCuttingData((prev) => ({
+      ...prev,
+      partyName: value,
+    }));
+    if (Data?.partyName === value) {
+      setAccountData(Data?.virtual_account);
+    } else {
+      setAccountData(false);
+    }
+  };
+
+  const togleNameField = (e) => {
+    const value = e.target.value;
+    setPartyValue(value);
+    setCuttingData((prev) => ({
+      ...prev,
+      partyName: "",
+    }));
+    setAccountData(null);
+  };
+
+  const handleSearchOldData = (value) => {
+    dispatch(getCuttingDataBypartyNameAsync({ partyName: value }));
+  };
+
+  const searchResults = previousDataByPartyName?.cuttingData?.map((item) => {
+    return {
+      key: item.partyName,
+      value: item.partyName,
+    };
+  });
+
 
   return (
     <>
@@ -400,7 +466,7 @@ const CalendarDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Cutting Details
@@ -428,32 +494,110 @@ const CalendarDetails = () => {
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
+              {/* ACCOUNT DATA */}
+              {partyValue === "oldParty" && accountData === false ? (
+                <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                  <p>Calender Data Found But No Bill Generated Yet</p>
+                </div>
+              ) : (
+                <>
+                  {partyValue === "oldParty" && accountData !== null && (
+                    <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Debit</h3>
+                        <h3>{accountData?.total_debit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Credit</h3>
+                        <h3>{accountData?.total_credit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Total Balance</h3>
+                        <h3>{accountData?.total_balance || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Status</h3>
+                        <h3>
+                          {setAccountStatusColor(accountData?.status) ||
+                            "No Status"}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
 
               <div className="p-4 md:p-5">
                 <form className="space-y-4" onSubmit={handleSubmitCutting}>
-                  <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div>
+                  <div className="mb-8 grid items-star grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* RADIO BUTTONS */}
+                    <div className="grid grid-cols-2 items-center justify-center gap-1">
+                    <label className="col-span-1 ">
                       <input
-                        name="serial_No"
-                        type="text"
-                        placeholder="serial No"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={CuttingData.serial_No}
-                        onChange={handleInputChangeCutting}
+                        type="radio"
+                        name="partyType"
+                        value="oldParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
                         required
-                        readOnly
                       />
+                      Old Party
+                    </label>
+                    <label className="col-span-1 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="newParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                        defaultChecked
+                      />
+                      New Party
+                    </label>
                     </div>
+                   
                     <div>
-                      <input
-                        name="partyName"
-                        type="text"
-                        placeholder="Party Name"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        value={CuttingData.partyName}
-                        onChange={handleInputChangeCutting}
-                        required
-                      />
+                      {partyValue === "newParty" ? (
+                        <input
+                          name="partyName"
+                          type="text"
+                          placeholder="Party Name"
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                          value={CuttingData.partyName}
+                          onChange={handleInputChangeCutting}
+                        />
+                      ) : (
+                        <div className="custom-search-box relative">
+                          <ReactSearchBox
+                            key={searchResults?.key}
+                            onSelect={(value) =>
+                              handleSelectedRecord(value?.item?.key)
+                            }
+                            placeholder={
+                              CuttingData.partyName === ""
+                                ? "Search"
+                                : CuttingData.partyName
+                            }
+                            data={searchResults}
+                            onChange={(value) => handleSearchOldData(value)}
+                            inputBorderColor="#D1D5DB"
+                            inputBackgroundColor="#F9FAFB"
+                          />
+                          <style jsx>
+                            {`
+                              .react-search-box-dropdown {
+                                position: absolute;
+                                z-index: 50;
+                                top: 100%;
+                                left: 0;
+                                width: 100%;
+                              }
+                            `}
+                          </style>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -468,16 +612,18 @@ const CalendarDetails = () => {
                         readOnly
                       />
                     </div>
+                    </div>
+                    <div className=" grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
 
                     <div>
                       <input
                         name="date"
-                        type="date"
+                        type="text"
                         placeholder="Date"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CuttingData.date}
-                        onChange={handleInputChangeCutting}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -486,7 +632,7 @@ const CalendarDetails = () => {
                         name="T_Quantity"
                         type="text"
                         placeholder="Quantity"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CuttingData.T_Quantity}
                         onChange={handleInputChangeCutting}
                         required
@@ -504,7 +650,21 @@ const CalendarDetails = () => {
                         required
                       />
                     </div>
-                  </div>
+
+                    <div>
+                      <input
+                        name="serial_No"
+                        type="text"
+                        placeholder="serial No"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={CuttingData.serial_No}
+                        onChange={handleInputChangeCutting}
+                        required
+                        readOnly
+                      />
+                    </div>
+                    </div>
+                  
 
                   <div className="flex justify-center pt-2">
                     {IsLoading ? (
@@ -642,14 +802,14 @@ const CalendarDetails = () => {
                     </div>
                     <div className=" items-center grid grid-cols-4 gap-1 justify-center">
                       <h3 className="col-span-2">Bill Amount :</h3>
-                    <input
-                      name="processBillAmount"
-                      type="text"
-                      value={convertedAmount}
-                      className="bg-gray-50 border col-span-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      readOnly
-                    />
-                  </div>
+                      <input
+                        name="processBillAmount"
+                        type="text"
+                        value={convertedAmount}
+                        className="bg-gray-50 border col-span-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        readOnly
+                      />
+                    </div>
                   </div>
 
                   <div className="flex justify-center mt-6">

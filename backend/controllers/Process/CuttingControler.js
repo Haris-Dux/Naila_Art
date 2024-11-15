@@ -1,5 +1,6 @@
 import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 
@@ -26,14 +27,7 @@ export const addCutting = async (req, res, next) => {
       "date",
     ];
 
-    if (partytype === "newParty") {
-      const checkExistingCutting = await CuttingModel.findOne({
-        partyName: { $regex: partyName, $options: "i" },
-      }).session(session);
-      if (checkExistingCutting) {
-        throw new Error("Party Name Already In Use");
-      }
-    };
+  
 
     const missingFields = [];
     requiredFields.forEach((field) => {
@@ -44,6 +38,15 @@ export const addCutting = async (req, res, next) => {
         throw new Error(`Missing Fields ${field}`);
       }
     });
+
+    if (partytype === "newParty") {
+      const checkExistingCutting = await CuttingModel.findOne({
+        partyName: { $regex: partyName, $options: "i" },
+      })
+      if (checkExistingCutting) {
+        throw new Error("Party Name Already In Use");
+      }
+    };
 
      await CuttingModel.create({
       embroidery_Id,
@@ -78,7 +81,7 @@ export const updateCutting = async (req, res, next) => {
       if(r_quantity > cutting.T_Quantity){
         throw new Error("Invalid Recieved quantity")
       }
-      updateQuery = { ...updateQuery, r_quantity };
+      updateQuery = { ...updateQuery, r_quantity,updated:true };
     }
     if (project_status) {
       updateQuery = { ...updateQuery, project_status };
@@ -165,6 +168,10 @@ export const deleteCutting = async (req, res, next) => {
     const data = await CuttingModel.findByIdAndDelete(id);
     if (!data) throw new Error("Cutting Not Found");
     if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This Cutting");
+    const embData = await EmbroideryModel.findById(data.embroidery_Id);
+    if (!embData) throw new Error("embroidery Data not Found For this Cutting");
+    embData.next_steps.cutting = false;
+    await embData.save();
     return res
       .status(200)
       .json({ success: true, message: "Deleted Successfully" });

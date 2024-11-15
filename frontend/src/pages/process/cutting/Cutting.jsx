@@ -2,14 +2,16 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
-import { GetAllCutting } from "../../../features/CuttingSlice";
-
+import { deleteCuttingAsync, GetAllCutting } from "../../../features/CuttingSlice";
+import DeleteModal from '../../../Component/Modal/DeleteModal';
+import { MdOutlineDelete } from 'react-icons/md';
 const Cutting = () => {
   const dispatch = useDispatch();
   const [searchText, setSearchText] = useState("");
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
   const [filteredData, setFilteredData] = useState([]);
-  const { loading, Cutting } =
-    useSelector((state) => state.Cutting);
+  const { loading, Cutting,deleteloadings } = useSelector((state) => state.Cutting);
 
   const [search, setSearch] = useState("");
 
@@ -77,6 +79,24 @@ const Cutting = () => {
       default:
         return "";
     }
+  };
+
+  const openDeleteModal = (id) => {
+    setDeleteModal(true);
+    setSelectedId(id);
+  };
+
+  const closedeleteModal = () => {
+    setDeleteModal(false);
+  };
+
+  const handleDelete = () => {
+    dispatch(deleteCuttingAsync({ id: selectedId })).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GetAllCutting({ page: page }));
+        closedeleteModal();
+      }
+    });
   };
 
   return (
@@ -158,8 +178,8 @@ const Cutting = () => {
                     <th className="px-6 py-3 font-medium" scope="col">
                       Status
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
-                      Details
+                    <th className="px-6 py-3 text-center font-medium" scope="col">
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -183,13 +203,23 @@ const Cutting = () => {
                         </td>
                         <td className="px-6 py-4">{data.T_Quantity} suit</td>
                         <td className="px-6 py-4">
-                          {data.r_quantity ? `${data.r_quantity} suit` : "--"} 
+                          {data.r_quantity ? `${data.r_quantity} suit` : "--"}
                         </td>
-                        <td className="px-6 py-4">{setStatusColor(data.project_status)}</td>
-                        <td className="pl-10 py-4">
+                        <td className="px-6 py-4">
+                          {setStatusColor(data.project_status)}
+                        </td>
+                        <td className="pl-10 py-4 flex items-center gap-3">
                           <Link to={`/dashboard/cutting-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
+                          {!data.bill_generated && (
+                            <button onClick={() => openDeleteModal(data.id)}>
+                              <MdOutlineDelete
+                                size={20}
+                                className="cursor-pointer text-red-500"
+                              />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -309,6 +339,16 @@ const Cutting = () => {
           </ul>
         </nav>
       </section>
+      {/* DELETE MODAL */}
+      {deleteModal && (
+        <DeleteModal
+          title={"Delete Cutting"}
+          message={"Are you sure want to delete this Cutting ?"}
+          onClose={closedeleteModal}
+          Loading={deleteloadings}
+          onConfirm={handleDelete}
+        />
+      )}
     </>
   );
 };
