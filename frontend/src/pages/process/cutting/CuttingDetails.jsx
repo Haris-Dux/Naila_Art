@@ -14,6 +14,7 @@ import {
   getColorsForCurrentEmbroidery,
 } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -22,8 +23,9 @@ const CuttingDetails = () => {
     SingleCutting,
     generateCuttingBillLoading,
     CuttingpdfLoading,
+    updateLoading,
   } = useSelector((state) => state.Cutting);
-  const { color, loading: IsLoading } = useSelector((state) => state.stone);
+  const { color, loading: IsLoading,previousDataByPartyName } = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -31,6 +33,10 @@ const CuttingDetails = () => {
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+  const [processBillModal, setProcessBillModal] = useState(false);
+  const [processBillData, setProcessBillData] = useState({});
+  const [accountData, setAccountData] = useState(null);
+  const [partyValue, setPartyValue] = useState("newParty");
 
   const [cuttingData, setcuttingData] = useState({
     id,
@@ -161,14 +167,12 @@ const CuttingDetails = () => {
       id: id,
     };
 
-    dispatch(Updatecuttingasync(cuttingData))
-      .then(() => {
+    dispatch(Updatecuttingasync(cuttingData)).then((res) => {
+      if (res.payload.success) {
         dispatch(GetSingleCutting(data));
         closeUpdateRecievedModal();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      }
+    });
   };
 
   const handleCompleteCutting = (e) => {
@@ -223,9 +227,34 @@ const CuttingDetails = () => {
     closeGatepassModal();
   };
 
-  const generateBill = () => {
-    const formData = { ...SingleCutting, process_Category: "Cutting" , Cutting_id:SingleCutting.id};
-    dispatch(generateCuttingBillAsync(formData));
+  const generateBill = (e) => {
+    e.preventDefault();
+    const formData = {
+      ...SingleCutting,
+      process_Category: "Cutting",
+      Manual_No: processBillData.Manual_No,
+      additionalExpenditure: processBillData.additionalExpenditure,
+      Cutting_id: SingleCutting.id,
+      Embroidery_id: SingleCutting?.embroidery_Id,
+    };
+    dispatch(generateCuttingBillAsync(formData)).then((res) => {
+      if (res.payload.success) {
+        closeBillModal();
+        setProcessBillData({});
+      }
+    });
+  };
+
+  const openGenerateBillForm = () => {
+    setProcessBillModal(true);
+  };
+
+  const closeBillModal = () => {
+    setProcessBillModal(false);
+  };
+
+  const HandleProcessBillDataChange = (data) => {
+    setProcessBillData(data);
   };
 
   const handleOpenGatePassModal = () => {
@@ -264,6 +293,57 @@ const CuttingDetails = () => {
     );
   }
 
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
+  const handleSelectedRecord = (value) => {
+    const Data = previousDataByPartyName?.accountData.find(
+      (item) => item.partyName === value
+    );
+    setFormData((prev) => ({
+      ...prev,
+      partyName: value,
+    }));
+    if (Data?.partyName === value) {
+      setAccountData(Data?.virtual_account);
+    } else {
+      setAccountData(false);
+    }
+  };
+
+  const togleNameField = (e) => {
+    const value = e.target.value;
+    setPartyValue(value);
+    setFormData((prev) => ({
+      ...prev,
+      partyName: "",
+    }));
+    setAccountData(null);
+  };
+
+  const handleSearchOldData = (value) => {
+    dispatch(getCuttingDataBypartyNameAsync({ partyName: value }));
+  };
+
+  const searchResults = previousDataByPartyName?.stoneData?.map((item) => {
+    return {
+      key: item.partyName,
+      value: item.partyName,
+    };
+  });
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -273,7 +353,6 @@ const CuttingDetails = () => {
             Cutting Details
           </h1>
         </div>
-
         {/* -------------- DETAILS SECTION -------------- */}
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5 border border-gray-300 dark:border-gray-500 bg-[#F7F7F7] dark:bg-gray-800 rounded-md">
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-5 gap-x-2.5 gap-y-5 text-sm">
@@ -316,7 +395,6 @@ const CuttingDetails = () => {
             </div>
           </div>
         </div>
-
         {/* RECEIVED SUITS COLORS */}
         <div className="my-10 px-3 text-gray-800 dark:text-gray-200">
           <label htmlFor="received_quantity" className="font-semibold">
@@ -334,48 +412,37 @@ const CuttingDetails = () => {
             disabled={SingleCutting?.project_status === "Completed"}
           />
         </div>
-
         <div className="flex justify-center items-center">
           {SingleCutting?.project_status !== "Completed" && (
             <button
-              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
+              className={`px-3 py-2 text-sm rounded bg-blue-800 text-white border-none`}
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
             </button>
           )}
         </div>
-
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-6 flex justify-center items-center gap-x-5">
-          {SingleCutting?.project_status !== "Completed" && (
-            <button
-              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-              onClick={handleCompletedClick}
-            >
-              Completed
-            </button>
-          )}
+          {SingleCutting?.project_status !== "Completed" &&
+            SingleCutting?.updated && (
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={handleCompletedClick}
+              >
+                Completed
+              </button>
+            )}
 
-          {SingleCutting?.project_status === "Completed" && !SingleCutting.bill_generated && (
-            <>
-              {generateCuttingBillLoading ? (
-                <button
-                  disabled
-                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              ) : (
-                <button
-                  onClick={generateBill}
-                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              )}
-            </>
-          )}
+          {SingleCutting?.project_status === "Completed" &&
+            !SingleCutting.bill_generated && (
+              <button
+                onClick={openGenerateBillForm}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                Generate Bill
+              </button>
+            )}
 
           {CuttingpdfLoading ? (
             <button
@@ -400,7 +467,6 @@ const CuttingDetails = () => {
             Next Step
           </button>
         </div>
-
         {isOpen && (
           <div
             aria-hidden="true"
@@ -436,21 +502,111 @@ const CuttingDetails = () => {
                 </button>
               </div>
 
+                 {/* ACCOUNT DATA */}
+                 {partyValue === "oldParty" && accountData === false ? (
+                <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                  <p>Calender Data Found But No Bill Generated Yet</p>
+                </div>
+              ) : (
+                <>
+                  {partyValue === "oldParty" && accountData !== null && (
+                    <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Debit</h3>
+                        <h3>{accountData?.total_debit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Credit</h3>
+                        <h3>{accountData?.total_credit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Total Balance</h3>
+                        <h3>{accountData?.total_balance || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Status</h3>
+                        <h3>
+                          {setAccountStatusColor(accountData?.status) ||
+                            "No Status"}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
               {/* ------------- BODY ------------- */}
               <div className="p-4 md:p-5">
                 <form className="space-y-4" onSubmit={handleSubmitstome}>
                   {/* INPUT FIELDS DETAILS */}
                   <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* RADIO BUTTONS */}
+                    <div className="grid grid-cols-2 items-center justify-center gap-1">
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="oldParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                        />
+                        Old Party
+                      </label>
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="newParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                          defaultChecked
+                        />
+                        New Party
+                      </label>
+                    </div>
                     <div>
-                      <input
-                        name="partyName"
-                        type="text"
-                        placeholder="Party Name"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                        value={formData.partyName}
-                        onChange={handleChange}
-                      />
+                      {partyValue === "newParty" ? (
+                        <input
+                          name="partyName"
+                          type="text"
+                          placeholder="Party Name"
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                          value={CuttingData.partyName}
+                          onChange={handleInputChangeCutting}
+                        />
+                      ) : (
+                        <div className="custom-search-box relative">
+                          <ReactSearchBox
+                            key={searchResults?.key}
+                            onSelect={(value) =>
+                              handleSelectedRecord(value?.item?.key)
+                            }
+                            placeholder={
+                              CuttingData.partyName === ""
+                                ? "Search"
+                                : CuttingData.partyName
+                            }
+                            data={searchResults}
+                            onChange={(value) => handleSearchOldData(value)}
+                            inputBorderColor="#D1D5DB"
+                            inputBackgroundColor="#F9FAFB"
+                          />
+                          <style jsx>
+                            {`
+                              .react-search-box-dropdown {
+                                position: absolute;
+                                z-index: 50;
+                                top: 100%;
+                                left: 0;
+                                width: 100%;
+                              }
+                            `}
+                          </style>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <input
@@ -642,6 +798,19 @@ const CuttingDetails = () => {
             message="Are you sure you want to generate gatepass?"
             onConfirm={handleGenerateGatePassPDf}
             onClose={closeGatepassModal}
+          />
+        )}
+
+        {/* PROCESS BILL MODAL */}
+        {processBillModal && (
+          <ProcessBillModal
+            onDataChange={HandleProcessBillDataChange}
+            handleSubmit={generateBill}
+            loading={generateCuttingBillLoading}
+            closeModal={closeBillModal}
+            processBillAmount={Math.round(
+              SingleCutting?.rate * SingleCutting?.r_quantity
+            )}
           />
         )}
       </section>

@@ -6,11 +6,12 @@ import toast from "react-hot-toast";
 const addCutting = "/api/process/cutting/addCutting";
 const UpdateCutting = "/api/process/cutting/updateCutting";
 const getAllCutting = "/api/process/cutting/getAllCutting";
+const deleteCuttingURL = "/api/process/cutting/deleteCutting";
+const getCuttingDataBypartyNameURL =
+  "/api/process/cutting/getCuttingDataBypartyName";
 const getSingleCutting = "/api/process/cutting/getCuttingById";
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
-
-
 
 // CREATE CUTTING ASYNC THUNK
 export const createCutting = createAsyncThunk(
@@ -41,18 +42,15 @@ export const Updatecuttingasync = createAsyncThunk(
 );
 
 // DELETE CUTTING ASYNC THUNK
-export const DeleteShop = createAsyncThunk(
-  "Shop/Delete",
-  async (formData) => {
-    try {
-      const response = await axios.post(DeletShop, formData);
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
+export const DeleteShop = createAsyncThunk("Shop/Delete", async (formData) => {
+  try {
+    const response = await axios.post(DeletShop, formData);
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    toast.error(error.response.data.error);
   }
-);
+});
 
 // GET ALL CUTTING ASYNC THUNK
 export const GetAllCutting = createAsyncThunk("Cutting/Get", async (data) => {
@@ -61,15 +59,15 @@ export const GetAllCutting = createAsyncThunk("Cutting/Get", async (data) => {
       ? `&search=${data?.search}`
       : "";
   try {
-    const response = await axios.post(`${getAllCutting}?&page=${data.page}${searchQuery}`);
- 
+    const response = await axios.post(
+      `${getAllCutting}?&page=${data.page}${searchQuery}`
+    );
+
     return response.data;
   } catch (error) {
-  
     throw new Error(error.response.data.error);
   }
-}
-);
+});
 
 // GET SINGLE CUTTING
 export const GetSingleCutting = createAsyncThunk(
@@ -77,10 +75,9 @@ export const GetSingleCutting = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleCutting, id);
-   
+
       return response.data;
     } catch (error) {
-      
       throw new Error(error.response.data.error);
     }
   }
@@ -141,16 +138,43 @@ export const generateCuttingBillAsync = createAsyncThunk(
   }
 );
 
+// DELETE CUTTING ASYNC THUNK
+export const deleteCuttingAsync = createAsyncThunk(
+  "Cutting/seleteCutting",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteCuttingURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
 
-
+// GET DATA BY PARTY NAME ASYNC THUNK
+export const getCuttingDataBypartyNameAsync = createAsyncThunk(
+  "Cutting/getCuttingDataByPartyName",
+  async (data) => {
+    try {
+      const response = await axios.post(getCuttingDataBypartyNameURL, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
   Cutting: [],
   SingleCutting: {},
   loading: false,
+  updateLoading: false,
   CuttingpdfLoading: false,
   generateCuttingBillLoading: false,
+  previousDataByPartyName: [],
+  deleteloadings: false,
 };
 
 const CuttingSlice = createSlice({
@@ -162,21 +186,37 @@ const CuttingSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-     // CUTTING BILL
-     .addCase(generateCuttingBillAsync.pending, (state, action) => {
-      state.generateCuttingBillLoading = true;
-    })
-    .addCase(generateCuttingBillAsync.fulfilled, (state, action) => {
-      state.generateCuttingBillLoading = false;
-    })
+      // DATA BY PARTY NAME
+      .addCase(getCuttingDataBypartyNameAsync.pending, (state, action) => {
+        state.previousDataByPartyName = true;
+      })
+      .addCase(getCuttingDataBypartyNameAsync.fulfilled, (state, action) => {
+        state.previousDataByPartyName = action.payload;
+      })
 
-    //DOWNLOAD PDF
-    .addCase(generateCuttingGatePssPdfAsync.pending, (state) => {
-      state.CuttingpdfLoading = true;
-    })
-    .addCase(generateCuttingGatePssPdfAsync.fulfilled, (state, action) => {
-      state.CuttingpdfLoading = false;
-    })
+      //DELETE CUTTING 
+      .addCase(deleteCuttingAsync.pending, (state, action) => {
+        state.deleteloadings = true;
+      })
+      .addCase(deleteCuttingAsync.fulfilled, (state, action) => {
+        state.deleteloadings = false;
+      })
+
+      // CUTTING BILL
+      .addCase(generateCuttingBillAsync.pending, (state, action) => {
+        state.generateCuttingBillLoading = true;
+      })
+      .addCase(generateCuttingBillAsync.fulfilled, (state, action) => {
+        state.generateCuttingBillLoading = false;
+      })
+
+      //DOWNLOAD PDF
+      .addCase(generateCuttingGatePssPdfAsync.pending, (state) => {
+        state.CuttingpdfLoading = true;
+      })
+      .addCase(generateCuttingGatePssPdfAsync.fulfilled, (state, action) => {
+        state.CuttingpdfLoading = false;
+      })
 
       // Shop Add ADD CASE
       .addCase(createCutting.pending, (state, action) => {
@@ -184,7 +224,6 @@ const CuttingSlice = createSlice({
       })
       .addCase(createCutting.fulfilled, (state, action) => {
         state.loading = false;
-
       })
 
       // LOGIN ADD CASE
@@ -198,12 +237,11 @@ const CuttingSlice = createSlice({
 
       // FORGET PASSWORD ADD CASE
       .addCase(Updatecuttingasync.pending, (state, action) => {
-        state.loading = true;
+        state.updateLoading = true;
       })
       .addCase(Updatecuttingasync.fulfilled, (state, action) => {
-        state.loading = false;
+        state.updateLoading = false;
       })
-
 
       .addCase(DeleteShop.pending, (state, action) => {
         state.loading = true;
@@ -217,8 +255,8 @@ const CuttingSlice = createSlice({
       })
       .addCase(GetSingleCutting.fulfilled, (state, action) => {
         state.loading = false;
-        state.SingleCutting = action.payload
-      })
+        state.SingleCutting = action.payload;
+      });
   },
 });
 

@@ -10,7 +10,9 @@ const getSingleStone = "/api/process/stone/getStoneById";
 const getColor = '/api/process/stone/getColorsForCurrentEmbroidery'
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
-
+const deleteStoneURL = "/api/process/stone/deleteCutting";
+const getStoneDataBypartyNameURL =
+  "/api/process/stone/getCuttingDataBypartyName";
 
 //CREATE ASYNC THUNK
 export const createStone = createAsyncThunk(
@@ -139,6 +141,34 @@ export const getColorsForCurrentEmbroidery = createAsyncThunk(
   }
 );
 
+// DELETE STONE ASYNC THUNK
+export const deleteStoneAsync = createAsyncThunk(
+  "Stone/deleteStone",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteStoneURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+// GET STONE DATA BY PARTY NAME ASYNC THUNK
+export const getStoneDataBypartyNameAsync = createAsyncThunk(
+  "Stone/getStoneDataByPartyName",
+  async (data) => {
+    try {
+      const response = await axios.post(getCuttingDataBypartyNameAsync, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+);
+
+
 
 
 // INITIAL STATE
@@ -149,6 +179,8 @@ const initialState = {
   loading: false,
   StonerpdfLoading: false,
   StnoneBillLoading: false,
+  previousDataByPartyName: [],
+  deleteloadings: false,
 };
 
 const StoneSlice = createSlice({
@@ -159,6 +191,22 @@ const StoneSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+       // DATA BY PARTY NAME
+       .addCase(getStoneDataBypartyNameAsync.pending, (state, action) => {
+        state.previousDataByPartyName = true;
+      })
+      .addCase(getStoneDataBypartyNameAsync.fulfilled, (state, action) => {
+        state.previousDataByPartyName = action.payload;
+      })
+
+      // DELETE STONE
+      .addCase(deleteStoneAsync.pending, (state, action) => {
+        state.deleteloadings = true;
+      })
+      .addCase(deleteStoneAsync.fulfilled, (state, action) => {
+        state.deleteloadings = false;
+      })
 
     // STONE BILL
     .addCase(generateStoneBillAsync.pending, (state, action) => {
