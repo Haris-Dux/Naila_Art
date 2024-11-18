@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   generateStitchingBillAsync,
@@ -9,6 +9,7 @@ import {
 } from "../../../features/stitching";
 
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 
 const StitchingDetails = () => {
   const { id } = useParams();
@@ -24,7 +25,8 @@ const StitchingDetails = () => {
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
-  const [adddInStock, setAddInStock] = useState(false);
+  const [processBillModal, setProcessBillModal] = useState(false);
+  const [processBillData, setProcessBillData] = useState({});
 
   const [formData, setFormData] = useState({
     id: id,
@@ -48,7 +50,7 @@ const StitchingDetails = () => {
             cost_price: item.cost_price,
             sale_price: item.sale_price,
             category: item.category,
-            color: item.color
+            color: item.color,
           })) || [],
         dupatta_category:
           SingleStitching.dupatta_category?.map((item) => ({
@@ -57,12 +59,11 @@ const StitchingDetails = () => {
             cost_price: item.cost_price,
             sale_price: item.sale_price,
             category: item.category,
-            color: item.color
+            color: item.color,
           })) || [],
       });
     }
   }, [SingleStitching]);
-
 
   const handleInputChange = (category, index, field, value) => {
     setFormData((prevState) => ({
@@ -140,9 +141,32 @@ const StitchingDetails = () => {
     closeGatepassModal();
   };
 
-  const generateBill = () => {
-    const formData = { ...SingleStitching, process_Category: "Stitching" ,Stitching_id:SingleStitching?.id };
-    dispatch(generateStitchingBillAsync(formData));
+  const generateBill = (e) => {
+    e.preventDefault();
+    const formData = {
+      ...SingleStitching,
+      process_Category: "Stitching",
+      Stitching_id: SingleStitching?.id,
+      Manual_No: processBillData.Manual_No,
+      additionalExpenditure: processBillData.additionalExpenditure,
+
+    };
+    dispatch(generateStitchingBillAsync(formData)).then(() => {
+      closeBillModal();
+      setProcessBillData({});
+    });
+  };
+
+  const openGenerateBillForm = () => {
+    setProcessBillModal(true);
+  };
+
+  const closeBillModal = () => {
+    setProcessBillModal(false);
+  };
+
+  const HandleProcessBillDataChange = (data) => {
+    setProcessBillData(data);
   };
 
   if (loading) {
@@ -159,7 +183,7 @@ const StitchingDetails = () => {
         </div>
       </section>
     );
-  }
+  };
 
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);
@@ -170,9 +194,6 @@ const StitchingDetails = () => {
     document.body.style.overflow = "auto";
   };
 
-  const viewAddInStockFields = () => {
-    setAddInStock(!adddInStock);
-  };
 
   return (
     <>
@@ -206,7 +227,13 @@ const StitchingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium ">Project Status:</span>
-              <span className={`${SingleStitching.project_status === "Pending" ? "text-yellow-300" : "text-green-600"}`}>
+              <span
+                className={`${
+                  SingleStitching.project_status === "Pending"
+                    ? "text-yellow-300"
+                    : "text-green-600"
+                }`}
+              >
                 {SingleStitching?.project_status}
               </span>
             </div>
@@ -214,7 +241,7 @@ const StitchingDetails = () => {
               <span className="font-medium">Date:</span>
               <span>
                 {" "}
-                {new Date(SingleStitching?.date).toLocaleDateString()}
+                {SingleStitching?.date}
               </span>
             </div>
             <div className="box">
@@ -233,27 +260,11 @@ const StitchingDetails = () => {
               <span className="font-medium">L.Category:</span>
               <span> {SingleStitching?.lace_category}</span>
             </div>
-            {SingleStitching &&
-              SingleStitching?.suits_category?.length > 0 &&
-              SingleStitching?.project_status !== "Completed" && (
-                <div className="box flex items-start justify-start">
-                  <span className="font-medium col-span-2">Stock Fields :</span>
-                  {/* Toggle Switch */}
-                  <label className="relative ml-1 inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      onChange={viewAddInStockFields}
-                      checked={adddInStock}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>{" "}
-                  </label>
-                </div>
-              )}
           </div>
         </div>
 
         {/* RECEIVED STOCK SECTION */}
+
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
             <div className="box_1">
@@ -289,55 +300,11 @@ const StitchingDetails = () => {
                             )
                           }
                         />
-
-                        {/* COST PRICE SALE PRICE */}
-                        {(adddInStock &&
-                          SingleStitching?.project_status === "Pending") ||
-                        (!adddInStock &&
-                          SingleStitching?.project_status === "Completed") ? (
-                          <>
-                            <input
-                              type="number"
-                              placeholder="C.P"
-                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                              value={
-                                formData?.suits_category[index]?.cost_price ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "suits_category",
-                                  index,
-                                  "cost_price",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <input
-                              type="number"
-                              placeholder="S.P"
-                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                              value={
-                                formData?.suits_category[index]?.sale_price ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "suits_category",
-                                  index,
-                                  "sale_price",
-                                  e.target.value
-                                )
-                              }
-                            />{" "}
-                          </>
-                        ) : (
-                          ""
-                        )}
                       </div>
                     ))}
                   </div>
                 )}
+
                 {SingleStitching?.dupatta_category?.length > 0 && (
                   <div className="details space-y-2">
                     <h3 className="mb-4 font-semibold text-lg">
@@ -390,34 +357,25 @@ const StitchingDetails = () => {
 
         {/* BUTTONS BAR */}
         <div className="mt-6 flex justify-center items-center gap-x-5">
-          {SingleStitching?.project_status !== "Completed" && (
-            <button
-              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-              onClick={handleCompletedClick}
-            >
-              Completed
-            </button>
-          )}
+          {SingleStitching?.project_status !== "Completed" &&
+            SingleStitching?.updated && (
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={handleCompletedClick}
+              >
+                Completed
+              </button>
+            )}
 
-          {SingleStitching?.project_status === "Completed" && !SingleStitching?.bill_generated && (
-            <>
-              {StitchingBillLoading ? (
-                <button
-                  disabled
-                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              ) : (
-                <button
-                  onClick={generateBill}
-                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              )}
-            </>
-          )}
+          {SingleStitching?.project_status === "Completed" &&
+            !SingleStitching?.bill_generated && (
+              <button
+                onClick={openGenerateBillForm}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                Generate Bill
+              </button>
+            )}
           {StitchingpdfLoading ? (
             <button
               disabled
@@ -433,6 +391,14 @@ const StitchingDetails = () => {
               Generate Gate Pass
             </button>
           )}
+          {SingleStitching?.project_status === "Completed" &&
+              <Link
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                to={`/dashboard/packing-details/${SingleStitching?.id}`}
+              >
+                Packing
+              </Link>
+            }
         </div>
 
         {isUpdateReceivedConfirmOpen && (
@@ -441,12 +407,13 @@ const StitchingDetails = () => {
             message="Are you sure you want to update the received items?"
             onConfirm={handleSubmitstitching}
             onClose={closeUpdateRecievedModal}
+            updateStitchingLoading={updateStitchingLoading}
           />
         )}
 
         {isCompletedConfirmOpen && (
           <ConfirmationModal
-          updateStitchingLoading={updateStitchingLoading}
+            updateStitchingLoading={updateStitchingLoading}
             title="Confirm Complete"
             message="Are you sure you want to Complete?"
             onConfirm={handleCompletestitching}
@@ -462,9 +429,79 @@ const StitchingDetails = () => {
             onClose={closeGatepassModal}
           />
         )}
+
       </section>
+
+      {/* PROCESS BILL MODAL */}
+      {processBillModal && (
+        <ProcessBillModal
+          onDataChange={HandleProcessBillDataChange}
+          handleSubmit={generateBill}
+          loading={StitchingBillLoading}
+          closeModal={closeBillModal}
+          processBillAmount={Math.round(
+            SingleStitching?.rate * SingleStitching?.r_quantity
+          )}
+        />
+      )}
     </>
   );
-};
+}
 
 export default StitchingDetails;
+
+
+
+
+
+
+
+
+
+
+
+//TO REUSE 
+//  {/* COST PRICE SALE PRICE */}
+//  {(adddInStock &&
+//   SingleStitching?.project_status === "Pending") ||
+// (!adddInStock &&
+//   SingleStitching?.project_status === "Completed") ? (
+//   <>
+//     <input
+//       type="number"
+//       placeholder="C.P"
+//       className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+//       value={
+//         formData?.suits_category[index]?.cost_price ||
+//         ""
+//       }
+//       onChange={(e) =>
+//         handleInputChange(
+//           "suits_category",
+//           index,
+//           "cost_price",
+//           e.target.value
+//         )
+//       }
+//     />
+//     <input
+//       type="number"
+//       placeholder="S.P"
+//       className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+//       value={
+//         formData?.suits_category[index]?.sale_price ||
+//         ""
+//       }
+//       onChange={(e) =>
+//         handleInputChange(
+//           "suits_category",
+//           index,
+//           "sale_price",
+//           e.target.value
+//         )
+//       }
+//     />{" "}
+//   </>
+// ) : (
+//   ""
+// )}

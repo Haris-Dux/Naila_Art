@@ -8,12 +8,18 @@ import {
 } from "../../../features/stoneslice";
 import { useSelector, useDispatch } from "react-redux";
 import { FiPlus } from "react-icons/fi";
-import { createStitching } from "../../../features/stitching";
+import {
+  createStitching,
+  getStitchingDataBypartyNameAsync,
+} from "../../../features/stitching";
 
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import { GetAllLaceForEmroidery } from "../../../features/InStockSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import toast from "react-hot-toast";
+import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import moment from "moment-timezone";
+import ReactSearchBox from "react-search-box";
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +28,19 @@ const StonesDetails = () => {
   const { LaceForEmroidery } = useSelector((state) => state.InStock);
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
-  const { loading: IsLoading } = useSelector((state) => state.stitching);
+  const { loading: IsLoading, previousDataByPartyName } = useSelector(
+    (state) => state.stitching
+  );
 
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
+  const [processBillModal, setProcessBillModal] = useState(false);
+  const [processBillData, setProcessBillData] = useState({});
+  const [accountData, setAccountData] = useState(null);
+  const [partyValue, setPartyValue] = useState("newParty");
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -101,9 +114,10 @@ const StonesDetails = () => {
       suits_category: [initialRow],
       dupatta_category: [initialRow],
       lace_category: "",
-      date: "",
+      date: today,
+      partytype:partyValue
     });
-  }, [SingleStone]);
+  }, [SingleStone,partyValue]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -200,6 +214,7 @@ const StonesDetails = () => {
       ? 0
       : parseInt(value);
   };
+
   const calculateTotalQuantity = () => {
     let totalQuantity = 0;
     if (formData.suits_category && formData.dupatta_category) {
@@ -293,15 +308,25 @@ const StonesDetails = () => {
     const updatedStoneData = {
       ...StoneData,
       category_quantity: updatedCategoryQuantity,
+      totalQuantity: SingleStone?.category_quantity?.reduce(
+        (total, item) => total + item.quantity,
+        0
+      ),
     };
 
-    dispatch(UpdateStoneAsync(updatedStoneData)).then(() => {
-      const data = {
-        id: id,
-      };
-      dispatch(GetSingleStone(data));
-      closeUpdateRecievedModal();
-    });
+    dispatch(UpdateStoneAsync(updatedStoneData))
+      .then((res) => {
+        if (res.payload.success) {
+          const data = {
+            id: id,
+          };
+          dispatch(GetSingleStone(data));
+          closeUpdateRecievedModal();
+        }
+      })
+      .catch(() => {
+        closeUpdateRecievedModal();
+      });
   };
 
   const handleCompleteStone = (e) => {
@@ -343,6 +368,7 @@ const StonesDetails = () => {
       category_quantity: updatedCategoryQuantity,
     });
   };
+
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
@@ -389,21 +415,25 @@ const StonesDetails = () => {
   );
   const T_QuantityForBill = Front_category?.recieved_Data?.r_total;
 
-  const generateBill = () => {
-    if (
-      !T_QuantityForBill || T_QuantityForBill === 0
-    ) {
+  const generateBill = (e) => {
+    e.preventDefault();
+    if (!T_QuantityForBill || T_QuantityForBill === 0) {
       toast.error("Invalid Return Quantity For Category Front");
       return;
-    } 
-      const formData = {
-        ...SingleStone,
-        r_quantity: T_QuantityForBill,
-        process_Category: "Stone",
-        Stone_id:SingleStone.id
-      };
-      dispatch(generateStoneBillAsync(formData));
-    
+    }
+    const formData = {
+      ...SingleStone,
+      r_quantity: T_QuantityForBill,
+      process_Category: "Stone",
+      Stone_id: SingleStone.id,
+      Manual_No: processBillData.Manual_No,
+      additionalExpenditure: processBillData.additionalExpenditure,
+    };
+    dispatch(generateStoneBillAsync(formData)).then((res) => {
+      if (res.payload.success) {
+        closeBillModal();
+      }
+    });
   };
 
   const setStatusColor = (status) => {
@@ -441,6 +471,73 @@ const StonesDetails = () => {
     setisGenerateGatePassOpen(false);
     document.body.style.overflow = "auto";
   };
+
+  const openGenerateBillForm = () => {
+    setProcessBillModal(true);
+  };
+
+  const closeBillModal = () => {
+    setProcessBillModal(false);
+    setBilldata({
+      Manual_No: "",
+      additionalExpenditure: "",
+    });
+  };
+
+  const HandleProcessBillDataChange = (data) => {
+    setProcessBillData(data);
+  };
+
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
+  const handleSelectedRecord = (value) => {
+    const Data = previousDataByPartyName?.accountData.find(
+      (item) => item.partyName === value
+    );
+    setFormData((prev) => ({
+      ...prev,
+      partyName: value,
+    }));
+    if (Data?.partyName === value) {
+      setAccountData(Data?.virtual_account);
+    } else {
+      setAccountData(false);
+    }
+  };
+
+  const togleNameField = (e) => {
+    const value = e.target.value;
+    setPartyValue(value);
+    setFormData((prev) => ({
+      ...prev,
+      partyName: "",
+    }));
+    setAccountData(null);
+  };
+
+  const handleSearchOldData = (value) => {
+    dispatch(getStitchingDataBypartyNameAsync({ partyName: value }));
+  };
+
+  const searchResults = previousDataByPartyName?.stitchingData?.map((item) => {
+    return {
+      key: item.partyName,
+      value: item.partyName,
+    };
+  });
 
   return (
     <>
@@ -524,11 +621,13 @@ const StonesDetails = () => {
                     key={item.id}
                     className="line my-3 flex justify-between items-center gap-x-6 "
                   >
-                    <span className="w-16 font-semibold">{item.category}</span>
-                    <span className="font-medium">({item.color})</span>
+                    <span className="w-[7rem] font-bold text-sm">
+                      {item.category}
+                    </span>
+                    <span className="w-[7rem] text-sm">({item.color})</span>
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[3rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.first}
                       readOnly={SingleStone.project_status === "Completed"}
                       onChange={(e) =>
@@ -537,7 +636,7 @@ const StonesDetails = () => {
                     />
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[3rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.second}
                       onChange={(e) =>
                         handlstoneChange(index, "second", e.target.value)
@@ -546,7 +645,7 @@ const StonesDetails = () => {
                     />
                     <input
                       type="number"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[3rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={item.third}
                       onChange={(e) =>
                         handlstoneChange(index, "third", e.target.value)
@@ -555,7 +654,7 @@ const StonesDetails = () => {
                     />
                     <input
                       type="text"
-                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[6.5rem] px-1 rounded-sm text-black  dark:text-gray-800"
+                      className="bg-[#EEEEEE] py-1 border-gray-300 w-[4rem] px-1 rounded-sm text-black  dark:text-gray-800"
                       value={isNaN(sum) ? 0 : sum}
                       readOnly
                     />
@@ -597,33 +696,24 @@ const StonesDetails = () => {
 
         {/* -------------- BUTTONS BAR -------------- */}
         <div className="mt-6 flex justify-center items-center gap-x-5">
-          {SingleStone?.project_status !== "Completed" && (
-            <button
-              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white  dark:text-gray-800"
-              onClick={handleCompletedClick}
-            >
-              Completed
-            </button>
-          )}
-          {SingleStone?.project_status === "Completed" && !SingleStone?.bill_generated && (
-            <>
-              {StnoneBillLoading ? (
-                <button
-                  disabled
-                  className="px-4 py-2.5 text-sm rounded bg-gray-400 cursor-progress dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              ) : (
-                <button
-                  onClick={generateBill}
-                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                >
-                  Generate Bill
-                </button>
-              )}
-            </>
-          )}
+          {SingleStone?.project_status !== "Completed" &&
+            SingleStone?.updated && (
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white  dark:text-gray-800"
+                onClick={handleCompletedClick}
+              >
+                Completed
+              </button>
+            )}
+          {SingleStone?.project_status === "Completed" &&
+            !SingleStone?.bill_generated && (
+              <button
+                onClick={openGenerateBillForm}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                Generate Bill
+              </button>
+            )}
           {StonerpdfLoading ? (
             <button
               disabled
@@ -683,11 +773,115 @@ const StonesDetails = () => {
               </button>
             </div>
 
+            {/* ACCOUNT DATA */}
+            {partyValue === "oldParty" && accountData === false ? (
+              <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                <p>Calender Data Found But No Bill Generated Yet</p>
+              </div>
+            ) : (
+              <>
+                {partyValue === "oldParty" && accountData !== null && (
+                  <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Debit</h3>
+                      <h3>{accountData?.total_debit || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal">Total Credit</h3>
+                      <h3>{accountData?.total_credit || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Total Balance</h3>
+                      <h3>{accountData?.total_balance || 0}</h3>
+                    </div>
+                    <div className="box text-center">
+                      <h3 className="pb-1 font-normal ">Status</h3>
+                      <h3>
+                        {setAccountStatusColor(accountData?.status) ||
+                          "No Status"}
+                      </h3>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
               <form className="space-y-4" onSubmit={handleSubmitstitching}>
                 {/* INPUT FIELDS DETAILS */}
                 <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+                  {/* RADIO BUTTONS */}
+                  <div className="grid grid-cols-2 items-center justify-center gap-1">
+                    <label className="col-span-1 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="oldParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                      />
+                      Old Party
+                    </label>
+                    <label className="col-span-1 ">
+                      <input
+                        type="radio"
+                        name="partyType"
+                        value="newParty"
+                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        onChange={togleNameField}
+                        required
+                        defaultChecked
+                      />
+                      New Party
+                    </label>
+                  </div>
+
+                  {/* PARTY NAME */}
+                  <div>
+                    {partyValue === "newParty" ? (
+                      <input
+                        name="partyName"
+                        type="text"
+                        placeholder="Party Name"
+                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                        value={formData.partyName}
+                        onChange={handleChange}
+                      />
+                    ) : (
+                      <div className="custom-search-box relative">
+                        <ReactSearchBox
+                          key={searchResults?.key}
+                          onSelect={(value) =>
+                            handleSelectedRecord(value?.item?.key)
+                          }
+                          placeholder={
+                            formData.partyName === ""
+                              ? "Search"
+                              : formData.partyName
+                          }
+                          data={searchResults}
+                          onChange={(value) => handleSearchOldData(value)}
+                          inputBorderColor="#D1D5DB"
+                          inputBackgroundColor="#F9FAFB"
+                        />
+                        <style jsx>
+                          {`
+                            .react-search-box-dropdown {
+                              position: absolute;
+                              z-index: 50;
+                              top: 100%;
+                              left: 0;
+                              width: 100%;
+                            }
+                          `}
+                        </style>
+                      </div>
+                    )}
+                  </div>
+
                   {/* SERIAL NO */}
                   <div>
                     <input
@@ -720,25 +914,12 @@ const StonesDetails = () => {
                   <div>
                     <input
                       name="date"
-                      type="date"
+                      type="text"
                       placeholder="Date"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       value={formData.date}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  {/* PARTY NAME */}
-                  <div>
-                    <input
-                      name="partyName"
-                      type="text"
-                      placeholder="Party Name"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData?.partyName}
-                      onChange={handleChange}
+                      readOnly
                     />
                   </div>
 
@@ -1024,6 +1205,19 @@ const StonesDetails = () => {
           message="Are you sure you want to generate gatepass?"
           onConfirm={handleGenerateGatePassPDf}
           onClose={closeGatepassModal}
+        />
+      )}
+
+      {/* PROCESS BILL MODAL */}
+      {processBillModal && (
+        <ProcessBillModal
+          onDataChange={HandleProcessBillDataChange}
+          handleSubmit={generateBill}
+          loading={StnoneBillLoading}
+          closeModal={closeBillModal}
+          processBillAmount={Math.round(
+            SingleStone?.rate * SingleStone?.r_quantity
+          )}
         />
       )}
     </>

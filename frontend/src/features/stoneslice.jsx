@@ -10,9 +10,9 @@ const getSingleStone = "/api/process/stone/getStoneById";
 const getColor = '/api/process/stone/getColorsForCurrentEmbroidery'
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
-const deleteStoneURL = "/api/process/stone/deleteCutting";
+const deleteStoneURL = "/api/process/stone/deleteStone";
 const getStoneDataBypartyNameURL =
-  "/api/process/stone/getCuttingDataBypartyName";
+  "/api/process/stone/getStoneDataBypartyName";
 
 //CREATE ASYNC THUNK
 export const createStone = createAsyncThunk(
@@ -160,7 +160,7 @@ export const getStoneDataBypartyNameAsync = createAsyncThunk(
   "Stone/getStoneDataByPartyName",
   async (data) => {
     try {
-      const response = await axios.post(getCuttingDataBypartyNameAsync, data);
+      const response = await axios.post(getStoneDataBypartyNameURL, data);
       return response.data;
     } catch (error) {
       throw new Error(error);
@@ -241,15 +241,6 @@ const StoneSlice = createSlice({
         state.loading = false;
         state.Stone = action.payload;
       })
-
-      // FORGET PASSWORD ADD CASE
-      .addCase(UpdateStoneAsync.pending, (state, action) => {
-        state.loading = true;
-      })
-      .addCase(UpdateStoneAsync.fulfilled, (state, action) => {
-        state.loading = false;
-      })
-
 
       .addCase(GetSingleStone.pending, (state, action) => {
         state.loading = true;

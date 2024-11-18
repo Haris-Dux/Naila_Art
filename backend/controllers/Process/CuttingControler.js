@@ -54,6 +54,7 @@ export const addCutting = async (req, res, next) => {
       rate,
       serial_No,
       T_Quantity,
+      Available_Quantity:T_Quantity,
       date,
       design_no,
     });
@@ -169,7 +170,7 @@ export const deleteCutting = async (req, res, next) => {
     if (!data) throw new Error("Cutting Not Found");
     if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This Cutting");
     const embData = await EmbroideryModel.findById(data.embroidery_Id);
-    if (!embData) throw new Error("embroidery Data not Found For this Cutting");
+    if (!embData) throw new Error("Embroidery Data not Found For this Cutting");
     embData.next_steps.cutting = false;
     await embData.save();
     return res

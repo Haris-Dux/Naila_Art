@@ -7,10 +7,15 @@ const addStitching = "/api/process/Stitching/addStitching";
 const UpdateStitching = "/api/process/Stitching/updateStitching";
 const getAllStitching = "/api/process/Stitching/getAllStitching";
 const getSingleStitching = "/api/process/Stitching/getStitchingById";
-const getStitchingByEmbroideryId = '/api/process/stitching/getStitchingByEmbroideryId'
-const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction"
-const generateProcessBillURL = "/api/processBillRouter/generateProcessBill"
-
+const getStitchingByEmbroideryId =
+  "/api/process/stitching/getStitchingByEmbroideryId";
+const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
+const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
+const deleteStitchingURL = "/api/process/Stitching/deleteStitching";
+const addInStockFromPackagingURL =
+  "/api/process/Stitching/addInStockFromPackaging";
+const getStitchingDataBypartyNameURL =
+  "/api/process/Stitching/getStitchingDataBypartyName";
 
 //CREATE ASYNC THUNK
 export const createStitching = createAsyncThunk(
@@ -41,20 +46,23 @@ export const UpdateStitchingAsync = createAsyncThunk(
 );
 
 // VERIFY ASYNC THUNK
-export const GetAllStitching = createAsyncThunk("Stitching/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-  try {
-    // const response = await axios.post(getAllStitching, formData);
-    const response = await axios.post(`${getAllStitching}?&page=${data.page}${searchQuery}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response.data.error);
-
+export const GetAllStitching = createAsyncThunk(
+  "Stitching/Get",
+  async (data) => {
+    const searchQuery =
+      data?.search !== undefined && data?.search !== null
+        ? `&search=${data?.search}`
+        : "";
+    try {
+      // const response = await axios.post(getAllStitching, formData);
+      const response = await axios.post(
+        `${getAllStitching}?&page=${data.page}${searchQuery}`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
   }
-}
 );
 
 export const GetSingleStitching = createAsyncThunk(
@@ -62,11 +70,10 @@ export const GetSingleStitching = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getSingleStitching, id);
-    
+
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
-
     }
   }
 );
@@ -76,11 +83,10 @@ export const getStitchingByEmbroidery = createAsyncThunk(
   async (id) => {
     try {
       const response = await axios.post(getStitchingByEmbroideryId, id);
-      
+
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
-
     }
   }
 );
@@ -140,18 +146,59 @@ export const generateStitchingBillAsync = createAsyncThunk(
   }
 );
 
+// DELETE Stitching ASYNC THUNK
+export const deleteStitchingAsync = createAsyncThunk(
+  "Stitching/deleteStitching",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteStitchingURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+// GET Stitching DATA BY PARTY NAME ASYNC THUNK
+export const getStitchingDataBypartyNameAsync = createAsyncThunk(
+  "Stitching/getStitchingDataByPartyName",
+  async (data) => {
+    try {
+      const response = await axios.post(getStitchingDataBypartyNameURL, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+);
+
+// ADD IN STOCK
+export const addInStockFromPackagingAsync = createAsyncThunk(
+  "Stitching/addInStockFromPackaging",
+  async (formData) => {
+    try {
+      const response = await axios.post(addInStockFromPackagingURL, formData);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
-
   Stitching: [],
   SingleStitching: {},
   stitchingEmbroidery: {},
   loading: false,
   updateStitchingLoading: false,
-  StitchingpdfLoading:false,
-  StitchingBillLoading:false
-
+  StitchingpdfLoading: false,
+  StitchingBillLoading: false,
+  previousDataByPartyName: [],
+  deleteloadings: false,
+  addInStockLoading: false,
 };
 
 const StitchingSlice = createSlice({
@@ -163,15 +210,37 @@ const StitchingSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-       
-       .addCase(generateStitchingBillAsync.pending, (state, action) => {
+      // DATA BY PARTY NAME
+      .addCase(getStitchingDataBypartyNameAsync.pending, (state, action) => {
+        state.previousDataByPartyName = true;
+      })
+      .addCase(getStitchingDataBypartyNameAsync.fulfilled, (state, action) => {
+        state.previousDataByPartyName = action.payload;
+      })
+
+      // ADD IN STOCK FROM STITCHING
+      .addCase(addInStockFromPackagingAsync.pending, (state, action) => {
+        state.addInStockLoading = true;
+      })
+      .addCase(addInStockFromPackagingAsync.fulfilled, (state, action) => {
+        state.addInStockLoading = false;
+      })
+
+      // DELETE STITCHING
+      .addCase(deleteStitchingAsync.pending, (state, action) => {
+        state.deleteloadings = true;
+      })
+      .addCase(deleteStitchingAsync.fulfilled, (state, action) => {
+        state.deleteloadings = false;
+      })
+
+      .addCase(generateStitchingBillAsync.pending, (state, action) => {
         state.StitchingBillLoading = true;
       })
       .addCase(generateStitchingBillAsync.fulfilled, (state, action) => {
         state.StitchingBillLoading = false;
       })
 
-   
       .addCase(generateStitchingGatePssPdfAsync.pending, (state) => {
         state.StitchingpdfLoading = true;
       })
@@ -179,16 +248,13 @@ const StitchingSlice = createSlice({
         state.StitchingpdfLoading = false;
       })
 
-      
       .addCase(createStitching.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(createStitching.fulfilled, (state, action) => {
         state.loading = false;
-
       })
 
-      
       .addCase(GetAllStitching.pending, (state, action) => {
         state.loading = true;
       })
@@ -197,7 +263,6 @@ const StitchingSlice = createSlice({
         state.Stitching = action.payload;
       })
 
-      
       .addCase(UpdateStitchingAsync.pending, (state, action) => {
         state.updateStitchingLoading = true;
       })
@@ -205,13 +270,12 @@ const StitchingSlice = createSlice({
         state.updateStitchingLoading = false;
       })
 
-
       .addCase(GetSingleStitching.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(GetSingleStitching.fulfilled, (state, action) => {
         state.loading = false;
-        state.SingleStitching = action.payload
+        state.SingleStitching = action.payload;
       })
 
       .addCase(getStitchingByEmbroidery.pending, (state, action) => {
@@ -219,11 +283,8 @@ const StitchingSlice = createSlice({
       })
       .addCase(getStitchingByEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
-        state.stitchingEmbroidery = action.payload
-      })
-
-
-
+        state.stitchingEmbroidery = action.payload;
+      });
   },
 });
 

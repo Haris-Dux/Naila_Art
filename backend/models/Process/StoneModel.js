@@ -26,40 +26,40 @@ const category_schema = new mongoose.Schema({
     first: {
       quantity: {
         type: Number,
-        default: null,
+        default: 0,
       },
       date: {
         type: String,
-        default: null,
+        default: '',
       },
     },
     second: {
         quantity: {
           type: Number,
-          default: null,
+          default: 0,
         },
         date: {
           type: String,
-          default: null,
+          default: '',
         },
       },
     third: {
         quantity: {
           type: Number,
-          default: null,
+          default: 0,
         },
         date: {
           type: String,
-          default: null,
+          default: '',
         },
       },
     r_total: {
       type: Number,
-      default: null,
+      default: 0,
     },
     r_date: {
         type: String,
-        default: null,
+        default: '',
       },
   },
 },{ timestamps: true });
@@ -82,7 +82,7 @@ const stoneSchema = new mongoose.Schema(
       required: [true, "Design no value required"],
     },
     date: {
-      type: Date,
+      type: String,
       required: [true, "date required"],
     },
     partyName: {
