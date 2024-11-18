@@ -1,6 +1,7 @@
 import express from "express";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 import {
+  addInStockFromPackaging,
   addStitching,
   deleteStitching,
   getAllStitching,
@@ -13,7 +14,7 @@ import {
 const stitchingRouter = express.Router();
 
 stitchingRouter.post("/addStitching", superAdminAndAdminOnly, addStitching);
-stitchingRouter.delete("/deleteStitching", superAdminAndAdminOnly, deleteStitching);
+stitchingRouter.post("/deleteStitching", superAdminAndAdminOnly, deleteStitching);
 stitchingRouter.post(
   "/getAllStitching",
   superAdminAndAdminOnly,
@@ -38,6 +39,11 @@ stitchingRouter.post(
   "/getStitchingDataBypartyName",
   superAdminAndAdminOnly,
   getStitchingDataBypartyName
+);
+stitchingRouter.post(
+  "/addInStockFromPackaging",
+  superAdminAndAdminOnly,
+  addInStockFromPackaging
 );
 
 export default stitchingRouter;

@@ -67,6 +67,24 @@ const ProcessDetails = () => {
       }
     });
   };
+  let category_path = "";
+  switch (true) {
+    case category === "Embroidery":
+      category_path = 'embroidery-details';
+      break;
+      case category === "Calender": 
+        category_path = 'calendar-details';
+      break;
+      case category === "Cutting":
+        category_path = 'cutting-details'
+      break;
+      case category === "Stone":
+        category_path = 'stones-details'
+      break;
+      case category === "Stitching":
+        category_path = 'stitching-details'
+      break;
+  };
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
@@ -180,7 +198,7 @@ const ProcessDetails = () => {
                         {data.orderId !== "" ? (
                           <td className="pl-10 py-4 flex items-center  gap-3">
                             <Link
-                              to={`/dashboard/embroidery-details/${data.orderId}`}
+                              to={`/dashboard/${category_path}/${data.orderId}`}
                             >
                               <FaEye size={20} className="cursor-pointer" />
                             </Link>

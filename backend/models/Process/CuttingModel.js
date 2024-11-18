@@ -45,6 +45,10 @@ const cuttingSchema = new mongoose.Schema({
         type: Boolean,
         default: false
       },
+      Available_Quantity: {
+        type: Number,
+        default:0
+      },
 
 }, { timestamps: true });
 

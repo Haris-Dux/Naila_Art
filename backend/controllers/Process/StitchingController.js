@@ -7,6 +7,7 @@ import { addBPair } from "./B_PairController.js";
 import moment from "moment-timezone";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -39,15 +40,6 @@ export const addStitching = async (req, res, next) => {
         "Quantity",
       ];
 
-      if (partytype === "newParty") {
-        const checkExistingStitching = await StitchingModel.findOne({
-          partyName: { $regex: partyName, $options: "i" },
-        }).session(session);
-        if (checkExistingStitching) {
-          throw new Error("Party Name Already In Use");
-        }
-      };
-
       const missingFields = [];
       requiredFields.forEach((field) => {
         if (req.body[field] === undefined || req.body[field] === null) {
@@ -75,6 +67,16 @@ export const addStitching = async (req, res, next) => {
           throw new Error(`Missing Fields ${field}`);
         }
       });
+
+      if (partytype === "newParty") {
+        const checkExistingStitching = await StitchingModel.findOne({
+          partyName: { $regex: partyName, $options: "i" },
+        }).session(session);
+        if (checkExistingStitching) {
+          throw new Error("Party Name Already In Use");
+        }
+      }
+
       const lace = await LaceModel.findOne({ category: lace_category }).session(
         session
       );
@@ -106,12 +108,13 @@ export const addStitching = async (req, res, next) => {
         ],
         { session }
       );
+      //UPDATE MAIN EMBROIDERY NextStep
+      const mainEmbroidery = await EmbroideryModel.findById(
+        embroidery_Id
+      ).session(session);
+      mainEmbroidery.next_steps.stitching = true;
+      await mainEmbroidery.save({ session });
     });
-
-        //UPDATE MAIN EMBROIDERY NextStep
-        const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
-        mainEmbroidery.next_steps.stitching = true;
-        await mainEmbroidery.save({session});
 
     return res
       .status(200)
@@ -170,6 +173,139 @@ export const getStitchingByEmbroideryId = async (req, res, next) => {
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateStitching = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id, suits_category, dupatta_category, project_status } = req.body;
+      if (!id) throw new Error("Id not Found");
+      const stitching = await StitchingModel.findById(id).session(session);
+      if (!stitching) throw new Error("Stitching not Found");
+
+      //UPDATING PROJECT STATUS
+      if (project_status === "Completed") {
+        stitching.project_status = project_status;
+        let salePrice = 0;
+        if (suits_category) {
+          for (const item of suits_category) {
+            salePrice = item.sale_price;
+          }
+
+          const bpair_Quantity = stitching.Quantity - stitching.r_quantity;
+          //ADD BPAIR
+          if (bpair_Quantity > 0) {
+            const b_pairData = {
+              b_PairCategory: "Stitching",
+              quantity: bpair_Quantity,
+              rate: (stitching.Quantity - stitching.r_quantity) * salePrice,
+              partyName: stitching.partyName,
+              serial_No: stitching.serial_No,
+              design_no: stitching.design_no,
+            };
+            const res = await addBPair(b_pairData, session);
+            if (res.error) {
+              throw new Error(res.error);
+            }
+          }
+        }
+      }
+
+      //UPDATING RECIEVED QUANTITY
+      const updateFunction = (data, updateStitchingRQuantity = true) => {
+        for (const category in data) {
+          const items = data[category];
+          items &&
+            items.forEach((item) => {
+              const { return_quantity, id, sale_price, cost_price } = item;
+              let toUpdate = stitching[category].find((obj) => obj._id == id);
+              let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
+              if (toUpdate) {
+                toUpdate.recieved = return_quantity;
+                toUpdate.sale_price = sale_price;
+                toUpdate.cost_price = cost_price;
+              }
+              if (updateStitchingRQuantity) {
+                stitching.r_quantity = new_r_quantity + toUpdate.recieved;
+                stitching.updated = true;
+              }
+            });
+        }
+      };
+
+      if (suits_category && dupatta_category) {
+        updateFunction({ suits_category });
+        updateFunction({ dupatta_category }, false);
+      } else if (suits_category) {
+        updateFunction({ suits_category });
+      } else if (dupatta_category) {
+        updateFunction({ dupatta_category });
+      }
+
+      if (stitching.r_quantity > stitching.Quantity) {
+        throw new Error("Invalid Update Quantity");
+      }
+
+      await stitching.save({ session });
+      return res
+        .status(200)
+        .json({ success: true, message: "Updated Successfully" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
+export const deleteStitching = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Stitching Id Required");
+    const data = await StitchingModel.findByIdAndDelete(id);
+    if (!data) throw new Error("Stitching Not Found");
+    if (data.bill_generated)
+      throw new Error("Bill Generated Cannot Delete This stitching");
+    const embData = await EmbroideryModel.findById(data.embroidery_Id);
+    if (!embData) throw new Error("Embroidery Data not Found For this Cutting");
+    embData.next_steps.stitching = false;
+    await embData.save();
+    return res
+      .status(200)
+      .json({ success: true, message: "Deleted Successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getStitchingDataBypartyName = async (req, res, next) => {
+  try {
+    const { partyName } = req.body;
+    if (!partyName) throw new Error("No Party Name found");
+    const StitchingQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+    };
+    const billQuery = {
+      partyName: { $regex: partyName, $options: "i" },
+      process_Category: "Stitching",
+    };
+    const stitchingData = await StitchingModel.find(StitchingQuery, [
+      "partyName",
+    ]);
+    const accountData = await processBillsModel.find(billQuery, [
+      "virtual_account",
+      "partyName",
+    ]);
+    const data = {
+      stitchingData: stitchingData,
+      accountData: accountData,
+    };
+    setMongoose();
+    return res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -239,138 +375,33 @@ const addSuitsInStock = async (data, session) => {
   }
 };
 
-export const updateStitching = async (req, res, next) => {
+export const addInStockFromPackaging = async () => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, suits_category, dupatta_category, project_status, d_no } =
-        req.body;
+      const { id, suits_category, d_no } = req.body;
       if (!id) throw new Error("Id not Found");
-      const stitching = await StitchingModel.findById(id).session(session);
-      if (!stitching) throw new Error("Stitching not Found");
-      //ADDING STOCK AND UPDATING PROJECT STATUS
-
-      if (project_status === "Completed") {
-        stitching.project_status = project_status;
-        let salePrice = 0;
-        if (suits_category) {
-          for (const item of suits_category) {
-            const data = {
-              ...item,
-              d_no: d_no,
-              quantity: item.return_quantity,
-            };
-            salePrice = item.sale_price;
-            const res = await addSuitsInStock(data, session);
-            if (res.error) {
-              throw new Error(res.error);
-            }
+      if (suits_category) {
+        for (const item of suits_category) {
+          const data = {
+            ...item,
+            d_no: d_no,
+            quantity: item.return_quantity,
+          };
+          salePrice = item.sale_price;
+          const res = await addSuitsInStock(data, session);
+          if (res.error) {
+            throw new Error(res.error);
           }
-
-          const bpair_Quantity = stitching.Quantity - stitching.r_quantity;
-          //ADD BPAIR
-          if(bpair_Quantity > 0) {
-            const b_pairData = {
-              b_PairCategory: "Stitching",
-              quantity: bpair_Quantity,
-              rate: (stitching.Quantity - stitching.r_quantity) * salePrice,
-              partyName: stitching.partyName,
-              serial_No: stitching.serial_No,
-              design_no: stitching.design_no,
-            };
-            const res = await addBPair(b_pairData, session);
-            if (res.error) {
-              throw new Error(res.error);
-            }
-          }
-         
         }
       }
-
-      //UPDATING RECIEVED QUANTITY
-      const updateFunction = (data, updateStitchingRQuantity = true) => {
-        for (const category in data) {
-          const items = data[category];
-          items &&
-            items.forEach((item) => {
-              const { return_quantity, id, sale_price, cost_price } = item;
-              let toUpdate = stitching[category].find((obj) => obj._id == id);
-              let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
-              if (toUpdate) {
-                toUpdate.recieved = return_quantity;
-                toUpdate.sale_price = sale_price;
-                toUpdate.cost_price = cost_price;
-              }
-              if (updateStitchingRQuantity) {
-                stitching.r_quantity = new_r_quantity + toUpdate.recieved;
-              }
-            });
-        }
-      };
-
-      if (suits_category && dupatta_category) {
-        updateFunction({ suits_category });
-        updateFunction({ dupatta_category }, false);
-      } else if (suits_category) {
-        updateFunction({ suits_category });
-      } else if (dupatta_category) {
-        updateFunction({ dupatta_category });
-      }
-
-      if(stitching.r_quantity > stitching.Quantity) {
-        throw new Error("Invalid Update Quantity")
-      };
-      
-      await stitching.save({ session });
-      return res
-        .status(200)
-        .json({ success: true, message: "Updated Successfully" });
     });
+    return res
+    .status(200)
+    .json({ success: true, message: "Stock Added Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
-  }
-};
-
-export const deleteStitching = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Stitching Id Required");
-    const data = await StitchingModel.findByIdAndDelete(id);
-    if (!data) throw new Error("Stitching Not Found");
-    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This stitching");
-    return res
-      .status(200)
-      .json({ success: true, message: "Deleted Successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const getStitchingDataBypartyName = async (req, res, next) => {
-  try {
-    const { partyName } = req.body;
-    if (!partyName) throw new Error("No Party Name found");
-    const StitchingQuery = {
-      partyName: { $regex: partyName, $options: "i" },
-    };
-    const billQuery = {
-      partyName: { $regex: partyName, $options: "i" },
-      process_Category: "Stitching",
-    };
-    const stitchingData = await StitchingModel.find(StitchingQuery, ["partyName"]);
-    const accountData = await processBillsModel.find(billQuery, [
-      "virtual_account",
-      "partyName",
-    ]);
-    const data = {
-      stitchingData: stitchingData,
-      accountData: accountData,
-    };
-    setMongoose();
-    return res.status(200).send(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 };

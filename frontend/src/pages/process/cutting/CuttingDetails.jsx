@@ -12,9 +12,14 @@ import { FiPlus } from "react-icons/fi";
 import {
   createStone,
   getColorsForCurrentEmbroidery,
+  getStoneDataBypartyNameAsync,
 } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import moment from "moment-timezone";
+import ReactSearchBox from "react-search-box";
+import { MdOutlineDelete } from "react-icons/md";
+
 const CuttingDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -37,18 +42,21 @@ const CuttingDetails = () => {
   const [processBillData, setProcessBillData] = useState({});
   const [accountData, setAccountData] = useState(null);
   const [partyValue, setPartyValue] = useState("newParty");
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
 
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
   });
 
-  const initialRow = { category: "", color: "", quantity: 0 };
+  const initialRow = { category: "", color: "", quantity: "" };
 
   const [formData, setFormData] = useState({
     partyName: "",
     serial_No: "",
     design_no: "",
+    partyType:partyValue,
     date: "",
     rate: "",
     category_quantity: [initialRow],
@@ -58,12 +66,13 @@ const CuttingDetails = () => {
     setFormData({
       serial_No: SingleCutting?.serial_No || "",
       design_no: SingleCutting?.design_no || "",
-      date: "",
+      date: today,
+      partyType:partyValue,
       partyName: "",
       embroidery_Id: SingleCutting?.embroidery_Id || "",
       category_quantity: [initialRow], // You are setting category_quantity with initialRow
     });
-  }, [SingleCutting]);
+  }, [SingleCutting,partyValue]);
 
   useEffect(() => {
     setcuttingData({
@@ -121,7 +130,7 @@ const CuttingDetails = () => {
     setFormData((prevState) => ({
       ...prevState,
       category_quantity: prevState.category_quantity?.map((row, i) =>
-        i === index ? { ...row, quantity: value } : row
+        i === index ? { ...row, quantity: parseInt(value) } : row
       ),
     }));
   };
@@ -334,7 +343,7 @@ const CuttingDetails = () => {
   };
 
   const handleSearchOldData = (value) => {
-    dispatch(getCuttingDataBypartyNameAsync({ partyName: value }));
+    dispatch(getStoneDataBypartyNameAsync({ partyName: value }));
   };
 
   const searchResults = previousDataByPartyName?.stoneData?.map((item) => {
@@ -392,6 +401,10 @@ const CuttingDetails = () => {
             <div className="box">
               <span className="font-medium">R. Quantity:</span>
               <span> {SingleCutting?.r_quantity}</span>
+            </div>
+            <div className="box">
+              <span className="font-medium">Available Quantity:</span>
+              <span> {SingleCutting?.Available_Quantity}</span>
             </div>
           </div>
         </div>
@@ -472,7 +485,7 @@ const CuttingDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative scrollable-content max-h-[90vh] py-4 px-3 w-full max-w-3xl bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="relative scrollable-content max-h-[90vh] py-4 px-3 w-full max-w-4xl bg-white rounded-md shadow dark:bg-gray-700">
               {/* ------------- HEADER ------------- */}
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -574,8 +587,8 @@ const CuttingDetails = () => {
                           placeholder="Party Name"
                           className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
-                          value={CuttingData.partyName}
-                          onChange={handleInputChangeCutting}
+                          value={formData.partyName}
+                          onChange={handleChange}
                         />
                       ) : (
                         <div className="custom-search-box relative">
@@ -585,9 +598,9 @@ const CuttingDetails = () => {
                               handleSelectedRecord(value?.item?.key)
                             }
                             placeholder={
-                              CuttingData.partyName === ""
+                              formData.partyName === ""
                                 ? "Search"
-                                : CuttingData.partyName
+                                : formData.partyName
                             }
                             data={searchResults}
                             onChange={(value) => handleSearchOldData(value)}
@@ -608,6 +621,7 @@ const CuttingDetails = () => {
                         </div>
                       )}
                     </div>
+
                     <div>
                       <input
                         name="SerialNo"
@@ -620,7 +634,12 @@ const CuttingDetails = () => {
                         readOnly
                       />
                     </div>
-                    <div>
+
+                   
+                  </div>
+
+                  <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+                  <div>
                       <input
                         name="DesignNo"
                         type="text"
@@ -632,9 +651,6 @@ const CuttingDetails = () => {
                         readOnly
                       />
                     </div>
-                  </div>
-
-                  <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-2 gap-5">
                     {/* DATE */}
                     <div>
                       <input
@@ -643,8 +659,8 @@ const CuttingDetails = () => {
                         placeholder="Date"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData.date}
-                        onChange={handleChange}
                         required
+                        readOnly
                       />
                     </div>
 
@@ -719,32 +735,20 @@ const CuttingDetails = () => {
                             placeholder="Enter Quantity"
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                             required
-                            value={row.quantity}
+                            value={isNaN(row.quantity) ? 0 : row.quantity}
                             onChange={(e) => handleQuantityChange(e, index)}
                           />
 
                           {formData?.category_quantity?.length > 1 && (
                             <button
                               onClick={() => deleteRow(index)}
-                              className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                              className=" text-red-500  rounded-lg ms-auto inline-flex justify-center items-center"
                               type="button"
                             >
-                              <svg
-                                aria-hidden="true"
-                                className="w-3 h-3"
-                                fill="none"
-                                viewBox="0 0 14 14"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                              <span className="sr-only">Close modal</span>
+                             <MdOutlineDelete
+                                size={20}
+                                className="cursor-pointer text-red-500"
+                              />
                             </button>
                           )}
                         </div>

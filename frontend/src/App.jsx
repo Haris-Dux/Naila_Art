@@ -50,6 +50,7 @@ import B_Pair from "./pages/process/b_pair/B_Pair";
 import VerifyOTP from "./pages/dashboard/VerifyOTP";
 import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHistory";
 import ReturnBills from "./pages/bills/ReturnBills";
+import PackingDetails from "./pages/process/Packing/PackingDetails";
 
 
 function App() {
@@ -119,7 +120,7 @@ useEffect(() => {
             <Route path="cash" element={<CashInOut />} />
             <Route path="dailySale" element={<DailySale />} />
             <Route path="dailySale-details/:id" element={<DailySaleDetail />} />
-
+    
             {/* PROCESS ROUTES */}
             <Route path="embroidery" element={<Embroidery />} />
             <Route path="embroidery-details/:id" element={<EmbroideryDetails />} />
@@ -131,6 +132,7 @@ useEffect(() => {
             <Route path="stitching-details/:id" element={<StitchingDetails />} />
             <Route path="stones" element={<Stones />} />
             <Route path="stones-details/:id" element={<StonesDetails />} />
+            <Route path="packing-details/:id" element={<PackingDetails />} />
 
             {/* Bpair */}
             <Route path="bpair" element={<B_Pair />} />

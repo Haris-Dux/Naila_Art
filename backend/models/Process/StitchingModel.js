@@ -59,7 +59,7 @@ const stitchingSchema = new mongoose.Schema(
       required: [true, "Design no value required"],
     },
     date: {
-      type: Date,
+      type: String,
       required: [true, "date required"],
     },
     partyName: {
