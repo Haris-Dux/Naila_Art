@@ -7,6 +7,8 @@ import {
 } from "../../../features/stitching";
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
+import { FaEye } from "react-icons/fa";
+import PicturesOrder from "../../bills/Modals/PicturesOrder";
 
 const PackingDetails = () => {
   const { id } = useParams();
@@ -14,12 +16,14 @@ const PackingDetails = () => {
     (state) => state.stitching
   );
   const [confirmationModal, setConfirmationModal] = useState(false);
+  const [picturesOrderModal, setpicturesOrderModal] = useState(false);
 
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
     id: id,
     d_no: "",
+    embroidery_Id: "",
     suits_category: [],
     dupatta_category: [],
   });
@@ -32,10 +36,16 @@ const PackingDetails = () => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    if (SingleStitching) {
+    if (
+      SingleStitching &&
+      SingleStitching?.suits_category?.length > 0 &&
+      SingleStitching?.dupatta_category?.length > 0
+    ) {
+      console.log('running this 1');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
+        embroidery_Id: SingleEmbroidery?.id,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -45,6 +55,17 @@ const PackingDetails = () => {
             category: item.category,
             color: item.color,
           })) || [],
+      });
+    } else if (
+      SingleStitching &&
+      SingleStitching?.suits_category?.length === 0 &&
+      SingleStitching?.dupatta_category?.length > 0
+    ) {
+      console.log('running this 2');
+      setFormData({
+        ...formData,
+        d_no: SingleStitching?.design_no,
+        embroidery_Id: SingleEmbroidery?.id,
         dupatta_category:
           SingleStitching.dupatta_category?.map((item) => ({
             id: item.id,
@@ -55,8 +76,28 @@ const PackingDetails = () => {
             color: item.color,
           })) || [],
       });
-      dispatch(GETEmbroiderySIngle({ id: SingleStitching.embroidery_Id }));
+    } else if (
+      SingleStitching &&
+      SingleStitching?.suits_category?.length > 0 &&
+      SingleStitching?.dupatta_category?.length === 0
+    ) {
+      console.log('running this 3');
+      setFormData({
+        ...formData,
+        d_no: SingleStitching?.design_no,
+        embroidery_Id: SingleEmbroidery?.id,
+        suits_category:
+          SingleStitching.suits_category?.map((item) => ({
+            id: item.id,
+            return_quantity: item.recieved,
+            cost_price: item.cost_price,
+            sale_price: item.sale_price,
+            category: item.category,
+            color: item.color,
+          })) || [],
+      });
     }
+    dispatch(GETEmbroiderySIngle({ id: SingleStitching.embroidery_Id }));
   }, [SingleStitching]);
 
   if (loading) {
@@ -87,11 +128,11 @@ const PackingDetails = () => {
   const handleAddInStock = (e) => {
     e.preventDefault();
     console.log("formData", formData);
-    // dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
-    //   if(res.payload.success){
-
-    //   }
-    // })
+    dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
+      if(res.payload.success){
+        closeConfirmationModal();
+      }
+    })
   };
 
   const openConfirmationModal = () => {
@@ -100,6 +141,14 @@ const PackingDetails = () => {
 
   const closeConfirmationModal = () => {
     setConfirmationModal(false);
+  };
+
+  const viewPicturesOrderData = () => {
+    setpicturesOrderModal(true);
+  };
+
+  const hidePicturesOrderData = () => {
+    setpicturesOrderModal(false);
   };
 
   return (
@@ -128,12 +177,17 @@ const PackingDetails = () => {
               <span className="font-medium">Additional Cost:</span>
               <span> {SingleEmbroidery?.additionalExpenditure}</span>
             </div>
-            <div className="box">
+            <div className="box flex gap-2">
               <span className="font-medium">Pictures Order :</span>
               <span>
-                {" "}
                 {SingleEmbroidery?.pictures_Order ? (
-                  <span> </span>
+                  <span>
+                    <FaEye
+                      onClick={viewPicturesOrderData}
+                      size={20}
+                      className="cursor-pointer"
+                    />
+                  </span>
                 ) : (
                   <span className="text-red-500"> No Order </span>
                 )}
@@ -209,68 +263,69 @@ const PackingDetails = () => {
                   </div>
                 )}
                 {/* DUPPATTA SECTION */}
-                {SingleStitching?.dupatta_category?.length > 0 && SingleStitching?.suits_category?.length === 0 && (
-                  <div className="details space-y-2">
-                    <h3 className="mb-4 font-semibold text-lg">
-                      Duppata Data For Stock
-                    </h3>
+                {SingleStitching?.dupatta_category?.length > 0 &&
+                  SingleStitching?.suits_category?.length === 0 && (
+                    <div className="details space-y-2">
+                      <h3 className="mb-4 font-semibold text-lg">
+                        Duppata Data For Stock
+                      </h3>
 
-                    {SingleStitching?.dupatta_category?.map((data, index) => (
-                      <div
-                        key={data.id}
-                        className="details_box flex items-center gap-x-3"
-                      >
-                        <p className="w-44">{data.color}</p>
-                        {/* RETURN QUANTITY */}
-                        <input
-                          type="text"
-                          placeholder="R.Q"
-                          className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                          value={
-                            formData?.dupatta_category[index]?.return_quantity
-                          }
-                          readOnly
-                        />
-                        <>
+                      {SingleStitching?.dupatta_category?.map((data, index) => (
+                        <div
+                          key={data.id}
+                          className="details_box flex items-center gap-x-3"
+                        >
+                          <p className="w-44">{data.color}</p>
+                          {/* RETURN QUANTITY */}
                           <input
-                            type="number"
-                            placeholder="C.P"
+                            type="text"
+                            placeholder="R.Q"
                             className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
                             value={
-                              formData?.dupatta_category[index]?.cost_price ||
-                              ""
+                              formData?.dupatta_category[index]?.return_quantity
                             }
-                            onChange={(e) =>
-                              handleInputChange(
-                                "dupatta_category",
-                                index,
-                                "cost_price",
-                                e.target.value
-                              )
-                            }
+                            readOnly
                           />
-                          <input
-                            type="number"
-                            placeholder="S.P"
-                            className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                            value={
-                              formData?.dupatta_category[index]?.sale_price ||
-                              ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange(
-                                "dupatta_category",
-                                index,
-                                "sale_price",
-                                e.target.value
-                              )
-                            }
-                          />{" "}
-                        </>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          <>
+                            <input
+                              type="number"
+                              placeholder="C.P"
+                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                              value={
+                                formData?.dupatta_category[index]?.cost_price ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "dupatta_category",
+                                  index,
+                                  "cost_price",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            <input
+                              type="number"
+                              placeholder="S.P"
+                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                              value={
+                                formData?.dupatta_category[index]?.sale_price ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "dupatta_category",
+                                  index,
+                                  "sale_price",
+                                  e.target.value
+                                )
+                              }
+                            />{" "}
+                          </>
+                        </div>
+                      ))}
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -296,10 +351,16 @@ const PackingDetails = () => {
           />
         )}
       </section>
+
+      {picturesOrderModal && (
+        <PicturesOrder
+          id={SingleEmbroidery?.id}
+          closeModal={hidePicturesOrderData}
+        />
+      )}
     </>
   );
 };
 
 export default PackingDetails;
 
-//TO REUSE

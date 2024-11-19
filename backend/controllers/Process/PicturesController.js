@@ -13,6 +13,7 @@ export const createPictureOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
+
       const {
         embroidery_Id,
         T_Quantity,
@@ -22,6 +23,7 @@ export const createPictureOrder = async (req, res, next) => {
         rate,
         partyType,
         accountId,
+        serial_No
       } = req.body;
 
       await verifyrequiredparams(req.body, [
@@ -32,6 +34,7 @@ export const createPictureOrder = async (req, res, next) => {
         "partyName",
         "rate",
         "partyType",
+        "serial_No"
       ]);
 
       //update embroidery for pictures order
@@ -40,6 +43,7 @@ export const createPictureOrder = async (req, res, next) => {
       }).session(session);
 
       if (partyType === "newParty") {
+
         // Create the new picture Order
         const newPictureOrder = await PicruresModel.create(
           [
@@ -66,6 +70,7 @@ export const createPictureOrder = async (req, res, next) => {
           status,
         };
         //DATA FOR CREDIT DEBIT HISTORY
+
         const credit_debit_history_details = [
           {
             date,
@@ -80,7 +85,10 @@ export const createPictureOrder = async (req, res, next) => {
         await PicruresAccountModel.create(
           [
             {
-              partyName: partyName,
+              partyName,
+              design_no,
+              date,
+              serial_No,
               virtual_account: virtualAccountData,
               credit_debit_history: credit_debit_history_details,
             },
@@ -153,6 +161,10 @@ export const createPictureOrder = async (req, res, next) => {
             credit_debit_history_details
           );
 
+          oldAccountData.design_no = design_no;
+          oldAccountData.date = date;
+          oldAccountData.serial_No = serial_No;
+
         await oldAccountData.save({ session });
       }
 
@@ -170,9 +182,9 @@ export const createPictureOrder = async (req, res, next) => {
 // Get a single picture by ID
 export const getPictureOrderById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id } = req.body;
     if (!id) throw new CustomError("Picture Order Id is required", 404);
-    const picture = await PicruresModel.findById(id);
+    const picture = await PicruresModel.findOne({embroidery_Id:id});
     if (!picture) throw new CustomError("Picture not found", 404);
 
     res.status(200).json(picture);
@@ -256,7 +268,7 @@ export const deletePictureOrderById = async (req, res, next) => {
 };
 
 // Update a picture by ID
-export const updatePictureOrderById = async (req, res) => {
+export const updatePictureOrderById = async (req, res,next) => {
   try {
     const { id, status } = req.body;
     await verifyrequiredparams(req.body, ["id", "status"]);
