@@ -15,8 +15,39 @@ const getHeadDataByDesignNoURL =
   "/api/process/embriodery/getHeadDataByDesignNo";
 const getPreviousDataBypartyNameURL =
   "/api/process/embriodery/getPreviousDataBypartyName";
-const searchAccountByPartyNameURL = "/api/process/pictures/searchAccountByPartyName";
+const searchAccountByPartyNameURL =
+  "/api/process/pictures/searchAccountByPartyName";
 const createPictureOrderURL = "/api/process/pictures/createPictureOrder";
+const getPicturesOrderByIdURL = "/api/process/pictures/getPictureOrderById";
+const updatePictureOrderByIdURL = "/api/process/pictures/updatePictureOrderById";
+
+//GET SINGLE PICTURE BU ID
+export const getPictureOrderByIdAsync = createAsyncThunk(
+  "Pictures/getPicturesbyId",
+  async (data) => {
+    try {
+      const response = await axios.post(getPicturesOrderByIdURL, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
+//UPDATE PICTURE BU ID
+export const updatePictureOrderByIdIdAsync = createAsyncThunk(
+  "Pictures/updatePictureOrderById",
+  async (data) => {
+    try {
+      const response = await axios.post(updatePictureOrderByIdURL, data);
+      return response.data;
+    } catch (error) {
+      console.log('error',error);
+      toast.error(error.response.data);
+    }
+  }
+);
+
 
 //CREATE ASYNC THUNK
 export const CreateEmbroidery = createAsyncThunk(
@@ -195,7 +226,7 @@ export const createPictureOrderAsync = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      console.log('error',error);
+      console.log("error", error);
       toast.error(error.response.data);
     }
   }
@@ -206,7 +237,7 @@ export const deleteEmbroideryAsync = createAsyncThunk(
   "Embroidery/deleteEmbroidery",
   async (data) => {
     try {
-      console.log('calling api');
+      console.log("calling api");
       const response = await axios.post(deleteEmbroideryUrl, data);
       toast.success(response.data.message);
       return response.data;
@@ -229,9 +260,10 @@ const initialState = {
   headStitchData: [],
   previousDataByPartyName: [],
   picturesLoading: false,
-  createPictureOrderLoading:false,
+  createPictureOrderLoading: false,
   accountDataForPictures: [],
   deleteLoadings: false,
+  singlePictureOrder: [],
 };
 
 const EmbroiderySlice = createSlice({
@@ -250,16 +282,24 @@ const EmbroiderySlice = createSlice({
       .addCase(CreateEmbroidery.fulfilled, (state, action) => {
         state.loading = false;
       })
-      
 
-       // PICTURES ORDER Add ADD CASE
-       .addCase(createPictureOrderAsync.pending, (state, action) => {
+      // PICTURES ORDER Add ADD CASE
+      .addCase(createPictureOrderAsync.pending, (state, action) => {
         state.createPictureOrderLoading = true;
       })
       .addCase(createPictureOrderAsync.fulfilled, (state, action) => {
         state.createPictureOrderLoading = false;
       })
       .addCase(createPictureOrderAsync.rejected, (state, action) => {
+        state.createPictureOrderLoading = false;
+      })
+
+      // PICTURES ORDER BY ID ADD CASE
+      .addCase(getPictureOrderByIdAsync.pending, (state, action) => {
+        state.createPictureOrderLoading = true;
+      })
+      .addCase(getPictureOrderByIdAsync.fulfilled, (state, action) => {
+        state.singlePictureOrder = action.payload;
         state.createPictureOrderLoading = false;
       })
 

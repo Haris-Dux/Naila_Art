@@ -8,7 +8,7 @@ import {
   getaccountDataForPicturesAsync,
 } from "../../features/EmbroiderySlice";
 import toast from "react-hot-toast";
-const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
+const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) => {
   const dispatch = useDispatch();
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [partyValue, setPartyValue] = useState("newParty");
@@ -23,6 +23,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
     rate: "",
     partyType: partyValue,
     accountId: "",
+    serial_No:serial_No
   });
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,7 +86,6 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("formData", formData);
     if(formData.partyName === "") 
         return toast.error("Please fill all the required fields");
 

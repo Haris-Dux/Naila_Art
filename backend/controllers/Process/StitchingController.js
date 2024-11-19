@@ -8,6 +8,7 @@ import moment from "moment-timezone";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
+import { PicruresModel } from "../../models/Process/PicturesModel.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -375,26 +376,50 @@ const addSuitsInStock = async (data, session) => {
   }
 };
 
-export const addInStockFromPackaging = async () => {
+export const addInStockFromPackaging = async (req,res,next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, suits_category, d_no } = req.body;
+      const { id, suits_category,dupatta_category, d_no,embroidery_Id } = req.body;
       if (!id) throw new Error("Id not Found");
-      if (suits_category) {
+      //CHECK PICTURES ORDER
+      const checkPicturesOrder = await PicruresModel.findOne({embroidery_Id:embroidery_Id});
+      if(checkPicturesOrder && checkPicturesOrder.status === 'Pending'){
+        throw new Error("Please Complete the Pictures Order First");
+      }
+      if (suits_category && suits_category.length > 0) {
+        console.log('adding suit');
         for (const item of suits_category) {
           const data = {
             ...item,
             d_no: d_no,
             quantity: item.return_quantity,
           };
-          salePrice = item.sale_price;
           const res = await addSuitsInStock(data, session);
           if (res.error) {
             throw new Error(res.error);
           }
         }
-      }
+      };
+      if (dupatta_category && dupatta_category.length > 0) {
+        console.log('adding duppata');
+        for (const item of dupatta_category) {
+          const data = {
+            ...item,
+            d_no: d_no,
+            quantity: item.return_quantity,
+          };
+          const res = await addSuitsInStock(data, session);
+          if (res.error) {
+            throw new Error(res.error);
+          }
+        }
+      };
+      
+      //UPDATING NEXT STEP IN EMBROIDERY
+       const EmbroideryData = await EmbroideryModel.findById(embroidery_Id).session(session);
+       EmbroideryData.next_steps.packing = true;
+       await EmbroideryData.save({ session });
     });
     return res
     .status(200)
