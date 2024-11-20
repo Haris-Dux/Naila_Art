@@ -13,7 +13,6 @@ export const createPictureOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-
       const {
         embroidery_Id,
         T_Quantity,
@@ -23,7 +22,7 @@ export const createPictureOrder = async (req, res, next) => {
         rate,
         partyType,
         accountId,
-        serial_No
+        serial_No,
       } = req.body;
 
       await verifyrequiredparams(req.body, [
@@ -34,7 +33,7 @@ export const createPictureOrder = async (req, res, next) => {
         "partyName",
         "rate",
         "partyType",
-        "serial_No"
+        "serial_No",
       ]);
 
       //update embroidery for pictures order
@@ -43,7 +42,6 @@ export const createPictureOrder = async (req, res, next) => {
       }).session(session);
 
       if (partyType === "newParty") {
-
         // Create the new picture Order
         const newPictureOrder = await PicruresModel.create(
           [
@@ -161,9 +159,9 @@ export const createPictureOrder = async (req, res, next) => {
             credit_debit_history_details
           );
 
-          oldAccountData.design_no = design_no;
-          oldAccountData.date = date;
-          oldAccountData.serial_No = serial_No;
+        oldAccountData.design_no = design_no;
+        oldAccountData.date = date;
+        oldAccountData.serial_No = serial_No;
 
         await oldAccountData.save({ session });
       }
@@ -184,7 +182,9 @@ export const getPictureOrderById = async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) throw new CustomError("Picture Order Id is required", 404);
-    const picture = await PicruresModel.findOne({embroidery_Id:id});
+    const picture =
+      (await PicruresModel.findOne({ embroidery_Id: id })) ||
+      (await PicruresModel.findById(id));
     if (!picture) throw new CustomError("Picture not found", 404);
 
     res.status(200).json(picture);
@@ -268,7 +268,7 @@ export const deletePictureOrderById = async (req, res, next) => {
 };
 
 // Update a picture by ID
-export const updatePictureOrderById = async (req, res,next) => {
+export const updatePictureOrderById = async (req, res, next) => {
   try {
     const { id, status } = req.body;
     await verifyrequiredparams(req.body, ["id", "status"]);
@@ -293,24 +293,39 @@ export const updatePictureOrderById = async (req, res,next) => {
 export const getAllPictureAccounts = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
-    const search = req.query.searchQuery || "";
+    const search = req.query.search || "";
     const limit = 20;
     let query = {
       partyName: { $regex: search, $options: "i" },
     };
-    const data = await PicruresAccountModel.find(query)
+    const processBills = await PicruresAccountModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
-    const total = await PicruresAccountModel.countDocuments(query);
+    const totalProcessBills = await PicruresAccountModel.countDocuments(query);
     const response = {
-      totalPages: Math.ceil(total / limit),
-      data,
+      totalPages: Math.ceil(totalProcessBills / limit),
+      processBills,
       page,
+      totalProcessBills,
     };
     return res.status(200).json(response);
   } catch (error) {
     next(error);
+  }
+};
+
+// Get a single picture Account by ID
+export const getPicruresBillById = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    if (!id) throw new Error("Process Id Required");
+    const ProcessBill = await PicruresAccountModel.findById(id);
+    if (!ProcessBill) throw new Error("Process Bill Not Found");
+    setMongoose();
+    return res.status(200).json(ProcessBill);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
 

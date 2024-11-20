@@ -7,6 +7,8 @@ const generateProcessBill = "/api/processBillRouter/generateProcessBill";
 const getAllProcessBill = "/api/processBillRouter/getAllProcessBills";
 const getProcessBillById = "/api/processBillRouter/getProcessillById";
 const getAllPictureAccountsURL = "/api/process/pictures/getAllPictureAccounts";
+const getPicruresBillByIdURL = "/api/process/pictures/getPicruresBillById";
+const deletePictureOrderByIdURL = "/api/process/pictures/deletePictureOrderById";
 const deleteBillAndProcessOrderURL =
   "/api/processBillRouter/deleteBillAndProcessOrder";
 const markAsPaidURL = "/api/processBillRouter/markAsPaid";
@@ -60,7 +62,20 @@ export const GetProcessBillByIdAsync = createAsyncThunk(
   }
 );
 
-// GET ALL PROCESS BILL ASYNC
+// GET PICTURES BILL BY ID ASYNC
+export const GetPicturesBillByIdAsync = createAsyncThunk(
+  "getById/PicturesBill",
+  async (data) => {
+    try {
+      const response = await axios.post(getPicruresBillByIdURL, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
+// GET ALL PICTURES BILL ASYNC
 export const GetAllPictureAccountsAsync = createAsyncThunk(
   "pictures/getAllPictureAccounts",
   async (data) => {
@@ -96,6 +111,20 @@ export const deleteProcessBillAndOrderAsync = createAsyncThunk(
 );
 
 //Delete Order And BIll
+export const deletePicturesBillOrderAsync = createAsyncThunk(
+  "Process/deletePicturesBill",
+  async (data) => {
+    try {
+      const response = await axios.post(deletePictureOrderByIdURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+//Delete Order And BIll
 export const markAsPaidAsync = createAsyncThunk(
   "Process/markAsPaid",
   async (data) => {
@@ -111,7 +140,6 @@ export const markAsPaidAsync = createAsyncThunk(
 
 const initialState = {
   ProcessBills: [],
-  picturesBills: [],
   ProcessBillsDetails: [],
   loading: false,
   deleteLoadings: false,
@@ -133,6 +161,15 @@ const ProcessBillSlice = createSlice({
       .addCase(deleteProcessBillAndOrderAsync.fulfilled, (state, action) => {
         state.deleteLoadings = false;
       })
+
+       //DELETE PICTURES BILL
+       .addCase(deletePicturesBillOrderAsync.pending, (state, action) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(deletePicturesBillOrderAsync.fulfilled, (state, action) => {
+        state.deleteLoadings = false;
+      })
+
 
       //MARK AS PAID ACCOUNT
       .addCase(markAsPaidAsync.pending, (state, action) => {
@@ -165,7 +202,7 @@ const ProcessBillSlice = createSlice({
       })
       .addCase(GetAllPictureAccountsAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.picturesBills = action.payload;
+        state.ProcessBills = action.payload;
       })
 
       // GET PROCESS BILL BY ID
@@ -173,6 +210,15 @@ const ProcessBillSlice = createSlice({
         state.loading = true;
       })
       .addCase(GetProcessBillByIdAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ProcessBillsDetails = action.payload;
+      })
+
+      // GET PICTURES BILL BY ID
+      .addCase(GetPicturesBillByIdAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(GetPicturesBillByIdAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.ProcessBillsDetails = action.payload;
       });
