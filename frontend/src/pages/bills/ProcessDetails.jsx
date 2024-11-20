@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  deletePicturesBillOrderAsync,
   deleteProcessBillAndOrderAsync,
+  GetPicturesBillByIdAsync,
   GetProcessBillByIdAsync,
   markAsPaidAsync,
 } from "../../features/ProcessBillSlice";
@@ -10,6 +12,7 @@ import { FaEye } from "react-icons/fa";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../Component/Modal/DeleteModal";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
+import PicturesOrder from "./Modals/PicturesOrder";
 
 const ProcessDetails = () => {
   const dispatch = useDispatch();
@@ -17,12 +20,15 @@ const ProcessDetails = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [openCModal, setCModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
+  const [picturesOrderModal, setpicturesOrderModal] = useState(false);
   const { loading, ProcessBillsDetails, deleteLoadings } = useSelector(
     (state) => state.ProcessBill
   );
 
   useEffect(() => {
-    if (id) {
+    if (id && category === "Pictures") {
+      dispatch(GetPicturesBillByIdAsync({ id }));
+    } else if (id) {
       dispatch(GetProcessBillByIdAsync({ id }));
     }
   }, [dispatch, id]);
@@ -37,17 +43,26 @@ const ProcessDetails = () => {
   };
 
   const handleDelete = () => {
-    dispatch(
-      deleteProcessBillAndOrderAsync({
-        id: selectedId,
-        process_Category: category,
-      })
-    ).then((res) => {
-      if (res.payload.success === true) {
-        dispatch(GetProcessBillByIdAsync({ id }));
-        closedeleteModal();
-      }
-    });
+    if (category === "Pictures") {
+      dispatch(deletePicturesBillOrderAsync({ id: selectedId })).then((res) => {
+        if (res.payload.success === true) {
+          dispatch(GetPicturesBillByIdAsync({ id }));
+          closedeleteModal();
+        }
+      });
+    } else {
+      dispatch(
+        deleteProcessBillAndOrderAsync({
+          id: selectedId,
+          process_Category: category,
+        })
+      ).then((res) => {
+        if (res.payload.success === true) {
+          dispatch(GetProcessBillByIdAsync({ id }));
+          closedeleteModal();
+        }
+      });
+    }
   };
 
   const openConfirmationModaL = () => {
@@ -59,34 +74,48 @@ const ProcessDetails = () => {
   };
 
   const UpdateAccount = () => {
-    dispatch(markAsPaidAsync({ id, category: "Process" })).then((res) => {
+    const modelCategory = category === "Pictures" ? "Pictures" : "Process";
+
+    dispatch(markAsPaidAsync({ id, category: modelCategory})).then((res) => {
       if (res.payload.success === true) {
-        console.log("doing this");
-        dispatch(GetProcessBillByIdAsync({ id }));
+        if(category === "Pictures"){
+          dispatch(GetPicturesBillByIdAsync({ id }));
+        } else {
+          dispatch(GetProcessBillByIdAsync({ id }));
+        }
         setCModal(false);
       }
     });
   };
 
+  const viewPicturesOrderData = (value) => {
+    setpicturesOrderModal(true);
+    setSelectedId(value);
+  };
+
+  const hidePicturesOrderData = () => {
+    setpicturesOrderModal(false);
+  };
+
   let category_path = "";
   switch (true) {
     case category === "Embroidery":
-      category_path = 'embroidery-details';
+      category_path = "embroidery-details";
       break;
-      case category === "Calender": 
-        category_path = 'calendar-details';
+    case category === "Calender":
+      category_path = "calendar-details";
       break;
-      case category === "Cutting":
-        category_path = 'cutting-details'
+    case category === "Cutting":
+      category_path = "cutting-details";
       break;
-      case category === "Stone":
-        category_path = 'stones-details'
+    case category === "Stone":
+      category_path = "stones-details";
       break;
-      case category === "Stitching":
-        category_path = 'stitching-details'
+    case category === "Stitching":
+      category_path = "stitching-details";
       break;
-  };
-  
+  }
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
@@ -199,11 +228,21 @@ const ProcessDetails = () => {
                         </td>
                         {data.orderId !== "" ? (
                           <td className="pl-10 py-4 flex items-center  gap-3">
-                            <Link
-                              to={`/dashboard/${category_path}/${data.orderId}`}
-                            >
-                              <FaEye size={20} className="cursor-pointer" />
-                            </Link>
+                            {category === "Pictures" ? (
+                              <button
+                                onClick={() =>
+                                  viewPicturesOrderData(data?.orderId)
+                                }
+                              >
+                                <FaEye size={20} className="cursor-pointer" />
+                              </button>
+                            ) : (
+                              <Link
+                                to={`/dashboard/${category_path}/${data.orderId}`}
+                              >
+                                <FaEye size={20} className="cursor-pointer" />
+                              </Link>
+                            )}
 
                             <button
                               onClick={() => openDeleteModal(data.orderId)}
@@ -255,6 +294,10 @@ const ProcessDetails = () => {
           title={"Mark Account As Paid"}
           updateStitchingLoading={loading}
         />
+      )}
+
+      {picturesOrderModal && (
+        <PicturesOrder id={selectedId} closeModal={hidePicturesOrderData} />
       )}
     </>
   );

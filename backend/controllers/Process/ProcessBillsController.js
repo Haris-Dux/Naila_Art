@@ -11,6 +11,7 @@ import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import CustomError from "../../config/errors/CustomError.js";
+import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -366,7 +367,7 @@ export const getAllProcessBills = async (req, res, next) => {
     }
 
     if (search) {
-      query.serial_No = search;
+      query.partyName =  { $regex: search, $options: "i" };
     }
 
     const totalProcessBills = await processBillsModel.countDocuments(query);
@@ -700,7 +701,9 @@ export const markAsPaid = async (req,res,next) => {
     let accountData = {};
     if(category === "Process") {
      accountData = await processBillsModel.findById(id);
-    } else if(category === "sellers") {
+    } else if (category === "Pictures") {
+      accountData = await PicruresAccountModel.findById(id);
+    } else if(category === "Pictures") {
       throw new Error("Need to Work On Category yet")
     }
     if(!accountData) throw new CustomError("Account not found",404);
@@ -729,3 +732,4 @@ export const markAsPaid = async (req,res,next) => {
     next(error)
   }
 }
+ 

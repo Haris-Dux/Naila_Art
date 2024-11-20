@@ -17,9 +17,7 @@ const ProcessBills = () => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { loading, ProcessBills, picturesBills } = useSelector(
-    (state) => state.ProcessBill
-  );
+  const { loading, ProcessBills } = useSelector((state) => state.ProcessBill);
 
   useEffect(() => {
     const payload = {
@@ -33,7 +31,7 @@ const ProcessBills = () => {
     setSelectedCategory(category);
     setSearch("");
 
-    if (selectedCategory === "Pictures") {
+    if (category === "Pictures") {
       const payload = {
         page: 1,
       };
@@ -51,17 +49,23 @@ const ProcessBills = () => {
 
   const handleSearch = (e) => {
     const value = e.target.value;
-    const searchValue = value.length > 0 ? Number(value) : null;
 
     setSearch(value);
 
-    const payload = {
-      search: searchValue,
-      category: selectedCategory,
-      page: 1,
-    };
-
-    dispatch(GetAllProcessBillAsync(payload));
+    if (selectedCategory === "Pictures") {
+      const payload = {
+        search: value,
+        page: 1,
+      };
+      dispatch(GetAllPictureAccountsAsync(payload));
+    } else {
+      const payload = {
+        search: value,
+        category: selectedCategory,
+        page: 1,
+      };
+      dispatch(GetAllProcessBillAsync(payload));
+    }
   };
 
   const renderPaginationLinks = () => {
@@ -142,7 +146,7 @@ const ProcessBills = () => {
               <input
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by serial no"
+                placeholder="Search by Party Name"
                 value={search}
                 onChange={handleSearch}
               />

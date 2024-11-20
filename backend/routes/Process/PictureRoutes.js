@@ -4,6 +4,7 @@ import {
   createPictureOrder,
   deletePictureOrderById,
   getAllPictureAccounts,
+  getPicruresBillById,
   getPictureOrderById,
   searchAccountByPartyName,
   updatePictureOrderById,
@@ -20,6 +21,11 @@ pictureRouter.post(
   "/getPictureOrderById",
   superAdminAndAdminOnly,
   getPictureOrderById
+);
+pictureRouter.post(
+  "/getPicruresBillById",
+  superAdminAndAdminOnly,
+  getPicruresBillById
 );
 pictureRouter.post(
   "/deletePictureOrderById",
