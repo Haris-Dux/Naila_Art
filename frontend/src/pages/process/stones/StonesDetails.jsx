@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   generateStoneBillAsync,
@@ -44,19 +44,26 @@ const StonesDetails = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+
+  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
 
   useEffect(() => {
+    if (id !== "null") {
     const data = {
       id: id,
     };
     dispatch(GetSingleStone(data));
+  } else {
+    openModal();
+  };
     dispatch(GetAllLaceForEmroidery());
   }, [id]);
 
   useEffect(() => {
-    if (SingleStone?.embroidery_Id) {
+    if (SingleStone?.embroidery_Id || embroidery_Id) {
       const data = {
-        id: SingleStone?.embroidery_Id,
+        id: SingleStone?.embroidery_Id || embroidery_Id,
       };
       dispatch(GETEmbroiderySIngle(data));
     }
@@ -108,16 +115,17 @@ const StonesDetails = () => {
 
   useEffect(() => {
     setFormData({
-      serial_No: SingleStone?.serial_No || "",
-      design_no: SingleStone?.design_no || "",
-      embroidery_Id: SingleStone?.embroidery_Id || "",
+      serial_No: SingleStone?.serial_No || serial_No || "",
+      design_no: SingleStone?.design_no || design_no || "",
+      embroidery_Id: SingleStone?.embroidery_Id || embroidery_Id || "",
       suits_category: [initialRow],
       dupatta_category: [initialRow],
       lace_category: "",
       date: today,
+      partyName: "",
       partytype:partyValue
     });
-  }, [SingleStone,partyValue]);
+  }, [SingleStone,partyValue,id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -375,6 +383,9 @@ const StonesDetails = () => {
   };
 
   const closeModal = () => {
+    if (id === "null") {
+      navigate(from);
+    };
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };

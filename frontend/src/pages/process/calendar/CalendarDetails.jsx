@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   generateCalenderBillAsync,
   generateCalenderGatePssPdfAsync,
@@ -24,14 +24,14 @@ const CalendarDetails = () => {
     generateCAlenderBillLoading,
     CalenderpdfLoading,
   } = useSelector((state) => state.Calender);
-  const {
-    loading: IsLoading,
-    previousDataByPartyName,
-  } = useSelector((state) => state.Cutting);
+  const { loading: IsLoading, previousDataByPartyName } = useSelector(
+    (state) => state.Cutting
+  );
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
@@ -71,24 +71,34 @@ const CalendarDetails = () => {
   const [convertedQuantity, setConvertedQuantity] = useState(0);
   const [convertedAmount, setConvertedAmount] = useState(0);
 
+  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
+
   useEffect(() => {
-    const data = {
-      id: id,
-    };
-    dispatch(GetSingleCalender(data));
+    if (id === "null") {
+      openModal();
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id !== "null") {
+      const data = {
+        id: id,
+      };
+      dispatch(GetSingleCalender(data));
+    }
   }, [id, dispatch]);
 
   useEffect(() => {
     setCuttingData({
-      serial_No: SingleCalender?.serial_No || "",
-      design_no: SingleCalender?.design_no || "",
+      serial_No: SingleCalender?.serial_No || serial_No || "",
+      design_no: SingleCalender?.design_no || design_no || "",
       T_Quantity: "",
-      partytype:partyValue,
+      partytype: partyValue,
       date: today,
       partyName: "",
-      embroidery_Id: SingleCalender?.embroidery_Id || "",
+      embroidery_Id: SingleCalender?.embroidery_Id || embroidery_Id || "",
     });
-  }, [SingleCalender,partyValue]);
+  }, [SingleCalender, partyValue, id]);
 
   useEffect(() => {
     setCalenderData({
@@ -156,6 +166,9 @@ const CalendarDetails = () => {
   };
 
   const closeModal = () => {
+    if (id === "null") {
+      navigate(from);
+    }
     setIsOpen(false);
     setPartyValue("newParty");
     document.body.style.overflow = "auto";
@@ -330,6 +343,33 @@ const CalendarDetails = () => {
     };
   });
 
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    switch (true) {
+      case value === "Stones":
+        navigate("/dashboard/cutting-details/null", {
+          state: {
+            embroidery_Id: SingleCalender.embroidery_Id,
+            design_no: SingleCalender.design_no,
+            serial_No: SingleCalender.serial_No,
+            from: location.pathname,
+          },
+        });
+        break;
+        case value === "Stitching":
+          navigate("/dashboard/stones-details/null", {
+            state: {
+              embroidery_Id: SingleCalender.embroidery_Id,
+              design_no: SingleCalender.design_no,
+              serial_No: SingleCalender.serial_No,
+              from: location.pathname,
+            },
+          });
+          break;
+      default:
+        break;
+    }
+  };
 
   return (
     <>
@@ -459,6 +499,16 @@ const CalendarDetails = () => {
           >
             Next Step
           </button>
+          <select
+            onChange={handleSkipStep}
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          >
+            <option value="" disabled selected hidden>
+              Skip To
+            </option>
+            <option value="Stones">Stones</option>
+            <option value="Stitching">Stitching</option>
+          </select>
         </div>
 
         {isOpen && (
@@ -532,31 +582,31 @@ const CalendarDetails = () => {
                   <div className="mb-8 grid items-star grid-cols-1 lg:grid-cols-3 gap-5">
                     {/* RADIO BUTTONS */}
                     <div className="grid grid-cols-2 items-center justify-center gap-1">
-                    <label className="col-span-1 ">
-                      <input
-                        type="radio"
-                        name="partyType"
-                        value="oldParty"
-                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        onChange={togleNameField}
-                        required
-                      />
-                      Old Party
-                    </label>
-                    <label className="col-span-1 ">
-                      <input
-                        type="radio"
-                        name="partyType"
-                        value="newParty"
-                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        onChange={togleNameField}
-                        required
-                        defaultChecked
-                      />
-                      New Party
-                    </label>
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="oldParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                        />
+                        Old Party
+                      </label>
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="newParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                          defaultChecked
+                        />
+                        New Party
+                      </label>
                     </div>
-                   
+
                     <div>
                       {partyValue === "newParty" ? (
                         <input
@@ -612,9 +662,8 @@ const CalendarDetails = () => {
                         readOnly
                       />
                     </div>
-                    </div>
-                    <div className=" grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
-
+                  </div>
+                  <div className=" grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
                     <div>
                       <input
                         name="date"
@@ -663,8 +712,7 @@ const CalendarDetails = () => {
                         readOnly
                       />
                     </div>
-                    </div>
-                  
+                  </div>
 
                   <div className="flex justify-center pt-2">
                     {IsLoading ? (

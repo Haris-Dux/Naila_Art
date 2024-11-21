@@ -897,7 +897,6 @@ const Embroidery = () => {
                   </div>
 
                   {/* FOURTH ROW */}
-
                   <div>
                     <input
                       name="rATE_per_stitching"

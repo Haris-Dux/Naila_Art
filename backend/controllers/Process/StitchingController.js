@@ -312,7 +312,7 @@ export const getStitchingDataBypartyName = async (req, res, next) => {
 
 const addSuitsInStock = async (data, session) => {
   try {
-    const { category, color, quantity, cost_price, sale_price, d_no } = data;
+    const { category, color, quantity, cost_price, sale_price, d_no,useBags } = data;
     if (!category || !color || !quantity || !cost_price || !sale_price || !d_no)
       throw new Error("Missing Fields For Adding Suits Stock");
     const existingSuitWithDNo = await SuitsModel.findOne({ d_no }).session(
@@ -333,16 +333,20 @@ const addSuitsInStock = async (data, session) => {
       category: { $regex: new RegExp(`^${category}$`, "i") },
       color: { $regex: new RegExp(`^${color}$`, "i") },
     }).session(session);
+    
     //DEDUCTING BAGS FROM STOCK
-    const bagsStock = await BagsAndBoxModel.findOne({ name: "Bags" }).session(
-      session
-    );
-    if (!bagsStock) throw new Error("Bags Stock Not Found");
-    const updatedBagsQuantity = bagsStock.totalQuantity - quantity;
-    if (updatedBagsQuantity < 0) throw new Error("Not Enough Bags In Stock");
-    bagsStock.totalQuantity = updatedBagsQuantity;
-    await bagsStock.save({ session });
 
+    if(useBags){
+      const bagsStock = await BagsAndBoxModel.findOne({ name: "Bags" }).session(
+        session
+      );
+      if (!bagsStock) throw new Error("Bags Stock Not Found");
+      const updatedBagsQuantity = bagsStock.totalQuantity - quantity;
+      if (updatedBagsQuantity < 0) throw new Error("Not Enough Bags In Stock");
+      bagsStock.totalQuantity = updatedBagsQuantity;
+      await bagsStock.save({ session });
+    };
+  
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
     let recordData = { date: today, quantity, cost_price, sale_price };
     if (
@@ -380,8 +384,7 @@ export const addInStockFromPackaging = async (req,res,next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, suits_category,dupatta_category, d_no,embroidery_Id } = req.body;
-      if (!id) throw new Error("Id not Found");
+      const { suits_category,dupatta_category, d_no,embroidery_Id,useBags } = req.body;
       //CHECK PICTURES ORDER
       const checkPicturesOrder = await PicruresModel.findOne({embroidery_Id:embroidery_Id});
       if(checkPicturesOrder && checkPicturesOrder.status === 'Pending'){
@@ -406,6 +409,7 @@ export const addInStockFromPackaging = async (req,res,next) => {
         for (const item of dupatta_category) {
           const data = {
             ...item,
+            useBags,
             d_no: d_no,
             quantity: item.return_quantity,
           };

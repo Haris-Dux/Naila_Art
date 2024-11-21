@@ -9,11 +9,15 @@ import {
 } from "../../../features/EmbroiderySlice";
 import ReactSearchBox from "react-search-box";
 import { useSelector } from "react-redux";
-import { calenderDataBypartyNameAsync, createCalender } from "../../../features/CalenderSlice";
+import {
+  calenderDataBypartyNameAsync,
+  createCalender,
+} from "../../../features/CalenderSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
+import toast from "react-hot-toast";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -27,7 +31,9 @@ const EmbroideryDetails = () => {
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
   const [picturesModal, setPicturesMOdal] = useState(false);
 
-  const { loading: IsLoading,previousDataByPartyName } = useSelector((state) => state.Calender);
+  const { loading: IsLoading, previousDataByPartyName } = useSelector(
+    (state) => state.Calender
+  );
 
   const navigate = useNavigate();
 
@@ -55,13 +61,13 @@ const EmbroideryDetails = () => {
   useEffect(() => {
     setCalenderData({
       partytype: partyValue,
-       partyName: "",
+      partyName: "",
       serial_No: SingleEmbroidery?.serial_No || "",
       design_no: SingleEmbroidery?.design_no || "",
       date: today,
       embroidery_Id: SingleEmbroidery?.id || "",
     });
-  }, [SingleEmbroidery,partyValue]);
+  }, [SingleEmbroidery, partyValue]);
 
   const initialShirtRow = { category: "", color: "", received: 0 };
   const initialDupattaRow = { category: "", color: "", received: 0 };
@@ -210,7 +216,7 @@ const EmbroideryDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
-    setPartyValue("newParty")
+    setPartyValue("newParty");
     document.body.style.overflow = "auto";
   };
 
@@ -315,10 +321,9 @@ const EmbroideryDetails = () => {
     setPartyValue(value);
     setCalenderData((prev) => ({
       ...prev,
-      partyName: ""     
+      partyName: "",
     }));
     setAccountData(null);
-
   };
 
   const handleSearchOldData = (value) => {
@@ -344,6 +349,60 @@ const EmbroideryDetails = () => {
         return <span className="text-blue-700">{status}</span>;
       default:
         return "";
+    }
+  };
+
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    switch (true) {
+      case value === "Cutting":
+        navigate("/dashboard/calendar-details/null", {
+          state: {
+            embroidery_Id: SingleEmbroidery.id,
+            design_no: SingleEmbroidery.design_no,
+            serial_No: SingleEmbroidery.serial_No,
+            from: location.pathname,
+          },
+        });
+        break;
+
+      case value === "Stones":
+        navigate("/dashboard/cutting-details/null", {
+          state: {
+            embroidery_Id: SingleEmbroidery.id,
+            design_no: SingleEmbroidery.design_no,
+            serial_No: SingleEmbroidery.serial_No,
+            from: location.pathname,
+          },
+        });
+        break;
+      case value === "Stitching":
+        navigate("/dashboard/stones-details/null", {
+          state: {
+            embroidery_Id: SingleEmbroidery.id,
+            design_no: SingleEmbroidery.design_no,
+            serial_No: SingleEmbroidery.serial_No,
+            from: location.pathname,
+          },
+        });
+        break;
+      case value === "Packing":
+        if (SingleEmbroidery.T_Recieved_Suit === 0) {
+          return toast.error("Invalid Recieved Suit Quantity");
+        }
+        navigate("/dashboard/packing-details/null", {
+          state: {
+            embroidery_Id: SingleEmbroidery.id,
+            design_no: SingleEmbroidery.design_no,
+            serial_No: SingleEmbroidery.serial_No,
+            from: location.pathname,
+            suits_category:SingleEmbroidery.shirt
+          },
+        });
+        break;
+
+      default:
+        break;
     }
   };
   return (
@@ -677,6 +736,18 @@ const EmbroideryDetails = () => {
           >
             Next Step
           </button>
+          <select
+            onChange={handleSkipStep}
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          >
+            <option value="" disabled selected hidden>
+              Skip To
+            </option>
+            <option value="Cutting">Cutting</option>
+            <option value="Stones">Stone</option>
+            <option value="Stitching">Stitching</option>
+            <option value="Packing">Packing</option>
+          </select>
           {pictures_Order === false && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
@@ -723,42 +794,40 @@ const EmbroideryDetails = () => {
               </div>
 
               <div className="p-4 md:p-5">
-                  {/* ACCOUNT DATA */}
-            {partyValue === "oldParty" && accountData === false ? (
-              <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
-                <p>Calender Data Found But No Bill Generated Yet</p>
-              </div>
-            ) : (
-              <>
-                {partyValue === "oldParty" && accountData !== null && (
-                  <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
-                    <div className="box text-center">
-                      <h3 className="pb-1 font-normal">Total Debit</h3>
-                      <h3>{accountData?.total_debit || 0}</h3>
-                    </div>
-                    <div className="box text-center">
-                      <h3 className="pb-1 font-normal">Total Credit</h3>
-                      <h3>{accountData?.total_credit || 0}</h3>
-                    </div>
-                    <div className="box text-center">
-                      <h3 className="pb-1 font-normal ">Total Balance</h3>
-                      <h3>{accountData?.total_balance || 0}</h3>
-                    </div>
-                    <div className="box text-center">
-                      <h3 className="pb-1 font-normal ">Status</h3>
-                      <h3>
-                        {setAccountStatusColor(accountData?.status) ||
-                          "No Status"}
-                      </h3>
-                    </div>
+                {/* ACCOUNT DATA */}
+                {partyValue === "oldParty" && accountData === false ? (
+                  <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+                    <p>Calender Data Found But No Bill Generated Yet</p>
                   </div>
+                ) : (
+                  <>
+                    {partyValue === "oldParty" && accountData !== null && (
+                      <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                        <div className="box text-center">
+                          <h3 className="pb-1 font-normal">Total Debit</h3>
+                          <h3>{accountData?.total_debit || 0}</h3>
+                        </div>
+                        <div className="box text-center">
+                          <h3 className="pb-1 font-normal">Total Credit</h3>
+                          <h3>{accountData?.total_credit || 0}</h3>
+                        </div>
+                        <div className="box text-center">
+                          <h3 className="pb-1 font-normal ">Total Balance</h3>
+                          <h3>{accountData?.total_balance || 0}</h3>
+                        </div>
+                        <div className="box text-center">
+                          <h3 className="pb-1 font-normal ">Status</h3>
+                          <h3>
+                            {setAccountStatusColor(accountData?.status) ||
+                              "No Status"}
+                          </h3>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
-            )}
                 <form className="space-y-4" onSubmit={handleSubmitCalender}>
                   <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
-
-
                     {/* RADIO BUTTONS */}
                     <label className="col-span-1 ">
                       <input
@@ -783,49 +852,49 @@ const EmbroideryDetails = () => {
                       />
                       New Party
                     </label>
-                
-                  <div>
-                    {partyValue === "newParty" ? (
-                      <input
-                        name="partyName"
-                        type="text"
-                        placeholder="Party Name"
-                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                        value={CalenderData.partyName}
-                        onChange={handleInputChangeCalender}
-                      />
-                    ) : (
-                      <div className="custom-search-box relative">
-                        <ReactSearchBox
-                          key={searchResults?.key}
-                          onSelect={(value) =>
-                            handleSelectedRecord(value?.item?.key)
-                          }
-                          placeholder={
-                            CalenderData.partyName === ""
-                              ? "Search"
-                              : CalenderData.partyName
-                          }
-                          data={searchResults}
-                          onChange={(value) => handleSearchOldData(value)}
-                          inputBorderColor="#D1D5DB"
-                          inputBackgroundColor="#F9FAFB"
+
+                    <div>
+                      {partyValue === "newParty" ? (
+                        <input
+                          name="partyName"
+                          type="text"
+                          placeholder="Party Name"
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                          value={CalenderData.partyName}
+                          onChange={handleInputChangeCalender}
                         />
-                        <style jsx>
-                          {`
-                            .react-search-box-dropdown {
-                              position: absolute;
-                              z-index: 50;
-                              top: 100%;
-                              left: 0;
-                              width: 100%;
+                      ) : (
+                        <div className="custom-search-box relative">
+                          <ReactSearchBox
+                            key={searchResults?.key}
+                            onSelect={(value) =>
+                              handleSelectedRecord(value?.item?.key)
                             }
-                          `}
-                        </style>
-                      </div>
-                    )}
-                  </div>
+                            placeholder={
+                              CalenderData.partyName === ""
+                                ? "Search"
+                                : CalenderData.partyName
+                            }
+                            data={searchResults}
+                            onChange={(value) => handleSearchOldData(value)}
+                            inputBorderColor="#D1D5DB"
+                            inputBackgroundColor="#F9FAFB"
+                          />
+                          <style jsx>
+                            {`
+                              .react-search-box-dropdown {
+                                position: absolute;
+                                z-index: 50;
+                                top: 100%;
+                                left: 0;
+                                width: 100%;
+                              }
+                            `}
+                          </style>
+                        </div>
+                      )}
+                    </div>
 
                     <div>
                       <input
@@ -876,7 +945,6 @@ const EmbroideryDetails = () => {
                       />
                     </div>
 
-                    
                     <div>
                       <input
                         name="serialNo"
