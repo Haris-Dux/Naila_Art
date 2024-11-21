@@ -654,7 +654,7 @@ const SuitsStock = () => {
                 <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
                   <tbody>
                     {filteredSuitData && filteredSuitData.length > 0 ? (
-                      filteredSuitData?.map((data, index) => (
+                      filteredSuitData?.slice().reverse().map((data, index) => (
                           <tr
                             key={index}
                             className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"

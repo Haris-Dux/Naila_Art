@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
@@ -28,12 +28,17 @@ const CuttingDetails = () => {
     SingleCutting,
     generateCuttingBillLoading,
     CuttingpdfLoading,
-    updateLoading,
   } = useSelector((state) => state.Cutting);
-  const { color, loading: IsLoading,previousDataByPartyName } = useSelector((state) => state.stone);
+  const {
+    color,
+    loading: IsLoading,
+    previousDataByPartyName,
+  } = useSelector((state) => state.stone);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
@@ -43,7 +48,6 @@ const CuttingDetails = () => {
   const [accountData, setAccountData] = useState(null);
   const [partyValue, setPartyValue] = useState("newParty");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-
 
   const [cuttingData, setcuttingData] = useState({
     id,
@@ -56,23 +60,25 @@ const CuttingDetails = () => {
     partyName: "",
     serial_No: "",
     design_no: "",
-    partyType:partyValue,
+    partyType: partyValue,
     date: "",
     rate: "",
     category_quantity: [initialRow],
   });
 
+  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
+
   useEffect(() => {
     setFormData({
-      serial_No: SingleCutting?.serial_No || "",
-      design_no: SingleCutting?.design_no || "",
+      serial_No: SingleCutting?.serial_No || serial_No || "",
+      design_no: SingleCutting?.design_no || design_no || "",
       date: today,
-      partyType:partyValue,
+      partyType: partyValue,
       partyName: "",
-      embroidery_Id: SingleCutting?.embroidery_Id || "",
-      category_quantity: [initialRow], // You are setting category_quantity with initialRow
+      embroidery_Id: SingleCutting?.embroidery_Id || embroidery_Id || "",
+      category_quantity: [initialRow],
     });
-  }, [SingleCutting,partyValue]);
+  }, [SingleCutting, partyValue]);
 
   useEffect(() => {
     setcuttingData({
@@ -136,17 +142,20 @@ const CuttingDetails = () => {
   };
 
   useEffect(() => {
-    const data = {
-      id: id,
-    };
-    dispatch(GetSingleCutting(data));
+    if (id !== "null") {
+      const data = {
+        id: id,
+      };
+      dispatch(GetSingleCutting(data));
+    } else {
+      openModal();
+    }
   }, [id, dispatch]);
 
   useEffect(() => {
-    if (SingleCutting && SingleCutting?.serial_No) {
-      dispatch(
-        getColorsForCurrentEmbroidery({ serial_No: SingleCutting?.serial_No })
-      );
+    if ((SingleCutting && SingleCutting?.serial_No) || serial_No) {
+      const data = SingleCutting?.serial_No || serial_No;
+      dispatch(getColorsForCurrentEmbroidery({ serial_No: data }));
     }
   }, [id, SingleCutting]);
 
@@ -207,6 +216,9 @@ const CuttingDetails = () => {
   };
 
   const closeModal = () => {
+    if (id === "null") {
+      navigate(from);
+    }
     setIsOpen(false);
     document.body.style.overflow = "auto";
   };
@@ -353,6 +365,24 @@ const CuttingDetails = () => {
     };
   });
 
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    switch (true) {
+      case value === "Stitching":
+        navigate("/dashboard/stones-details/null", {
+          state: {
+            embroidery_Id: SingleCutting.embroidery_Id,
+            design_no: SingleCutting.design_no,
+            serial_No: SingleCutting.serial_No,
+            from: location.pathname,
+          },
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -479,6 +509,15 @@ const CuttingDetails = () => {
           >
             Next Step
           </button>
+          <select
+            onChange={handleSkipStep}
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          >
+            <option value="" disabled selected hidden>
+              Skip To
+            </option>
+            <option value="Stitching">Stitching</option>
+          </select>
         </div>
         {isOpen && (
           <div
@@ -515,8 +554,8 @@ const CuttingDetails = () => {
                 </button>
               </div>
 
-                 {/* ACCOUNT DATA */}
-                 {partyValue === "oldParty" && accountData === false ? (
+              {/* ACCOUNT DATA */}
+              {partyValue === "oldParty" && accountData === false ? (
                 <div className=" px-8 py-2 mb-5 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
                   <p>Calender Data Found But No Bill Generated Yet</p>
                 </div>
@@ -634,12 +673,10 @@ const CuttingDetails = () => {
                         readOnly
                       />
                     </div>
-
-                   
                   </div>
 
                   <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                  <div>
+                    <div>
                       <input
                         name="DesignNo"
                         type="text"
@@ -745,7 +782,7 @@ const CuttingDetails = () => {
                               className=" text-red-500  rounded-lg ms-auto inline-flex justify-center items-center"
                               type="button"
                             >
-                             <MdOutlineDelete
+                              <MdOutlineDelete
                                 size={20}
                                 className="cursor-pointer text-red-500"
                               />

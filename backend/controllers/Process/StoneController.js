@@ -44,7 +44,7 @@ export const addStone = async (req, res, next) => {
         throw new Error(`Missing Fields ${field}`);
       }
     });
-    //CHECK PARTY NAME ERROR 
+    //CHECK PARTY NAME ERROR
     if (partyType === "newParty") {
       const checkExistingStone = await StoneModel.findOne({
         partyName: { $regex: partyName, $options: "i" },
@@ -52,21 +52,26 @@ export const addStone = async (req, res, next) => {
       if (checkExistingStone) {
         throw new Error("Party Name Already In Use");
       }
-    };
-    //UPDATE AVAILABLE QUANTITY 
+    }
+    //UPDATE AVAILABLE QUANTITY
     let totalQuantityToAdd = 0;
     for (let item of category_quantity) {
       if (item.category || item.color || item.quantity) {
         totalQuantityToAdd += item.quantity;
       }
-    };
-    const cuttingData = await CuttingModel.findOne({embroidery_Id:embroidery_Id});
-    const availableQuantity = cuttingData.Available_Quantity - totalQuantityToAdd;
-    if(availableQuantity < 0){
-      throw new Error("Not Enough Quantity For Stone");
-    };
-    cuttingData.Available_Quantity = availableQuantity;
-    await cuttingData.save();
+    }
+    const cuttingData = await CuttingModel.findOne({
+      embroidery_Id: embroidery_Id,
+    });
+    if (cuttingData) {
+      const availableQuantity =
+        cuttingData.Available_Quantity - totalQuantityToAdd;
+      if (availableQuantity < 0) {
+        throw new Error("Not Enough Quantity For Stone");
+      }
+      cuttingData.Available_Quantity = availableQuantity;
+      await cuttingData.save();
+    }
 
     await StoneModel.create({
       embroidery_Id,
@@ -141,13 +146,14 @@ export const getStoneByEmbroideryId = async (req, res, next) => {
 
 export const updateStone = async (req, res, next) => {
   try {
-    const { id, category_quantity, project_status, T_Quantity, totalQuantity } = req.body;
+    const { id, category_quantity, project_status, T_Quantity, totalQuantity } =
+      req.body;
     if (!id) throw new Error("Id not Found");
     const stone = await StoneModel.findById(id);
     if (!stone) throw new Error("Stone not Found");
     if (project_status) {
       stone.project_status = project_status;
-    };
+    }
     if (category_quantity && category_quantity.length > 0) {
       category_quantity.forEach((item) => {
         const { first, second, third, id } = item;
@@ -155,42 +161,43 @@ export const updateStone = async (req, res, next) => {
         let toUpdate = stone.category_quantity.find((obj) => obj._id == id);
         let new_r_quantity = stone.r_quantity - toUpdate.recieved_Data.r_total;
         if (toUpdate) {
-
           if (first !== undefined && first !== null) {
             let total =
-              toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.first.quantity;
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.first.quantity;
             toUpdate.recieved_Data.first.quantity = first;
             toUpdate.recieved_Data.first.date = date;
             toUpdate.recieved_Data.r_total = first + total;
-          };
+          }
 
           if (second !== undefined && first !== null) {
             let total =
-              toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.second.quantity;
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.second.quantity;
             toUpdate.recieved_Data.second.quantity = second;
             toUpdate.recieved_Data.second.date = date;
             toUpdate.recieved_Data.r_total = second + total;
-          };
+          }
 
           if (third !== undefined && first !== null) {
             let total =
-              toUpdate.recieved_Data.r_total - toUpdate.recieved_Data.third.quantity;
+              toUpdate.recieved_Data.r_total -
+              toUpdate.recieved_Data.third.quantity;
             toUpdate.recieved_Data.third.quantity = third;
             toUpdate.recieved_Data.third.date = date;
             toUpdate.recieved_Data.r_total = third + total;
-          };
-
+          }
         }
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
         if (stone.r_quantity > totalQuantity) {
           throw new Error("Invalid Update Quantity Value");
-        };
+        }
         toUpdate.recieved_Data.r_date = date;
         stone.updated = true;
       });
-    };
+    }
 
-    //B PAIR 
+    //B PAIR
     const quantity = T_Quantity - stone.r_quantity;
     if (stone.project_status === "Completed" && quantity > 0) {
       const rate = quantity * stone.rate;

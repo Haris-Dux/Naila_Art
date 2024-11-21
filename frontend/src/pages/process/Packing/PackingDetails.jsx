@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addInStockFromPackagingAsync,
@@ -19,20 +19,36 @@ const PackingDetails = () => {
   const [picturesOrderModal, setpicturesOrderModal] = useState(false);
 
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
-    id: id,
     d_no: "",
+    useBags: false,
     embroidery_Id: "",
     suits_category: [],
     dupatta_category: [],
   });
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
+  const { embroidery_Id, design_no, serial_No, suits_category } =
+    location.state || {};
 
   useEffect(() => {
-    const data = { id };
-    dispatch(GetSingleStitching(data));
+    if (
+      id === "null" &&
+      [embroidery_Id, design_no, serial_No, suits_category].some(
+        (value) => value === undefined
+      )
+    ) {
+      navigate("/dashboard/embroidery");
+    }
+  }, [embroidery_Id, design_no, serial_No, suits_category, id]);
+
+  useEffect(() => {
+    if (id !== "null") {
+      const data = { id };
+      dispatch(GetSingleStitching(data));
+    }
   }, [id, dispatch]);
 
   useEffect(() => {
@@ -41,7 +57,6 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length > 0 &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log('running this 1');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -61,7 +76,6 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length === 0 &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log('running this 2');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -81,7 +95,6 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length > 0 &&
       SingleStitching?.dupatta_category?.length === 0
     ) {
-      console.log('running this 3');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -96,9 +109,27 @@ const PackingDetails = () => {
             color: item.color,
           })) || [],
       });
+    } else if (id === "null" && suits_category?.length > 0) {
+      setFormData({
+        ...formData,
+        d_no: design_no,
+        embroidery_Id: embroidery_Id,
+        suits_category:
+          (suits_category &&
+            suits_category?.map((item) => ({
+              id: item.id,
+              return_quantity: item.received,
+              cost_price: item.cost_price,
+              sale_price: item.sale_price,
+              category: item.category,
+              color: item.color,
+            }))) ||
+          [],
+      });
     }
-    dispatch(GETEmbroiderySIngle({ id: SingleStitching.embroidery_Id }));
-  }, [SingleStitching]);
+    const idData = SingleStitching.embroidery_Id || embroidery_Id;
+    dispatch(GETEmbroiderySIngle({ id: idData }));
+  }, [SingleStitching, id]);
 
   if (loading) {
     return (
@@ -127,12 +158,12 @@ const PackingDetails = () => {
 
   const handleAddInStock = (e) => {
     e.preventDefault();
-    console.log("formData", formData);
     dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
-      if(res.payload.success){
+      if (res.payload.success) {
         closeConfirmationModal();
+        navigate("/dashboard/suits");
       }
-    })
+    });
   };
 
   const openConfirmationModal = () => {
@@ -151,6 +182,16 @@ const PackingDetails = () => {
     setpicturesOrderModal(false);
   };
 
+  const handleChecked = (e) => {
+    const value = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      useBags: value,
+    }));
+  };
+
+  const suitMapdata = SingleStitching?.suits_category || suits_category;
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -163,15 +204,15 @@ const PackingDetails = () => {
 
         {/* DETAILS SECTION */}
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5 border border-gray-300 dark:border-gray-500 bg-[#F7F7F7] dark:bg-gray-800 rounded-md">
-          <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-x-2 gap-y-5 text-sm">
+          <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-5 gap-x-2 gap-y-5 text-center text-sm">
             {/* ROW 1 */}
             <div className="box">
               <span className="font-medium">Serial No:</span>
-              <span> {SingleStitching?.serial_No}</span>
+              <span> {SingleStitching?.serial_No || serial_No}</span>
             </div>
             <div className="box">
               <span className="font-medium">Design No:</span>
-              <span> {SingleStitching?.design_no}</span>
+              <span> {SingleStitching?.design_no || design_no}</span>
             </div>
             <div className="box">
               <span className="font-medium">Additional Cost:</span>
@@ -193,6 +234,17 @@ const PackingDetails = () => {
                 )}
               </span>
             </div>
+            <div className="box flex gap-2">
+              <span className="font-medium">Use Bags:</span>
+              <span>
+                <input
+                  type="checkbox"
+                  id="useBags"
+                  className="w-5 h-5 text-blue-600 bg-gray-200 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  onChange={handleChecked}
+                />
+              </span>
+            </div>
           </div>
         </div>
 
@@ -202,66 +254,69 @@ const PackingDetails = () => {
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
             <div className="box_1">
               <div className="flex items-center gap-40">
-                {SingleStitching?.suits_category?.length > 0 && (
-                  <div className="details space-y-2">
-                    <h3 className="mb-4 font-semibold text-lg">
-                      Shirt Data For Stock
-                    </h3>
-
-                    {SingleStitching?.suits_category?.map((data, index) => (
-                      <div
-                        key={data.id}
-                        className="details_box flex items-center gap-x-3"
-                      >
-                        <p className="w-44">{data.color}</p>
-                        {/* RETURN QUANTITY */}
-                        <input
-                          type="text"
-                          placeholder="R.Q"
-                          className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                          value={
-                            formData?.suits_category[index]?.return_quantity
-                          }
-                          readOnly
-                        />
-                        <>
+                {SingleStitching?.suits_category?.length > 0 ||
+                  (suits_category?.length > 0 && id === "null") ? (
+                    <div className="details space-y-2">
+                      <h3 className="mb-4 font-semibold text-lg">
+                        Shirt Data For Stock
+                      </h3>
+                      {suitMapdata?.map((data, index) => (
+                        <div
+                          key={data.id}
+                          className="details_box flex items-center gap-x-3"
+                        >
+                          <p className="w-44">{data.color}</p>
+                          {/* RETURN QUANTITY */}
                           <input
-                            type="number"
-                            placeholder="C.P"
+                            type="text"
+                            placeholder="R.Q"
                             className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
                             value={
-                              formData?.suits_category[index]?.cost_price || ""
+                              formData?.suits_category[index]?.return_quantity
                             }
-                            onChange={(e) =>
-                              handleInputChange(
-                                "suits_category",
-                                index,
-                                "cost_price",
-                                e.target.value
-                              )
-                            }
+                            readOnly
                           />
-                          <input
-                            type="number"
-                            placeholder="S.P"
-                            className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                            value={
-                              formData?.suits_category[index]?.sale_price || ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange(
-                                "suits_category",
-                                index,
-                                "sale_price",
-                                e.target.value
-                              )
-                            }
-                          />{" "}
-                        </>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          <>
+                            <input
+                              type="number"
+                              placeholder="C.P"
+                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                              value={
+                                formData?.suits_category[index]?.cost_price ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "suits_category",
+                                  index,
+                                  "cost_price",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            <input
+                              type="number"
+                              placeholder="S.P"
+                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                              value={
+                                formData?.suits_category[index]?.sale_price ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "suits_category",
+                                  index,
+                                  "sale_price",
+                                  e.target.value
+                                )
+                              }
+                            />{" "}
+                          </>
+                        </div>
+                      ))}
+                    </div>
+                  ): null}
+
                 {/* DUPPATTA SECTION */}
                 {SingleStitching?.dupatta_category?.length > 0 &&
                   SingleStitching?.suits_category?.length === 0 && (
@@ -348,13 +403,14 @@ const PackingDetails = () => {
             onConfirm={handleAddInStock}
             onClose={closeConfirmationModal}
             updateStitchingLoading={addInStockLoading}
+            bagsValue={formData?.useBags}
           />
         )}
       </section>
 
       {picturesOrderModal && (
         <PicturesOrder
-          id={SingleEmbroidery?.id}
+          id={SingleEmbroidery?.id || embroidery_Id}
           closeModal={hidePicturesOrderData}
         />
       )}
@@ -363,4 +419,3 @@ const PackingDetails = () => {
 };
 
 export default PackingDetails;
-
