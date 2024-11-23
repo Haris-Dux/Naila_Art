@@ -35,7 +35,7 @@ export const generateProcessBill = async (req, res, next) => {
         Stitching_id,
         Manual_No,
         additionalExpenditure,
-        embroidery_Id
+        embroidery_Id,
       } = req.body;
 
       // Validate required fields
@@ -54,14 +54,14 @@ export const generateProcessBill = async (req, res, next) => {
       }
       if (process_Category !== "Embroidery" && !r_quantity) {
         throw new Error("Required fields are missing");
-      };
+      }
 
       //AMOUNT TO PAY IN THE BILL
       let amount = 0;
       if (process_Category === "Embroidery") {
-        amount = Math.round(per_suit * T_Recieved_Suit );
+        amount = Math.round(per_suit * T_Recieved_Suit);
       } else {
-        amount = Math.round(rate * r_quantity );
+        amount = Math.round(rate * r_quantity);
       }
 
       if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
@@ -116,7 +116,7 @@ export const generateProcessBill = async (req, res, next) => {
             {
               process_Category,
               design_no,
-              date:today,
+              date: today,
               Manual_No,
               serial_No,
               partyName,
@@ -248,11 +248,11 @@ export const generateProcessBill = async (req, res, next) => {
         };
 
         //SAVING THE OLD ACCOUNT DATA
-        oldAccountData.design_no = design_no,
-        oldAccountData.date = today,
-        oldAccountData.Manual_No = Manual_No,
-        oldAccountData.serial_No = serial_No,
-        (oldAccountData.virtual_account = virtualAccountData),
+        (oldAccountData.design_no = design_no),
+          (oldAccountData.date = today),
+          (oldAccountData.Manual_No = Manual_No),
+          (oldAccountData.serial_No = serial_No),
+          (oldAccountData.virtual_account = virtualAccountData),
           oldAccountData.credit_debit_history.push(
             credit_debit_history_details
           );
@@ -321,10 +321,12 @@ export const generateProcessBill = async (req, res, next) => {
             "";
             break;
         }
-      };
+      }
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
-      const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id).session(session);
+      const mainEmbroidery = await EmbroideryModel.findById(
+        embroidery_Id
+      ).session(session);
       mainEmbroidery.additionalExpenditure += parseInt(additionalExpenditure);
       await mainEmbroidery.save({ session });
 
@@ -367,7 +369,7 @@ export const getAllProcessBills = async (req, res, next) => {
     }
 
     if (search) {
-      query.partyName =  { $regex: search, $options: "i" };
+      query.partyName = { $regex: search, $options: "i" };
     }
 
     const totalProcessBills = await processBillsModel.countDocuments(query);
@@ -533,54 +535,51 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id, process_Category } = req.body;
-      await verifyrequiredparams(req.body, ["id","process_Category"]);
+      await verifyrequiredparams(req.body, ["id", "process_Category"]);
 
       //GETTING ORDER DATA AND ADD STOCK BACK USED
       let orderData;
       switch (true) {
         case process_Category === "Embroidery":
-          const embData = await EmbroideryModel.findById(id).session(
-            session
-          );
+          const embData = await EmbroideryModel.findById(id).session(session);
           if (embData) {
-              const trueSteps = Object.entries(embData.next_steps)
-              .filter(([step,value]) => value === true)
+            const trueSteps = Object.entries(embData.next_steps)
+              .filter(([step, value]) => value === true)
               .map(([step]) => step);
-      
-              if(trueSteps.length > 0) {
-                throw new CustomError(`Cannot Delete Embroidery While These Are Found ${trueSteps}`,401);
-              }
+
+            if (trueSteps.length > 0) {
+              throw new CustomError(
+                `Cannot Delete Embroidery While These Are Found ${trueSteps}`,
+                401
+              );
+            }
             orderData = embData;
           }
           break;
         case process_Category === "Calender":
-          const calenderData = await CalenderModel.findById(
-            id
-          ).session(session);
+          const calenderData = await CalenderModel.findById(id).session(
+            session
+          );
           if (calenderData) {
             orderData = calenderData;
           }
           break;
         case process_Category === "Cutting":
-          const cuttingData = await CuttingModel.findById(id).session(
-            session
-          );
+          const cuttingData = await CuttingModel.findById(id).session(session);
           if (cuttingData) {
             orderData = cuttingData;
           }
           break;
         case process_Category === "Stone":
-          const stoneData = await StoneModel.findById(id).session(
-            session
-          );
+          const stoneData = await StoneModel.findById(id).session(session);
           if (stoneData) {
             orderData = stoneData;
           }
           break;
         case process_Category === "Stitching":
-          const stitchingData = await StitchingModel.findById(
-            id
-          ).session(session);
+          const stitchingData = await StitchingModel.findById(id).session(
+            session
+          );
           if (stitchingData.bill_generated === true) {
             orderData = stitchingData;
           }
@@ -592,7 +591,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
       if (!orderData) throw new CustomError("Order Data not found", 404);
 
       const addInStock = async (items) => {
-         if (items && items.length > 0) {
+        if (items && items.length > 0) {
           await Promise.all(
             items?.map(async (item) => {
               const matchedRecord = await BaseModel.findOne({
@@ -636,8 +635,10 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         })
         .session(session);
 
-        //UPDATING ACCOUNT DATA
-      const amountToDeduct = Math.round(orderData.per_suit * orderData.T_Recieved_Suit)
+      //UPDATING ACCOUNT DATA
+      const amountToDeduct = Math.round(
+        orderData.per_suit * orderData.T_Recieved_Suit
+      );
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit =
         oldAccountData.virtual_account.total_credit - amountToDeduct;
@@ -673,7 +674,6 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         status: new_status,
       };
 
-
       (oldAccountData.virtual_account = virtualAccountData),
         oldAccountData.credit_debit_history.forEach((item) => {
           if (item.orderId === id) {
@@ -683,9 +683,10 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
 
       await oldAccountData.save({ session });
       await EmbroideryModel.findByIdAndDelete(id).session(session);
-      res
-        .status(200)
-        .json({ success: true, message: "Order And Bill deleted successfully" });
+      res.status(200).json({
+        success: true,
+        message: "Order And Bill deleted successfully",
+      });
     });
   } catch (error) {
     next(error);
@@ -694,19 +695,19 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
   }
 };
 
-export const markAsPaid = async (req,res,next) => {
+export const markAsPaid = async (req, res, next) => {
   try {
-    const {id,category} = req.body;
-    await verifyrequiredparams(req.body , ['id','category']);
+    const { id, category } = req.body;
+    await verifyrequiredparams(req.body, ["id", "category"]);
     let accountData = {};
-    if(category === "Process") {
-     accountData = await processBillsModel.findById(id);
+    if (category === "Process") {
+      accountData = await processBillsModel.findById(id);
     } else if (category === "Pictures") {
       accountData = await PicruresAccountModel.findById(id);
-    } else if(category === "Pictures") {
-      throw new Error("Need to Work On Category yet")
+    } else {
+      throw new Error("Need to Work On Category yet");
     }
-    if(!accountData) throw new CustomError("Account not found",404);
+    if (!accountData) throw new CustomError("Account not found", 404);
 
     //UPDATING ACCOUNT STATUS
     accountData.virtual_account.status = "Paid";
@@ -715,21 +716,135 @@ export const markAsPaid = async (req,res,next) => {
       date: today,
       particular: `Account Marked As Paid`,
       credit: 0,
-      balance:0,
-      orderId:"",
-      debit: accountData.virtual_account.total_balance
+      balance: 0,
+      orderId: "",
+      debit: accountData.virtual_account.total_balance,
     };
 
     //UPDATING ACC CREDIT DEBIT AND BALANCE
-    accountData.virtual_account.total_debit += accountData.virtual_account.total_balance;
+    accountData.virtual_account.total_debit +=
+      accountData.virtual_account.total_balance;
     accountData.virtual_account.total_credit = 0;
     accountData.virtual_account.total_balance = 0;
     //UPDATING CREDIT DEBIT HISTORY
     accountData.credit_debit_history.push(historydata);
     await accountData.save();
-    res.status(200).json({ success: true, message: "Account marked as paid"});
+    res.status(200).json({ success: true, message: "Account marked as paid" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
- 
+};
+
+export const applyDiscountOnProcessAccount = async (req, res, next) => {
+  try {
+    console.log("being hit");
+    const { id, category, amount } = req.body;
+    await verifyrequiredparams(req.body, ["id", "category", "amount"]);
+    let accountData = {};
+
+    if (category === "Process") {
+      accountData = await processBillsModel.findById(id);
+    } else if (category === "Pictures") {
+      accountData = await PicruresAccountModel.findById(id);
+    } else {
+      throw new Error("Need to Work On Category yet");
+    }
+
+    if (!accountData) throw new CustomError("Account not found", 404);
+
+    //UPDATING ACCOUNT STATUS
+
+    const historydata = {
+      date: today,
+      particular: `Discount Entry`,
+      credit: 0,
+      balance: accountData.virtual_account.total_balance - amount,
+      orderId: "",
+      debit: amount,
+    };
+
+    //UPDATING ACC CREDIT DEBIT AND BALANCE
+    accountData.virtual_account.total_credit -= amount;
+    accountData.virtual_account.total_balance -= amount;
+    //UPDATING CREDIT DEBIT HISTORY
+    accountData.credit_debit_history.push(historydata);
+    if (accountData.virtual_account.total_balance < 0) {
+      throw new CustomError("Invaild Discount Amount", 500);
+    } else if (accountData.virtual_account.total_balance === 0) {
+      accountData.virtual_account.status = "Paid";
+    }
+    await accountData.save();
+    res.status(200).json({ success: true, message: "Success" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const claimProcessAccount = async (req, res, next) => {
+  try {
+    const { id, category, amount, note } = req.body;
+    await verifyrequiredparams(req.body, ["id", "category", "amount", "note"]);
+    let oldAccountData = {};
+
+    if (category === "Process") {
+      oldAccountData = await processBillsModel.findById(id);
+    } else if (category === "Pictures") {
+      oldAccountData = await PicruresAccountModel.findById(id);
+    } else {
+      throw new Error("Invalid Category");
+    }
+
+    if (!oldAccountData) throw new CustomError("Account not found", 404);
+
+    //UPDATING ACCOUNT STATUS
+
+    const credit_debit_history_details = {
+      date: today,
+      particular: note,
+      credit: amount,
+      balance: oldAccountData.virtual_account.total_balance + amount,
+      orderId: "",
+      debit: 0,
+    };
+
+    //DATA FOR VIRTUAL ACCOUNT
+    let new_total_credit = oldAccountData.virtual_account.total_credit + amount;
+    let new_total_debit = oldAccountData.virtual_account.total_debit;
+    const new_total_balance =
+      oldAccountData.virtual_account.total_balance + amount;
+    let new_status = "";
+
+    switch (true) {
+      case new_total_balance === 0:
+        new_status = "Paid";
+        break;
+      case new_total_balance === new_total_credit && new_total_debit > 0:
+        new_status = "Partially Paid";
+        break;
+      case new_total_debit === 0 && new_total_balance === new_total_credit:
+        new_status = "Unpaid";
+        break;
+      case new_total_balance < 0:
+        new_status = "Advance Paid";
+        break;
+      default:
+        new_status = "";
+    };
+
+    //Creating Virtual Account Data
+    const virtualAccountData = {
+      total_debit: new_total_debit,
+      total_credit: new_total_credit,
+      total_balance: new_total_balance,
+      status: new_status,
+    };
+
+    (oldAccountData.virtual_account = virtualAccountData),
+      oldAccountData.credit_debit_history.push(credit_debit_history_details);
+
+    await oldAccountData.save();
+    res.status(200).json({ success: true, message: "Success" });
+  } catch (error) {
+    next(error);
+  }
+};
