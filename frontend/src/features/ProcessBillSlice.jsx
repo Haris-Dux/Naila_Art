@@ -12,6 +12,8 @@ const deletePictureOrderByIdURL = "/api/process/pictures/deletePictureOrderById"
 const deleteBillAndProcessOrderURL =
   "/api/processBillRouter/deleteBillAndProcessOrder";
 const markAsPaidURL = "/api/processBillRouter/markAsPaid";
+const applyDiscountOnProcessAccountURL = "/api/processBillRouter/applyDiscountOnProcessAccount";
+const applyClaimOnProcessAccountURL = "/api/processBillRouter/claimProcessAccount";
 
 // GENERATE PROCESS BILL ASYNC
 export const GenerateProcessBillAsync = createAsyncThunk(
@@ -124,7 +126,7 @@ export const deletePicturesBillOrderAsync = createAsyncThunk(
   }
 );
 
-//Delete Order And BIll
+//MARK AS PAID
 export const markAsPaidAsync = createAsyncThunk(
   "Process/markAsPaid",
   async (data) => {
@@ -138,11 +140,41 @@ export const markAsPaidAsync = createAsyncThunk(
   }
 );
 
+//Apply Discount
+export const applyDiscountAsync = createAsyncThunk(
+  "Process/applyDiscount",
+  async (data) => {
+    try {
+      const response = await axios.post(applyDiscountOnProcessAccountURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+//Apply Claim On Account
+export const applyClaimAccountAsync = createAsyncThunk(
+  "Process/applyClaim",
+  async (data) => {
+    try {
+      const response = await axios.post(applyClaimOnProcessAccountURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+
 const initialState = {
   ProcessBills: [],
   ProcessBillsDetails: [],
   loading: false,
   deleteLoadings: false,
+  discountLoading:false
 };
 
 const ProcessBillSlice = createSlice({
@@ -177,6 +209,23 @@ const ProcessBillSlice = createSlice({
       })
       .addCase(markAsPaidAsync.fulfilled, (state, action) => {
         state.deleteLoadings = false;
+      })
+
+      
+      //APPLY DISCOUNT ACCOUNT
+      .addCase(applyDiscountAsync.pending, (state, action) => {
+        state.discountLoading = true;
+      })
+      .addCase(applyDiscountAsync.fulfilled, (state, action) => {
+        state.discountLoading = false;
+      })
+
+       //APPLY CLAIM ON ACCOUNT
+       .addCase(applyClaimAccountAsync.pending, (state, action) => {
+        state.discountLoading = true;
+      })
+      .addCase(applyClaimAccountAsync.fulfilled, (state, action) => {
+        state.discountLoading = false;
       })
 
       // GENERATE PROCESS BILL

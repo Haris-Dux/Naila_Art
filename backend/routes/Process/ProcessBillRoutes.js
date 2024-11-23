@@ -1,6 +1,8 @@
 import express from "express";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 import {
+  applyDiscountOnProcessAccount,
+  claimProcessAccount,
   deleteBillAndProcessOrder,
   generateGatePassPdfFunction,
   generateProcessBill,
@@ -40,6 +42,16 @@ processBillRouter.post(
     "/markAsPaid",
     superAdminAndAdminOnly,
     markAsPaid
+  );
+  processBillRouter.post(
+    "/applyDiscountOnProcessAccount",
+    superAdminAndAdminOnly,
+    applyDiscountOnProcessAccount
+  );
+  processBillRouter.post(
+    "/claimProcessAccount",
+    superAdminAndAdminOnly,
+    claimProcessAccount
   );
 
 export default processBillRouter;
