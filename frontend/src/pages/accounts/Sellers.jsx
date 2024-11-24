@@ -28,12 +28,10 @@ const Sellers = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
   const [paymentStatus, setPaymentStatus] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
-  const [oldBuyerData, setOldBuyerData] = useState([]);
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -53,40 +51,6 @@ const Sellers = () => {
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
   }, [dispatch]);
-
-
-  const [formData, setFormData] = useState({
-    category: "",
-    color: "",
-    quantity: "",
-    cost_price: "",
-    sale_price: "",
-    d_no: ""
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Dispatch action with form data
-    // dispatch(AddSuit(formData)).then(() => {
-    //   dispatch(GetAllSuit())
-    //   closeModal();
-    // }).catch((error) => {
-    //   console.error("Error adding suit:", error);
-    // });
-  };
-
-  const openModal = () => {
-    setIsOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
 
   const closeModal = () => {
     setIsOpen(false);
@@ -145,19 +109,7 @@ const Sellers = () => {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }
-
-  const handleStatusClick = (status) => {
-    setPaymentStatus(status);
-    if (status === "All") {
-      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, branchId: selectedBranchId }));
-      navigate(`/dashboard/buyers?page=${1}`)
-    }
-    else {
-      dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: 1, status, branchId: selectedBranchId }));
-      navigate(`/dashboard/buyers?page=${1}`)
-    }
-  }
+  };
 
   const handleTabClick = (category) => {
     setSelectedCategory(category);
@@ -179,6 +131,8 @@ const Sellers = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "Unpaid":
         return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
       default:
         return "";
     }
@@ -195,10 +149,7 @@ const Sellers = () => {
 
           {/* <!-- search bar --> */}
           <div className="search_bar flex items-center gap-3 mr-2">
-            {/* <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-              <IoAdd size={22} className='text-white' />
-            </button> */}
-
+          
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg
@@ -219,7 +170,7 @@ const Sellers = () => {
               <input
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by bill no"
+                placeholder="Search by name"
                 value={search}
                 onChange={handleSearch}
               />

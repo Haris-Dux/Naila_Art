@@ -21,7 +21,7 @@ const SellersDetails = () => {
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
                 {/* BUYER DETAILS */}
-                <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
+                <div className="px-2 py-2 mb-3 grid grid-cols-1 items-center text-center gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
                     <div className="box">
                         <h3 className='pb-1 font-medium'>Title</h3>
                         <h3>{SellerById?.name}</h3>

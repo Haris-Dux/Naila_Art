@@ -172,7 +172,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
     });
     return res
       .status(200)
-      .json({ success: true, message: "Seller Bill Generated And Stock Added Successfuly" });
+      .json({ success: true, message: "Success" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -207,7 +207,7 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
     };
 
     if (search) {
-      query.bill_no = { $regex: search }
+      query.name = { $regex: search , $options: 'i' }
     };
 
     const totalSellers = await SellersModel.countDocuments(query);
@@ -233,9 +233,13 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
 
 export const validateAndGetOldSellerData = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    if (!name) throw new Error('Seller Name Required');
-    const oldSellerData = await SellersModel.find({ name: { $regex: name, $options: 'i' } });
+    const { name , category} = req.body;
+    if (!name || !category) throw new Error('Missing Required fields');
+    const query = {
+      name : {$regex:name,$options: 'i'},
+      seller_stock_category : category
+    }
+    const oldSellerData = await SellersModel.find(query);
     if (!oldSellerData) throw new Error('No Data Found With This Seller Name');
     setMongoose();
     return res.status(200).json({ success: true, oldSellerData });
@@ -303,7 +307,12 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         case new_total_debit === 0 && new_total_balance === new_total_credit:
           new_status = "Unpaid";
           break;
-      }
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
+      };
 
       const virtualAccountData = {
         total_credit: new_total_credit,
@@ -395,6 +404,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
           default:
             throw new Error('Invalid Category');
         }
+
         //ADDING SELLERS DATA
         await Promise.all([
           SellersModel.findByIdAndUpdate(
@@ -432,7 +442,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
     });
     return res
       .status(200)
-      .json({ success: true, message: "Seller Bill Generated And SStock Added Successfuly" });
+      .json({ success: true, message: "Success" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -454,7 +464,7 @@ export const getAllPurchasingHistory = async (req, res, next) => {
     };
 
     if (search) {
-      query.bill_no = { $regex: search }
+      query.name = { $regex: search , $options: 'i' }
     };
 
     const sellerHistory = await purchasing_History_model.countDocuments(query);

@@ -122,6 +122,11 @@ const initialState = {
 const SellerSlice = createSlice({
     name: "SellerSlice",
     initialState,
+    reducers : {
+        clearValiDateSeller : (state) => {
+            state.validateSeller = [];
+        }
+    },
     extraReducers: (builder) => {
         builder
 
@@ -183,3 +188,5 @@ const SellerSlice = createSlice({
 
 
 export default SellerSlice.reducer;
+
+export const  { clearValiDateSeller } = SellerSlice.actions;

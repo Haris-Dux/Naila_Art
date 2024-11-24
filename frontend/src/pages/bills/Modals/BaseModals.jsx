@@ -7,12 +7,19 @@ import {
 } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
 import moment from "moment-timezone";
+import { RxCross2 } from "react-icons/rx";
+import { FaPlus } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const initialRow = { roleQuantity: "", measurement: "" };
+  const [measurementData, setMeasurementData] = useState({
+    rowData: [initialRow],
+  });
 
   const { addSellerLoading } = useSelector((state) => state.Seller);
 
@@ -67,18 +74,26 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       rate: Number(formData.rate),
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
-      seller_stock_category: "Base"
+      seller_stock_category: "Base",
     };
 
     if (sellerDetails && sellerDetails?.id) {
       modifiedFormData.sellerId = sellerDetails?.id;
     }
 
+    if (
+      modifiedFormData.quantity === 0 ||
+      modifiedFormData.subTotal === 0 ||
+      modifiedFormData.total === 0
+    ) {
+      return toast.error("Please Fill all required fields");
+    }
     if (sellerDetails) {
       dispatch(AddOldSellerDetailsFromAsync(modifiedFormData)).then((res) => {
         if (res.payload.success === true) {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
+          setMeasurementData({ rowData: [initialRow]})
           closeModal();
         }
       });
@@ -87,6 +102,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         if (res.payload.success === true) {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
+          setMeasurementData({ rowData: [initialRow]})
           closeModal();
         }
       });
@@ -104,8 +120,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       rate: "",
       total: "",
       subTotal: "",
-    discountType: "RS",
-    discount: "",
+      discountType: "RS",
+      discount: "",
       seller_stock_category: "",
     });
   };
@@ -136,6 +152,61 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     formData.discountType,
   ]);
 
+
+  const handleMeasurementChange = (e, index) => {
+    const { name, value } = e.target;
+    setMeasurementData((prev) => {
+      const updatedRows = [...prev.rowData];
+      updatedRows[index] = { ...updatedRows[index], [name]: parseInt(value) };
+      calulateTotalQuantity(updatedRows);
+      return { ...prev, rowData: updatedRows };
+    });
+  };
+
+  const addRow = () => {
+    setMeasurementData((prev) => ({
+      ...prev,
+      rowData: [...prev.rowData, initialRow],
+    }));
+  };
+
+  const deleteRow = (index) => {
+    setMeasurementData((prev) => {
+      let updatedRows = [...prev.rowData];
+      updatedRows = updatedRows.filter((_, i) => i !== index);
+      calulateTotalQuantity(updatedRows);
+      return { ...prev, rowData: updatedRows };
+    });
+  };
+
+  const calulateTotalQuantity = (updatedRows) => {
+    const totalQuantity = updatedRows.reduce((total, row) => {
+      return (
+        total + validateValue(row.roleQuantity) * validateValue(row.measurement)
+      );
+    }, 0);
+    console.log("totalQuantity", totalQuantity);
+    setFormData((prev) => ({
+      ...prev,
+      quantity: totalQuantity,
+    }));
+  };
+
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       {isOpen && (
@@ -143,7 +214,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-lg max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative  scrollable-content max-h-[80vh]  py-4 px-3 w-full max-w-5xl bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -171,12 +242,40 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                 </svg>
                 <span className="sr-only">Close modal</span>
               </button>
-            </div>
+            </div>  
+
+             {/* ACCOUNT DATA */}
+                <>
+                  {sellerDetails && sellerDetails?.virtual_account && (
+                    <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Debit</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_debit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Credit</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_credit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Total Balance</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_balance || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Status</h3>
+                        <h3>
+                          {setAccountStatusColor(sellerDetails?.virtual_account?.status) ||
+                            "No Status"}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+                </>
+            
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-x-4">
                   {/* BILL */}
                   <div>
                     <input
@@ -244,17 +343,62 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                     />
                   </div>
+                </div>
 
+                {/* ROLE_QUANTITY AND MEASUREMENT */}
+                <div className="mt-12 mb-4 relative py-4  gap-4 border-t border-b">
+                  {/* Plus Sign */}
+                  <button
+                    type="button"
+                    className="absolute -top-7 right-2 text-black"
+                    onClick={addRow} // Optional: Add a function for the button
+                  >
+                    <FaPlus size={18} />
+                  </button>
+
+                  {measurementData.rowData.map((data, index) => (
+                    <div key={index} className="grid  py-2 grid-cols-2 gap-4">
+                      <input
+                        name="roleQuantity"
+                        type="number"
+                        placeholder="Quantity"
+                        value={data.roleQuantity}
+                        onChange={(e) => handleMeasurementChange(e, index)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
+                      <div className="flex items-center justify-center gap-4">
+                        <input
+                          name="measurement"
+                          type="number"
+                          placeholder="Measurement"
+                          value={data.measurement}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                        <button  type="button" onClick={() => deleteRow(index)}>
+                          <RxCross2
+                            size={24}
+                            className="text-red-500 flex-shrink-0"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
                   <div>
                     <input
                       name="quantity"
                       type="number"
-                      placeholder="Quantity"
+                      placeholder="Total Quantity"
                       value={formData.quantity}
-                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
+                      readOnly
                     />
                   </div>
 

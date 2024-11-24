@@ -144,6 +144,20 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
     formData.discountType,
   ]);
 
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
 
 
   return (
@@ -153,7 +167,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-lg max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -183,10 +197,38 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
               </button>
             </div>
 
+               {/* ACCOUNT DATA */}
+               <>
+                  {sellerDetails && sellerDetails?.virtual_account && (
+                    <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Debit</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_debit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Credit</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_credit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Total Balance</h3>
+                        <h3>{sellerDetails?.virtual_account?.total_balance || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Status</h3>
+                        <h3>
+                          {setAccountStatusColor(sellerDetails?.virtual_account?.status) ||
+                            "No Status"}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+                </>
+            
+
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-x-4">
 
                   {/* BILL */}
                   <div>
