@@ -11,6 +11,7 @@ import LaceTable from "./Tables/LaceTable";
 import BagBoxTable from "./Tables/BagBoxTable";
 import AccessoriesTable from "./Tables/AccessoriesTable";
 import {
+  clearValiDateSeller,
   getAllPurchasingHistoryAsync,
   validateOldSellerAsync,
 } from "../../features/SellerSlice";
@@ -19,7 +20,7 @@ const PurchaseBills = () => {
   const dispatch = useDispatch();
 
   const [validateOldSeller, setValidateOldSeller] = useState("");
-  const [sellerDetails, setSellerDetails] = useState();
+  const [sellerDetails, setSellerDetails] = useState("");
   const [searchUser, setSearchUser] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchModal, setSearchModal] = useState();
@@ -47,6 +48,8 @@ const PurchaseBills = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    dispatch(clearValiDateSeller());
+    setSellerDetails("");
   };
 
   const openSearchModal = () => {
@@ -65,7 +68,7 @@ const PurchaseBills = () => {
 
     if (value.length > 0) {
       const timer = setTimeout(() => {
-        dispatch(validateOldSellerAsync({ name: value }));
+        dispatch(validateOldSellerAsync({ name: value ,category:selectedCategory}));
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -126,7 +129,7 @@ const PurchaseBills = () => {
               <input
                 type="text"
                 className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by Bill Number"
+                placeholder="Search by Name"
                 value={search}
                 onChange={handleSearch}
               />

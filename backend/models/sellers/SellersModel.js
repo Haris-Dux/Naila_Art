@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const financialDetails = new mongoose.Schema({
   total_debit: {
     type: Number,
-    default:null,
+    default:0,
   },
   total_credit: {
     type: Number,
@@ -15,7 +15,7 @@ const financialDetails = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Paid", "Unpaid", "Partially Paid"],
+    enum: ["Paid", "Unpaid", "Partially Paid","Advance Paid"],
   },
 });
 

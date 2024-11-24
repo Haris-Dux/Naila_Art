@@ -329,7 +329,7 @@ const Accessories = () => {
                     aria-hidden="true"
                     className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
                 >
-                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
+                    <div className="relative py-4 px-3 w-full max-w-3xl max-h-[80vh] scrollable-content bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
                         {/* ------------- HEADER ------------- */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -416,7 +416,7 @@ const Accessories = () => {
                                         <tbody>
                                             {filteredData && filteredData.length > 0 ? (
                                                 filteredData?.map((item, index) => (
-                                                    item?.all_Records?.map((data, subIndex) => (
+                                                    item?.all_Records?.slice().reverse().map((data, subIndex) => (
                                                         <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
                                                                 {data.serial_No}
