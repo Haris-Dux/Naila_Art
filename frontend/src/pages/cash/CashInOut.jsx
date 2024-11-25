@@ -11,6 +11,7 @@ import {
 } from "../../features/CashInOutSlice";
 import moment from "moment-timezone";
 import toast from "react-hot-toast";
+import { accountTypeData, PaymentData } from "../../Utils/AccountsData";
 
 const CashInOut = () => {
   const dispatch = useDispatch();
@@ -18,6 +19,7 @@ const CashInOut = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [validatePartyName, setvalidatePartyName] = useState();
   const [selectedParty, setSelectedParty] = useState();
+  const [transactionType, setTransactionType] = useState("CashIn");
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -41,6 +43,7 @@ const CashInOut = () => {
     cash: "",
     date: today,
     payment_Method: "",
+    accountCategory:""
   });
 
   const handleInputChange = (e) => {
@@ -102,6 +105,9 @@ const CashInOut = () => {
   };
 
   const openModal = () => {
+    if(!formData.accountCategory && user?.user?.role !== "user"){
+      return toast.error("Please Select Account Category")
+    }
     setIsOpen(true);
     document.body.style.overflow = "hidden";
   };
@@ -122,14 +128,13 @@ const CashInOut = () => {
       return;
     }
 
-    
     let modifiedFormData = {};
 
     if (user && user?.user?.role === "admin") {
       modifiedFormData = {
         ...formData,
         branchId: user?.user?.branchId,
-        cash: Number(formData.cash)
+        cash: Number(formData.cash),
       };
     } else {
       modifiedFormData = {
@@ -163,7 +168,7 @@ const CashInOut = () => {
       modifiedFormData = {
         ...formData,
         branchId: user?.user?.branchId,
-        cash: Number(formData.cash)
+        cash: Number(formData.cash),
       };
     } else {
       modifiedFormData = {
@@ -213,6 +218,10 @@ const CashInOut = () => {
     }
   }, [dispatch, Branches]);
 
+  const handleChangeTransaction = (value) => {
+    setTransactionType(value);
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
@@ -228,7 +237,21 @@ const CashInOut = () => {
           </div>
         ) : (
           <>
-            <div className="mb-5 upper_tabs flex justify-start items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => handleChangeTransaction("CashIn")}
+                className="rounded-md bg-[#04D000] text-white p-3"
+              >
+                Cash In
+              </button>
+              <button
+                onClick={() => handleChangeTransaction("CashOut")}
+                className="rounded-md bg-[#E82B2B] text-white p-3"
+              >
+                Cash Out
+              </button>
+            </div>
+            <div className="my-5 upper_tabs flex justify-start items-center">
               <div className="tabs_button">
                 {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
                 {user?.user?.role === "superadmin" ? (
@@ -267,19 +290,21 @@ const CashInOut = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
-              <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                <div className="stat_data pl-4">
-                  <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                    Today Cash In
-                  </h3>
-                  <div className="mt-3 flex justify-start items-center gap-3">
-                    <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
-                      {TodayCashInOutData?.data?.todayCashIn}
-                    </span>
+              {transactionType === "CashIn" && (
+                <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                  <div className="stat_data pl-4">
+                    <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                      Today Cash In
+                    </h3>
+                    <div className="mt-3 flex justify-start items-center gap-3">
+                      <span className="text-gray-900 dark:text-gray-100 text-2xl font-semibold">
+                        {TodayCashInOutData?.data?.todayCashIn}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              {user?.user?.role !== "user" && (
+              )}
+              {transactionType === "CashOut" && (
                 <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
                   <div className="stat_data pl-4">
                     <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
@@ -307,9 +332,9 @@ const CashInOut = () => {
               </div>
             </div>
 
-            <div className="mt-4 header flex justify-between items-center pt-6 mx-2">
+            <div className="mt-4 header flex justify-between items-center  mx-2">
               <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
-                Cash In/Out
+                Cash {`${transactionType === "CashIn" ? "In" : "Out"}`}
               </h1>
             </div>
 
@@ -352,6 +377,30 @@ const CashInOut = () => {
                   </div>
                 ) : null}
 
+                {/* ACCOUNT TYPE  */}
+
+                { user?.user?.role !== "user" && <div>
+                  <select
+                    id="accountCategory"
+                    name="accountCategory"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={formData?.accountCategory}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        accountCategory: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>
+                      Select Account Type
+                    </option>
+                    {accountTypeData?.map((item) => (
+                      <option key={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>}
+
                 {/* SELECT PARTY NAME */}
                 <div>
                   <input
@@ -387,10 +436,9 @@ const CashInOut = () => {
                     <option value="" disabled>
                       Select Payment Method
                     </option>
-                    <option value="cashInMeezanBank">Meezan Bank</option>
-                    <option value="cashInJazzCash">Jazz Cash</option>
-                    <option value="cashInEasyPaisa">EasyPaisa</option>
-                    <option value="cashSale">Cash Sale</option>
+                    {PaymentData?.map((item) => (
+                      <option key={item.value}>{item.label}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -408,25 +456,28 @@ const CashInOut = () => {
               </div>
 
               <div className="grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="cashIn">
-                  {cashInLoading ? (
-                    <button
-                      disabled
-                      type="submit"
-                      className="w-full cursor-not-allowed rounded-md bg-green-300 border border-[#04D000] py-3 text-sm text-white focus:outline-none"
-                    >
-                      Cash In
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleCashIn}
-                      className="w-full rounded-md bg-[#04D000] text-white py-3"
-                    >
-                      Cash In
-                    </button>
-                  )}
-                </div>
-                {user?.user?.role !== "user" ? (
+                {transactionType === "CashIn" && (
+                  <div className="cashIn">
+                    {cashInLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="w-full cursor-not-allowed rounded-md bg-green-300 border border-[#04D000] py-3 text-sm text-white focus:outline-none"
+                      >
+                        Cash In
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleCashIn}
+                        className="w-full rounded-md bg-[#04D000] text-white py-3"
+                      >
+                        Cash In
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {transactionType === "CashOut" && (
                   <div className="cashOut">
                     {cashOutLoading ? (
                       <button
@@ -445,7 +496,7 @@ const CashInOut = () => {
                       </button>
                     )}
                   </div>
-                ) : null}
+                )}
               </div>
             </div>
           </>
