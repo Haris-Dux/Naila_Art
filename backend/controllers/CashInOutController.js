@@ -11,21 +11,45 @@ import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { UserModel } from "../models/User.Model.js";
 import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    if (!name) throw new Error("Buyer Name Required");
-    const projection = "name phone _id";
-    const projectionForProcess = "partyName _id serial_No";
-    const Data = await Promise.all([
-      BuyersModel.find({ name: { $regex: name, $options: "i" } }, projection),
-      SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
-      processBillsModel.find(
-        { partyName: { $regex: name, $options: "i" } },
-        projectionForProcess
-      ),
-    ]);
+    const { name, accountCategory } = req.body;
+    if (!name || accountCategory) throw new Error("Search Fields Required");
+    const projection = "name phone _id virtual_account";
+    const projectionForProcess = "partyName _id serial_No virtual_account";
+    let Data = {};
+
+    switch (true) {
+      case accountCategory === "Buyers":
+        Data = BuyersModel.find(
+          { name: { $regex: name, $options: "i" } },
+          projection
+        );
+        break;
+      case accountCategory === "Sellers":
+        Data = SellersModel.find(
+          { name: { $regex: name, $options: "i" } },
+          projection
+        );
+        break;
+      case accountCategory === "Process Account":
+        Data = processBillsModel.find(
+          { partyName: { $regex: name, $options: "i" } },
+          projectionForProcess
+        );
+        break;
+      case accountCategory === "Pictures Account":
+        Data = PicruresAccountModel.find(
+          { partyName: { $regex: name, $options: "i" } },
+          projectionForProcess
+        );
+        break;
+      default:
+        throw new Error("Invalid account category");
+    }
+
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
     return res.status(200).json({ success: true, Data });
@@ -36,27 +60,47 @@ export const validatePartyNameForMainBranch = async (req, res, next) => {
 
 export const validatePartyNameForAdminBranch = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    if (!name) throw new Error("Buyer Name Required");
+    const { name,accountCategory } = req.body;
+    if (!name || !accountCategory) throw new Error("Search Fields Required");
     const id = req.session.userId;
     if (!id) {
       throw new Error("Please Login Again");
     }
     const user = await UserModel.findById({ _id: id });
     if (user.role !== "admin") throw new Error("User UnAuthorized");
-    const projection = "name phone _id";
-    const projectionForProcess = "partyName _id serial_No";
-    const Data = await Promise.all([
-      BuyersModel.find(
-        { branchId: user.branchId, name: { $regex: name, $options: "i" } },
-        projection
-      ),
-      SellersModel.find({ name: { $regex: name, $options: "i" } }, projection),
-      processBillsModel.find(
-        { partyName: { $regex: name, $options: "i" } },
-        projectionForProcess
-      ),
-    ]);
+    const projection = "name phone _id virtual_account";
+    const projectionForProcess = "partyName _id serial_No virtual_account";
+    let Data = {};
+
+    switch (true) {
+      case accountCategory === "Buyers":
+        Data = BuyersModel.find(
+          { branchId: user.branchId, name: { $regex: name, $options: "i" } },
+          projection
+        );
+        break;
+      case accountCategory === "Sellers":
+        Data = SellersModel.find(
+          { name: { $regex: name, $options: "i" } },
+          projection
+        );
+        break;
+      case accountCategory === "Process Account":
+        Data = processBillsModel.find(
+          { partyName: { $regex: name, $options: "i" } },
+          projectionForProcess
+        );
+        break;
+      case accountCategory === "Pictures Account":
+        Data = PicruresAccountModel.find(
+          { partyName: { $regex: name, $options: "i" } },
+          projectionForProcess
+        );
+        break;
+      default:
+        throw new Error("Invalid account category");
+    };
+
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
     return res.status(200).json({ success: true, Data });
@@ -74,7 +118,7 @@ export const validatePartyNameForOtherBranches = async (req, res, next) => {
       throw new Error("Please Login Again");
     }
     const user = await UserModel.findById({ _id: id });
-    const projection = "name phone _id";
+    const projection = "name phone _id virtual_account";
     const Data = await BuyersModel.find(
       { branchId: user.branchId, name: { $regex: name, $options: "i" } },
       projection
@@ -87,19 +131,48 @@ export const validatePartyNameForOtherBranches = async (req, res, next) => {
   }
 };
 
-export const cashIn = async (req, res, next) => {
+export const cashIn = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date } = req.body;
-      if (!cash || !partyId || !payment_Method || !date || !branchId)
+      const { cash, partyId, branchId, payment_Method, date, accountCategory } =
+        req.body;
+      if (
+        !cash ||
+        !partyId ||
+        !payment_Method ||
+        !date ||
+        !branchId ||
+        !accountCategory
+      )
         throw new Error("All Fields Required");
-      const userDataToUpdate = await BuyersModel.findById(partyId).session(
-        session
-      );
 
-      if (userDataToUpdate.virtual_account.total_balance === 0)
-        throw new Error("Balance Cleared");
+      //GETTING ACCOUNT CATEGORY DATA
+      let userDataToUpdate = {};
+      switch (true) {
+        case accountCategory === "Buyers":
+          userDataToUpdate = await BuyersModel.findById(partyId).session(
+            session
+          );
+          break;
+        case accountCategory === "Sellers":
+          userDataToUpdate = await SellersModel.findById(partyId).session(
+            session
+          );
+          break;
+        case accountCategory === "Process Account":
+          userDataToUpdate = await processBillsModel
+            .findById(partyId)
+            .session(session);
+          break;
+        case accountCategory === "Pictures Account":
+          userDataToUpdate = await PicruresAccountModel.findById(
+            partyId
+          ).session(session);
+          break;
+        default:
+          throw new Error("Unknown Account Category");
+      }
 
       if (!userDataToUpdate)
         throw new Error("No Data Found With This Party Id");
@@ -141,54 +214,112 @@ export const cashIn = async (req, res, next) => {
         await virtualAccounts[0].save({ session });
       }
 
-      //DATA FOR VIRTUAL ACCOUNT
-      const new_total_debit =
-        userDataToUpdate.virtual_account.total_debit - cash;
-      const new_total_credit =
-        userDataToUpdate.virtual_account.total_credit + cash;
-      const new_total_balance =
-        userDataToUpdate.virtual_account.total_balance - cash;
-      let new_status = "";
+      if (accountCategory !== "Buyers") {
+        //SELLERS , PROCESS , PICTURES CASE
+        const new_total_debit = userDataToUpdate.virtual_account.total_debit;
+        const new_total_credit =
+          userDataToUpdate.virtual_account.total_credit + cash;
+        const new_total_balance =
+          userDataToUpdate.virtual_account.total_balance + cash;
+        let new_status = "";
 
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_debit && new_total_credit > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_credit === 0 && new_total_balance === new_total_debit:
-          new_status = "Unpaid";
-          break;
+        switch (true) {
+          case new_total_balance === 0:
+            new_status = "Paid";
+            break;
+          case new_total_balance === new_total_credit && new_total_debit > 0:
+            new_status = "Partially Paid";
+            break;
+          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            new_status = "Unpaid";
+            break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
+        }
+
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+
+        const credit_debit_history_details = {
+          date,
+          particular: payment_Method,
+          credit: cash,
+          balance: userDataToUpdate.virtual_account.total_balance + cash,
+        };
+
+        //UPDATING USER DATA IN DB
+
+        userDataToUpdate.virtual_account = virtualAccountData;
+        userDataToUpdate.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await userDataToUpdate.save({ session });
+      }
+      //BUYERS CASE
+      else {
+        //DATA FOR VIRTUAL ACCOUNT
+        const new_total_debit =
+          userDataToUpdate.virtual_account.total_debit - cash;
+        const new_total_credit =
+          userDataToUpdate.virtual_account.total_credit + cash;
+        const new_total_balance =
+          userDataToUpdate.virtual_account.total_balance - cash;
+        let new_status = "";
+
+        switch (true) {
+          case new_total_balance === 0:
+            new_status = "Paid";
+            break;
+          case new_total_balance === new_total_credit && new_total_debit > 0:
+            new_status = "Partially Paid";
+            break;
+          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            new_status = "Unpaid";
+            break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
+        }
+
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+
+        const credit_debit_history_details = {
+          date,
+          particular: payment_Method,
+          credit: cash,
+          balance: userDataToUpdate.virtual_account.total_balance - cash,
+        };
+
+        //UPDATING USER DATA IN DB
+
+        userDataToUpdate.virtual_account = virtualAccountData;
+        userDataToUpdate.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await userDataToUpdate.save({ session });
       }
 
-      if (new_total_balance < 0)
-        throw new Error("Invalid Balance Amount For This Party");
-
-      const virtualAccountData = {
-        total_debit: new_total_debit,
-        total_credit: new_total_credit,
-        total_balance: new_total_balance,
-        status: new_status,
-      };
-
-      //DATA FOR CREDIT DEBIT HISTORY
-
-      const credit_debit_history_details = {
-        date,
-        particular: payment_Method,
-        credit: cash,
-        balance: userDataToUpdate.virtual_account.total_balance - cash,
-      };
-
-      //UPDATING USER DATA IN DB
-
-      userDataToUpdate.virtual_account = virtualAccountData;
-      userDataToUpdate.credit_debit_history.push(credit_debit_history_details);
-
-      await userDataToUpdate.save({ session });
-
-      //UPDATING CASH IN OUT
+      //UPDATING CASH IN
       const todayCashInOut = await CashInOutModel.findOne({
         branchId,
         date: { $eq: date },
@@ -233,15 +364,43 @@ export const cashOut = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date } = req.body;
-      if (!cash || !partyId || !payment_Method || !date || !branchId)
+      const { cash, partyId, branchId, payment_Method, date, accountCategory } =
+        req.body;
+      if (
+        !cash ||
+        !partyId ||
+        !payment_Method ||
+        !date ||
+        !branchId ||
+        !accountCategory
+      )
         throw new Error("All Fields Required");
-      const userDataToUpdate =
-        (await SellersModel.findById(partyId).session(session)) ||
-        (await processBillsModel.findById(partyId).session(session));
-
-      if (userDataToUpdate.virtual_account.total_balance === 0)
-        throw new Error("Balance Cleared");
+      //GETTING ACCOUNT CATEGORY DATA
+      let userDataToUpdate = {};
+      switch (true) {
+        case accountCategory === "Buyers":
+          userDataToUpdate = await BuyersModel.findById(partyId).session(
+            session
+          );
+          break;
+        case accountCategory === "Sellers":
+          userDataToUpdate = await SellersModel.findById(partyId).session(
+            session
+          );
+          break;
+        case accountCategory === "Process Account":
+          userDataToUpdate = await processBillsModel
+            .findById(partyId)
+            .session(session);
+          break;
+        case accountCategory === "Pictures Account":
+          userDataToUpdate = await PicruresAccountModel.findById(
+            partyId
+          ).session(session);
+          break;
+        default:
+          throw new Error("Unknown Account Category");
+      }
 
       if (!userDataToUpdate)
         throw new Error("No Data Found With This Party Id");
@@ -267,19 +426,21 @@ export const cashOut = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(session);
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
         let updatedAccount = {
           ...virtualAccounts,
           [payment_Method]: (virtualAccounts[0][payment_Method] -= cash),
         };
         const new_balance = updatedAccount[0][payment_Method];
-       const historyData = {
+        const historyData = {
           date,
-          transactionType:"WithDraw",
+          transactionType: "WithDraw",
           payment_Method,
           new_balance,
-          amount:cash,
-          note:"Cash Out Transaction",
+          amount: cash,
+          note: "Cash Out Transaction",
         };
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");
@@ -288,52 +449,108 @@ export const cashOut = async (req, res, next) => {
         await virtualAccounts[0].save({ session });
       }
 
-      //DATA FOR VIRTUAL ACCOUNT
-      const new_total_debit =
-        userDataToUpdate.virtual_account.total_debit + cash;
-      const new_total_credit =
-        userDataToUpdate.virtual_account.total_credit - cash;
-      const new_total_balance =
-        userDataToUpdate.virtual_account.total_balance - cash;
-      let new_status;
+      if (accountCategory === "Buyers") {
+        //DATA FOR VIRTUAL ACCOUNT
+        const new_total_debit =
+          userDataToUpdate.virtual_account.total_debit + cash;
+        const new_total_credit = userDataToUpdate.virtual_account.total_credit;
+        const new_total_balance =
+          userDataToUpdate.virtual_account.total_balance + cash;
+        let new_status;
 
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_credit && new_total_debit > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_debit === 0 && new_total_balance === new_total_credit:
-          new_status = "Unpaid";
-          break;
+        switch (true) {
+          case new_total_balance === 0:
+            new_status = "Paid";
+            break;
+          case new_total_balance === new_total_credit && new_total_debit > 0:
+            new_status = "Partially Paid";
+            break;
+          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            new_status = "Unpaid";
+            break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
+        }
+
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+
+        const credit_debit_history_details = {
+          date,
+          particular: payment_Method,
+          debit: cash,
+          balance: userDataToUpdate.virtual_account.total_balance + cash,
+        };
+
+        //UPDATING USER DATA IN DB
+
+        userDataToUpdate.virtual_account = virtualAccountData;
+        userDataToUpdate.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await userDataToUpdate.save({ session });
+      } else {
+        //DATA FOR VIRTUAL ACCOUNT
+        const new_total_debit =
+          userDataToUpdate.virtual_account.total_debit + cash;
+        const new_total_credit =
+          userDataToUpdate.virtual_account.total_credit - cash;
+        const new_total_balance =
+          userDataToUpdate.virtual_account.total_balance - cash;
+        let new_status;
+
+        switch (true) {
+          case new_total_balance === 0:
+            new_status = "Paid";
+            break;
+          case new_total_balance === new_total_credit && new_total_debit > 0:
+            new_status = "Partially Paid";
+            break;
+          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            new_status = "Unpaid";
+            break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
+        }
+
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+
+        const credit_debit_history_details = {
+          date,
+          particular: payment_Method,
+          debit: cash,
+          balance: userDataToUpdate.virtual_account.total_balance - cash,
+        };
+
+        //UPDATING USER DATA IN DB
+
+        userDataToUpdate.virtual_account = virtualAccountData;
+        userDataToUpdate.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await userDataToUpdate.save({ session });
       }
-
-      if (new_total_balance < 0)
-        throw new Error("Invalid Balance Amount For This Party");
-
-      const virtualAccountData = {
-        total_debit: new_total_debit,
-        total_credit: new_total_credit,
-        total_balance: new_total_balance,
-        status: new_status,
-      };
-
-      //DATA FOR CREDIT DEBIT HISTORY
-
-      const credit_debit_history_details = {
-        date,
-        particular: payment_Method,
-        debit: cash,
-        balance: userDataToUpdate.virtual_account.total_balance - cash,
-      };
-
-      //UPDATING USER DATA IN DB
-
-      userDataToUpdate.virtual_account = virtualAccountData;
-      userDataToUpdate.credit_debit_history.push(credit_debit_history_details);
-
-      await userDataToUpdate.save({ session });
 
       //UPDATING CASH IN OUT
       const todayCashInOut = await CashInOutModel.findOne({
@@ -395,12 +612,12 @@ export const getTodaysCashInOut = async (req, res, next) => {
   }
 };
 
-export const markAsPaidForBuyers = async (req,res,next) => {
+export const markAsPaidForBuyers = async (req, res, next) => {
   try {
-    const {id} = req.body;
-    await verifyrequiredparams(req.body , ['id']);
+    const { id } = req.body;
+    await verifyrequiredparams(req.body, ["id"]);
     const accountData = await BuyersModel.findById(id);
-    if(!accountData) throw new CustomError("Account not found",404);
+    if (!accountData) throw new CustomError("Account not found", 404);
 
     //UPDATING ACCOUNT STATUS
     accountData.virtual_account.status = "Paid";
@@ -409,22 +626,23 @@ export const markAsPaidForBuyers = async (req,res,next) => {
       date: today,
       particular: `Account Marked As Paid`,
       credit: accountData.virtual_account.total_balance,
-      balance:0,
-      debit: 0
+      balance: 0,
+      debit: 0,
     };
 
     //UPDATING ACC CREDIT DEBIT AND BALANCE
     accountData.virtual_account.total_debit = 0;
-    accountData.virtual_account.total_credit += accountData.virtual_account.total_balance;
+    accountData.virtual_account.total_credit +=
+      accountData.virtual_account.total_balance;
     accountData.virtual_account.total_balance = 0;
     //UPDATING CREDIT DEBIT HISTORY
     accountData.credit_debit_history.push(historydata);
     await accountData.save();
-    res.status(200).json({ success: true, message: "Account marked as paid"});
+    res.status(200).json({ success: true, message: "Account marked as paid" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 corn.schedule(
   "01 00 * * *",
