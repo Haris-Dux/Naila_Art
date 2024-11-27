@@ -1,26 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import { IoAdd } from "react-icons/io5";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
-import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
-import { GetAllBranches } from '../../features/InStockSlice';
-import { validateOldBuyerAsync } from '../../features/GenerateBillSlice';
-
-
+import { getBuyerForBranchAsync } from "../../features/BuyerSlice";
+import { GetAllBranches } from "../../features/InStockSlice";
+import { validateOldBuyerAsync } from "../../features/GenerateBillSlice";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
     if (phone.length > 3) {
-      return phone.slice(0, 3) + '*******'.slice(0, phone.length - 3);
+      return phone.slice(0, 3) + "*******".slice(0, phone.length - 3);
     } else {
       return phone;
     }
   };
 
-  return (
-    <p>{maskPhoneNumber(phone)}</p>
-  );
+  return <p>{maskPhoneNumber(phone)}</p>;
 };
 
 const Buyers = () => {
@@ -33,20 +29,21 @@ const Buyers = () => {
   const [search, setSearch] = useState();
   const [paymentStatus, setPaymentStatus] = useState();
 
-  const [validateOldBuyer, setValidateOldBuyer] = useState('');
+  const [validateOldBuyer, setValidateOldBuyer] = useState("");
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   const { user } = useSelector((state) => state.auth);
-  const { loading: branchesLoading, Branches } = useSelector((state) => state.InStock);
+  const { loading: branchesLoading, Branches } = useSelector(
+    (state) => state.InStock
+  );
   const { loading, Buyers } = useSelector((state) => state.Buyer);
-  const { OldBuyerData, getBuyerLoading } = useSelector((state) => state.BuyerBills);
-
+  const { OldBuyerData, getBuyerLoading } = useSelector(
+    (state) => state.BuyerBills
+  );
 
   const [selectedBranchId, setSelectedBranchId] = useState();
-
-
 
   useEffect(() => {
     if (user?.user?.id) {
@@ -54,38 +51,42 @@ const Buyers = () => {
     }
   }, [dispatch, user]);
 
-
   useEffect(() => {
     if (Branches?.length > 0) {
-
       const payload = {
         id: user?.user?.id,
-        branchId: selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id,
+        branchId: selectedBranchId
+          ? selectedBranchId
+          : user?.user?.branchId || Branches[0].id,
         status: paymentStatus !== "All" ? paymentStatus : undefined,
         page,
       };
       dispatch(getBuyerForBranchAsync(payload));
 
-      setSelectedBranchId(selectedBranchId ? selectedBranchId : user?.user?.branchId || Branches[0].id)
+      setSelectedBranchId(
+        selectedBranchId
+          ? selectedBranchId
+          : user?.user?.branchId || Branches[0].id
+      );
     }
   }, [user, dispatch, Branches, page]);
 
-
-  const filteredData = searchText ? Buyers?.buyers?.filter((item) =>
-    item.partyName.toLowerCase().includes(searchText.toLowerCase())
-  )
+  const filteredData = searchText
+    ? Buyers?.buyers?.filter((item) =>
+        item.partyName.toLowerCase().includes(searchText.toLowerCase())
+      )
     : Buyers?.buyers;
 
   const openModal = () => {
     setIsOpen(true);
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
   };
 
   const closeModal = () => {
     setIsOpen(false);
-    setSearchUser(false)
+    setSearchUser(false);
     setValidateOldBuyer("");
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = "auto";
   };
 
   const renderPaginationLinks = () => {
@@ -96,13 +97,22 @@ const Buyers = () => {
         <li key={i} onClick={ToDown}>
           <Link
             to={`/dashboard/buyers?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-              }`}
-            onClick={() => dispatch(getBuyerForBranchAsync({ id: user?.user?.id, page: i, branchId: selectedBranchId }))}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
+              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+            }`}
+            onClick={() =>
+              dispatch(
+                getBuyerForBranchAsync({
+                  id: user?.user?.id,
+                  page: i,
+                  branchId: selectedBranchId,
+                })
+              )
+            }
           >
             {i}
           </Link>
-        </li >
+        </li>
       );
     }
     return paginationLinks;
@@ -121,19 +131,19 @@ const Buyers = () => {
     const value = e.target.value;
     setSearch(value);
     setValidateOldBuyer(value);
-  
+
     const payload = {
       id: user?.user?.id,
       page: 1,
       search: value.length > 0 ? value : undefined,
       status: paymentStatus !== "All" ? paymentStatus : undefined,
-      branchId: selectedBranchId
+      branchId: selectedBranchId,
     };
-  
+
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
     }
-  
+
     if (value.length > 0) {
       searchTimerRef.current = setTimeout(() => {
         dispatch(getBuyerForBranchAsync(payload));
@@ -146,11 +156,11 @@ const Buyers = () => {
   const handleValidateOldBuyer = (e) => {
     const value = e.target.value;
     setValidateOldBuyer(value);
-  
+
     if (validateBuyerTimerRef.current) {
       clearTimeout(validateBuyerTimerRef.current);
     }
-  
+
     if (value.length > 0) {
       validateBuyerTimerRef.current = setTimeout(() => {
         dispatch(validateOldBuyerAsync({ name: value }));
@@ -166,18 +176,18 @@ const Buyers = () => {
       page: 1,
       status: status !== "All" ? status : null,
       branchId: selectedBranchId,
-      search: validateOldBuyer.length > 0 ? validateOldBuyer : null
+      search: validateOldBuyer.length > 0 ? validateOldBuyer : null,
     };
 
     dispatch(getBuyerForBranchAsync(payload));
-    navigate(`/dashboard/buyers?page=${1}`)
-  }
+    navigate(`/dashboard/buyers?page=${1}`);
+  };
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "All" ? "" : branchId;
     setSelectedBranchId(selectedBranch);
     setPaymentStatus();
-    setValidateOldBuyer("")
+    setValidateOldBuyer("");
     setSearch("");
 
     const payload = {
@@ -186,7 +196,7 @@ const Buyers = () => {
       page: 1,
     };
     dispatch(getBuyerForBranchAsync(payload));
-  }
+  };
 
   const setStatusColor = (status) => {
     switch (status) {
@@ -196,6 +206,8 @@ const Buyers = () => {
         return <span className="text-[#2ECC40]">{status}</span>;
       case "Unpaid":
         return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
       default:
         return "";
     }
@@ -205,16 +217,17 @@ const Buyers = () => {
     <>
       {loading || branchesLoading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
-          <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+          <div
+            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
             role="status"
             aria-label="loading"
           >
             <span className="sr-only">Loading...</span>
           </div>
-        </div >
+        </div>
       ) : (
         <>
-          <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
+          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
             {/* UPPER TABS */}
             <div className="mb-3 upper_tabs flex justify-start items-center">
               <div className="tabs_button">
@@ -225,10 +238,11 @@ const Buyers = () => {
                       <Link
                         to={`/dashboard/buyers?page=${1}`}
                         key={branch?.id}
-                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${selectedBranchId === branch?.id
-                          ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                          : "dark:text-white"
-                          }`}
+                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                          selectedBranchId === branch?.id
+                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                            : "dark:text-white"
+                        }`}
                         onClick={() => handleBranchClick(branch?.id)}
                       >
                         {branch?.branchName}
@@ -240,10 +254,11 @@ const Buyers = () => {
                     {/* THIS SHOWS TO ADMIN & USER */}
                     {Branches?.map((branch) => (
                       <button
-                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${user?.user?.branchId === branch?.id
-                          ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                          : ""
-                          }`}
+                        className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${
+                          user?.user?.branchId === branch?.id
+                            ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                            : ""
+                        }`}
                       >
                         {branch?.branchName}
                       </button>
@@ -255,12 +270,17 @@ const Buyers = () => {
 
             {/* -------------- HEADER -------------- */}
             <div className="header flex justify-between items-center pt-6 mx-2">
-              <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Buyers</h1>
+              <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+                Buyers
+              </h1>
 
               {/* <!-- search bar --> */}
               <div className="search_bar flex items-center gap-3 mr-2">
-                <button onClick={openModal} className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0">
-                  <IoAdd size={22} className='text-white' />
+                <button
+                  onClick={openModal}
+                  className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+                >
+                  <IoAdd size={22} className="text-white" />
                 </button>
 
                 <div className="relative mt-4 md:mt-0">
@@ -291,31 +311,65 @@ const Buyers = () => {
               </div>
             </div>
 
-            <p className='w-full bg-gray-300 h-px mt-5'></p>
+            <p className="w-full bg-gray-300 h-px mt-5"></p>
 
             {/* -------------- TABS -------------- */}
             <div className="tabs flex justify-between items-center my-5">
               <div className="tabs_button">
-                <button onClick={() => handleStatusClick('All')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === undefined || paymentStatus === "All"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-                  }`}>All</button>
+                <button
+                  onClick={() => handleStatusClick("All")}
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                    paymentStatus === undefined || paymentStatus === "All"
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : "dark:text-white"
+                  }`}
+                >
+                  All
+                </button>
 
+                <button
+                  onClick={() => handleStatusClick("Paid")}
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                    paymentStatus === "Paid"
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : "dark:text-white"
+                  }`}
+                >
+                  Paid
+                </button>
 
-                <button onClick={() => handleStatusClick('Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-                  }`}>Paid</button>
+                <button
+                  onClick={() => handleStatusClick("Unpaid")}
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                    paymentStatus === "Unpaid"
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : "dark:text-white"
+                  }`}
+                >
+                  Unpaid
+                </button>
 
-                <button onClick={() => handleStatusClick('Unpaid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Unpaid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-                  }`}>Unpaid</button>
+                <button
+                  onClick={() => handleStatusClick("Partially Paid")}
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                    paymentStatus === "Partially Paid"
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : "dark:text-white"
+                  }`}
+                >
+                  Partially Paid
+                </button>
 
-                <button onClick={() => handleStatusClick('Partially Paid')} className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${paymentStatus === "Partially Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-                  }`}>Partially Paid</button>
+                <button
+                  onClick={() => handleStatusClick("Advance Paid")}
+                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                    paymentStatus === "Advance Paid"
+                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                      : "dark:text-white"
+                  }`}
+                >
+                  Advance Paid
+                </button>
               </div>
             </div>
 
@@ -325,47 +379,26 @@ const Buyers = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                  <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
-                      <span className='text-red-500'>S.N</span>-
-                      <span className='text-green-600'>A.S.N</span>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
+                      <span className="text-red-500">S.N</span>-
+                      <span className="text-green-600">A.S.N</span>
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Party Name
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Credit
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Debit
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Balance
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Status
                     </th>
-                    <th
-                      className="px-6 py-4 text-md font-medium"
-                      scope="col"
-                    >
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Details
                     </th>
                   </tr>
@@ -373,12 +406,19 @@ const Buyers = () => {
                 <tbody>
                   {filteredData && filteredData.length > 0 ? (
                     filteredData?.map((data, index) => (
-                      <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      <tr
+                        key={index}
+                        className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      >
                         <td className="px-6 py-4  font-medium">
-                        <span className='text-red-500'> {data.serialNumber}</span>-
-                        <span className='text-green-600'>{data.autoSN}</span>
+                          <span className="text-red-500">
+                            {" "}
+                            {data.serialNumber}
+                          </span>
+                          -<span className="text-green-600">{data.autoSN}</span>
                         </td>
-                        <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                        <th
+                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
                           <p>{data.name}</p>
@@ -397,24 +437,27 @@ const Buyers = () => {
                           {setStatusColor(data.virtual_account.status)}
                         </td>
                         <td className="pl-10 py-4">
-                          <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/buyers-details/${data.id}`}>
-                            <FaEye size={20} className='cursor-pointer' />
+                          <Link
+                            onClick={() => window.scrollTo(0, 0)}
+                            to={`/dashboard/buyers-details/${data.id}`}
+                          >
+                            <FaEye size={20} className="cursor-pointer" />
                           </Link>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr className="w-full flex justify-center items-center">
-                      <td className='text-xl mt-3'>No Data Available</td>
+                      <td className="text-xl mt-3">No Data Available</td>
                     </tr>
                   )}
                 </tbody>
               </table>
-            </div >
+            </div>
           </section>
 
           {/* -------- PAGINATION -------- */}
-          <section className="flex justify-center" >
+          <section className="flex justify-center">
             <nav aria-label="Page navigation example">
               <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
                 <li>
@@ -528,8 +571,6 @@ const Buyers = () => {
           <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
-
-
               <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
                 Generate Bill
               </h3>
@@ -538,8 +579,19 @@ const Buyers = () => {
             {/* ------------- BODY ------------- */}
             <div className="p-3">
               <div className="flex justify-center items-center gap-x-4">
-                <Link to="/dashboard/generate-bill" onClick={closeModal} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">New Buyer</Link>
-                <button onClick={() => setSearchUser(!searchUser)} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Old Buyer</button>
+                <Link
+                  to="/dashboard/generate-bill"
+                  onClick={closeModal}
+                  className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                >
+                  New Buyer
+                </Link>
+                <button
+                  onClick={() => setSearchUser(!searchUser)}
+                  className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                >
+                  Old Buyer
+                </button>
               </div>
 
               {searchUser && (
@@ -556,34 +608,50 @@ const Buyers = () => {
                   {getBuyerLoading ? (
                     <>
                       <div className="py-6 flex justify-center items-center">
-                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                        <div
+                          className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                          role="status"
+                          aria-label="loading"
+                        >
                           <span className="sr-only">Loading...</span>
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      {validateOldBuyer.length > 0 && OldBuyerData && OldBuyerData.oldBuyerData && OldBuyerData.oldBuyerData.length > 0 ? (
+                      {validateOldBuyer.length > 0 &&
+                      OldBuyerData &&
+                      OldBuyerData.oldBuyerData &&
+                      OldBuyerData.oldBuyerData.length > 0 ? (
                         <ul className="mt-4 max-h-60 overflow-y-auto border rounded-lg">
                           {OldBuyerData.oldBuyerData.map((buyer) => (
                             <li key={buyer.id}>
                               <Link
                                 to={`/dashboard/old-buyer-generate-bill/${buyer.id}`}
                                 onClick={closeModal}
-                                className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                <span>{buyer.name}</span><span>{buyer.phone}</span>
+                                className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
+                              >
+                                <span>{buyer.name}</span>
+                                <span>{buyer.phone}</span>
                               </Link>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-4 text-gray-600 pl-4">No matching buyers found.</p>
+                        <p className="mt-4 text-gray-600 pl-4">
+                          No matching buyers found.
+                        </p>
                       )}
                     </>
                   )}
 
-
-                  <Link to="" onClick={closeModal} className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Create Bill</Link>
+                  <Link
+                    to=""
+                    onClick={closeModal}
+                    className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                  >
+                    Create Bill
+                  </Link>
                 </div>
               )}
             </div>
@@ -613,10 +681,10 @@ const Buyers = () => {
               </button>
             </div>
           </div>
-        </div >
+        </div>
       )}
     </>
   );
-}
+};
 
 export default Buyers;

@@ -18,7 +18,7 @@ const CashInOut = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [validatePartyName, setvalidatePartyName] = useState();
-  const [selectedParty, setSelectedParty] = useState();
+  const [selectedParty, setSelectedParty] = useState("");
   const [transactionType, setTransactionType] = useState("CashIn");
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -27,6 +27,7 @@ const CashInOut = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
+
   const {
     loading,
     valiDateLoading,
@@ -36,6 +37,7 @@ const CashInOut = () => {
     otherBranchResponse,
     TodayCashInOutData,
   } = useSelector((state) => state.CashInOut);
+
 
   const [formData, setFormData] = useState({
     partyId: "",
@@ -61,6 +63,7 @@ const CashInOut = () => {
       branchId: value,
     }));
   };
+
   const timerRef = useRef(null);
 
   const handleValidateParty = useCallback(
@@ -80,13 +83,13 @@ const CashInOut = () => {
         }
 
         timerRef.current = setTimeout(() => {
-          dispatch(validateParty({ name: value }));
+          dispatch(validateParty({ name: value, accountCategory: formData?.accountCategory }));
         }, 1000);
 
         return () => clearTimeout(timer);
       }
     },
-    [dispatch, user?.user?.role]
+    [dispatch, user?.user?.role,formData?.accountCategory]
   );
 
   useEffect(() => {
@@ -109,6 +112,8 @@ const CashInOut = () => {
       return toast.error("Please Select Account Category")
     }
     setIsOpen(true);
+    setSelectedParty("");
+    dispatch(resetValidatedResponse());
     document.body.style.overflow = "hidden";
   };
 
@@ -192,6 +197,7 @@ const CashInOut = () => {
       cash: "",
       date: today,
       payment_Method: "",
+      accountCategory:""
     });
   };
 
@@ -221,6 +227,22 @@ const CashInOut = () => {
   const handleChangeTransaction = (value) => {
     setTransactionType(value);
   };
+
+  const setAccountStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return "";
+    }
+  };
+
 
   return (
     <>
@@ -289,7 +311,7 @@ const CashInOut = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-6">
+            <div className="grid grid-cols- gap-4 lg:grid-cols-4  lg:gap-6">
               {transactionType === "CashIn" && (
                 <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
                   <div className="stat_data pl-4">
@@ -318,6 +340,7 @@ const CashInOut = () => {
                   </div>
                 </div>
               )}
+              
               <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
                 <div className="stat_data pl-4">
                   <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
@@ -330,6 +353,32 @@ const CashInOut = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="col-span-2 my-auto">
+                  {selectedParty &&  (
+                    <div className="px-8 py-2  flex justify-around items-center border border-gray-400 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Debit</h3>
+                        <h3>{selectedParty?.virtual_account?.total_debit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal">Total Credit</h3>
+                        <h3>{selectedParty?.virtual_account?.total_credit || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Total Balance</h3>
+                        <h3>{selectedParty?.virtual_account?.total_balance || 0}</h3>
+                      </div>
+                      <div className="box text-center">
+                        <h3 className="pb-1 font-normal ">Status</h3>
+                        <h3>
+                          {setAccountStatusColor(selectedParty?.virtual_account?.status) ||
+                            "No Status"}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+                </div>
             </div>
 
             <div className="mt-4 header flex justify-between items-center  mx-2">
@@ -337,6 +386,7 @@ const CashInOut = () => {
                 Cash {`${transactionType === "CashIn" ? "In" : "Out"}`}
               </h1>
             </div>
+
 
             <p className="w-full bg-gray-300 h-px mt-5"></p>
 
@@ -362,7 +412,7 @@ const CashInOut = () => {
                       id="branches"
                       name="branchId"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      value={formData.branchId}
+                      value={formData?.branchId || ""}
                       onChange={handleBranchChange}
                     >
                       <option value="" disabled>
@@ -385,10 +435,11 @@ const CashInOut = () => {
                     name="accountCategory"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.accountCategory}
-                    onChange={(e) =>
+                    onChange={ (e) =>
                       setFormData({
                         ...formData,
                         accountCategory: e.target.value,
+                        
                       })
                     }
                   >
@@ -396,7 +447,7 @@ const CashInOut = () => {
                       Select Account Type
                     </option>
                     {accountTypeData?.map((item) => (
-                      <option key={item.value}>{item.label}</option>
+                      <option value={item.value} key={item.value}>{item.label}</option>
                     ))}
                   </select>
                 </div>}
@@ -411,8 +462,8 @@ const CashInOut = () => {
                     onClick={openModal}
                     value={
                       selectedParty?.name
-                        ? selectedParty?.name
-                        : selectedParty?.partyName
+                        ? selectedParty?.name || ""
+                        : selectedParty?.partyName || ""
                     }
                     required
                     readOnly
@@ -437,7 +488,7 @@ const CashInOut = () => {
                       Select Payment Method
                     </option>
                     {PaymentData?.map((item) => (
-                      <option key={item.value}>{item.label}</option>
+                      <option value={item.value} key={item.value}>{item.label}</option>
                     ))}
                   </select>
                 </div>
@@ -589,7 +640,20 @@ const CashInOut = () => {
                         mainBranchResponse?.Data &&
                         mainBranchResponse?.Data.length > 0 ? (
                           <ul className="mt-4 max-h-60 overflow-y-auto rounded-lg">
-                            {mainBranchResponse?.Data[0].map((data) => (
+                            {mainBranchResponse?.Data?.map((data) => (
+                              <li key={data?.id}>
+                                <button
+                                  onClick={() => handleSelectParty(data)}
+                                  className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
+                                >
+                                  <span>{data?.name || data?.partyName}</span>
+                                  <span> {data?.phone
+                                      ? data.phone
+                                      : "Sr # " + data?.serial_No}</span>
+                                </button>
+                              </li>
+                            ))}
+                            {/* {mainBranchResponse?.Data[1].map((data) => (
                               <li key={data?.id}>
                                 <button
                                   onClick={() => handleSelectParty(data)}
@@ -599,19 +663,8 @@ const CashInOut = () => {
                                   <span>{data?.phone}</span>
                                 </button>
                               </li>
-                            ))}
-                            {mainBranchResponse?.Data[1].map((data) => (
-                              <li key={data?.id}>
-                                <button
-                                  onClick={() => handleSelectParty(data)}
-                                  className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
-                                >
-                                  <span>{data?.name}</span>
-                                  <span>{data?.phone}</span>
-                                </button>
-                              </li>
-                            ))}
-                            {mainBranchResponse?.Data[2].map((data) => (
+                            ))} */}
+                            {/* {mainBranchResponse?.Data?.map((data) => (
                               <li key={data?.id}>
                                 <button
                                   onClick={() => handleSelectParty(data)}
@@ -625,11 +678,11 @@ const CashInOut = () => {
                                   </span>
                                 </button>
                               </li>
-                            ))}
+                            ))} */}
                           </ul>
                         ) : (
                           <p className="mt-4 text-gray-600 pl-4">
-                            No matching buyers found.
+                            No matching Data found.
                           </p>
                         )}
                       </>

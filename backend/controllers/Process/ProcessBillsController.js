@@ -737,7 +737,6 @@ export const markAsPaid = async (req, res, next) => {
 
 export const applyDiscountOnProcessAccount = async (req, res, next) => {
   try {
-    console.log("being hit");
     const { id, category, amount } = req.body;
     await verifyrequiredparams(req.body, ["id", "category", "amount"]);
     let accountData = {};
@@ -751,6 +750,10 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
     }
 
     if (!accountData) throw new CustomError("Account not found", 404);
+
+    if (accountData.virtual_account.total_balance < 0) {
+      throw new CustomError("Invalid Discount Entry", 500);
+    }
 
     //UPDATING ACCOUNT STATUS
 
@@ -768,9 +771,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
     accountData.virtual_account.total_balance -= amount;
     //UPDATING CREDIT DEBIT HISTORY
     accountData.credit_debit_history.push(historydata);
-    if (accountData.virtual_account.total_balance < 0) {
-      throw new CustomError("Invaild Discount Amount", 500);
-    } else if (accountData.virtual_account.total_balance === 0) {
+    if (accountData.virtual_account.total_balance === 0) {
       accountData.virtual_account.status = "Paid";
     }
     await accountData.save();
@@ -782,8 +783,14 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
 
 export const claimProcessAccount = async (req, res, next) => {
   try {
-    const { id, category, amount, note } = req.body;
-    await verifyrequiredparams(req.body, ["id", "category", "amount", "note"]);
+    const { id, category, amount, note, claimCategory } = req.body;
+    await verifyrequiredparams(req.body, [
+      "id",
+      "category",
+      "amount",
+      "note",
+      "claimCategory",
+    ]);
     let oldAccountData = {};
 
     if (category === "Process") {
@@ -796,29 +803,81 @@ export const claimProcessAccount = async (req, res, next) => {
 
     if (!oldAccountData) throw new CustomError("Account not found", 404);
 
-    //UPDATING ACCOUNT STATUS
+    if (claimCategory === "Calim In") {
+      //UPDATING ACCOUNT STATUS
+
+      const credit_debit_history_details = {
+        date: today,
+        particular: note,
+        credit: amount,
+        balance: oldAccountData.virtual_account.total_balance + amount,
+        orderId: "",
+        debit: 0,
+      };
+
+      //DATA FOR VIRTUAL ACCOUNT
+      let new_total_credit =
+        oldAccountData.virtual_account.total_credit + amount;
+      let new_total_debit = oldAccountData.virtual_account.total_debit;
+      const new_total_balance =
+        oldAccountData.virtual_account.total_balance + amount;
+      let new_status = "";
+
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit &&
+          new_total_debit > 0 &&
+          new_total_balance > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
+      }
+
+      //Creating Virtual Account Data
+      const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+      (oldAccountData.virtual_account = virtualAccountData),
+        oldAccountData.credit_debit_history.push(credit_debit_history_details);
+
+      await oldAccountData.save();
+    } else if (claimCategory === "Claim Out") {
+       //UPDATING ACCOUNT STATUS
 
     const credit_debit_history_details = {
       date: today,
       particular: note,
-      credit: amount,
-      balance: oldAccountData.virtual_account.total_balance + amount,
+      credit: 0,
+      balance: oldAccountData.virtual_account.total_balance - amount,
       orderId: "",
-      debit: 0,
+      debit: amount,
     };
 
     //DATA FOR VIRTUAL ACCOUNT
-    let new_total_credit = oldAccountData.virtual_account.total_credit + amount;
-    let new_total_debit = oldAccountData.virtual_account.total_debit;
+    let new_total_credit = oldAccountData.virtual_account.total_credit;
+    let new_total_debit = oldAccountData.virtual_account.total_debit - amount;
     const new_total_balance =
-      oldAccountData.virtual_account.total_balance + amount;
+      oldAccountData.virtual_account.total_balance - amount;
     let new_status = "";
 
     switch (true) {
       case new_total_balance === 0:
         new_status = "Paid";
         break;
-      case new_total_balance === new_total_credit && new_total_debit > 0:
+      case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
         new_status = "Partially Paid";
         break;
       case new_total_debit === 0 && new_total_balance === new_total_credit:
@@ -829,7 +888,7 @@ export const claimProcessAccount = async (req, res, next) => {
         break;
       default:
         new_status = "";
-    };
+    }
 
     //Creating Virtual Account Data
     const virtualAccountData = {
@@ -843,6 +902,9 @@ export const claimProcessAccount = async (req, res, next) => {
       oldAccountData.credit_debit_history.push(credit_debit_history_details);
 
     await oldAccountData.save();
+
+    }
+
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     next(error);

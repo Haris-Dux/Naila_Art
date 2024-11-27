@@ -91,7 +91,7 @@ const SellersDetails = () => {
                             </thead>
                             <tbody>
                                 {SellerById && SellerById?.credit_debit_history?.length > 0 ? (
-                                    SellerById?.credit_debit_history?.map((data, index) => (
+                                    SellerById?.credit_debit_history?.slice().reverse().map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                             <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
