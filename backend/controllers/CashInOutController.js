@@ -10,38 +10,39 @@ import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { UserModel } from "../models/User.Model.js";
-import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
+
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
     const { name, accountCategory } = req.body;
-    if (!name || accountCategory) throw new Error("Search Fields Required");
+    if (!name || !accountCategory) throw new Error("Search Fields Required");
     const projection = "name phone _id virtual_account";
     const projectionForProcess = "partyName _id serial_No virtual_account";
     let Data = {};
 
     switch (true) {
       case accountCategory === "Buyers":
-        Data = BuyersModel.find(
+        Data = await BuyersModel.find(
           { name: { $regex: name, $options: "i" } },
           projection
         );
         break;
       case accountCategory === "Sellers":
-        Data = SellersModel.find(
+        Data = await SellersModel.find(
           { name: { $regex: name, $options: "i" } },
           projection
         );
         break;
       case accountCategory === "Process Account":
-        Data = processBillsModel.find(
+        Data = await processBillsModel.find(
           { partyName: { $regex: name, $options: "i" } },
           projectionForProcess
         );
         break;
       case accountCategory === "Pictures Account":
-        Data = PicruresAccountModel.find(
+        Data = await PicruresAccountModel.find(
           { partyName: { $regex: name, $options: "i" } },
           projectionForProcess
         );
@@ -74,25 +75,25 @@ export const validatePartyNameForAdminBranch = async (req, res, next) => {
 
     switch (true) {
       case accountCategory === "Buyers":
-        Data = BuyersModel.find(
+        Data = await BuyersModel.find(
           { branchId: user.branchId, name: { $regex: name, $options: "i" } },
           projection
         );
         break;
       case accountCategory === "Sellers":
-        Data = SellersModel.find(
+        Data = await SellersModel.find(
           { name: { $regex: name, $options: "i" } },
           projection
         );
         break;
       case accountCategory === "Process Account":
-        Data = processBillsModel.find(
+        Data = await processBillsModel.find(
           { partyName: { $regex: name, $options: "i" } },
           projectionForProcess
         );
         break;
       case accountCategory === "Pictures Account":
-        Data = PicruresAccountModel.find(
+        Data = await PicruresAccountModel.find(
           { partyName: { $regex: name, $options: "i" } },
           projectionForProcess
         );
@@ -227,7 +228,7 @@ export const cashIn = async (req, res) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
+          case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
             new_status = "Partially Paid";
             break;
           case new_total_debit === 0 && new_total_balance === new_total_credit:
@@ -280,10 +281,10 @@ export const cashIn = async (req, res) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
+            case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
             new_status = "Partially Paid";
             break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            case new_total_credit === 0 && new_total_balance === new_total_debit:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
@@ -299,6 +300,8 @@ export const cashIn = async (req, res) => {
           total_balance: new_total_balance,
           status: new_status,
         };
+
+        console.log('virtualAccountData',virtualAccountData);
 
         //DATA FOR CREDIT DEBIT HISTORY
 
@@ -445,9 +448,12 @@ export const cashOut = async (req, res, next) => {
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");
         virtualAccounts = updatedAccount;
-        virtualAccounts[0].Transaction_History.push(historyData);
+      
         await virtualAccounts[0].save({ session });
-      }
+        await VA_HistoryModal.create([
+          historyData
+        ],{session})
+      };
 
       if (accountCategory === "Buyers") {
         //DATA FOR VIRTUAL ACCOUNT
@@ -462,10 +468,10 @@ export const cashOut = async (req, res, next) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
+            case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
             new_status = "Partially Paid";
             break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
+            case new_total_credit === 0 && new_total_balance === new_total_debit:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
@@ -513,7 +519,7 @@ export const cashOut = async (req, res, next) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
+          case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
             new_status = "Partially Paid";
             break;
           case new_total_debit === 0 && new_total_balance === new_total_credit:
@@ -615,9 +621,11 @@ export const getTodaysCashInOut = async (req, res, next) => {
 export const markAsPaidForBuyers = async (req, res, next) => {
   try {
     const { id } = req.body;
-    await verifyrequiredparams(req.body, ["id"]);
+   if(!id) throw new Error("Id is Required")
     const accountData = await BuyersModel.findById(id);
     if (!accountData) throw new CustomError("Account not found", 404);
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
 
     //UPDATING ACCOUNT STATUS
     accountData.virtual_account.status = "Paid";

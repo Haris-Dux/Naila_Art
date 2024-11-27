@@ -38,7 +38,7 @@ const financialDetails = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Paid", "Unpaid", "Partially Paid"],
+    enum: ["Paid", "Unpaid", "Partially Paid", "Advance Paid"],
   },
 });
 

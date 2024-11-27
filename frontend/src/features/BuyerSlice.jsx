@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 //API URL
 const getBuyerForBranch = "/api/buyers/getBuyersForBranch";
 const getBuyerById = "/api/buyers/getBuyerById";
+const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
 const getBuyerBillHistoryForBranchUrl =
   "/api/buyers/getBuyerBillHistoryForBranch";
 
@@ -69,6 +70,20 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
   }
 );
 
+//MARK AS PAID
+export const markAsPaidAsync = createAsyncThunk(
+  "Buyers/markAsPaid",
+  async (data) => {
+    try {
+      const response = await axios.post(markAsPaidForBuyersUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -76,6 +91,7 @@ const initialState = {
   loading: false,
   BuyerBillHistory:[],
   billHistoryLoading: true,
+  markAsPaidLoading:false
 };
 
 const BuyerSlice = createSlice({
@@ -83,6 +99,14 @@ const BuyerSlice = createSlice({
   initialState,
   extraReducers: (builder) => {
     builder
+
+     //MARK AS PAID ACCOUNT
+     .addCase(markAsPaidAsync.pending, (state, action) => {
+      state.markAsPaidLoading = true;
+    })
+    .addCase(markAsPaidAsync.fulfilled, (state, action) => {
+      state.markAsPaidLoading = false;
+    })
 
       // GET BUYER FOR BRANCH
       .addCase(getBuyerForBranchAsync.pending, (state) => {

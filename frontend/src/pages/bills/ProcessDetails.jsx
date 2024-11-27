@@ -157,10 +157,15 @@ const ProcessDetails = () => {
   const [claimData, setClaimData] = useState({
     claimAmount: "",
     claimReason: "",
+    claimCategory : ""
   });
 
-  const openClaimProcessModal = () => {
+  const openClaimProcessModal = (category) => {
     setprocessClaimModal(true);
+    setClaimData((prev) => ({
+      ...prev,
+      claimCategory : category
+    }))
   }
 
   const handleClaimDataChange = (e) => {
@@ -179,6 +184,7 @@ const ProcessDetails = () => {
       amount: claimData.claimAmount,
       category: modelCategory,
       note: claimData.claimReason,
+      claimCategory : claimData.claimCategory
     };
     dispatch(applyClaimAccountAsync(data)).then((res) => {
       if (res.payload.success === true) {
@@ -191,6 +197,7 @@ const ProcessDetails = () => {
       closeDiscountModal();
     })
   };
+
 
   return (
     <>
@@ -362,10 +369,16 @@ const ProcessDetails = () => {
           </>
         )}
         <button
-          onClick={openClaimProcessModal}
+          onClick={() => openClaimProcessModal('Calim In')}
           className=" bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
         >
-          Claim Account
+          Claim In
+        </button>
+        <button
+          onClick={() => openClaimProcessModal("Claim Out")}
+          className="mx-2 bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+        >
+          Claim Out
         </button>
       </div>
       {deleteModal && (

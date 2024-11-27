@@ -51,7 +51,7 @@ export const validatePartyNameForMainBranchAsync = createAsyncThunk("validate/ma
         const response = await axios.post(validatePartyNameForMainBranch, data);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        throw new Error(error.response.data.error);
     }
 }
 );
@@ -62,7 +62,7 @@ export const validatePartyNameForAdminAsync = createAsyncThunk("validate/admin",
         const response = await axios.post(validatePartyNameForAdmin, data);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        throw new Error(error.response.data.error);
     }
 }
 );
@@ -74,7 +74,7 @@ export const validatePartyNameForOtherBranchAsync = createAsyncThunk("validate/o
         const response = await axios.post(validatePartyNameForOtherBranch, data);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        throw new Error(error.response.data.error);
     }
 }
 );
@@ -96,6 +96,12 @@ const initialState = {
 const CashInOutSlice = createSlice({
     name: "CashInOutSlice",
     initialState,
+    reducers : {
+        resetValidatedResponse : (state) => {
+            state.mainBranchResponse = [];
+            state.otherBranchResponse = [];
+        }
+    },
     extraReducers: (builder) => {
         builder
 
@@ -155,5 +161,6 @@ const CashInOutSlice = createSlice({
     },
 });
 
-
+export const {resetValidatedResponse} = CashInOutSlice.actions;
 export default CashInOutSlice.reducer;
+
