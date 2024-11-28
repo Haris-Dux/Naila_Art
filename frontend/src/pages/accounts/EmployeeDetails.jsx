@@ -6,6 +6,8 @@ import {
   CreditSalary,
   GetEmployeeById,
 } from "../../features/AccountSlice";
+import { PaymentData } from "../../Utils/AccountsData";
+import toast from "react-hot-toast";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -19,6 +21,7 @@ const EmployeeDetails = () => {
     particular: "",
     amount: 0,
     type: "credit",
+    payment_Method:""
   });
 
   useEffect(() => {
@@ -54,6 +57,9 @@ const EmployeeDetails = () => {
   };
 
   const handleCreditSalary = () => {
+    if(!formData.payment_Method){
+      return toast.error("Please Select Payment Method")
+    }
     dispatch(CreditSalary({ id })).then((res) => {
       if (res.payload.success === true) {
         closeConfirmationModal();
@@ -75,12 +81,14 @@ const EmployeeDetails = () => {
 
   const openConfirmationModal = () => {
     setIsConfirmationOpen(true);
-    document.body.style.overflow = "hidden";
   };
 
   const closeConfirmationModal = () => {
     setIsConfirmationOpen(false);
-    document.body.style.overflow = "auto";
+    setFormData((prev) => ({
+      ...prev,
+      payment_Method : ""
+    }))
   };
 
   return (
@@ -119,6 +127,10 @@ const EmployeeDetails = () => {
                 : "No joining date available"}
             </h3>
           </div>
+          <div className="box">
+            <h3 className="pb-1 font-medium">Father's Phone Number</h3>
+            <h3>{Employee?.father_phone_number}</h3>
+          </div>
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
@@ -142,6 +154,12 @@ const EmployeeDetails = () => {
               onClick={openConfirmationModal}
             >
               Credit Salary
+            </button>
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={l}
+            >
+              Leaves
             </button>
           </div>
         )}
@@ -338,6 +356,28 @@ const EmployeeDetails = () => {
                 <p className="text-center text-gray-700 dark:text-gray-300">
                   Are you sure you want to credit the salary?
                 </p>
+                 {/* SELECTED PAYMENT METHOD */}
+                 <div className="w-full flex items-center justify-center">
+                  <select
+                    id="payment-method"
+                    name="payment_Method"
+                    className="bg-gray-50  mt-4 border border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
+                    value={formData?.payment_Method}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        payment_Method: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>
+                      Select Payment Method
+                    </option>
+                    {PaymentData?.map((item) => (
+                      <option value={item.value} key={item.value}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex justify-center pt-5 gap-3">
                   <button
                     onClick={handleCreditSalary}

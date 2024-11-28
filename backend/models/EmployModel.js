@@ -62,13 +62,18 @@ const employeSchema = new  mongoose.Schema({
     required: [true,"salary required"],
   },
   joininig_date:{
-    type:Date,
+    type:String,
     required:[true,"joining date required"]
   },
   pastEmploye:{
     type:Boolean,
     default:false
   },
+  leaves: [
+    {
+      date: { type: String, required: true }
+    },
+  ],
   financeData:[financeSchema]
 
 }, { timestamps: true });
