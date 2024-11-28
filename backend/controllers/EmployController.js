@@ -1,6 +1,6 @@
 import { EmployeModel } from "../models/EmployModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
-import moment from "moment-timezone"
+import moment from "moment-timezone";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -48,7 +48,9 @@ export const addEmploye = async (req, res, next) => {
       salary,
       joininig_date,
     });
-    return res.status(200).json({ success: true, message: "Employe Added Sucessfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Employe Added Sucessfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -59,7 +61,7 @@ export const creditDebitBalance = async (req, res, next) => {
     const { id, date, particular } = req.body;
     const credit = parseInt(req.body.credit, 10);
     const debit = parseInt(req.body.debit, 10);
-    
+
     if (!id) throw new Error("Employ Id Fequired");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -114,10 +116,13 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
     newBalance += employe.salary;
     employe.financeData.push({
       credit: employe.salary,
-      debit: employe.financeData[employe.financeData.length - 1]?.balance < 0 ? employe.salary - newBalance : 0,
+      debit:
+        employe.financeData[employe.financeData.length - 1]?.balance < 0
+          ? employe.salary - newBalance
+          : 0,
       balance: newBalance,
       particular: "Salary Credit Transaction",
-      date:today,
+      date: today,
     });
 
     await employe.save();
@@ -149,47 +154,51 @@ export const updateEmploye = async (req, res, next) => {
     let updateQuery = {};
     if (name) {
       updateQuery.name = name;
-    };
+    }
     if (father_Name) {
       updateQuery.father_Name = father_Name;
-    };
+    }
     if (CNIC) {
       updateQuery.CNIC = CNIC;
-    };
+    }
     if (phone_number) {
       updateQuery.phone_number = phone_number;
-    };
+    }
     if (address) {
       updateQuery.address = address;
-    };
+    }
     if (father_phone_number) {
       updateQuery.father_phone_number = father_phone_number;
-    };
+    }
     if (last_work_place) {
       updateQuery.last_work_place = last_work_place;
-    };
+    }
     if (designation) {
       updateQuery.designation = designation;
-    };
+    }
     if (salary) {
       updateQuery.salary = salary;
-    };
+    }
     if (joininig_date) {
       updateQuery.joininig_date = joininig_date;
-    };
+    }
     if (pastEmploye !== undefined) {
       updateQuery.pastEmploye = pastEmploye;
-    };
-    const updatedEmployee = await EmployeModel.findByIdAndUpdate(id, updateQuery);
+    }
+    const updatedEmployee = await EmployeModel.findByIdAndUpdate(
+      id,
+      updateQuery
+    );
     if (!updatedEmployee) throw new Error("Employee not found");
-   return res.status(200).json({ success: true, message: "Employe Updated Successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Employe Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 export const getEmployeDataById = async (req, res, next) => {
-  
   try {
     const { id } = req.body;
 
@@ -199,7 +208,7 @@ export const getEmployeDataById = async (req, res, next) => {
     setMongoose();
     return res.status(200).json(employe);
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -211,7 +220,7 @@ export const getAllActiveEmploye = async (req, res, next) => {
 
     let query = {
       name: { $regex: search, $options: "i" },
-      pastEmploye: false
+      pastEmploye: false,
     };
 
     const employData = await EmployeModel.find(query)
@@ -225,28 +234,26 @@ export const getAllActiveEmploye = async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       page,
       totalEmploys: total,
-      employData
+      employData,
     };
     setMongoose();
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: error.message });
   }
 };
 
 export const getAllPastEmploye = async (req, res, next) => {
   try {
-
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     let search = req.query.search || "";
 
-
     let query = {
       name: { $regex: search, $options: "i" },
-      pastEmploye: true
+      pastEmploye: true,
     };
-   
+
     const employData = await EmployeModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -258,14 +265,58 @@ export const getAllPastEmploye = async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       page,
       totalEmploys: total,
-      employData
+      employData,
     };
     setMongoose();
     return res.status(200).json(response);
   } catch (error) {
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: error.message });
   }
 };
 
+export const addLeave = async (req, res) => {
+  try {
+    const { employeeId, date } = req.body;
+    if (!employeeId || !date)
+      throw new Error("Employee ID and Date are required");
+    // Check if leave already exists for the date
+    const employeData = await EmployeModel.findById(employeeId);
+    const existingLeave = employeData.leaves.some(
+      (leave) => leave.date === date
+    );
+    if (existingLeave) throw new Error("Leave already marked for this date");
+    employeData.leaves.push(date);
+    await employeData.save();
 
+   return res
+      .status(201)
+      .json({ success: true, message: "Leave marked successfully" });
+  } catch (error) {
+   return res.status(500).json({ error: error.message });
+  }
+};
 
+export const getMonthlyLeaves = async (req, res) => {
+  try {
+    const { employeeId } = req.body;
+    const employeData = await EmployeModel.findById(employeeId);
+    const leaves = employeData.leaves.filter(
+      (leave) => leave.date === date
+    );
+   return res.status(200).json({ success: true, leaves });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPastLeaves = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    const leaves = await LeaveModel.find({ employeeId }).sort({ date: -1 });
+
+    res.status(200).json({ success: true, leaves });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};

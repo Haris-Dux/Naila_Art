@@ -387,6 +387,9 @@ const Buyers = () => {
                       Party Name
                     </th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">
+                     City
+                    </th>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Credit
                     </th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">
@@ -424,6 +427,9 @@ const Buyers = () => {
                           <p>{data.name}</p>
                           <PhoneComponent phone={data.phone} />
                         </th>
+                        <td className="px-6 py-4 font-medium">
+                          {data.city}
+                        </td>
                         <td className="px-6 py-4 font-medium">
                           {data.virtual_account.total_credit} Rs
                         </td>

@@ -1,7 +1,8 @@
 import express from "express";
-import { superAdminOnly } from "../middleware/Auth.js";
+import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
 import {
   addEmploye,
+  addLeave,
   creditDebitBalance,
   creditSalaryForSingleEmploye,
   getAllActiveEmploye,
@@ -23,5 +24,6 @@ employRouter.post("/updateEmploye", superAdminOnly, updateEmploye);
 employRouter.post("/getEmployeDataById", superAdminOnly, getEmployeDataById);
 employRouter.post("/getAllActiveEmploye", superAdminOnly, getAllActiveEmploye);
 employRouter.post("/getAllPastEmploye", superAdminOnly, getAllPastEmploye);
+employRouter.post("/addLeave", verifyUser, addLeave);
 
 export default employRouter;

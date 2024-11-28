@@ -10,6 +10,7 @@ const EmployeeByID = "/api/employ/getEmployeDataById";
 const Update = "/api/employ/updateEmploye";
 const Debitcredit = "/api/employ/creditDebitBalance";
 const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
+const addLeaveUrl = '/api/employ/addLeave'
 
 
 export const CreateEmployee = createAsyncThunk(
@@ -107,7 +108,19 @@ export const CreditSalary = createAsyncThunk(
   }
 );
 
-
+export const addLeaveAsync = createAsyncThunk(
+  "Employee/markLeave",
+  async (formData) => {
+    try {
+      const response = await axios.post(addLeaveUrl, formData);
+      toast.success(response.data.message);
+      
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
 
 
 
@@ -136,6 +149,14 @@ const AccountSlice = createSlice({
         state.employeEditLoading = true;
       })
       .addCase(CreateEmployee.fulfilled, (state, action) => {
+        state.employeEditLoading = false;
+
+      })
+
+      .addCase(addLeaveAsync.pending, (state, action) => {
+        state.employeEditLoading = true;
+      })
+      .addCase(addLeaveAsync.fulfilled, (state, action) => {
         state.employeEditLoading = false;
 
       })
