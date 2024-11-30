@@ -3,25 +3,35 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   AddCreditDebit,
+  addLeaveAsync,
   CreditSalary,
   GetEmployeeById,
 } from "../../features/AccountSlice";
 import { PaymentData } from "../../Utils/AccountsData";
 import toast from "react-hot-toast";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import moment from "moment-timezone";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
-  const { loading, Employee } = useSelector((state) => state.Account);
+  const { loading, Employee, employeEditLoading } = useSelector(
+    (state) => state.Account
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [leavesModal, setLeavesModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [overTimeModal, setOverTimeModal] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     particular: "",
     amount: 0,
     type: "credit",
-    payment_Method:""
+    payment_Method: "",
+    over_time: "",
   });
 
   useEffect(() => {
@@ -30,7 +40,10 @@ const EmployeeDetails = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: name === "over_time" || name === amount ? parseInt(value) : value,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -57,8 +70,8 @@ const EmployeeDetails = () => {
   };
 
   const handleCreditSalary = () => {
-    if(!formData.payment_Method){
-      return toast.error("Please Select Payment Method")
+    if (!formData.payment_Method) {
+      return toast.error("Please Select Payment Method");
     }
     dispatch(CreditSalary({ id })).then((res) => {
       if (res.payload.success === true) {
@@ -87,8 +100,68 @@ const EmployeeDetails = () => {
     setIsConfirmationOpen(false);
     setFormData((prev) => ({
       ...prev,
-      payment_Method : ""
-    }))
+      payment_Method: "",
+      date: "",
+    }));
+  };
+
+  const closeAddLeaveModal = () => {
+    setLeavesModal(false);
+    setShowCalendar(false);
+    setFormData((prev) => ({
+      ...prev,
+      date: "",
+    }));
+  };
+
+  const isLeaveDate = (date) => {
+    return Employee?.leaves?.includes(date);
+  };
+
+  const handleUpdateLeave = (e) => {
+    e.preventDefault();
+    const data = {
+      date: formData?.date,
+      employeeId: id,
+    };
+    dispatch(addLeaveAsync(data)).then((res) => {
+      if (res.payload.success === true) {
+        closeAddLeaveModal();
+        dispatch(GetEmployeeById({ id }));
+      }
+    });
+  };
+
+  const viewOrEditLeaves = () => {
+    setShowCalendar(true);
+  };
+
+  const handleDateClick = (date) => {
+    const formattedDate = moment(date).format("YYYY-MM-DD");
+    setFormData((prev) => ({
+      ...prev,
+      date: formattedDate,
+    }));
+    setShowCalendar(false);
+    setLeavesModal(true);
+  };
+
+  const openOverTimeModal = () => {
+    setOverTimeModal(true);
+  };
+
+  const handleAddOvertimeHours = (e) => {
+    e.preventDefault();
+    const data = {
+      over_time: formData.over_time,
+      employeeId: id,
+    };
+    dispatch(addLeaveAsync(data)).then((res) => {
+      if (res.payload.success === true) {
+        closeOverTimeModal();
+        dispatch(GetEmployeeById({ id }));
+      }
+    });
   };
 
   return (
@@ -157,9 +230,15 @@ const EmployeeDetails = () => {
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-              onClick={l}
+              onClick={openOverTimeModal}
             >
-              Leaves
+              Add Overtime
+            </button>
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={viewOrEditLeaves}
+            >
+              Update Leaves
             </button>
           </div>
         )}
@@ -233,6 +312,193 @@ const EmployeeDetails = () => {
           </div>
         )}
 
+        {/* SALARY CONFIRM MODAL */}
+        {overTimeModal && (
+          <div
+            aria-hidden="true"
+            className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          >
+            <div className="relative py-4 px-3 w-full max-w-md max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Add Over Time Hours
+                </h3>
+                <button
+                  onClick={closeConfirmationModal}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+
+              <div className="p-4 md:p-5">
+                {/* ENTER HOURSE*/}
+                <div>
+                  <input
+                    type="number"
+                    placeholder="Enter Hours"
+                    name="over_time"
+                    id="over_time"
+                    value={formData.over_time}
+                    onChange={handleChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    required
+                  />
+                </div>
+                <div className="flex justify-center pt-5 gap-3">
+                  <button
+                    onClick={handleAddOvertimeHours}
+                    className="inline-block rounded  bg-green-500 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-green-400 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={closeConfirmationModal}
+                    className="inline-block rounded border border-gray-300 bg-gray-300 dark:bg-gray-400 px-10 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-400 focus:outline-none focus:ring"
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/*  VIEW PAST LEAVES */}
+        {showCalendar && (
+          <div
+            aria-hidden="true"
+            className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          >
+            <div className="relative py-2 px-3 w-96 max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Past Leaves
+                </h3>
+                <button
+                  onClick={closeAddLeaveModal}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+
+              <div className="p-2 md:p-5">
+                <div className="space-y-2">
+                  <Calendar
+                    onClickDay={handleDateClick}
+                    tileClassName={({ date }) => {
+                      const correctFormat = moment(date).format("YYYY-MM-DD");
+                      if (isLeaveDate(correctFormat)) {
+                        return "mark-red";
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LEAVES MODAL */}
+        {leavesModal && (
+          <div
+            aria-hidden="true"
+            className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          >
+            <div className="relative py-4 px-3  max-w-xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {!isLeaveDate(formData?.date) ? (
+                    <span className="text-green-500">Mark Leave</span>
+                  ) : (
+                    <span className="text-red-500">Delete Leave</span>
+                  )}
+                </h3>
+                <button
+                  onClick={closeAddLeaveModal}
+                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+              <div className="p-4">
+                <p className="text-center text-gray-700 dark:text-gray-300">
+                  {`Are you sure you want to ${
+                    !isLeaveDate(formData?.date) ? "Mark Leave" : "Delete Leave"
+                  } for `}
+                  <span className="font-bold">{formData?.date}</span>
+                  {` ?`}
+                </p>
+              </div>
+
+              <div className="p-4">
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleUpdateLeave}
+                    disabled={employeEditLoading}
+                    type="submit"
+                    className={`inline-block rounded ${
+                      employeEditLoading && "cursor-not-allowed"
+                    } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500`}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CREDIT DEBIT MODAL */}
         {isOpen && (
           <div
             aria-hidden="true"
@@ -318,6 +584,7 @@ const EmployeeDetails = () => {
           </div>
         )}
 
+        {/* SALARY CONFIRM MODAL */}
         {isConfirmationOpen && (
           <div
             aria-hidden="true"
@@ -356,8 +623,8 @@ const EmployeeDetails = () => {
                 <p className="text-center text-gray-700 dark:text-gray-300">
                   Are you sure you want to credit the salary?
                 </p>
-                 {/* SELECTED PAYMENT METHOD */}
-                 <div className="w-full flex items-center justify-center">
+                {/* SELECTED PAYMENT METHOD */}
+                <div className="w-full flex items-center justify-center">
                   <select
                     id="payment-method"
                     name="payment_Method"
@@ -374,7 +641,9 @@ const EmployeeDetails = () => {
                       Select Payment Method
                     </option>
                     {PaymentData?.map((item) => (
-                      <option value={item.value} key={item.value}>{item.label}</option>
+                      <option value={item.value} key={item.value}>
+                        {item.label}
+                      </option>
                     ))}
                   </select>
                 </div>

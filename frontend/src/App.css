@@ -87,3 +87,8 @@ body::-webkit-scrollbar-thumb {
   border:none !important;
   box-shadow: none !important;
 }
+
+.react-calendar__tile.mark-red {
+  background-color: red !important;
+  color: white !important;
+}

@@ -11,6 +11,7 @@ const Update = "/api/employ/updateEmploye";
 const Debitcredit = "/api/employ/creditDebitBalance";
 const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
 const addLeaveUrl = '/api/employ/addLeave'
+const addOvertimeUrl = '/api/employ/addOvertime'
 
 
 export const CreateEmployee = createAsyncThunk(
@@ -113,6 +114,20 @@ export const addLeaveAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(addLeaveUrl, formData);
+      toast.success(response.data.message);
+      
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const addOvertimeHoursAsync = createAsyncThunk(
+  "Employee/addOvertime",
+  async (formData) => {
+    try {
+      const response = await axios.post(addOvertimeUrl, formData);
       toast.success(response.data.message);
       
       return response.data;
