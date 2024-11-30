@@ -281,42 +281,29 @@ export const addLeave = async (req, res) => {
       throw new Error("Employee ID and Date are required");
     // Check if leave already exists for the date
     const employeData = await EmployeModel.findById(employeeId);
-    const existingLeave = employeData.leaves.some(
-      (leave) => leave.date === date
-    );
-    if (existingLeave) throw new Error("Leave already marked for this date");
-    employeData.leaves.push(date);
+    const existingLeave = employeData.leaves.some((leave) => leave === date);
+    if (existingLeave) {
+      employeData.leaves = employeData.leaves.filter((leave) => leave !== date);
+    } else {
+      employeData.leaves.push(date);
+    }
     await employeData.save();
 
-   return res
+    return res
       .status(201)
-      .json({ success: true, message: "Leave marked successfully" });
-  } catch (error) {
-   return res.status(500).json({ error: error.message });
-  }
-};
-
-export const getMonthlyLeaves = async (req, res) => {
-  try {
-    const { employeeId } = req.body;
-    const employeData = await EmployeModel.findById(employeeId);
-    const leaves = employeData.leaves.filter(
-      (leave) => leave.date === date
-    );
-   return res.status(200).json({ success: true, leaves });
+      .json({ success: true, message: "Leave Update Successfull" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-export const getPastLeaves = async (req, res) => {
+export const addOvertime = async (req, res, next) => {
   try {
-    const { employeeId } = req.params;
-
-    const leaves = await LeaveModel.find({ employeeId }).sort({ date: -1 });
-
-    res.status(200).json({ success: true, leaves });
+    const { over_time, employeeId } = req.body;
+    if (!over_time || !employeeId) throw new Error("Missing Data Error");
+    const employeData = await EmployeModel.findById(employeeId);
+    
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
