@@ -14,6 +14,9 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import moment from "moment-timezone";
 import { GetAllBranches } from "../../features/InStockSlice";
+import { GoPlus } from "react-icons/go";
+import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
+import { MdEdit } from "react-icons/md";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -73,6 +76,8 @@ const EmployeeDetails = () => {
       id,
       date: formData.date,
       particular: formData.particular,
+      payment_Method: formData.payment_Method,
+      branchId: formData.branchId,
       [formData.type]: formData.amount,
     };
 
@@ -84,6 +89,9 @@ const EmployeeDetails = () => {
           particular: "",
           amount: "",
           type: "credit",
+          payment_Method: "",
+          branchId: "",
+          date: today,
         });
       }
     });
@@ -118,6 +126,14 @@ const EmployeeDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setFormData({
+      particular: "",
+      amount: "",
+      type: "credit",
+      payment_Method: "",
+      branchId: "",
+      date: today,
+    });
     document.body.style.overflow = "auto";
   };
 
@@ -264,31 +280,34 @@ const EmployeeDetails = () => {
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={() => openModal("debit")}
             >
-              Debit
+              <div className="flex items-center gap-2"> <PiHandDeposit/>Debit</div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={() => openModal("credit")}
             >
-              Credit
+              <div className="flex items-center gap-2"><PiHandWithdraw/>Credit</div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={openConfirmationModal}
             >
-              Credit Salary
+              <div className="flex items-center gap-2">
+                <GoPlus />
+                Credit Salary
+              </div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={openOverTimeModal}
             >
-              Add Overtime
+              <div className="flex items-center gap-2">  <GoPlus />Add Overtime</div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={viewOrEditLeaves}
             >
-              Update Leaves
+              <div className="flex items-center gap-2"><MdEdit />Update Leaves</div>
             </button>
           </div>
         )}
@@ -647,10 +666,29 @@ const EmployeeDetails = () => {
                       </option>
                     ))}
                   </select>
+                  <select
+                    id="branches"
+                    name="branchId"
+                    className="bg-gray-50 border border-gray-300 w-full text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={formData?.branchId || ""}
+                    onChange={handleChange}
+                  >
+                    <option value="" disabled>
+                      Select Branch
+                    </option>
+                    {Branches?.map((branch) => (
+                      <option key={branch?.id} value={branch?.id}>
+                        {branch?.branchName}
+                      </option>
+                    ))}
+                  </select>
                   <div className="flex justify-center pt-2">
                     <button
+                      disabled={employeEditLoading}
                       type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                      className={`inline-block rounded ${
+                        employeEditLoading && "cursor-not-allowed"
+                      } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500`}
                     >
                       Submit
                     </button>
