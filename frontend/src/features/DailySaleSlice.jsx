@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 //API URL
 const getDailySale = "/api/dailysale/getDailySaleHistoryForBranch";
 const getDailySaleById = "/api/dailysale/getDailySaleById";
+const cashOutUrlAsyncUrl = "/api/dailysale/cashOutForBranch";
 
 // GET DAILY SALE HISTORY THUNK
 export const getDailySaleAsync = createAsyncThunk("dailysale/history", async (data) => {
@@ -31,12 +32,27 @@ export const getDailySaleByIdAsync = createAsyncThunk("dailysale/byId", async (i
 }
 );
 
+//CASH OUT SLICE
+export const BranchCashOutAsync = createAsyncThunk(
+    "DailySale/CashOutForBranch",
+    async (formData) => {
+      try {
+        const response = await axios.post(cashOutUrlAsyncUrl, formData);
+        toast.success(response.data.message);       
+        return response.data;
+      } catch (error) {
+        toast.error(error.response.data.error);
+      }
+    }
+  );
+
 
 // INITIAL STATE
 const initialState = {
     DailySaleHistory: [],
     DailySaleById: [],
     loading: false,
+    cashOutLoading:false
 };
 
 const DailySaleSlice = createSlice({
@@ -52,6 +68,14 @@ const DailySaleSlice = createSlice({
             .addCase(getDailySaleAsync.fulfilled, (state, action) => {
                 state.loading = false;
                 state.DailySaleHistory = action.payload
+            })
+
+            // CASH OUT CASE
+            .addCase(BranchCashOutAsync.pending, (state) => {
+                state.cashOutLoading = true;
+            })
+            .addCase(BranchCashOutAsync.fulfilled, (state, action) => {
+                state.cashOutLoading = false;
             })
 
             // GET DAILY SALE BY ID

@@ -597,6 +597,9 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
         { name: "Meezan Bank", value: account.cashInMeezanBank },
         { name: "JazzCash", value: account.cashInJazzCash },
         { name: "EasyPaisa", value: account.cashInEasyPaisa },
+        { name: "A_Meezan", value: account.A_Meezan },
+        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
+        { name: "H_Meezan", value: account.H_Meezan },
       ];
     }
 

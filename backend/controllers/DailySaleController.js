@@ -3,6 +3,9 @@ import { setMongoose } from "../utils/Mongoose.js";
 import corn from "node-cron";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
+import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import mongoose from "mongoose";
+import { sendEmail } from "../utils/nodemailer.js";
 
 export const getTodaysdailySaleforBranch = async (req, res, next) => {
   try {
@@ -64,6 +67,88 @@ export const getDailySaleById = async (req, res, next) => {
   }
 };
 
+export const cashOutForBranch = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { branchId, amount, payment_Method } = req.body;
+      if (!branchId || !amount || !payment_Method)
+        throw new Error("Missing Required Fields");
+      const branch = await BranchModel.findById(branchId).session(session);
+      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+      //DEDUCTING AMOUNT FROM DAILY SALE
+      const dailySaleForToday = await DailySaleModel.findOne({
+        branchId,
+        date: today,
+      }).session(session);
+      if (!dailySaleForToday) {
+        throw new Error("Daily sale record not found for This Date");
+      }
+      dailySaleForToday.saleData.totalCash -= amount;
+      if (dailySaleForToday.saleData.totalCash < 0) {
+        throw new Error("Insufficient Cash");
+      }
+      await dailySaleForToday.save({ session });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
+        };
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date: today,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount,
+          note: `Recieved Amount From ${branch.branchName}`,
+        };
+        virtualAccounts = updatedAccount;
+        await virtualAccounts[0].save({ session });
+        await VA_HistoryModal.create([historyData], { session });
+      } else if (payment_Method === "cashSale") {
+        //UPDATING TOTAL CASH FOR HEAD OFFICE
+        const headOffice = await BranchModel.findOne({
+          branchName: "Head Office",
+        });
+        if (!headOffice) throw new Error("Cannot find head office data ");
+        const dailySaleForHeadOffice = await DailySaleModel.findOne({
+          branchId:headOffice._id,
+          date: today,
+        }).session(session);
+        if (!dailySaleForHeadOffice)
+          throw new Error("Cannot find daily sales for head office");
+        dailySaleForHeadOffice.saleData.totalCash += amount;
+        await dailySaleForHeadOffice.save({ session });
+      }
+
+      //SEND EMAIL
+      const branchCashOutData = {
+        branchName: branch.branchName,
+        amount: amount,
+        date: today,
+        payment_Method: payment_Method,
+      };
+      await sendEmail({
+        email: "offical@nailaarts.com",
+        email_Type: "Branch Cash Out",
+        branchCashOutData,
+      });
+
+      return res.status(200).json({ success: true, message: "Success" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession(session);
+  }
+};
+
 corn.schedule(
   "01 00 * * *",
   async () => {
@@ -96,7 +181,7 @@ corn.schedule(
             saleData: {
               totalCash: previousDaySale
                 ? previousDaySale.saleData.totalCash
-                : 0
+                : 0,
             },
           });
         } catch (error) {
