@@ -12,7 +12,11 @@ import {
 } from "../../middleware/ValidateOtp.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import jwt from "jsonwebtoken";
-import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../../models/DashboardData/VirtalAccountsModal.js";
+import { setMongoose } from "../../utils/Mongoose.js";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -265,7 +269,10 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
     //banks data
 
     let banksData = [
-      { name: "Meezan Bank", value: dailySaleForToday.saleData.cashInMeezanBank },
+      {
+        name: "Meezan Bank",
+        value: dailySaleForToday.saleData.cashInMeezanBank,
+      },
       { name: "JazzCash", value: dailySaleForToday.saleData.cashInJazzCash },
       { name: "EasyPaisa", value: dailySaleForToday.saleData.cashInEasyPaisa },
     ];
@@ -813,58 +820,25 @@ export const makeTransactionInAccounts = async (req, res, next) => {
 
 export const getTransactionsHistory = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 20;
     const date = req.query.date || "";
+    const page =  parseInt(req.query.page || 1);
+    const limit = 30;
 
-    const result = await VirtalAccountModal.aggregate([
-      {
-        $unwind: "$Transaction_History",
-      },
-      {
-        $match: {
-          "Transaction_History.date": { $regex: date },
-        },
-      },
-      {
-        $sort: {
-          "Transaction_History.createdAt": -1,
-        },
-      },
-      {
-        $skip: (page - 1) * limit,
-      },
-      {
-        $limit: limit,
-      },
-      {
-        $project: {
-          _id: 0,
-          date: "$Transaction_History.date",
-          transactionType: "$Transaction_History.transactionType",
-          payment_Method: "$Transaction_History.payment_Method",
-          amount: "$Transaction_History.amount",
-          new_balance: "$Transaction_History.new_balance",
-          note: "$Transaction_History.note",
-          createdAt: "$Transaction_History.createdAt",
-        },
-      },
-    ]);
-    let totalDocs = 0;
-    if (date) {
-      const accountData = await VirtalAccountModal.find({});
-      totalDocs = accountData[0].Transaction_History.filter(
-        (h) => h.date === date
-      ).length;
-    } else {
-      const accountData = await VirtalAccountModal.find({});
-      totalDocs = accountData[0].Transaction_History.length;
-    }
-    return res.status(200).json({
+    let query = {
+      date: { $regex: date, $options: "i" },
+    };
+    const totalDocs = await VA_HistoryModal.countDocuments(query);
+    const result = await VA_HistoryModal.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    const response = {
       data: result,
+       page,
       totalPages: Math.ceil(totalDocs / limit),
-      page,
-    });
+    };
+    setMongoose();
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

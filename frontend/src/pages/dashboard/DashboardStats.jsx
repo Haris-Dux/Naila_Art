@@ -212,6 +212,8 @@ const DashboardStats = () => {
   };
 
   const page = TransactionsHistory?.page;
+  console.log('TransactionsHistory?.totalPages',TransactionsHistory?.totalPages);
+  console.log('page',page);
   const [date, setDate] = useState("");
 
   const handleDateChange = (e) => {
@@ -254,6 +256,11 @@ const DashboardStats = () => {
   if (hasError) {
     return <SendOTP />;
   }
+
+  const getPaymentMethodName = (method) => {
+    const name = PaymentData.find((item) => item.value === method).label;
+    return name;
+  };
 
   return (
     <>
@@ -717,7 +724,7 @@ const DashboardStats = () => {
                       <option value="" disabled>
                         Payment Method
                       </option>
-                      {PaymentData?.pop()?.map((item) => (
+                      {PaymentData?.slice(0,-1)?.map((item) => (
                         <option value={item.value} key={item.value}>
                           {item.label}
                         </option>
@@ -967,12 +974,12 @@ const DashboardStats = () => {
                               {data?.amount}
                             </td>
                             <td className="px-6 py-3 text-center">
-                              {data?.payment_Method}
+                              {getPaymentMethodName(data?.payment_Method)}
                             </td>
                             <td className="px-6 py-3 text-center">
                               {data?.new_balance}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="px-6 py-3 text-xs text-center">
                               {data?.note}
                             </td>
                           </tr>
