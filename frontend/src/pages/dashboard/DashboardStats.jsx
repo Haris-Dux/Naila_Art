@@ -25,6 +25,7 @@ import { FaHistory } from "react-icons/fa";
 import SendOTP from "./SendOTP";
 import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
+import { PaymentData } from "../../Utils/AccountsData";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -592,11 +593,11 @@ const DashboardStats = () => {
               </div>
 
               {/* BANK ACCOUNT */}
-              <div className="h-[21rem] px-4 pt-5 lg:col-span-4 xl:col-span-1 pb-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
+              <div className="h-[18rem] px-4 pt-2 lg:col-span-4 xl:col-span-1 pb-2 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
                 <div className="flex flex-col justify-between h-full">
                   <div>
                     <div className="flex justify-between items-center ">
-                      <h2 className="mb-3 font-medium text-lg">
+                      <h2 className="mb-1 font-medium text-lg">
                         Bank Accounts
                       </h2>
                       {user?.user?.role === "superadmin" && (
@@ -611,10 +612,12 @@ const DashboardStats = () => {
                       DashboardData?.bankAccountsData.map((account, index) => (
                         <div
                           key={index}
-                          className="my-4 flex justify-between items-center border-b"
+                          className="my-3 flex justify-between items-center border-b"
                         >
-                          <span>{account.name}</span>
-                          <span className="font-semibold">{account.value}</span>
+                          <span className="text-sm">{account.name}</span>
+                          <span className="text-sm font-semibold">
+                            {account.value}
+                          </span>
                         </div>
                       ))}
                   </div>
@@ -712,11 +715,13 @@ const DashboardStats = () => {
                       required
                     >
                       <option value="" disabled>
-                        Select Payment Method
+                        Payment Method
                       </option>
-                      <option value="cashInMeezanBank">Meezan Bank</option>
-                      <option value="cashInJazzCash">JazzCash</option>
-                      <option value="cashInEasyPaisa">EasyPaisa</option>
+                      {PaymentData?.pop()?.map((item) => (
+                        <option value={item.value} key={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

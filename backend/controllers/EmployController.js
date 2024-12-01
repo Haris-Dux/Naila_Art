@@ -100,8 +100,8 @@ export const creditDebitBalance = async (req, res, next) => {
         }
         if (payment_Method === "cashSale") {
           dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash +=
-          credit;
-        };
+            credit;
+        }
         await dailySaleForToday.save({ session });
 
         //UPDATING VIRTUAL ACCOUNTS
@@ -184,10 +184,10 @@ export const creditDebitBalance = async (req, res, next) => {
         }
       }
       await employe.save({ session });
+      return res
+        .status(200)
+        .json({ success: true, message: "Updated Successfully" });
     });
-    return res
-      .status(200)
-      .json({ success: true, message: "Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -274,11 +274,11 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         await virtualAccounts[0].save({ session });
         await VA_HistoryModal.create([historyData], { session });
       }
-    });
 
-    return res
+      return res
       .status(200)
       .json({ success: true, message: "Successfully Updated" });
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
