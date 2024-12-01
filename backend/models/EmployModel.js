@@ -70,18 +70,17 @@ const employeSchema = new mongoose.Schema(
       default: false,
     },
     leaves: [],
-    overtime_Data: [
-      {
+    overtime_Data: {
         month: {
           type: String,
-          required: [true, "Month date required"],
+          default:""
         },
         hours: {
           type: Number,
-          required: [true, "hours required"],
+          default: 0
         },
-      },
-    ],
+      }
+    ,
     financeData: [financeSchema],
   },
   { timestamps: true }

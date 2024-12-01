@@ -9,6 +9,7 @@ import {
   getAllPastEmploye,
   getEmployeDataById,
   updateEmploye,
+  updateOvertime,
 } from "../controllers/EmployController.js";
 
 const employRouter = express.Router();
@@ -24,6 +25,7 @@ employRouter.post("/updateEmploye", superAdminOnly, updateEmploye);
 employRouter.post("/getEmployeDataById", superAdminOnly, getEmployeDataById);
 employRouter.post("/getAllActiveEmploye", superAdminOnly, getAllActiveEmploye);
 employRouter.post("/getAllPastEmploye", superAdminOnly, getAllPastEmploye);
-employRouter.post("/addLeave", verifyUser, addLeave);
+employRouter.post("/addLeave", superAdminOnly, addLeave);
+employRouter.post("/updateOvertime", superAdminOnly, updateOvertime);
 
 export default employRouter;
