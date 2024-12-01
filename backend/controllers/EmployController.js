@@ -1,6 +1,10 @@
+import mongoose from "mongoose";
 import { EmployeModel } from "../models/EmployModel.js";
+import { PaymentData } from "../utils/Common.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
+import { DailySaleModel } from "../models/DailySaleModel.js";
+import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -58,11 +62,12 @@ export const addEmploye = async (req, res, next) => {
 
 export const creditDebitBalance = async (req, res, next) => {
   try {
-    const { id, date, particular } = req.body;
+    const { id, date, particular ,branchId,payment_Method } = req.body;
+    if (!id || !date || !particular ) throw new Error("Missing Requires Fields");
+
     const credit = parseInt(req.body.credit, 10);
     const debit = parseInt(req.body.debit, 10);
 
-    if (!id) throw new Error("Employ Id Fequired");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
     let newBalance =
@@ -100,37 +105,95 @@ export const creditDebitBalance = async (req, res, next) => {
   }
 };
 
-export const creditSalaryForSingleEmploye = async (req, res, next) => {
+ export const creditSalaryForSingleEmploye = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const { id } = req.body;
-    if (!id) throw new Error("Employ Id Not Found");
-    const employe = await EmployeModel.findById(id);
-    const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-    if (!employe) throw new Error("Employe Not Found");
+    await session.withTransaction(async () => {
+      const { id, salary, payment_Method, over_time,branchId,leaves } = req.body;
+      if (!id || !salary || !payment_Method || !branchId)
+        throw new Error("Missing Fields"); 
+      const employe = await EmployeModel.findById(id).session(session);
+      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      if (!employe) throw new Error("Employe Not Found");
 
-    let newBalance =
-      employe.financeData.length > 0
-        ? employe.financeData[employe.financeData.length - 1].balance
-        : 0;
+      const paymentMethodName = PaymentData.find(
+        (method) => method.value === payment_Method
+      )?.label;
 
-    newBalance += employe.salary;
-    employe.financeData.push({
-      credit: employe.salary,
-      debit:
-        employe.financeData[employe.financeData.length - 1]?.balance < 0
-          ? employe.salary - newBalance
-          : 0,
-      balance: newBalance,
-      particular: "Salary Credit Transaction",
-      date: today,
+      let newBalance =
+        employe.financeData.length > 0
+          ? employe.financeData[employe.financeData.length - 1].balance
+          : 0;
+
+      newBalance += salary;
+      employe.financeData.push({
+        credit: salary,
+        debit:
+          employe.financeData[employe.financeData.length - 1]?.balance < 0
+            ? salary - newBalance
+            : 0,
+        balance: newBalance,
+        particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves} `,
+        date: today,
+      });
+
+      employe.overtime_Data.hours = 0;
+      await employe.save({session});
+
+      //DEDUCT FROM PAYMENT METHID
+      const dailySaleForToday = await DailySaleModel.findOne({
+        branchId,
+        date: today,
+      }).session(session);
+      if (!dailySaleForToday) {
+        throw new Error("Daily sale record not found for This Date");
+      };
+      if (payment_Method === "cashSale") {
+        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
+          salary;
+      };
+      if (dailySaleForToday.totalCash < 0){
+        throw new Error("Not Enough Total Cash")};
+
+      await dailySaleForToday.save({ session });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] -= salary),
+        };
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date:today,
+          transactionType: "WithDraw",
+          payment_Method,
+          new_balance,
+          amount: salary,
+          note: `Salary credit for ${employe.name}`,
+        };
+        if (new_balance < 0)
+          throw new Error("Not Enough Cash In Payment Method");
+        virtualAccounts = updatedAccount;
+      
+        await virtualAccounts[0].save({ session });
+        await VA_HistoryModal.create([
+          historyData
+        ],{session})
+      };
+
     });
 
-    await employe.save();
     return res
       .status(200)
       .json({ success: true, message: "Successfully Updated" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -297,12 +360,16 @@ export const addLeave = async (req, res) => {
   }
 };
 
-export const addOvertime = async (req, res, next) => {
+export const updateOvertime = async (req, res, next) => {
   try {
     const { over_time, employeeId } = req.body;
     if (!over_time || !employeeId) throw new Error("Missing Data Error");
     const employeData = await EmployeModel.findById(employeeId);
-    
+    const currentMonth = moment.tz("Asia/Karachi").format("YYYY-MM");
+    employeData.overtime_Data.hours += over_time;
+    employeData.overtime_Data.month = currentMonth;
+    await employeData.save();
+    return res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

@@ -11,7 +11,7 @@ const Update = "/api/employ/updateEmploye";
 const Debitcredit = "/api/employ/creditDebitBalance";
 const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
 const addLeaveUrl = '/api/employ/addLeave'
-const addOvertimeUrl = '/api/employ/addOvertime'
+const updateOvertimeUrl = '/api/employ/updateOvertime'
 
 
 export const CreateEmployee = createAsyncThunk(
@@ -123,11 +123,11 @@ export const addLeaveAsync = createAsyncThunk(
   }
 );
 
-export const addOvertimeHoursAsync = createAsyncThunk(
+export const updateOvertimeHoursAsync = createAsyncThunk(
   "Employee/addOvertime",
   async (formData) => {
     try {
-      const response = await axios.post(addOvertimeUrl, formData);
+      const response = await axios.post(updateOvertimeUrl, formData);
       toast.success(response.data.message);
       
       return response.data;
@@ -136,11 +136,6 @@ export const addOvertimeHoursAsync = createAsyncThunk(
     }
   }
 );
-
-
-
-
-
 
 const initialState = {
   Employees: [],
@@ -172,6 +167,14 @@ const AccountSlice = createSlice({
         state.employeEditLoading = true;
       })
       .addCase(addLeaveAsync.fulfilled, (state, action) => {
+        state.employeEditLoading = false;
+
+      })
+
+      .addCase(updateOvertimeHoursAsync.pending, (state, action) => {
+        state.employeEditLoading = true;
+      })
+      .addCase(updateOvertimeHoursAsync.fulfilled, (state, action) => {
         state.employeEditLoading = false;
 
       })
