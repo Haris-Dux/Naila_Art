@@ -4,7 +4,10 @@ import { PaymentData } from "../utils/Common.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../models/DashboardData/VirtalAccountsModal.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -61,57 +64,145 @@ export const addEmploye = async (req, res, next) => {
 };
 
 export const creditDebitBalance = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const { id, date, particular ,branchId,payment_Method } = req.body;
-    if (!id || !date || !particular ) throw new Error("Missing Requires Fields");
+    await session.withTransaction(async () => {
+      const { id, date, particular, branchId, payment_Method } = req.body;
+      if (!id || !date || !particular)
+        throw new Error("Missing Requires Fields");
 
-    const credit = parseInt(req.body.credit, 10);
-    const debit = parseInt(req.body.debit, 10);
+      const credit = parseInt(req.body.credit, 10);
+      const debit = parseInt(req.body.debit, 10);
+      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      const employe = await EmployeModel.findById(id).session(session);
+      if (!employe) throw new Error("Employe Not Found");
+      let newBalance =
+        employe.financeData.length > 0
+          ? employe.financeData[employe.financeData.length - 1].balance
+          : 0;
 
-    const employe = await EmployeModel.findById(id);
-    if (!employe) throw new Error("Employe Not Found");
-    let newBalance =
-      employe.financeData.length > 0
-        ? employe.financeData[employe.financeData.length - 1].balance
-        : 0;
+      if (credit >= 0) {
+        newBalance += credit;
+        employe.financeData.push({
+          credit: credit,
+          debit: 0,
+          balance: newBalance,
+          particular: particular,
+          date: date,
+        });
+        //DEDUCTION FROM DAILY SALE
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId,
+          date: today,
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+        if (payment_Method === "cashSale") {
+          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash +=
+          credit;
+        };
+        await dailySaleForToday.save({ session });
 
-    if (credit >= 0) {
-      newBalance += credit;
-      employe.financeData.push({
-        credit: credit,
-        debit: 0,
-        balance: newBalance,
-        particular: particular || "Credit Transaction",
-        date: date,
-      });
-    }
+        //UPDATING VIRTUAL ACCOUNTS
+        if (payment_Method !== "cashSale") {
+          let virtualAccounts = await VirtalAccountModal.find({}).session(
+            session
+          );
+          let updatedAccount = {
+            ...virtualAccounts,
+            [payment_Method]: (virtualAccounts[0][payment_Method] += credit),
+          };
+          const new_balance = updatedAccount[0][payment_Method];
+          const historyData = {
+            date: today,
+            transactionType: "Deposit",
+            payment_Method,
+            new_balance,
+            amount: credit,
+            note: `Credit Transaction for ${employe.name}`,
+          };
+          virtualAccounts = updatedAccount;
+          await virtualAccounts[0].save({ session });
+          await VA_HistoryModal.create([historyData], { session });
+        }
+      }
 
-    if (debit >= 0) {
-      newBalance -= debit;
-      employe.financeData.push({
-        date: date || new Date(),
-        particular: particular || "Debit Transaction",
-        balance: newBalance,
-        debit: debit,
-        credit: 0,
-      });
-    }
-    await employe.save();
+      //DEBIT LOGIC
+      if (debit >= 0) {
+        newBalance -= debit;
+        //HISTORY DATA
+        employe.financeData.push({
+          date: date,
+          particular: particular,
+          balance: newBalance,
+          debit: debit,
+          credit: 0,
+        });
+
+        //DEDUCTION FROM DAILY SALE
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId,
+          date: today,
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+        if (payment_Method === "cashSale") {
+          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
+            debit;
+        }
+        if (dailySaleForToday.totalCash < 0) {
+          throw new Error("Not Enough Total Cash");
+        }
+        await dailySaleForToday.save({ session });
+
+        //UPDATING VIRTUAL ACCOUNTS
+        if (payment_Method !== "cashSale") {
+          let virtualAccounts = await VirtalAccountModal.find({}).session(
+            session
+          );
+          let updatedAccount = {
+            ...virtualAccounts,
+            [payment_Method]: (virtualAccounts[0][payment_Method] -= debit),
+          };
+          const new_balance = updatedAccount[0][payment_Method];
+          const historyData = {
+            date: today,
+            transactionType: "WithDraw",
+            payment_Method,
+            new_balance,
+            amount: debit,
+            note: `Debit Transaction for ${employe.name}`,
+          };
+          if (new_balance < 0)
+            throw new Error("Not Enough Cash In Payment Method");
+          virtualAccounts = updatedAccount;
+
+          await virtualAccounts[0].save({ session });
+          await VA_HistoryModal.create([historyData], { session });
+        }
+      }
+      await employe.save({ session });
+    });
     return res
       .status(200)
       .json({ success: true, message: "Updated Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
- export const creditSalaryForSingleEmploye = async (req, res, next) => {
+export const creditSalaryForSingleEmploye = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, salary, payment_Method, over_time,branchId,leaves } = req.body;
+      const { id, salary, payment_Method, over_time, branchId, leaves } =
+        req.body;
       if (!id || !salary || !payment_Method || !branchId)
-        throw new Error("Missing Fields"); 
+        throw new Error("Missing Fields");
       const employe = await EmployeModel.findById(id).session(session);
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       if (!employe) throw new Error("Employe Not Found");
@@ -138,7 +229,7 @@ export const creditDebitBalance = async (req, res, next) => {
       });
 
       employe.overtime_Data.hours = 0;
-      await employe.save({session});
+      await employe.save({ session });
 
       //DEDUCT FROM PAYMENT METHID
       const dailySaleForToday = await DailySaleModel.findOne({
@@ -147,13 +238,14 @@ export const creditDebitBalance = async (req, res, next) => {
       }).session(session);
       if (!dailySaleForToday) {
         throw new Error("Daily sale record not found for This Date");
-      };
+      }
       if (payment_Method === "cashSale") {
         dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
           salary;
-      };
-      if (dailySaleForToday.totalCash < 0){
-        throw new Error("Not Enough Total Cash")};
+      }
+      if (dailySaleForToday.totalCash < 0) {
+        throw new Error("Not Enough Total Cash");
+      }
 
       await dailySaleForToday.save({ session });
 
@@ -168,7 +260,7 @@ export const creditDebitBalance = async (req, res, next) => {
         };
         const new_balance = updatedAccount[0][payment_Method];
         const historyData = {
-          date:today,
+          date: today,
           transactionType: "WithDraw",
           payment_Method,
           new_balance,
@@ -178,13 +270,10 @@ export const creditDebitBalance = async (req, res, next) => {
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");
         virtualAccounts = updatedAccount;
-      
-        await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([
-          historyData
-        ],{session})
-      };
 
+        await virtualAccounts[0].save({ session });
+        await VA_HistoryModal.create([historyData], { session });
+      }
     });
 
     return res
