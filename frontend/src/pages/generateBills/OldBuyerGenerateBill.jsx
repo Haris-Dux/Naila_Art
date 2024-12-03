@@ -13,6 +13,7 @@ import {
 import PreviewBill from "./PreviewBill";
 import { getBuyerByIdAsync } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
+import { PaymentData } from "../../Utils/AccountsData";
 
 const OldBuyerGenerateBill = () => {
   const dispatch = useDispatch();
@@ -24,9 +25,16 @@ const OldBuyerGenerateBill = () => {
   const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
-  const { loading, BuyerById } = useSelector((state) => state.Buyer);
+  const { BuyerById } = useSelector((state) => state.Buyer);
   const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
+  const [otherBillData, setOtherBillData] = useState({
+    o_b_quantity: "",
+    o_b_amount: "",
+    o_b_note: "",
+    show: false,
+  });
 
   const [billData, setBillData] = useState({
     buyerId: id,
@@ -51,6 +59,7 @@ const OldBuyerGenerateBill = () => {
       quantity: "",
     },
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
+    other_Bill_Data: {},
   });
 
   const [colorOptions, setColorOptions] = useState([[]]);
@@ -296,9 +305,15 @@ const OldBuyerGenerateBill = () => {
     if (modifiedBillData.branchId === "") {
       toast.error("Please Select Branch");
       return;
+    }                                
+
+    if (otherBillData.show === true) {
+      modifiedBillData.other_Bill_Data = otherBillData;
     }
 
     const payloadData = validatePackaging(modifiedBillData);
+
+    console.log("payload", payloadData);
 
     // Uncomment and use this once ready to dispatch the action
     dispatch(generateBillForOlderBuyerAsync(payloadData)).then((res) => {
@@ -329,6 +344,7 @@ const OldBuyerGenerateBill = () => {
               suits_data: [
                 { id: "", quantity: "", d_no: "", color: "", price: "" },
               ],
+              other_Bill_Data:{}
             });
           }
         });
@@ -347,6 +363,17 @@ const OldBuyerGenerateBill = () => {
       return total + validateValue(suit?.price) * validateValue(suit?.quantity);
     }, 0);
     return subtotal;
+  };
+
+  const handleOtherBillCahange = (e) => {
+    const { name, value } = e.target;
+    setOtherBillData((prevState) => ({
+      ...prevState,
+      [name]:
+        name === "o_b_amount" || name === "o_b_quantity"
+          ? parseInt(value)
+          : value,
+    }));
   };
 
   return (
@@ -375,11 +402,47 @@ const OldBuyerGenerateBill = () => {
                 </div>
               </div>
 
+              <div className="px-2 py-2 grid grid-cols-1 gap-4 border-2 rounded-lg lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                <div className="box text-center">
+                  <div className="pb-1 font-normal " scope="col">
+                    <span className="text-red-500 ">S.N</span>-
+                    <span className="text-green-600">A.S.N</span>
+                  </div>
+                  <span className="text-red-500">
+                    {" "}
+                    {BuyerById?.serialNumber}
+                  </span>
+                  -<span className="text-green-600">{BuyerById?.autoSN}</span>
+                </div>
+                <div className="box text-center">
+                  <h3 className="pb-1 font-normal">Phone Number</h3>
+                  <h3>{BuyerById?.phone}</h3>
+                </div>
+                <div className="box text-center">
+                  <h3 className="pb-1 font-normal">Name</h3>
+                  <h3>{BuyerById?.name}</h3>
+                </div>
+                <div className="box text-center">
+                  <h3 className="pb-1 font-normal text-red-500">Total Debit</h3>
+                  <h3 className="font-normal text-red-500">
+                    {BuyerById?.virtual_account?.total_debit}
+                  </h3>
+                </div>
+                <div className="box text-center">
+                  <h3 className="pb-1 font-normal">Total Credit</h3>
+                  <h3>{BuyerById?.virtual_account?.total_credit}</h3>
+                </div>
+                <div className="box text-center">
+                  <h3 className="pb-1 font-normal">Total Balance</h3>
+                  <h3>{BuyerById?.virtual_account?.total_balance}</h3>
+                </div>
+              </div>
+
               <form onSubmit={handleSubmit}>
                 {/* INPUT FIELDS DETAILS */}
                 <div className="fields">
                   {/* FIRST ROW */}
-                  <div className="mb-5 pt-10 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
+                  <div className="mb-5 pt-6 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                       <input
                         name="serialNumber"
@@ -472,14 +535,16 @@ const OldBuyerGenerateBill = () => {
                             payment_Method: e.target.value,
                           })
                         }
+                        required
                       >
                         <option value="" disabled>
                           Select Payment Method
                         </option>
-                        <option value="cashInMeezanBank">Meezan Bank</option>
-                        <option value="cashInJazzCash">Jazz Cash</option>
-                        <option value="cashInEasyPaisa">EasyPaisa</option>
-                        <option value="cashSale">Cash Sale</option>
+                        {PaymentData?.map((item) => (
+                          <option value={item.value} key={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -535,7 +600,69 @@ const OldBuyerGenerateBill = () => {
                         </select>
                       </div>
                     ) : null}
+                    <div className="flex items-centerB my-auto justify-center space-x-2">
+                      <label
+                        htmlFor="otherBillData"
+                        className="text-sm font-bold"
+                      >
+                        Add Other Bill Data
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="otherBillData"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onChange={(e) => {
+                          setOtherBillData((prev) => ({
+                            ...prev,
+                            show: e.target.checked,
+                          }));
+                        }}
+                      />
+                    </div>
                   </div>
+
+                  {/* OTHER BILL DATA ROW*/}
+                  {otherBillData.show && (
+                    <div
+                      className={`mb-4 border-t pt-4 grid items-start grid-cols-2 gap-5 lg:grid-cols-5`}
+                    >
+                      <div>
+                        <input
+                          name="o_b_amount"
+                          type="number"
+                          placeholder="Enter Other Bill Amount"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={otherBillData.o_b_amount}
+                          onChange={handleOtherBillCahange}
+                          required={otherBillData.show}
+                        />
+                      </div>
+
+                      <div>
+                        <input
+                          name="o_b_quantity"
+                          type="number"
+                          placeholder="Enter Other Bill  Quantity"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={otherBillData.o_b_quantity}
+                          onChange={handleOtherBillCahange}
+                          required={otherBillData.show}
+                        />
+                      </div>
+
+                      <div className="col-span-2 ">
+                        <input
+                          name="o_b_note"
+                          type="text"
+                          placeholder="Enter Other Bill Note"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={otherBillData.o_b_note}
+                          onChange={handleOtherBillCahange}
+                          required={otherBillData.show}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* FORTH ROW */}
                   <div
@@ -580,6 +707,7 @@ const OldBuyerGenerateBill = () => {
                             className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                             value={billData.discount}
                             onChange={handleInputChange}
+                            required
                           />
                           <select
                             name="discountType"

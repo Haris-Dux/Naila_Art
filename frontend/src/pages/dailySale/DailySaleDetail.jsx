@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { BranchCashOutAsync, getDailySaleByIdAsync } from "../../features/DailySaleSlice";
+import {
+  BranchCashOutAsync,
+  getDailySaleByIdAsync,
+} from "../../features/DailySaleSlice";
 import { PiHandDeposit } from "react-icons/pi";
 import { PaymentData } from "../../Utils/AccountsData";
 
@@ -13,7 +16,7 @@ const DailySaleDetail = () => {
   const { loading, DailySaleById, cashOutLoading } = useSelector(
     (state) => state.DailySale
   );
-
+console.log('DailySaleById',DailySaleById);
   const [formData, setFormData] = useState({
     amount: "",
     payment_Method: "",
@@ -36,9 +39,9 @@ const DailySaleDetail = () => {
   const openModal = () => {
     setCashOutModal(true);
     setFormData({
-        amount: DailySaleById?.saleData?.totalCash,
-        payment_Method: "",
-      });
+      amount: DailySaleById?.saleData?.totalCash,
+      payment_Method: "",
+    });
     document.body.style.overflow = "hidden";
   };
 
@@ -108,7 +111,7 @@ const DailySaleDetail = () => {
                   </div>
                   <div className="flex justify-center items-center gap-4 mb-3">
                     <div className="title w-full text-md font-medium">
-                      Cash in Meezan Bank:
+                      Meezan Bank:
                     </div>
                     <input
                       className="border border-gray-200 text-sm rounded-md"
@@ -118,22 +121,32 @@ const DailySaleDetail = () => {
                   </div>
                   <div className="flex justify-center items-center gap-4 mb-3">
                     <div className="title w-full text-md font-medium">
-                      Cash in EasyPaisa:
+                      H_Meezan Bank:
+                    </div>
+                    <input
+                      className="border border-gray-200 text-sm rounded-md"
+                      type="number"
+                      value={DailySaleById?.saleData?.H_Meezan}
+                    />
+                  </div>
+                  <div className="flex justify-center items-center gap-4 mb-3">
+                    <div className="title w-full text-md font-medium">
+                      A_Meezan Bank:
+                    </div>
+                    <input
+                      className="border border-gray-200 text-sm rounded-md"
+                      type="number"
+                      value={DailySaleById?.saleData?.A_Meezan}
+                    />
+                  </div>
+                  <div className="flex justify-center items-center gap-4 mb-3">
+                    <div className="title w-full text-md font-medium">
+                      EasyPaisa:
                     </div>
                     <input
                       className="border border-gray-200 text-sm rounded-md"
                       type="number"
                       value={DailySaleById?.saleData?.cashInEasyPaisa}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Today Buyer Credit:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.todayBuyerCredit}
                     />
                   </div>
                 </div>
@@ -142,12 +155,22 @@ const DailySaleDetail = () => {
                 <div className="right w-full">
                   <div className="flex justify-center items-center gap-4 mb-3">
                     <div className="title w-full text-md font-medium">
-                      Cash in Jazz Cash:
+                      Jazz Cash:
                     </div>
                     <input
                       className="border border-gray-200 text-sm rounded-md"
                       type="number"
                       value={DailySaleById?.saleData?.cashInJazzCash}
+                    />
+                  </div>
+                  <div className="flex justify-center items-center gap-4 mb-3">
+                    <div className="title w-full text-md font-medium">
+                      Bank_Al_Habib:
+                    </div>
+                    <input
+                      className="border border-gray-200 text-sm rounded-md"
+                      type="number"
+                      value={DailySaleById?.saleData?.Bank_Al_Habib}
                     />
                   </div>
                   <div className="flex justify-center items-center gap-4 mb-3">
@@ -158,6 +181,16 @@ const DailySaleDetail = () => {
                       className="border border-gray-200 text-sm rounded-md"
                       type="number"
                       value={DailySaleById?.saleData?.totalExpense}
+                    />
+                  </div>
+                  <div className="flex justify-center items-center gap-4 mb-3">
+                    <div className="title w-full text-md font-medium">
+                      Today Buyer Credit:
+                    </div>
+                    <input
+                      className="border border-gray-200 text-sm rounded-md"
+                      type="number"
+                      value={DailySaleById?.saleData?.todayBuyerCredit}
                     />
                   </div>
                   <div className="flex justify-center items-center gap-4 mb-3">
@@ -274,9 +307,7 @@ const DailySaleDetail = () => {
                     id="amount"
                     onChange={handleChange}
                     required
-                    value={
-                      formData.amount
-                    }
+                    value={formData.amount}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   />
                 </div>

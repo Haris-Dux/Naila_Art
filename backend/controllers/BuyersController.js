@@ -320,6 +320,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         total,
         paid,
         remaining,
+        other_Bill_Data,
       } = req.body;
 
       //VALIDATING FIELDS DATA
@@ -365,7 +366,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
-      const branch = await BranchModel.findOne({ _id: branchId });
+      const branch = await BranchModel.findOne({ _id: branchId }).session(session);
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BAGS OR BOXES FROM STOCK
@@ -425,8 +426,6 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           profit: profitOnSale,
         });
         TotalProfit += profitOnSale * suit.quantity;
-        if (profitOnSale < 0)
-          throw new Error("Sale Price Must Be Greater Then Cost Price");
       });
 
       //UPDATING VIRTUAL ACCOUNTS
@@ -436,7 +435,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           .session(session);
         let updatedAccount = {
           ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += paid),
+          [payment_Method]: (virtualAccounts[0][payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
@@ -445,24 +444,23 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
-        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
-          remaining),
+        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit += (remaining > 0 ? remaining : 0)),
         totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
       };
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          paid;
+        paid + (other_Bill_Data?.o_b_amount ?? 0);
       }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
       //GETTING BUYERS PREVIOUS DATA
-      const buyerData = await BuyersModel.findById({ _id: buyerId });
+      const buyerData = await BuyersModel.findById({ _id: buyerId }).session(session);
       if (!buyerData) throw new Error("Buyer Data Not Found");
 
       //DATA FOR VIRTUAL ACCOUNT
@@ -476,16 +474,18 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         case new_total_balance === 0:
           new_status = "Paid";
           break;
-        case new_total_balance === new_total_debit && new_total_credit > 0:
+          case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
           new_status = "Partially Paid";
           break;
-        case new_total_credit === 0 && new_total_balance === new_total_debit:
+          case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
       }
-
-      if (new_total_balance < 0)
-        throw new Error("Invalid Balance Amount For This Party");
 
       const virtualAccountData = {
         total_debit: new_total_debit,
@@ -553,6 +553,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             remaining,
             TotalProfit,
             profitDataForHistory,
+            ...(other_Bill_Data ? { other_Bill_Data } : {})
           },
         ],
         { session }
