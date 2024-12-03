@@ -215,6 +215,20 @@ const historySchema = new mongoose.Schema(
       required: [true, "Total Profit Number is required"],
     },
     profitDataForHistory: [historyData],
+    other_Bill_Data:{
+      o_b_quantity: {
+        type: Number,
+      },
+      o_b_amount: {
+        type: Number,
+      },
+      o_b_note: {
+        type: String,
+      },
+      show: {
+        type: Boolean,
+      },
+    }
   },
   {
     timestamps: true,
