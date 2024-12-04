@@ -11,6 +11,7 @@ import {
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
+import { PaymentData } from "../../Utils/AccountsData";
 
 const GenerateBill = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,13 @@ const GenerateBill = () => {
   );
   const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
+  const [otherBillData, setOtherBillData] = useState({
+    o_b_quantity: "",
+    o_b_amount: "",
+    o_b_note: "",
+    show: false,
+  });
 
   const [billData, setBillData] = useState({
     branchId: user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
@@ -46,8 +54,8 @@ const GenerateBill = () => {
       quantity: "",
     },
     suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
+    other_Bill_Data: {},
   });
-console.log('bill data',billData);
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -258,7 +266,11 @@ console.log('bill data',billData);
       toast.error("Please Select Branch");
       return;
     }
-console.log('mbd',modifiedBillData);
+
+    if (otherBillData.show === true) {
+      modifiedBillData.other_Bill_Data = otherBillData;
+    }
+
     const payloadData = validatePackaging(modifiedBillData);
 
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
@@ -266,7 +278,8 @@ console.log('mbd',modifiedBillData);
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
           if (res.payload.status === 200) {
             setBillData({
-              branchId: user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+              branchId:
+                user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
               serialNumber: "",
               name: "",
               city: "",
@@ -287,6 +300,7 @@ console.log('mbd',modifiedBillData);
               suits_data: [
                 { id: "", quantity: "", d_no: "", color: "", price: "" },
               ],
+              other_Bill_Data: {},
             });
           }
         });
@@ -305,6 +319,17 @@ console.log('mbd',modifiedBillData);
       return total + validateValue(suit?.price) * validateValue(suit?.quantity);
     }, 0);
     return subtotal;
+  };
+
+  const handleOtherBillCahange = (e) => {
+    const { name, value } = e.target;
+    setOtherBillData((prevState) => ({
+      ...prevState,
+      [name]:
+        name === "o_b_amount" || name === "o_b_quantity"
+          ? parseInt(value)
+          : value,
+    }));
   };
 
   return (
@@ -418,14 +443,16 @@ console.log('mbd',modifiedBillData);
                         payment_Method: e.target.value,
                       })
                     }
+                    required
                   >
                     <option value="" disabled>
                       Select Payment Method
                     </option>
-                    <option value="cashInMeezanBank">Meezan Bank</option>
-                    <option value="cashInJazzCash">Jazz Cash</option>
-                    <option value="cashInEasyPaisa">EasyPaisa</option>
-                    <option value="cashSale">Cash Sale</option>
+                    {PaymentData?.map((item) => (
+                          <option value={item.value} key={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
               </div>
@@ -482,7 +509,67 @@ console.log('mbd',modifiedBillData);
                     </select>
                   </div>
                 ) : null}
+
+                <div className="flex items-centerB my-auto justify-center space-x-2">
+                  <label htmlFor="otherBillData" className="text-sm font-bold">
+                    Add Other Bill Data
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="otherBillData"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    onChange={(e) => {
+                      setOtherBillData((prev) => ({
+                        ...prev,
+                        show: e.target.checked,
+                      }));
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* OTHER BILL DATA ROW*/}
+              {otherBillData.show && (
+                <div
+                  className={`mb-4 border-t pt-4 grid items-start grid-cols-2 gap-5 lg:grid-cols-5`}
+                >
+                  <div>
+                    <input
+                      name="o_b_amount"
+                      type="number"
+                      placeholder="Enter Other Bill Amount"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={otherBillData.o_b_amount}
+                      onChange={handleOtherBillCahange}
+                      required={otherBillData.show}
+                    />
+                  </div>
+
+                  <div>
+                    <input
+                      name="o_b_quantity"
+                      type="number"
+                      placeholder="Enter Other Bill  Quantity"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={otherBillData.o_b_quantity}
+                      onChange={handleOtherBillCahange}
+                      required={otherBillData.show}
+                    />
+                  </div>
+
+                  <div className="col-span-2 ">
+                    <input
+                      name="o_b_note"
+                      type="text"
+                      placeholder="Enter Other Bill Note"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={otherBillData.o_b_note}
+                      onChange={handleOtherBillCahange}
+                      required={otherBillData.show}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* FORTH ROW */}
               <div
@@ -525,6 +612,7 @@ console.log('mbd',modifiedBillData);
                         className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={billData.discount}
                         onChange={handleInputChange}
+                        required
                       />
                       <select
                         name="discountType"
