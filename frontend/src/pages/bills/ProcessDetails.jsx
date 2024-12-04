@@ -309,7 +309,7 @@ const ProcessDetails = () => {
                             ? "-"
                             : data.balance}
                         </td>
-                        {data.orderId !== "" ? (
+                        {data.orderId && data.orderId !== "" ? (
                           <td className="pl-10 py-4 flex items-center  gap-3">
                             {category === "Pictures" ? (
                               <button
