@@ -29,6 +29,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         total,
         paid,
         remaining,
+        other_Bill_Data,
       } = req.body;
 
       //VALIDATING FIELDS DATA
@@ -73,7 +74,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
-      const branch = await BranchModel.findOne({ _id: branchId });
+      const branch = await BranchModel.findOne({ _id: branchId }).session(session);
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BOXES FROM STOCK
@@ -96,6 +97,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const suitsStock = branch.stockData.filter((mainStock) =>
         suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
       );
+      if(!suitsStock.length) throw new Error("No suitsStock found")
       suitsStock.forEach((suit) => {
         const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
         const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
@@ -133,23 +135,21 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           profit: profitOnSale,
         });
         TotalProfit += profitOnSale * suit.quantity;
-        if (profitOnSale < 0)
-          throw new Error("Sale Price Must Be Greater Then Cost Price");
       });
 
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
-          remaining),
+          (remaining > 0 ? remaining : 0)),
         totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
       };
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          paid;
+          paid + (other_Bill_Data?.o_b_amount ?? 0);
       }
 
       dailySaleForToday.saleData = updatedSaleData;
@@ -162,7 +162,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           .session(session);
         let updatedAccount = {
           ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += paid),
+          [payment_Method]: (virtualAccounts[0][payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
@@ -177,16 +177,18 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         case total_balance === 0:
           status = "Paid";
           break;
-        case total_balance === total_debit && total_credit > 0:
-          status = "Partially Paid";
+          case total_balance === total_debit && total_credit > 0 && total_balance > 0:
+            status = "Partially Paid";
           break;
-        case total_credit === 0 && total_balance === total_debit:
-          status = "Unpaid";
+          case total_credit === 0 && total_balance === total_credit:
+            status = "Unpaid";
           break;
+        case total_balance < 0:
+          status = "Advance Paid";
+          break;
+        default:
+          status = "";
       }
-
-      if (total_balance < 0)
-        throw new Error("Invalid Balance Amount For This Party");
 
       const virtualAccountData = {
         total_debit,
@@ -262,6 +264,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             remaining,
             TotalProfit,
             profitDataForHistory,
+            ...(other_Bill_Data ? { other_Bill_Data } : {})
           },
         ],
         { session }

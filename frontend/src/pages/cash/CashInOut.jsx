@@ -45,7 +45,7 @@ const CashInOut = () => {
     cash: "",
     date: today,
     payment_Method: "",
-    accountCategory:""
+    accountCategory: user?.user?.role === "user" ? "Buyers" : ""
   });
 
   const handleInputChange = (e) => {
@@ -153,6 +153,7 @@ const CashInOut = () => {
         dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
         resetForm();
         setSelectedParty("");
+        dispatch(resetValidatedResponse());
       }
     });
   };
@@ -161,7 +162,6 @@ const CashInOut = () => {
     const isFormValid = Object.values(formData).every(
       (value) => value !== "" && value !== null
     );
-
     if (!isFormValid) {
       toast.error("All fields must be filled");
       return;
@@ -187,6 +187,7 @@ const CashInOut = () => {
         dispatch(getTodayCashInOutAsync({ branchId: selectedBranchId }));
         resetForm();
         setSelectedParty("");
+        dispatch(resetValidatedResponse());
       }
     });
   };
@@ -197,7 +198,8 @@ const CashInOut = () => {
       cash: "",
       date: today,
       payment_Method: "",
-      accountCategory:""
+      branchId : user && user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+      accountCategory: user && user?.user?.role === "user" ? "Buyers" : ""
     });
   };
 
