@@ -2,6 +2,7 @@ import express from "express";
 import { verifyUser } from "../../middleware/Auth.js";
 import {
   addBuyerCheck,
+  deleteCheck,
   getAllChecksForParty,
   markCheckAsPaid,
   updateBuyerCheckWithNew,
@@ -17,5 +18,6 @@ checkRouter.post(
 );
 checkRouter.post("/markCheckAsPaid", verifyUser, markCheckAsPaid);
 checkRouter.post("/getAllChecksForParty", verifyUser, getAllChecksForParty);
+checkRouter.post("/deleteCheck", verifyUser, deleteCheck);
 
 export default checkRouter;
