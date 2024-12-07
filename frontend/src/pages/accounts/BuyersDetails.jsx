@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getBuyerByIdAsync, markAsPaidAsync } from "../../features/BuyerSlice";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
 const BuyersDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { loading, BuyerById,markAsPaidLoading } = useSelector((state) => state.Buyer);
+  const { loading, BuyerById, markAsPaidLoading } = useSelector(
+    (state) => state.Buyer
+  );
   const [openCModal, setCModal] = useState(false);
 
   useEffect(() => {
@@ -25,10 +27,10 @@ const BuyersDetails = () => {
   };
 
   const UpdateAccount = () => {
-    dispatch(markAsPaidAsync({ id })).then((res) => { 
+    dispatch(markAsPaidAsync({ id })).then((res) => {
       if (res.payload.success === true) {
         dispatch(getBuyerByIdAsync({ id }));
-        closeConfirmationModal()
+        closeConfirmationModal();
       }
     });
   };
@@ -107,7 +109,11 @@ const BuyersDetails = () => {
                     .map((data, index) => (
                       <tr
                         key={index}
-                        className={` ${data.particular === "Account Marked As Paid" ? 'bg-red-500 dark:bg-red-500 text-white' : 'bg-white dark:bg-gray-800'} border-b text-md font-semibold  dark:border-gray-700 dark:text-white`}
+                        className={` ${
+                          data.particular === "Account Marked As Paid"
+                            ? "bg-red-500 dark:bg-red-500 text-white"
+                            : "bg-white dark:bg-gray-800"
+                        } border-b text-md font-semibold  dark:border-gray-700 dark:text-white`}
                       >
                         <th
                           className="px-6 py-4 font-medium whitespace-nowrap"
@@ -152,18 +158,23 @@ const BuyersDetails = () => {
                 </button>
               </>
             )}
+            <Link
+              className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+              to={`/dashboard/buyers-checks/${id}`}
+            >
+              Checks
+            </Link>
           </div>
         )}
-         {openCModal && (
-        <ConfirmationModal
-          onClose={closeConfirmationModal}
-          onConfirm={UpdateAccount}
-          message={"Are You Sure Want To Mark This Account As Paid."}
-          title={"Mark Account As Paid"}
-          updateStitchingLoading={markAsPaidLoading}
-        />
-      )}
-
+        {openCModal && (
+          <ConfirmationModal
+            onClose={closeConfirmationModal}
+            onConfirm={UpdateAccount}
+            message={"Are You Sure Want To Mark This Account As Paid."}
+            title={"Mark Account As Paid"}
+            updateStitchingLoading={markAsPaidLoading}
+          />
+        )}
       </section>
     </>
   );
