@@ -51,6 +51,7 @@ import VerifyOTP from "./pages/dashboard/VerifyOTP";
 import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHistory";
 import ReturnBills from "./pages/bills/ReturnBills";
 import PackingDetails from "./pages/process/Packing/PackingDetails";
+import BuyersChecks from "./pages/checks/BuyerChecks";
 
 
 function App() {
@@ -110,6 +111,7 @@ useEffect(() => {
 
             {/* ACCOUNTS ROUTES */}
             <Route path="buyers" element={<Buyers />} />
+            <Route path="buyers-checks/:id" element={<BuyersChecks/>} />
             <Route path="buyers-details/:id" element={<BuyersDetails />} />
             <Route path="sellers" element={<Sellers />} />
             <Route path="sellers-details/:id" element={<SellersDetails />} />

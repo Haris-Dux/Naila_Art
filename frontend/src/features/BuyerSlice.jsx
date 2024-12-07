@@ -8,6 +8,10 @@ const getBuyerById = "/api/buyers/getBuyerById";
 const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
 const getBuyerBillHistoryForBranchUrl =
   "/api/buyers/getBuyerBillHistoryForBranch";
+const addBuyerCheckUrl = "/api/buyers/checks/addBuyerCheck";
+const updateBuyerCheckWithNewUrl = "/api/buyers/checks/updateBuyerCheckWithNew";
+const markCheckAsPaidUrl = "/api/buyers/checks/markCheckAsPaid";
+const getAllChecksForPartyUrl = "/api/buyers/checks/getAllChecksForParty";
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -70,7 +74,7 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
   }
 );
 
-//MARK AS PAID
+//MARK AS PAID BUYER ACCOUNT
 export const markAsPaidAsync = createAsyncThunk(
   "Buyers/markAsPaid",
   async (data) => {
@@ -84,14 +88,72 @@ export const markAsPaidAsync = createAsyncThunk(
   }
 );
 
+//ADD CHECK
+export const addCheckAsync = createAsyncThunk(
+  "Buyers/addCheck",
+  async (data) => {
+    try {
+      const response = await axios.post(addBuyerCheckUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+//UPDATECHECK WITH NEW CHECK
+export const updateBuyerCheckWithNewAsync = createAsyncThunk(
+  "Buyers/updateCheck",
+  async (data) => {
+    try {
+      const response = await axios.post(updateBuyerCheckWithNewUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+//MARK AS PAID CHECK
+export const markAsPaidCheckAsync = createAsyncThunk(
+  "Buyers/markAsPaidCheck",
+  async (data) => {
+    try {
+      const response = await axios.post(markCheckAsPaidUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+//GET ALL CHECKS DATA FOR PARTY
+export const getAllChecksForPartyAsync = createAsyncThunk(
+  "Buyers/getAllChecksForParty",
+  async (data) => {
+    try {
+      const response = await axios.post(getAllChecksForPartyUrl, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
   BuyerById: [],
   loading: false,
-  BuyerBillHistory:[],
+  BuyerBillHistory: [],
   billHistoryLoading: true,
-  markAsPaidLoading:false
+  markAsPaidLoading: false,
+  checkLoading: false,
+  getBuyersChecksLoading: false,
+  BuyersChecks:[]
 };
 
 const BuyerSlice = createSlice({
@@ -100,13 +162,50 @@ const BuyerSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-     //MARK AS PAID ACCOUNT
-     .addCase(markAsPaidAsync.pending, (state, action) => {
-      state.markAsPaidLoading = true;
-    })
-    .addCase(markAsPaidAsync.fulfilled, (state, action) => {
-      state.markAsPaidLoading = false;
-    })
+      //ADD CHECK
+      .addCase(addCheckAsync.pending, (state, action) => {
+        state.checkLoading = true;
+      })
+      .addCase(addCheckAsync.fulfilled, (state, action) => {
+        state.checkLoading = false;
+      })
+
+      //UPDATECHECK WITH NEW CHECK
+      .addCase(updateBuyerCheckWithNewAsync.pending, (state, action) => {
+        state.checkLoading = true;
+      })
+      .addCase(updateBuyerCheckWithNewAsync.fulfilled, (state, action) => {
+        state.checkLoading = false;
+      })
+
+      //MARK AS PAID CHECK
+      .addCase(markAsPaidCheckAsync.pending, (state, action) => {
+        state.checkLoading = true;
+      })
+      .addCase(markAsPaidCheckAsync.fulfilled, (state, action) => {
+        state.checkLoading = false;
+      })
+
+      //GET ALL CHECKS DATA FOR PARTY
+      .addCase(getAllChecksForPartyAsync.pending, (state, action) => {
+        state.getBuyersChecksLoading = true;
+      })
+      .addCase(getAllChecksForPartyAsync.fulfilled, (state, action) => {
+        state.getBuyersChecksLoading = false;
+        state.BuyersChecks = action.payload;
+      })
+      .addCase(getAllChecksForPartyAsync.rejected, (state, action) => {
+        state.getBuyersChecksLoading = false;
+        state.BuyersChecks = [];
+      })
+
+      //MARK AS PAID ACCOUNT
+      .addCase(markAsPaidAsync.pending, (state, action) => {
+        state.markAsPaidLoading = true;
+      })
+      .addCase(markAsPaidAsync.fulfilled, (state, action) => {
+        state.markAsPaidLoading = false;
+      })
 
       // GET BUYER FOR BRANCH
       .addCase(getBuyerForBranchAsync.pending, (state) => {
@@ -130,10 +229,13 @@ const BuyerSlice = createSlice({
       .addCase(getBuyerBillsHistoryForBranchAsync.pending, (state) => {
         state.billHistoryLoading = true;
       })
-      .addCase(getBuyerBillsHistoryForBranchAsync.fulfilled, (state, action) => {
-        state.billHistoryLoading = false;
-        state.BuyerBillHistory = action.payload;
-      });
+      .addCase(
+        getBuyerBillsHistoryForBranchAsync.fulfilled,
+        (state, action) => {
+          state.billHistoryLoading = false;
+          state.BuyerBillHistory = action.payload;
+        }
+      );
   },
 });
 
