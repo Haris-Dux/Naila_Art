@@ -12,6 +12,7 @@ const addBuyerCheckUrl = "/api/buyers/checks/addBuyerCheck";
 const updateBuyerCheckWithNewUrl = "/api/buyers/checks/updateBuyerCheckWithNew";
 const markCheckAsPaidUrl = "/api/buyers/checks/markCheckAsPaid";
 const getAllChecksForPartyUrl = "/api/buyers/checks/getAllChecksForParty";
+const deleteCheckUrl = "/api/buyers/checks/deleteCheck";
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -143,6 +144,19 @@ export const getAllChecksForPartyAsync = createAsyncThunk(
   }
 );
 
+//GET ALL CHECKS DATA FOR PARTY
+export const deleteCheckAsync = createAsyncThunk(
+  "Buyers/deleteCheckForParty",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteCheckUrl, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -198,6 +212,15 @@ const BuyerSlice = createSlice({
         state.getBuyersChecksLoading = false;
         state.BuyersChecks = [];
       })
+
+      //DELETE CHECK
+       .addCase(deleteCheckAsync.pending, (state, action) => {
+        state.checkLoading = true;
+      })
+      .addCase(deleteCheckAsync.fulfilled, (state, action) => {
+        state.checkLoading = false;
+      })
+
 
       //MARK AS PAID ACCOUNT
       .addCase(markAsPaidAsync.pending, (state, action) => {

@@ -10,8 +10,7 @@ import { setMongoose } from "../../utils/Mongoose.js";
 
 export const addBuyerCheck = async (req, res, next) => {
   try {
-    const {buyerId, checkAmount, checkNumber, date, note } =
-      req.body;
+    const { buyerId, checkAmount, checkNumber, date, note } = req.body;
     await verifyrequiredparams(req.body, [
       "buyerId",
       "checkAmount",
@@ -26,7 +25,7 @@ export const addBuyerCheck = async (req, res, next) => {
       note,
     };
     //DIPLICATE CHECK
-    const duplicateCheck = await CheckModel.findOne({buyerId:buyerId});
+    const duplicateCheck = await CheckModel.findOne({ buyerId: buyerId });
     if (duplicateCheck) {
       duplicateCheck.checkDetails.push(checkData);
       await duplicateCheck.save();
@@ -37,7 +36,9 @@ export const addBuyerCheck = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({success:true, message: "Check added successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Check added successfully" });
   } catch (error) {
     next(error);
   }
@@ -72,12 +73,14 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
       checkAmount,
       date,
       note,
-      newCheck:false
+      newCheck: false,
     };
     //SAVE CHECK DETAILS
     checkData.checkDetails.push(data);
     await checkData.save();
-    res.status(200).json({success:true, message: "New Check added successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "New Check added successfully" });
   } catch (error) {
     next(error);
   }
@@ -115,15 +118,15 @@ export const markCheckAsPaid = async (req, res, next) => {
       toUpdate.paid = true;
       await checkData.save({ session });
 
-      //GET BUYER DATA 
+      //GET BUYER DATA
       const userDataToUpdate = await BuyersModel.findById(checkData.buyerId);
       if (!userDataToUpdate) {
         throw new CustomError("Buyer Data Not Found", 404);
-      };
+      }
 
       //UPDATE DAILY SALE
       const dailySaleForToday = await DailySaleModel.findOne({
-        branchId:userDataToUpdate.branchId,
+        branchId: userDataToUpdate.branchId,
         date,
       }).session(session);
       if (!dailySaleForToday) {
@@ -224,7 +227,9 @@ export const markCheckAsPaid = async (req, res, next) => {
         email_Type: "Check Paid",
         checkPaidEmailData,
       });
-      return res.status(200).json({success:true, message: "Check marked as paid successfully" });
+      return res
+        .status(200)
+        .json({ success: true, message: "Check marked as paid successfully" });
     });
   } catch (error) {
     next(error);
@@ -233,42 +238,54 @@ export const markCheckAsPaid = async (req, res, next) => {
   }
 };
 
-export const getAllChecksForParty = async (req,res,next) => {
-    try {
-        const {buyerId} = req.body;
-        await verifyrequiredparams(req.body, ["buyerId"]);
-        //GET CHECK DATA
-        const checkData = await CheckModel.findOne({buyerId:buyerId});
-        if(!checkData) {
-            throw new CustomError("Check Data Not Found", 404);
-    };
+export const getAllChecksForParty = async (req, res, next) => {
+  try {
+    const { buyerId } = req.body;
+    await verifyrequiredparams(req.body, ["buyerId"]);
+    //GET CHECK DATA
+    const checkData = await CheckModel.findOne({ buyerId: buyerId });
+    if (!checkData) {
+      throw new CustomError("Check Data Not Found", 404);
+    }
     setMongoose();
     res.status(200).json(checkData);
-    } catch (error) {
-        next(error);
-    }
-}
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const deleteCheck = async (req, res, next) => {
   try {
     const { id, checkId } = req.body;
-    await verifyrequiredparams(req.body, ["checkId","id"]);
+    await verifyrequiredparams(req.body, ["checkId", "id"]);
     //GET CHECK DATA
     const checkData = await CheckModel.findById(id);
     if (!checkData) {
       throw new CustomError("Check Data Not Found", 404);
-    };
+    }
 
     //DELETE CHECK DETAILS
     const toDelete = checkData.checkDetails.find((item) => item._id == checkId);
     if (!toDelete) {
       throw new CustomError("Check Detail Not Found", 404);
-    };
+    }
     if (toDelete.updated || toDelete.paid) {
       throw new CustomError("Check cannot be deleted", 400);
+    }
+    //DELETE THE CHECK
+    let updatedCheckDetails = checkData.checkDetails.filter(
+      (check) => check._id.toString() !== checkId
+    );
+    let lastItemToUpdate =
+      updatedCheckDetails.length > 0
+        ? updatedCheckDetails[updatedCheckDetails.length - 1]
+        : null;
+    if (!lastItemToUpdate.paid) {
+      lastItemToUpdate.updated = false;
     };
-    //UPDATE DETAILS 
-    
+    checkData.checkDetails = updatedCheckDetails;
+    await checkData.save();
+    res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     next(error);
   }
