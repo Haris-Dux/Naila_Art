@@ -58,6 +58,7 @@ const GenerateBill = () => {
   });
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
+  const [pastBill, setPastBill] = useState(false);
 
   const handlePreviewClick = () => {
     setShowPreview(true);
@@ -332,6 +333,16 @@ const GenerateBill = () => {
     }));
   };
 
+  const handleBillType = (e) => {
+    const value = e.target.checked;
+    setPastBill(value);
+    if(!value){
+      setBillData((prev) => ({
+        ...prev,
+        date:today
+      }))
+    };
+  };
   return (
     <>
       {showPreview ? (
@@ -410,16 +421,57 @@ const GenerateBill = () => {
                     required
                   />
                 </div>
-                <div>
-                  <input
-                    name="date"
-                    type="date"
-                    placeholder="Date"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                    value={billData.date}
-                    readOnly
-                  />
-                </div>
+
+                {/* HANDLIG PAST BILL LOGIC */}
+                {user?.user?.role === "superadmin" ? (
+                  <div className="col-span-1 grid grid-cols-2">
+                    {pastBill ? (
+                      <div className="col-span-1">
+                        <input
+                          name="date"
+                          type="date"
+                          placeholder="Date"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={billData.date}
+                          onChange={handleInputChange}
+                         
+                        />
+                      </div>
+                    ) : (
+                      <div className="col-span-1">
+                        <input
+                          name="date"
+                          type="date"
+                          placeholder="Date"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={billData.date}
+                          readOnly
+                        />
+                      </div>
+                    )}
+                    <div className="flex col-span-1 items-center my-auto justify-center space-x-2">
+                      <label className="text-sm font-bold">Past Bill</label>
+                      <input
+                        type="checkbox"
+                        id="BillType"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onChange={handleBillType}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      name="date"
+                      type="date"
+                      placeholder="Date"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={billData.date}
+                      readOnly
+                    />
+                  </div>
+                )}
+
                 <div>
                   <input
                     name="bill_by"
@@ -431,6 +483,7 @@ const GenerateBill = () => {
                     required
                   />
                 </div>
+
                 <div>
                   <select
                     id="payment-method"
@@ -449,10 +502,10 @@ const GenerateBill = () => {
                       Select Payment Method
                     </option>
                     {PaymentData?.map((item) => (
-                          <option value={item.value} key={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
+                      <option value={item.value} key={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -510,7 +563,7 @@ const GenerateBill = () => {
                   </div>
                 ) : null}
 
-                <div className="flex items-centerB my-auto justify-center space-x-2">
+                <div className="flex items-center my-auto justify-center space-x-2">
                   <label htmlFor="otherBillData" className="text-sm font-bold">
                     Add Other Bill Data
                   </label>
@@ -760,7 +813,7 @@ const GenerateBill = () => {
                   type="submit"
                   className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
                 >
-                  Loading ...
+                  Generate Bill
                 </button>
               ) : (
                 <button
