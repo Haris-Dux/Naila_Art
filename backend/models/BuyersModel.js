@@ -106,12 +106,6 @@ const BuyersSchema = new mongoose.Schema(
     payment_Method: {
       type: String,
       required: [true, "paymentMethod value is required"],
-      enum: [
-        "cashInMeezanBank",
-        "cashInJazzCash",
-        "cashInEasyPaisa",
-        "cashSale",
-      ],
     },
     packaging: {
       name: {

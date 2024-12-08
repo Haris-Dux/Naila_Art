@@ -8,6 +8,10 @@ import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import moment from "moment-timezone";
+
+//TODAY
+const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
 export const generateBuyersBillandAddBuyer = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -74,7 +78,9 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
-      const branch = await BranchModel.findOne({ _id: branchId }).session(session);
+      const branch = await BranchModel.findOne({ _id: branchId }).session(
+        session
+      );
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BOXES FROM STOCK
@@ -89,15 +95,14 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
         bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
         await bagsorBoxStock.save({ session });
-  
       }
-     
+
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
       const suitsStock = branch.stockData.filter((mainStock) =>
         suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
       );
-      if(!suitsStock.length) throw new Error("No suitsStock found")
+      if (!suitsStock.length) throw new Error("No suitsStock found");
       suitsStock.forEach((suit) => {
         const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
         const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
@@ -110,13 +115,66 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       });
       await branch.save({ session });
 
-      //ADDING IN DAILY SALE
-      const dailySaleForToday = await DailySaleModel.findOne({
+      //CHECK FUTURE DATE
+      const isFutureDate = moment(date).isAfter(today);
+
+      //ADDING IN DAILY SALE AND HANDLING PAST SALE
+      let dailySaleForToday = await DailySaleModel.findOne({
         branchId,
         date: { $eq: date },
       }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      if (date !== today) {
+        if (!dailySaleForToday && !isFutureDate) {
+          //GET LAST CREATED SALE TOTAL CASH
+          const totalCashFromLastSale = await findLastSaleBeforeDate(
+            branchId,
+            date,
+            session
+          );
+
+          //CREATE NEW DAILY SALE FOR PAST DATE
+          const newDailySale = new DailySaleModel({
+            branchId,
+            date,
+            saleData: {
+              totalCash: totalCashFromLastSale,
+            },
+          });
+          await newDailySale.save({ session });
+          dailySaleForToday = newDailySale;
+
+          //UPDATING THE SALE BETWEEN PAST DATE AND TODAY
+
+          if (payment_Method === "cashSale") {
+            let currentDate = moment(date);
+            const endDate = moment(today);
+
+            while (currentDate.isBefore(endDate)) {
+              currentDate.add(1, "days");
+              const formattedDate = currentDate.format("YYYY-MM-DD");
+
+              const dailySale = await DailySaleModel.findOne({
+                branchId,
+                date: formattedDate,
+              }).session(session);
+
+              if (dailySale) {
+                // Step 4: Update existing sales
+                console.log(`Updated existing sale for ${formattedDate}`);
+                // Example update
+                dailySale.saleData.totalCash +=
+                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                await dailySale.save({ session });
+              } else {
+                console.log(`No sale found for ${formattedDate}, skipping.`);
+              }
+            }
+          }
+        } else {
+          throw new Error("Invalid future date error");
+        }
+      } else if (!dailySaleForToday && date === today) {
+        throw new Error("Daily Sale Not Found For Today");
       }
 
       //calculating profit
@@ -139,11 +197,12 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+          paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
-          (remaining > 0 ? remaining : 0)),
+          remaining > 0 ? remaining : 0),
         totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
       };
 
@@ -162,7 +221,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           .session(session);
         let updatedAccount = {
           ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
+          [payment_Method]: (virtualAccounts[0][payment_Method] +=
+            paid + (other_Bill_Data?.o_b_amount ?? 0)),
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
@@ -177,11 +237,13 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         case total_balance === 0:
           status = "Paid";
           break;
-          case total_balance === total_debit && total_credit > 0 && total_balance > 0:
-            status = "Partially Paid";
+        case total_balance === total_debit &&
+          total_credit > 0 &&
+          total_balance > 0:
+          status = "Partially Paid";
           break;
-          case total_credit === 0 && total_balance === total_credit:
-            status = "Unpaid";
+        case total_credit === 0 && total_balance === total_credit:
+          status = "Unpaid";
           break;
         case total_balance < 0:
           status = "Advance Paid";
@@ -264,7 +326,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             remaining,
             TotalProfit,
             profitDataForHistory,
-            ...(other_Bill_Data ? { other_Bill_Data } : {})
+            ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
         ],
         { session }
@@ -337,7 +399,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         "phone",
         "date",
         "bill_by",
-        "payment_Method",     
+        "payment_Method",
         "discount",
         "suits_data",
         "total",
@@ -369,7 +431,9 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
-      const branch = await BranchModel.findOne({ _id: branchId }).session(session);
+      const branch = await BranchModel.findOne({ _id: branchId }).session(
+        session
+      );
       if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BAGS OR BOXES FROM STOCK
@@ -385,7 +449,6 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
         await bagsorBoxStock.save({ session });
       }
-     
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
@@ -404,13 +467,66 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
       await branch.save({ session });
 
+      //CHECK FUTURE DATE
+      const isFutureDate = moment(date).isAfter(today);
+
       //ADDING IN DAILY SALE
-      const dailySaleForToday = await DailySaleModel.findOne({
+      let dailySaleForToday = await DailySaleModel.findOne({
         branchId,
         date: { $eq: date },
       }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      if (date !== today) {
+        if (!dailySaleForToday && !isFutureDate) {
+          //GET LAST CREATED SALE TOTAL CASH
+          const totalCashFromLastSale = await findLastSaleBeforeDate(
+            branchId,
+            date,
+            session
+          );
+
+          //CREATE NEW DAILY SALE FOR PAST DATE
+          const newDailySale = new DailySaleModel({
+            branchId,
+            date,
+            saleData: {
+              totalCash: totalCashFromLastSale,
+            },
+          });
+          await newDailySale.save({ session });
+          dailySaleForToday = newDailySale;
+
+          //UPDATING THE SALE BETWEEN PAST DATE AND TODAY
+
+          if (payment_Method === "cashSale") {
+            let currentDate = moment(date);
+            const endDate = moment(today);
+
+            while (currentDate.isBefore(endDate)) {
+              currentDate.add(1, "days");
+              const formattedDate = currentDate.format("YYYY-MM-DD");
+
+              const dailySale = await DailySaleModel.findOne({
+                branchId,
+                date: formattedDate,
+              }).session(session);
+
+              if (dailySale) {
+                // Step 4: Update existing sales
+                console.log(`Updated existing sale for ${formattedDate}`);
+                // Example update
+                dailySale.saleData.totalCash +=
+                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                await dailySale.save({ session });
+              } else {
+                console.log(`No sale found for ${formattedDate}, skipping.`);
+              }
+            }
+          }
+        } else {
+          throw new Error("Invalid future date error");
+        }
+      } else if (!dailySaleForToday && date === today) {
+        throw new Error("Daily Sale Not Found For Today");
       }
 
       //calculating profit
@@ -438,7 +554,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           .session(session);
         let updatedAccount = {
           ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
+          [payment_Method]: (virtualAccounts[0][payment_Method] +=
+            paid + (other_Bill_Data?.o_b_amount ?? 0)),
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
@@ -447,23 +564,27 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += paid + (other_Bill_Data?.o_b_amount ?? 0)),
+        payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+          paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
-        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit += (remaining > 0 ? remaining : 0)),
+        todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
+          remaining > 0 ? remaining : 0),
         totalProfit: (dailySaleForToday.saleData.totalProfit += TotalProfit),
       };
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-        paid + (other_Bill_Data?.o_b_amount ?? 0);
+          paid + (other_Bill_Data?.o_b_amount ?? 0);
       }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
       //GETTING BUYERS PREVIOUS DATA
-      const buyerData = await BuyersModel.findById({ _id: buyerId }).session(session);
+      const buyerData = await BuyersModel.findById({ _id: buyerId }).session(
+        session
+      );
       if (!buyerData) throw new Error("Buyer Data Not Found");
 
       //DATA FOR VIRTUAL ACCOUNT
@@ -477,10 +598,12 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         case new_total_balance === 0:
           new_status = "Paid";
           break;
-          case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
+        case new_total_balance === new_total_debit &&
+          new_total_credit > 0 &&
+          new_total_balance > 0:
           new_status = "Partially Paid";
           break;
-          case new_total_credit === 0 && new_total_balance === new_total_debit:
+        case new_total_credit === 0 && new_total_balance === new_total_debit:
           new_status = "Unpaid";
           break;
         case new_total_balance < 0:
@@ -556,7 +679,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             remaining,
             TotalProfit,
             profitDataForHistory,
-            ...(other_Bill_Data ? { other_Bill_Data } : {})
+            ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
         ],
         { session }
@@ -735,4 +858,19 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+};
+
+//COMMON
+const findLastSaleBeforeDate = async (branchId, providedDate, session) => {
+  const lastSale = await DailySaleModel.findOne({
+    branchId,
+    date: { $lt: providedDate },
+  })
+    .sort({ date: -1 })
+    .session(session);
+
+  if (!lastSale) {
+    return 0;
+  }
+  return lastSale.saleData.totalCash || 0;
 };
