@@ -21,6 +21,30 @@ const financeSchema = new mongoose.Schema({
     type: Number,
     default: null,
   },
+  salaryTransaction:{
+    type:Boolean,
+    default: false,
+  },
+  reversed:{
+    type: Boolean,
+    default: false,
+  },
+  payment_Method:{
+    type: String,
+    default: "",
+  },
+  over_time:{
+    type: Number,
+    default: 0,
+  },
+  leaves:{
+    type: Number,
+    default: 0,
+  },
+  branchId:{
+    type: String,
+    default:""
+  }
 });
 
 const employeSchema = new mongoose.Schema(

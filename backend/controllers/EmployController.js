@@ -76,10 +76,14 @@ export const creditDebitBalance = async (req, res, next) => {
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       const employe = await EmployeModel.findById(id).session(session);
       if (!employe) throw new Error("Employe Not Found");
-      let newBalance =
-        employe.financeData.length > 0
-          ? employe.financeData[employe.financeData.length - 1].balance
-          : 0;
+      const lastNonSalaryTransaction = employe.financeData
+        .slice()
+        .reverse()
+        .find((transaction) => !transaction.salaryTransaction);
+
+      let newBalance = lastNonSalaryTransaction
+        ? lastNonSalaryTransaction.balance
+        : 0;
 
       if (credit >= 0) {
         newBalance += credit;
@@ -211,21 +215,17 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         (method) => method.value === payment_Method
       )?.label;
 
-      let newBalance =
-        employe.financeData.length > 0
-          ? employe.financeData[employe.financeData.length - 1].balance
-          : 0;
-
-      newBalance += salary;
       employe.financeData.push({
-        credit: salary,
-        debit:
-          employe.financeData[employe.financeData.length - 1]?.balance < 0
-            ? salary - newBalance
-            : 0,
-        balance: newBalance,
+        credit: 0,
+        debit: salary,
+        balance: 0,
         particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves} `,
         date: today,
+        over_time,
+        leaves,
+        payment_Method,
+        branchId,
+        salaryTransaction: true,
       });
 
       employe.overtime_Data.hours = 0;
@@ -275,9 +275,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         await VA_HistoryModal.create([historyData], { session });
       }
 
-      return res
-      .status(200)
-      .json({ success: true, message: "Successfully Updated" });
+      return res.status(200).json({ success: true, message: "Success" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -461,5 +459,78 @@ export const updateOvertime = async (req, res, next) => {
     return res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const reverseSalary = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id, transactionId, amount, payment_Method, over_time, branchId } =
+        req.body;
+      if (!id || !transactionId || !amount || !branchId || !payment_Method)
+        throw new Error("Missing Fields");
+      const employe = await EmployeModel.findById(id).session(session);
+      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      if (!employe) throw new Error("Employe Not Found");
+
+      employe.overtime_Data.hours += over_time;
+
+      //ADD IN PAYMENT METHID
+      const dailySaleForToday = await DailySaleModel.findOne({
+        branchId,
+        date: today,
+      }).session(session);
+      if (!dailySaleForToday) {
+        throw new Error("Daily sale record not found for This Date");
+      }
+      if (payment_Method === "cashSale") {
+        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash +=
+          amount;
+      }
+
+      await dailySaleForToday.save({ session });
+
+      //UPDATING VIRTUAL ACCOUNTS
+      if (payment_Method !== "cashSale") {
+        let virtualAccounts = await VirtalAccountModal.find({}).session(
+          session
+        );
+        let updatedAccount = {
+          ...virtualAccounts,
+          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
+        };
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date: today,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount,
+          note: `Salary Reversed for ${employe.name}`,
+        };
+
+        virtualAccounts = updatedAccount;
+
+        await virtualAccounts[0].save({ session });
+        await VA_HistoryModal.create([historyData], { session });
+      }
+
+      //MARKING TRANSACTION AS DELETED
+      const transaction = employe.financeData.find(
+        (item) => item._id.toString() === transactionId
+      );
+      if (!transaction || !transaction.salaryTransaction) {
+        throw new Error("Can Not Delete Transaction");
+      }
+      transaction.reversed = true;
+      await employe.save({ session });
+
+      return res.status(200).json({ success: true, message: "Success" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };

@@ -6,6 +6,7 @@ import {
   addLeaveAsync,
   CreditSalary,
   GetEmployeeById,
+  reverseSalaryAsync,
   updateOvertimeHoursAsync,
 } from "../../features/AccountSlice";
 import { PaymentData } from "../../Utils/AccountsData";
@@ -16,7 +17,7 @@ import moment from "moment-timezone";
 import { GetAllBranches } from "../../features/InStockSlice";
 import { GoPlus } from "react-icons/go";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
-import { MdEdit } from "react-icons/md";
+import { MdEdit, MdOutlineDelete } from "react-icons/md";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -73,7 +74,7 @@ const EmployeeDetails = () => {
     e.preventDefault();
     const data = {
       id,
-      date: formData.date,
+      date:today,
       particular: formData.particular,
       payment_Method: formData.payment_Method,
       branchId: formData.branchId,
@@ -229,6 +230,23 @@ const EmployeeDetails = () => {
     return payableSalary;
   };
 
+  const handleReverseSalary = (data) => {
+    const reqData = {
+      id,
+      transactionId: data.id,
+      amount: data.debit,
+      payment_Method: data.payment_Method,
+      branchId: data.branchId,
+      leaves: data.leaves,
+      over_time: data.over_time,
+    };
+    dispatch(reverseSalaryAsync(reqData)).then((res) => {
+      if (res.payload.success === true) {
+        dispatch(GetEmployeeById({ id }));
+      }
+    });
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -279,13 +297,20 @@ const EmployeeDetails = () => {
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={() => openModal("debit")}
             >
-              <div className="flex items-center gap-2"> <PiHandDeposit/>Debit</div>
+              <div className="flex items-center gap-2">
+                {" "}
+                <PiHandDeposit />
+                Debit
+              </div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={() => openModal("credit")}
             >
-              <div className="flex items-center gap-2"><PiHandWithdraw/>Credit</div>
+              <div className="flex items-center gap-2">
+                <PiHandWithdraw />
+                Credit
+              </div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
@@ -300,13 +325,20 @@ const EmployeeDetails = () => {
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={openOverTimeModal}
             >
-              <div className="flex items-center gap-2">  <GoPlus />Add Overtime</div>
+              <div className="flex items-center gap-2">
+                {" "}
+                <GoPlus />
+                Add Overtime
+              </div>
             </button>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={viewOrEditLeaves}
             >
-              <div className="flex items-center gap-2"><MdEdit />Update Leaves</div>
+              <div className="flex items-center gap-2">
+                <MdEdit />
+                Update Leaves
+              </div>
             </button>
           </div>
         )}
@@ -341,6 +373,9 @@ const EmployeeDetails = () => {
                   <th className="px-6 py-4 text-md font-medium" scope="col">
                     Balance
                   </th>
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                    Delete
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -351,13 +386,13 @@ const EmployeeDetails = () => {
                     .map((data, index) => (
                       <tr
                         key={index}
-                        className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        className={`${data.reversed ? "bg-red-500 text-white" : "bg-white text-black"} border-b text-md font-semibold dark:border-gray-700`}
                       >
                         <th
-                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          className="px-6 py-4 font-medium "
                           scope="row"
                         >
-                          <p>{new Date(data.date).toLocaleDateString()}</p>
+                          <p>{data.date}</p>
                         </th>
                         <td className="px-6 py-4 font-medium">
                           {data.particular}
@@ -371,6 +406,17 @@ const EmployeeDetails = () => {
                         <td className="px-6 py-4 font-medium">
                           {data.balance === 0 ? "-" : data.balance}
                         </td>
+                        {!data.reversed && data.salaryTransaction ?  (
+                          <td className=" px-6 py-4">
+                            <MdOutlineDelete
+                              onClick={() => handleReverseSalary(data)}
+                              size={20}
+                              className="cursor-pointer  text-red-500"
+                            />
+                          </td>
+                        ) : (<div className=" px-6 py-4">
+                          --
+                        </div>)}
                       </tr>
                     ))
                 ) : (
