@@ -14,6 +14,7 @@ const GetLaceForEmroidery = "/api/stock/lace/getAllLaceForEmbroidery";
 const getSuits = "/api/stock/suits/getAllSuits";
 const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
+const deleteEXpenseUrl = "/api/stock/expense/deleteExpense";
 const AddSuits = "/api/stock/suits/addBaseInStock";
 const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
@@ -290,6 +291,20 @@ export const GetAllBranches = createAsyncThunk(
   }
 );
 
+// DELETE EXPENSE
+export const DeleteExpenseAsync = createAsyncThunk(
+  "Expense/deleteExpense",
+  async (id) => {
+    try {
+      const response = await axios.post(deleteEXpenseUrl, id);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   SuitLoading: false,
@@ -312,7 +327,8 @@ const initialState = {
   StockHistory:[],
   StockHistoryLoading:false,
   stockLoading:false,
-  addSuitLoading:false
+  addSuitLoading:false,
+  deleteLodaing:false
 };
 
 const InStockSlic = createSlice({
@@ -330,6 +346,16 @@ const InStockSlic = createSlice({
       .addCase(GetAllaccessories.fulfilled, (state, action) => {
         state.loading = false;
         state.accessories = action.payload;
+      })
+
+      .addCase(DeleteExpenseAsync.pending, (state, action) => {
+        state.deleteLodaing = true;
+      })
+      .addCase(DeleteExpenseAsync.fulfilled, (state, action) => {
+        state.deleteLodaing = false;
+      })
+      .addCase(DeleteExpenseAsync.rejected, (state, action) => {
+        state.deleteLodaing = false;
       })
 
       .addCase(UpdateUsedAccessories.pending, (state, action) => {

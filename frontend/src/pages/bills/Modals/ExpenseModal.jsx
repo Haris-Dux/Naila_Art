@@ -3,7 +3,7 @@ import { CeateExpenseAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
-
+import { PaymentData } from "../../../Utils/AccountsData";
 
 const ExpenseModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
@@ -11,7 +11,6 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   const { Branches } = useSelector((state) => state.InStock);
   const { expenseLoading } = useSelector((state) => state.PurchaseBills);
   const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
@@ -48,11 +47,11 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
       ...formData,
       rate: Number(formData.rate),
       serial_no: Number(formData.serial_no),
-    }
+    };
 
     dispatch(CeateExpenseAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllExpense({ page: 1 }));
+        dispatch(GetAllExpense({branchId:modifiedFormData.branchId, page: 1 }));
         setFormData({
           branchId: "",
           name: "",
@@ -125,7 +124,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     <input
                       name="rate"
                       type="number"
-                      placeholder="Rate"
+                      placeholder="Amount"
                       value={formData.rate}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
@@ -133,8 +132,8 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                     />
                   </div>
 
-                   {/* REASON */}
-                   <div className="col-span-2">
+                  {/* REASON */}
+                  <div className="col-span-2">
                     <input
                       name="reason"
                       type="text"
@@ -147,27 +146,40 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                   </div>
 
                   {/* DATE */}
-                  <div >
-                    <input
-                      name="Date"
-                      type="text"
-                      placeholder="Date"
-                      value={today}
-                      // onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                 
+                  {user?.user?.role === "superadmin" ? (
+                    <div>
+                      <input
+                        name="Date"
+                        type="Date"
+                        placeholder="Date"
+                        value={formData.Date}
+                        onChange={handleChange}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        name="Date"
+                        type="text"
+                        placeholder="Date"
+                        value={today}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                        readOnly
+                      />
+                    </div>
+                  )}
 
                   {user?.user?.role === "superadmin" ? (
-                    <div className="col-span-2">
+                    <div>
                       <select
                         id="payment-method"
                         name="payment_Method"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData.payment_Method}
+                        required
                         onChange={(e) =>
                           setFormData({
                             ...formData,
@@ -176,18 +188,18 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                         }
                       >
                         <option value="" disabled>
-                          Select Payment Method
+                          Payment Method
                         </option>
-                        <option value="cashInMeezanBank">Meezan Bank</option>
-                        <option value="cashInJazzCash">Jazz Cash</option>
-                        <option value="cashInEasyPaisa">EasyPaisa</option>
-                        <option value="cashSale">Cash Sale</option>
+                        {PaymentData?.map((item) => (
+                          <option value={item.value} key={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   ) : null}
 
-                  {user?.user?.role === "superadmin" 
-                     ? (
+                  {user?.user?.role === "superadmin" ? (
                     <div className="col-span-2">
                       <select
                         id="branches"
@@ -195,7 +207,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                         onChange={handleBranchChange}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       >
-                        <option value="">Choose Branch</option>
+                        <option value="">Select Branch</option>
                         {Branches?.map((data) => (
                           <option key={data.id} value={data.id}>
                             {data.branchName}
@@ -208,12 +220,12 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
 
                 <div className="flex justify-center mt-6">
                   {expenseLoading ? (
-                     <button
-                     disabled
-                     className="inline-block rounded border border-gray-600 bg-gray-400 cursor-not-allowed px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                   >
-                     Submit
-                   </button>
+                    <button
+                      disabled
+                      className="inline-block rounded border border-gray-600 bg-gray-400 cursor-not-allowed px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                    >
+                      Submit
+                    </button>
                   ) : (
                     <button
                       type="submit"
