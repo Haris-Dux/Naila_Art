@@ -8,6 +8,7 @@ import {
   getAllActiveEmploye,
   getAllPastEmploye,
   getEmployeDataById,
+  reverseSalary,
   updateEmploye,
   updateOvertime,
 } from "../controllers/EmployController.js";
@@ -27,5 +28,6 @@ employRouter.post("/getAllActiveEmploye", superAdminOnly, getAllActiveEmploye);
 employRouter.post("/getAllPastEmploye", superAdminOnly, getAllPastEmploye);
 employRouter.post("/addLeave", superAdminOnly, addLeave);
 employRouter.post("/updateOvertime", superAdminOnly, updateOvertime);
+employRouter.post("/reverseSalary", superAdminOnly, reverseSalary);
 
 export default employRouter;
