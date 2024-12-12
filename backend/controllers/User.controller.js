@@ -52,7 +52,7 @@ export const logout = async (req, res) => {
         return res.status(400).json({ message: "Logout Unsuccessfull" });
       res.clearCookie("connect.sid");
       res.clearCookie("D_Token")
-      res.status(200).json({ message: "Logout Successfull" });
+      res.status(200).json({success:true , message: "Logout Successfull" });
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

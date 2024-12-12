@@ -212,8 +212,6 @@ const DashboardStats = () => {
   };
 
   const page = TransactionsHistory?.page;
-  console.log('TransactionsHistory?.totalPages',TransactionsHistory?.totalPages);
-  console.log('page',page);
   const [date, setDate] = useState("");
 
   const handleDateChange = (e) => {

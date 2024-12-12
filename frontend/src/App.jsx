@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -53,12 +53,16 @@ import ReturnBills from "./pages/bills/ReturnBills";
 import PackingDetails from "./pages/process/Packing/PackingDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
 
-
 function App() {
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   useEffect(() => {
-    dispatch(authUserAsync());
+    dispatch(authUserAsync()).then((res) => {
+      if(res.payload === undefined){
+        console.log('navigating');
+        navigate("/");
+      }
+    });
   }, [dispatch]);
 
 
@@ -73,7 +77,7 @@ useEffect(() => {
 
   return (
     <>
-      <BrowserRouter>
+ 
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
@@ -147,9 +151,10 @@ useEffect(() => {
             <Route path="PendingRequest" element={<PendingRequest />} />
 
           </Route >
+          {/* WILD CARD */}
+          <Route path="*" element={<Navigate to={"/"}/>} />
         </Routes >
         <Toaster />
-      </BrowserRouter >
     </>
   );
 }
