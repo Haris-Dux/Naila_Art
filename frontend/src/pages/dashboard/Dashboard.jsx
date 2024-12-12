@@ -91,7 +91,11 @@ const Dashboard = () => {
   }, [theme]);
 
   const handleLogout = () => {
-    dispatch(logoutUserAsync());
+    dispatch(logoutUserAsync()).then((res) => {
+      if (res.payload.success) {
+        navigate("/");
+      }
+    });
   };
 
   const handleMoveTop = () => {

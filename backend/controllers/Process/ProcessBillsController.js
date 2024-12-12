@@ -550,7 +550,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
             if (trueSteps.length > 0) {
               throw new CustomError(
                 `Cannot Delete Embroidery While These Are Found ${trueSteps}`,
-                401
+                400
               );
             }
             orderData = embData;

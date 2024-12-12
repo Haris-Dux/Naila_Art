@@ -19,7 +19,7 @@ const UserProtected = ({ children }) => {
   if (user && user.login) {
     return children;
   } else {
-    return <Navigate to={lastPath || "/"} replace={true} />;
+    return <Navigate to={lastPath} replace={true} />;
   }
 };
 
