@@ -54,7 +54,6 @@ export const addCutting = async (req, res, next) => {
       rate,
       serial_No,
       T_Quantity,
-      Available_Quantity:T_Quantity,
       date,
       design_no,
     });
@@ -81,8 +80,9 @@ export const updateCutting = async (req, res, next) => {
     if (r_quantity) {
       if(r_quantity > cutting.T_Quantity){
         throw new Error("Invalid Recieved quantity")
-      }
-      updateQuery = { ...updateQuery, r_quantity,updated:true };
+      };
+      const Available_Quantity = r_quantity;
+      updateQuery = { ...updateQuery, r_quantity,Available_Quantity, updated:true };
     }
     if (project_status) {
       updateQuery = { ...updateQuery, project_status };

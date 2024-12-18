@@ -268,14 +268,24 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
 
     //banks data
 
-    let banksData = [
-      {
-        name: "Meezan Bank",
-        value: dailySaleForToday.saleData.cashInMeezanBank,
-      },
-      { name: "JazzCash", value: dailySaleForToday.saleData.cashInJazzCash },
-      { name: "EasyPaisa", value: dailySaleForToday.saleData.cashInEasyPaisa },
-    ];
+    
+
+    const banksDataRaw = await VirtalAccountModal.find({}).select(
+      "-Transaction_History"
+    );
+
+    let banksData = [];
+    if (banksDataRaw.length > 0) {
+      const account = banksDataRaw[0];
+      banksData = [
+        { name: "Meezan Bank", value: account.cashInMeezanBank },
+        { name: "JazzCash", value: account.cashInJazzCash },
+        { name: "EasyPaisa", value: account.cashInEasyPaisa },
+        { name: "A_Meezan", value: account.A_Meezan },
+        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
+        { name: "H_Meezan", value: account.H_Meezan },
+      ];
+    }
 
     //cash in hand data
     const cashInHandData = dailySaleForToday.saleData.totalCash || 0;
@@ -700,6 +710,7 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
       g_Otp,
       email_Type: "Dashboard OTP",
     });
+    
     return res.status(200).json({
       message: "OTP has been sent to your email",
       success: true,
@@ -803,8 +814,8 @@ export const makeTransactionInAccounts = async (req, res, next) => {
       };
     }
     virtualAccounts = updatedAccounts;
-    virtualAccounts[0].Transaction_History.push(historyData);
     await virtualAccounts[0].save();
+    await VA_HistoryModal.create(historyData);
     await sendEmail({
       email: "offical@nailaarts.com",
       TransactionData: historyData,

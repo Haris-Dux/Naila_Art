@@ -162,6 +162,14 @@ const embroiderySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    discountType:{
+      type: String,
+      default: "RS",
+    },
+    discount : {
+      type: Number,
+      default: 0,
+    },
     next_steps: {
       calender: {
         type: Boolean,

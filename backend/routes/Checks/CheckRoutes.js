@@ -5,6 +5,7 @@ import {
   deleteCheck,
   getAllChecksForParty,
   markCheckAsPaid,
+  showNotificationsForChecks,
   updateBuyerCheckWithNew,
 } from "../../controllers/Checks/CheckController.js";
 
@@ -19,5 +20,6 @@ checkRouter.post(
 checkRouter.post("/markCheckAsPaid", verifyUser, markCheckAsPaid);
 checkRouter.post("/getAllChecksForParty", verifyUser, getAllChecksForParty);
 checkRouter.post("/deleteCheck", verifyUser, deleteCheck);
+checkRouter.post("/showNotificationsForChecks", verifyUser, showNotificationsForChecks);
 
 export default checkRouter;

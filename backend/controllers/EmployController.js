@@ -365,7 +365,7 @@ export const getEmployeDataById = async (req, res, next) => {
 export const getAllActiveEmploye = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 30;
     let search = req.query.search || "";
 
     let query = {
@@ -396,7 +396,7 @@ export const getAllActiveEmploye = async (req, res, next) => {
 export const getAllPastEmploye = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 30;
     let search = req.query.search || "";
 
     let query = {
@@ -449,12 +449,20 @@ export const addLeave = async (req, res) => {
 
 export const updateOvertime = async (req, res, next) => {
   try {
-    const { over_time, employeeId } = req.body;
+    const { over_time, employeeId ,note} = req.body;
     if (!over_time || !employeeId) throw new Error("Missing Data Error");
     const employeData = await EmployeModel.findById(employeeId);
     const currentMonth = moment.tz("Asia/Karachi").format("YYYY-MM");
+    const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
     employeData.overtime_Data.hours += over_time;
     employeData.overtime_Data.month = currentMonth;
+    //ADD OVERTIME HISTORY
+    const O_H_D = {
+      date:today,
+      time:over_time,
+      note:note
+    };
+    employeData.over_time_history.push(O_H_D);
     await employeData.save();
     return res.status(200).json({ success: true, message: "Success" });
   } catch (error) {

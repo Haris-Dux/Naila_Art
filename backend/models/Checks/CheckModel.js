@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 
 const checkSchema = new mongoose.Schema(
   {
-    partyName: {
-      type: String,
-      required: [true, "Party Name required"],
-    },
     buyerId: {
       type: String,
       required: [true, "BuyerId value required"],
