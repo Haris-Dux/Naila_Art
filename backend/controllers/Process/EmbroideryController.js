@@ -17,6 +17,8 @@ export const addEmbriodery = async (req, res, next) => {
         per_suit,
         project_status,
         design_no,
+        discountType,
+        discount,
         shirt,
         duppata,
         trouser,
@@ -206,6 +208,8 @@ export const addEmbriodery = async (req, res, next) => {
             shirt,
             duppata,
             trouser,
+            discountType,
+            discount,
             recieved_suit,
             T_Quantity_In_m,
             T_Quantity,
@@ -461,11 +465,9 @@ export const deleteEmbroidery = async (req, res, next) => {
           .filter(([step, value]) => value === true)
           .map(([step]) => step);
         if (trueSteps.length > 0) {
-          throw new Error(
-            `Cannot Delete Embroidery While ${trueSteps} Found `
-          );
+          throw new Error(`Cannot Delete Embroidery While ${trueSteps} Found `);
         }
-      };
+      }
 
       if (embroideryData.bill_generated === true)
         throw new Error("Cannot Delete Embroidery");

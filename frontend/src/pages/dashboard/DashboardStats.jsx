@@ -26,6 +26,7 @@ import SendOTP from "./SendOTP";
 import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
 import { PaymentData } from "../../Utils/AccountsData";
+import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,12 @@ const DashboardStats = () => {
   const [transactionModal, setTransactionModal] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [historyModal, setHistoryModal] = useState(false);
+
+    useEffect(() => {
+      if (user && user?.user?.role !== "user") {
+        dispatch(showNotificationsForChecksAsync());
+      }
+    }, [user,dispatch]);
 
   const [formData, setFormData] = useState({
     date: today,

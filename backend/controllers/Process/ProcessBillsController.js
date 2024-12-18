@@ -867,8 +867,8 @@ export const claimProcessAccount = async (req, res, next) => {
     };
 
     //DATA FOR VIRTUAL ACCOUNT
-    let new_total_credit = oldAccountData.virtual_account.total_credit;
-    let new_total_debit = oldAccountData.virtual_account.total_debit - amount;
+    let new_total_credit = oldAccountData.virtual_account.total_credit - amount;
+    let new_total_debit = oldAccountData.virtual_account.total_debit + amount;
     const new_total_balance =
       oldAccountData.virtual_account.total_balance - amount;
     let new_status = "";

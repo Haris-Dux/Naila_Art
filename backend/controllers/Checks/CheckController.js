@@ -7,6 +7,7 @@ import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsMod
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import moment from "moment-timezone";
 
 export const addBuyerCheck = async (req, res, next) => {
   try {
@@ -45,42 +46,175 @@ export const addBuyerCheck = async (req, res, next) => {
 };
 
 export const updateBuyerCheckWithNew = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const { id, checkId, checkNumber, checkAmount, note, date } = req.body;
-    await verifyrequiredparams(req.body, [
-      "id",
-      "checkId",
-      "checkNumber",
-      "checkAmount",
-      "note",
-      "date",
-    ]);
-    //GET CHECK DATA
-    const checkData = await CheckModel.findById(id);
-    if (!checkData) {
-      throw new CustomError("Check Data Not Found", 404);
-    }
+    await session.withTransaction(async () => {
+      const {
+        id,
+        checkId,
+        checkNumber,
+        checkAmount,
+        note,
+        date,
+        partialPayment,
+        payment_Method,
+        partialAmount,
+      } = req.body;
+      await verifyrequiredparams(req.body, [
+        "id",
+        "checkId",
+        "checkNumber",
+        "checkAmount",
+        "note",
+        "date",
+      ]);
+      if(checkAmount === 0){
+        throw new CustomError("Check Amount cannot be zero", 400);
+      }
+      if ((partialPayment && !payment_Method) || !partialAmount) {
+        throw new CustomError(
+          "Partial Payment and Payment Method are required",
+          400
+        );
+      }
+      //GET CHECK DATA
+      const checkData = await CheckModel.findById(id).session(session);
+      if (!checkData) {
+        throw new CustomError("Check Data Not Found", 404);
+      }
 
-    //UPDATE CHECK
-    const toUpdate = checkData.checkDetails.find((item) => item._id == checkId);
-    if (!toUpdate) {
-      throw new CustomError("Check Detail Not Found", 404);
-    }
-    toUpdate.updated = true;
-    //NEW CHECK DATA
-    const data = {
-      checkNumber,
-      checkAmount,
-      date,
-      note,
-      newCheck: false,
-    };
-    //SAVE CHECK DETAILS
-    checkData.checkDetails.push(data);
-    await checkData.save();
-    res
-      .status(200)
-      .json({ success: true, message: "New Check added successfully" });
+      //UPDATE CHECK
+      const toUpdate = checkData.checkDetails.findIndex(
+        (item) => item._id == checkId
+      );
+      if (toUpdate === -1) {
+        throw new CustomError("Check Detail Not Found", 404);
+      }
+      checkData.checkDetails[toUpdate].updated = true;
+      //NEW CHECK DATA
+      const data = {
+        checkNumber,
+        checkAmount,
+        date,
+        note,
+        newCheck: false,
+      };
+      //SAVE CHECK DETAILS
+      checkData.checkDetails.splice(toUpdate + 1, 0, data);
+      await checkData.save({ session });
+      if (partialPayment) {
+  
+        //GET BUYER DATA
+        const userDataToUpdate = await BuyersModel.findById(
+          checkData.buyerId
+        );
+        if (!userDataToUpdate) {
+          throw new CustomError("Buyer Data Not Found", 404);
+        }
+
+        //UPDATE DAILY SALE
+        const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId: userDataToUpdate.branchId,
+          date: today,
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new CustomError(
+            "Daily sale record not found for This Date",
+            404
+          );
+        }
+
+        const updatedSaleData = {
+          ...dailySaleForToday.saleData,
+          payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+            partialAmount),
+          totalSale: (dailySaleForToday.saleData.totalSale += partialAmount),
+          todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit +=
+            partialAmount),
+        };
+
+        if (payment_Method === "cashSale") {
+          updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+            partialAmount;
+        }
+
+        dailySaleForToday.saleData = updatedSaleData;
+        await dailySaleForToday.save({ session });
+
+        //UPDATING VIRTUAL ACCOUNTS
+        if (payment_Method !== "cashSale") {
+          let virtualAccounts = await VirtalAccountModal.find({})
+            .select("-Transaction_History")
+            .session(session);
+          let updatedAccount = {
+            ...virtualAccounts,
+            [payment_Method]: (virtualAccounts[0][payment_Method] +=
+              partialAmount),
+          };
+          virtualAccounts = updatedAccount;
+          await virtualAccounts[0].save({ session });
+        }
+
+        //UPDATING BUYER ACCOUNT
+
+        const new_total_debit =
+          userDataToUpdate.virtual_account.total_debit - partialAmount;
+        const new_total_credit =
+          userDataToUpdate.virtual_account.total_credit + partialAmount;
+        const new_total_balance =
+          userDataToUpdate.virtual_account.total_balance - partialAmount;
+        let new_status;
+
+        switch (true) {
+          case new_total_balance === 0:
+            new_status = "Paid";
+            break;
+          case new_total_balance === new_total_debit &&
+            new_total_credit > 0 &&
+            new_total_balance > 0:
+            new_status = "Partially Paid";
+            break;
+          case new_total_credit === 0 && new_total_balance === new_total_debit:
+            new_status = "Unpaid";
+            break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
+        }
+
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+        const credit_debit_history_details = {
+          credit: partialAmount,
+          date: today,
+          particular: `Partial Check Payment  P.M/${payment_Method}`,
+          debit: 0,
+          balance:
+            userDataToUpdate.virtual_account.total_balance - partialAmount,
+        };
+
+        //UPDATING USER DATA IN DB
+        userDataToUpdate.virtual_account = virtualAccountData;
+        userDataToUpdate.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await userDataToUpdate.save({ session });
+      }
+
+      res
+        .status(200)
+        .json({ success: true, message: "New Check added successfully" });
+    });
   } catch (error) {
     next(error);
   }
@@ -168,10 +302,11 @@ export const markCheckAsPaid = async (req, res, next) => {
       //UPDATING BUYER ACCOUNT
 
       const new_total_debit =
-        userDataToUpdate.virtual_account.total_debit + toUpdate.checkAmount;
-      const new_total_credit = userDataToUpdate.virtual_account.total_credit;
+        userDataToUpdate.virtual_account.total_debit - toUpdate.checkAmount;
+      const new_total_credit =
+        userDataToUpdate.virtual_account.total_credit + toUpdate.checkAmount;
       const new_total_balance =
-        userDataToUpdate.virtual_account.total_balance + toUpdate.checkAmount;
+        userDataToUpdate.virtual_account.total_balance - toUpdate.checkAmount;
       let new_status;
 
       switch (true) {
@@ -202,11 +337,12 @@ export const markCheckAsPaid = async (req, res, next) => {
 
       //DATA FOR CREDIT DEBIT HISTORY
       const credit_debit_history_details = {
+        credit: toUpdate.checkAmount,
         date,
         particular: `Check Cashed P.M/${payment_Method}`,
-        debit: toUpdate.checkAmount,
+        debit: 0,
         balance:
-          userDataToUpdate.virtual_account.total_balance + toUpdate.checkAmount,
+          userDataToUpdate.virtual_account.total_balance - toUpdate.checkAmount,
       };
 
       //UPDATING USER DATA IN DB
@@ -258,35 +394,101 @@ export const deleteCheck = async (req, res, next) => {
   try {
     const { id, checkId } = req.body;
     await verifyrequiredparams(req.body, ["checkId", "id"]);
-    //GET CHECK DATA
+
+    // GET CHECK DATA
     const checkData = await CheckModel.findById(id);
     if (!checkData) {
       throw new CustomError("Check Data Not Found", 404);
     }
 
-    //DELETE CHECK DETAILS
-    const toDelete = checkData.checkDetails.find((item) => item._id == checkId);
-    if (!toDelete) {
+    const checkIndex = checkData.checkDetails.findIndex(
+      (item) => item._id.toString() === checkId
+    );
+    if (checkIndex === -1) {
       throw new CustomError("Check Detail Not Found", 404);
     }
+
+    const toDelete = checkData.checkDetails[checkIndex];
     if (toDelete.updated || toDelete.paid) {
       throw new CustomError("Check cannot be deleted", 400);
     }
-    //DELETE THE CHECK
-    let updatedCheckDetails = checkData.checkDetails.filter(
-      (check) => check._id.toString() !== checkId
-    );
-    let lastItemToUpdate =
-      updatedCheckDetails.length > 0
-        ? updatedCheckDetails[updatedCheckDetails.length - 1]
-        : null;
-    if (!lastItemToUpdate.paid) {
-      lastItemToUpdate.updated = false;
-    };
-    checkData.checkDetails = updatedCheckDetails;
+
+    let previousItem =
+      checkIndex > 0 ? checkData.checkDetails[checkIndex - 1] : null;
+
+    checkData.checkDetails.splice(checkIndex, 1);
+
+    if (previousItem && !previousItem.paid) {
+      previousItem.updated = false;
+    }
+
     await checkData.save();
+
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     next(error);
   }
 };
+
+export const showNotificationsForChecks = async (req, res, next) => {
+  try {
+    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    const threeDaysAhead = moment.tz("Asia/Karachi").add(3, 'days').format("YYYY-MM-DD");
+
+    const all_Checks = await CheckModel.aggregate([
+      {
+        $match: {
+          checkDetails: { $exists: true, $ne: [] },
+        },
+      },
+      {
+        $unwind: "$checkDetails",
+      },
+      {
+        $match: {
+          "checkDetails.paid": false,
+          "checkDetails.updated": false,
+          $or: [
+            {
+              "checkDetails.date": {
+                $lte: threeDaysAhead,
+              },
+            },
+            { "checkDetails.date": { $lt: today } },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "buyers",
+          let: { buyerId: { $toObjectId: "$buyerId" } },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$buyerId"] } } },
+          ],
+          as: "buyerDetails",
+        },
+      },
+      {
+        $unwind: "$buyerDetails",
+      },
+      {
+        $project: {
+          buyerId: 1,
+          checkNumber: "$checkDetails.checkNumber",
+          checkAmount: "$checkDetails.checkAmount",
+          date: "$checkDetails.date",
+          note: "$checkDetails.note",
+          paid: "$checkDetails.paid",
+          updated: "$checkDetails.updated",
+          buyerName: "$buyerDetails.name", 
+          buyerPhone: "$buyerDetails.phone", 
+        },
+      },
+    ]);
+
+    res.status(200).json({ success: true, data: all_Checks });
+  } catch (error) {
+    next(error);
+  }
+};
+

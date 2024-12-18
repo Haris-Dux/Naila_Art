@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { IoLogOutOutline } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
+import { RiNotification2Line } from "react-icons/ri";
+import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const Dashboard = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [checkNotifications, setChecksNotifications] = useState(false);
 
   const [isInStockDropdownOpen, setIsInStockDropdownOpen] = useState(false);
   const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
@@ -49,12 +53,9 @@ const Dashboard = () => {
   };
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
-
-  // useEffect(() => {
-  //   if (!user) {
-  //     navigate("/");
-  //   }
-  // }, [user, dispatch, navigate]);
+  const { getBuyersChecksLoading, CheckNotifications } = useSelector(
+    (state) => state.Buyer
+  );
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -71,7 +72,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.addEventListener("click", closeMenu);
-
+    if (user && user?.user?.role !== "user") {
+      dispatch(showNotificationsForChecksAsync());
+    }
     return () => {
       document.removeEventListener("click", closeMenu);
     };
@@ -104,6 +107,21 @@ const Dashboard = () => {
       behavior: "smooth",
     });
   };
+
+  const viewChecksData = () => {
+    document.body.style.overflow = "hidden";
+    setChecksNotifications(true);
+    if (user && user?.user?.role !== "user") {
+      dispatch(showNotificationsForChecksAsync());
+    }
+  };
+
+  const closeModal = () => {
+    document.body.style.overflow = "auto";
+    setChecksNotifications(false);
+  };
+
+  const notificationValue = CheckNotifications?.data?.length || 0;
 
   return (
     <>
@@ -159,6 +177,19 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
+              {user && user?.user?.role !== "user" && (
+                <button className="relative">
+                  <RiNotification2Line
+                    onClick={viewChecksData}
+                    size={32}
+                    className="text-2xl text-gray-700 hover:text-gray-900 cursor-pointer"
+                  />
+                  <div className="absolute -top-2 -right-2 flex items-center justify-center h-6 w-6 rounded-full bg-red-600 text-white text-xs font-medium shadow-md border-2 border-white">
+                    {notificationValue}
+                  </div>
+                </button>
+              )}
+
               <Link
                 to="/dashboard/generate-bill"
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
@@ -606,7 +637,7 @@ const Dashboard = () => {
                             : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
                         } group`}
                       >
-                         Buyer Bills
+                        Buyer Bills
                       </Link>
                     </li>
                     {user?.user?.role !== "user" ? (
@@ -733,6 +764,123 @@ const Dashboard = () => {
           <Outlet />
         </main>
       </div>
+      {/* CHECKS MODAL */}
+      {checkNotifications && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-6xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            {/* ------------- HEADER ------------- */}
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <input
+                type="text"
+                placeholder="Search by Name"
+                className="w-1/4 px-4 py-2 text-sm border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              <button
+                onClick={closeModal}
+                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+
+            {/* ------------- BODY ------------- */}
+            <div className="p-4 md:p-5">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                  <tr>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Name
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Phone
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Due Date
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      Note
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      C.Number
+                    </th>
+                    <th className=" px-6 py-3 text-center" scope="col">
+                      C.Amount
+                    </th>
+                  </tr>
+                </thead>
+              </table>
+
+              <div className="scrollable-content h-[50vh] overflow-y-auto">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <tbody>
+                    {CheckNotifications &&
+                    CheckNotifications?.data?.length > 0 ? (
+                      CheckNotifications?.data
+                        .filter((data) =>
+                          data?.buyerName
+                            ?.toLowerCase()
+                            .includes(searchQuery?.toLowerCase())
+                        )
+                        .slice()
+                        .reverse()
+                        .map((data, index) => (
+                          <tr
+                            key={index}
+                            className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                          >
+                            <td className=" px-6 py-3 text-center">
+                              {data?.buyerName}
+                            </td>
+                            <td className="px-6 py-3 text-center">
+                              {data?.buyerPhone}
+                            </td>
+                            <td className=" px-6 py-3 text-center" scope="row">
+                              {data?.date}
+                            </td>
+                            <td className=" px-6 py-3 text-center" scope="row">
+                              {data?.note}
+                            </td>
+                            <td className=" px-6 py-3 text-center" scope="row">
+                              {data?.checkNumber}
+                            </td>
+                            <td className=" px-6 py-3 text-center">
+                              {data?.checkAmount}
+                            </td>
+                          </tr>
+                        ))
+                    ) : (
+                      <tr className="w-full flex justify-center items-center">
+                        <td className="text-xl mt-3">No Data Available</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -164,6 +164,8 @@ const EmbroideryDetails = () => {
     bill_generated,
     pictures_Order,
     updated,
+    discount,
+    discountType
   } = SingleEmbroidery;
 
   const handleSubmit = (event) => {
@@ -262,6 +264,7 @@ const EmbroideryDetails = () => {
       Manual_No: processBillData.Manual_No,
       additionalExpenditure: processBillData.additionalExpenditure,
       Embroidery_id: SingleEmbroidery?.id,
+      embroidery_Id: SingleEmbroidery?.id
     };
     dispatch(generateEmbroideryBillAsync(formData)).then((res) => {
       if (res.payload.success === true) {
@@ -568,6 +571,10 @@ const EmbroideryDetails = () => {
             <div className="box">
               <span className="font-medium">Tissue:</span>
               <span> {tissue} m</span>
+            </div>
+            <div className="box">
+              <span className="font-medium">Discount:</span>
+              <span> {discount ?? "--"} {discountType}</span>
             </div>
           </div>
         </div>

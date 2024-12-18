@@ -18,6 +18,7 @@ import { GetAllBranches } from "../../features/InStockSlice";
 import { GoPlus } from "react-icons/go";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
+import { FaEye } from "react-icons/fa";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -31,6 +32,9 @@ const EmployeeDetails = () => {
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [leavesModal, setLeavesModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [filteredData, setFilteredData] = useState(null);
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [overTimeModal, setOverTimeModal] = useState(false);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
@@ -42,6 +46,7 @@ const EmployeeDetails = () => {
     over_time: "",
     salary: "",
     branchId: "",
+    note: "",
   });
 
   const currentMonth = moment.tz("Asia/Karachi").format("YYYY-MM");
@@ -74,7 +79,7 @@ const EmployeeDetails = () => {
     e.preventDefault();
     const data = {
       id,
-      date:today,
+      date: today,
       particular: formData.particular,
       payment_Method: formData.payment_Method,
       branchId: formData.branchId,
@@ -126,6 +131,7 @@ const EmployeeDetails = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setFilteredData(null);
     setFormData({
       particular: "",
       amount: "",
@@ -133,6 +139,7 @@ const EmployeeDetails = () => {
       payment_Method: "",
       branchId: "",
       date: today,
+      note: "",
     });
     document.body.style.overflow = "auto";
   };
@@ -150,6 +157,7 @@ const EmployeeDetails = () => {
       payment_Method: "",
       date: "",
       over_time: "",
+      note: "",
     }));
   };
 
@@ -203,6 +211,7 @@ const EmployeeDetails = () => {
     const data = {
       over_time: formData.over_time,
       employeeId: id,
+      note: formData.note,
     };
     dispatch(updateOvertimeHoursAsync(data)).then((res) => {
       if (res.payload.success === true) {
@@ -245,6 +254,19 @@ const EmployeeDetails = () => {
         dispatch(GetEmployeeById({ id }));
       }
     });
+  };
+
+  const openOverTimeHistory = () => {
+    filterData();
+    document.body.style.overflow = "hidden";
+  };
+
+  const filterData = () => {
+    const filtered = Employee?.over_time_history?.filter((item) => {
+      const [itemYear, itemMonth] = item.date.split("-");
+      return parseInt(itemMonth) === month && parseInt(itemYear) === year;
+    });
+    setFilteredData(filtered);
   };
 
   return (
@@ -321,16 +343,24 @@ const EmployeeDetails = () => {
                 Credit Salary
               </div>
             </button>
-            <button
-              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-              onClick={openOverTimeModal}
-            >
-              <div className="flex items-center gap-2">
-                {" "}
-                <GoPlus />
-                Add Overtime
-              </div>
-            </button>
+            <div className="flex items-center justify-center">
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openOverTimeModal}
+              >
+                <div className="flex items-center gap-2">
+                  {" "}
+                  <GoPlus />
+                  Add Overtime
+                </div>
+              </button>
+              <button
+                className="px-4 py-2.5 ml-1 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openOverTimeHistory}
+              >
+                <FaEye size={20} className="cursor-pointer" />
+              </button>
+            </div>
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               onClick={viewOrEditLeaves}
@@ -386,12 +416,13 @@ const EmployeeDetails = () => {
                     .map((data, index) => (
                       <tr
                         key={index}
-                        className={`${data.reversed ? "bg-red-500 text-white" : "bg-white text-black"} border-b text-md font-semibold dark:border-gray-700`}
+                        className={`${
+                          data.reversed
+                            ? "bg-red-500 text-white"
+                            : "bg-white text-black"
+                        } border-b text-md font-semibold dark:border-gray-700`}
                       >
-                        <th
-                          className="px-6 py-4 font-medium "
-                          scope="row"
-                        >
+                        <th className="px-6 py-4 font-medium " scope="row">
                           <p>{data.date}</p>
                         </th>
                         <td className="px-6 py-4 font-medium">
@@ -406,7 +437,7 @@ const EmployeeDetails = () => {
                         <td className="px-6 py-4 font-medium">
                           {data.balance === 0 ? "-" : data.balance}
                         </td>
-                        {!data.reversed && data.salaryTransaction ?  (
+                        {!data.reversed && data.salaryTransaction ? (
                           <td className=" px-6 py-4">
                             <MdOutlineDelete
                               onClick={() => handleReverseSalary(data)}
@@ -414,9 +445,9 @@ const EmployeeDetails = () => {
                               className="cursor-pointer  text-red-500"
                             />
                           </td>
-                        ) : (<div className=" px-6 py-4">
-                          --
-                        </div>)}
+                        ) : (
+                          <div className=" px-6 py-4">--</div>
+                        )}
                       </tr>
                     ))
                 ) : (
@@ -429,7 +460,7 @@ const EmployeeDetails = () => {
           </div>
         )}
 
-        {/* SALARY CONFIRM MODAL */}
+        {/* OVER TIME MODAL */}
         {overTimeModal && (
           <div
             aria-hidden="true"
@@ -464,7 +495,7 @@ const EmployeeDetails = () => {
                 </button>
               </div>
 
-              <div className="p-4 md:p-5">
+              <div className="p-2 space-y-2 md:p-5">
                 {/* ENTER HOURS*/}
                 <div>
                   <input
@@ -473,6 +504,18 @@ const EmployeeDetails = () => {
                     name="over_time"
                     id="over_time"
                     value={formData.over_time}
+                    onChange={handleChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter Note"
+                    name="note"
+                    id="note"
+                    value={formData.note}
                     onChange={handleChange}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     required
@@ -877,6 +920,140 @@ const EmployeeDetails = () => {
                     No
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* OVER TIME HISTORY MODAL */}
+        {filteredData !== null && (
+          <div
+            aria-hidden="true"
+            className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          >
+            <div className="relative py-4 px-3 w-full max-h-[60vh] scrollable-content max-w-3xl bg-white rounded-md shadow dark:bg-gray-700">
+              {/* ------------- HEADER ------------- */}
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Over Time History
+                </h3>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+
+              {/* ------------- FILTER SECTION ------------- */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 md:p-5 border-b dark:border-gray-600">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Month:
+                    </label>
+                    <select
+                      value={month}
+                      onChange={(e) => setMonth(parseInt(e.target.value))}
+                      className="border border-gray-300 p-2 rounded text-sm focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      {[...Array(12)].map((_, i) => (
+                        <option key={i} value={i + 1}>
+                          {new Date(0, i).toLocaleString("en", {
+                            month: "long",
+                          })}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Year:
+                    </label>
+                    <input
+                      type="number"
+                      value={year}
+                      onChange={(e) => setYear(parseInt(e.target.value))}
+                      className="border border-gray-300 p-2 rounded w-24 text-sm focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={filterData}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Search
+                </button>
+              </div>
+
+              {/* ------------- BODY ------------- */}
+              <div className="p-4 md:p-5">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-center" scope="col">
+                        Time
+                      </th>
+                      <th className="px-6 py-3 text-center" scope="col">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-center" scope="col">
+                        Note
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+         
+                  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                    <tbody>
+                      {filteredData && filteredData.length > 0 ? (
+                        filteredData
+                          .slice()
+                          .reverse()
+                          .map((data, index) => (
+                            <tr
+                              key={index}
+                              className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                            >
+                              <td className="px-6 py-2 text-center">
+                                {data?.time}
+                              </td>
+                              <td className="px-6 py-2 text-center">
+                                {data?.date}
+                              </td>
+                              <td className="px-6 py-2 text-center">
+                                {data?.note}
+                              </td>
+                            </tr>
+                          ))
+                      ) : (
+                        <tr className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                          <td colSpan="3" className="px-6 py-3 text-center">
+                            No data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+             
               </div>
             </div>
           </div>

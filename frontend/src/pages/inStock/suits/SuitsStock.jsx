@@ -121,7 +121,19 @@ const SuitsStock = () => {
   const renderPaginationLinks = () => {
     const totalPages = Suit?.totalPages;
     const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
+    const visiblePages = 5; 
+    const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + visiblePages - 1);
+
+    if (startPage > 1) {
+      paginationLinks.push(
+        <li key="start-ellipsis" className="text-black my-auto">
+          .....
+        </li>
+      );
+    };
+
+    for (let i = startPage; i <= endPage; i++) {
       paginationLinks.push(
         <li key={i} onClick={ToDown}>
           <Link
@@ -133,6 +145,14 @@ const SuitsStock = () => {
           >
             {i}
           </Link>
+        </li>
+      );
+    };
+
+    if (endPage < totalPages) {
+      paginationLinks.push(
+        <li key="end-ellipsis" className="text-black my-auto">
+          .....
         </li>
       );
     }
@@ -358,6 +378,7 @@ const SuitsStock = () => {
       </section>
 
       {/* -------- PAGINATION -------- */}
+      {Suit?.totalPages && Suit?.totalPages !== 1 ? 
       <section className="flex justify-center">
         <nav aria-label="Page navigation example">
           <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
@@ -460,7 +481,7 @@ const SuitsStock = () => {
             </li>
           </ul>
         </nav>
-      </section>
+      </section> : null}
 
       {/* ---------- ADD SUIT MODALS ------------ */}
       {isOpen && (

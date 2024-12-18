@@ -23,7 +23,7 @@ export const CreateEmployee = createAsyncThunk(
       toast.success(response.data.message);
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.error);
+      toast.error(error.response.data.message);
     }
   }
 );
@@ -173,6 +173,9 @@ const AccountSlice = createSlice({
         state.employeEditLoading = true;
       })
       .addCase(CreateEmployee.fulfilled, (state, action) => {
+        state.employeEditLoading = false;
+      })
+      .addCase(CreateEmployee.rejected, (state, action) => {
         state.employeEditLoading = false;
       })
 

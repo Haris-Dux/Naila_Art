@@ -100,6 +100,7 @@ const Employee = () => {
     } else {
       dispatch(CreateEmployee(formData)).then((res) => {
         if (res.payload.success === true) {
+          console.log('executing');
           dispatch(GetEmployeeActive({ searchText, currentPage }));
           closeModal();
           setFormData("");
@@ -212,7 +213,6 @@ const Employee = () => {
     });
   };
 
-  console.log('formData',formData);
 
   return (
     <>
@@ -688,7 +688,7 @@ const Employee = () => {
                       value={
                         formData?.joininig_date 
                           ? formData.joininig_date
-                          : today
+                          : ""
                       }
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"

@@ -429,7 +429,7 @@ const StonesDetails = () => {
   const generateBill = (e) => {
     e.preventDefault();
     if (!T_QuantityForBill || T_QuantityForBill === 0) {
-      toast.error("Invalid Return Quantity For Category Front");
+      toast.error("Unable To Generate Bill Because Front Category Is Missing");
       return;
     }
     const formData = {

@@ -106,6 +106,20 @@ const employeSchema = new mongoose.Schema(
       }
     ,
     financeData: [financeSchema],
+    over_time_history: [{
+      date:{
+        type:String,
+        required:[true, "overtime date required"],
+      },
+      time:{
+        type:Number,
+        required:[true, "overtime value required"],
+      },
+      note:{
+        type:String,
+        // required:[true, "overtime note is required"],
+      }
+    }]
   },
   { timestamps: true }
 );

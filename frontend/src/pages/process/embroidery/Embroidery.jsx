@@ -40,12 +40,14 @@ const Embroidery = () => {
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
     partyName: "",
-    partytype:partyValue,
+    partytype: partyValue,
     date: today,
     per_suit: 0,
     rATE_per_stitching: "",
     project_status: "",
     design_no: "",
+    discount: 0,
+    discountType: "RS",
     T_Quantity_In_m: 0,
     T_Quantity: 0,
     Front_Stitch: { value: 0, head: 0 },
@@ -176,11 +178,21 @@ const Embroidery = () => {
   };
 
   useEffect(() => {
-    if (formData.rATE_per_stitching) {
-      const totalAmount = calculateTotal(formData);
+    if (
+      formData.rATE_per_stitching ||
+      formData.discountType ||
+      formData.discount
+    ) {
+      let totalAmount = calculateTotal(formData);
+      if (formData.discount !== "" && formData.discountType === "RS") {
+        totalAmount = totalAmount - Number(formData.discount);
+      } else if (formData.discount !== "" && formData.discountType === "%") {
+        const discountAmount = (Number(formData.discount) / 100) * totalAmount;
+        totalAmount = totalAmount - discountAmount;
+      }
       setTotal(totalAmount);
     }
-  }, [formData.rATE_per_stitching]);
+  }, [formData.rATE_per_stitching, formData.discountType, formData.discount]);
 
   const openModal = () => {
     setIsOpen(true);
@@ -192,6 +204,28 @@ const Embroidery = () => {
     setIsOpen(false);
     document.body.style.overflow = "auto";
     setAccountData(null);
+    setFormData({
+      partyName: "",
+      partytype: partyValue,
+      date: today,
+      per_suit: 0,
+      rATE_per_stitching: "",
+      project_status: "",
+      design_no: "",
+      discount: 0,
+      discountType: "RS",
+      T_Quantity_In_m: 0,
+      T_Quantity: 0,
+      Front_Stitch: { value: 0, head: 0 },
+      Bazo_Stitch: { value: 0, head: 0 },
+      Gala_Stitch: { value: 0, head: 0 },
+      Back_Stitch: { value: 0, head: 0 },
+      Pallu_Stitch: { value: 0, head: 0 },
+      Trouser_Stitch: { value: 0, head: 0 },
+      D_Patch_Stitch: { value: 0, head: 0 },
+      F_Patch_Stitch: { value: 0, head: 0 },
+      project_status: "Pending",
+    })
   };
 
   const filteredData = searchText
@@ -909,6 +943,33 @@ const Embroidery = () => {
                     />
                   </div>
 
+                  {/* DISCOUNT FIELDS */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1">
+                      <div className="flex">
+                        <input
+                          name="discount"
+                          type="number"
+                          placeholder="Enter Discount"
+                          className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          value={formData.discount || ""}
+                          onChange={handleInputChange}
+                          required
+                        />
+                        <select
+                          name="discountType"
+                          className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                          value={formData.discountType}
+                          onChange={handleInputChange}
+                        >
+                          <option value="RS">RS</option>
+                          <option value="%">%</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TOTAL AFTER DISCOUNT */}
                   <div>
                     <input
                       type="text"

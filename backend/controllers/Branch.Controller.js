@@ -97,8 +97,6 @@ export const getAllBranches = async (req, res) => {
   }
 };
 
-//STOCK
-
 export const assignStockToBranch = async (req, res) => {
   const session = await mongoose.startSession();
   try {
@@ -284,7 +282,7 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
     if (!branch) throw new Error("Branch Not Found");
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 30;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
 
@@ -352,8 +350,14 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
       },
     ]);
 
-    const total = branch.stockData.length;
-
+    
+    let total = 0;
+    if (search) {
+      total = result.length;
+    } else {
+      total = branch.stockData.length;
+    };
+    
     // Merge total quantity into the result
     const data = result.map((suit) => {
       const requiredObj = totalQuantity.find((item) => item.d_no === suit.d_no);
@@ -399,18 +403,14 @@ export const approveOrRejectStock = async (req, res) => {
     stockToUpdate.stock_status = status;
     let MainStock = {};
     if (status === "Received") {
-       MainStock = branch.stockData.find((item) =>
-        item.Item_Id.equals(Item_Id)
-      );
+      MainStock = branch.stockData.find((item) => item.Item_Id.equals(Item_Id));
       if (!MainStock) throw new Error("MainStock To Update Not Found");
       MainStock.quantity += stockToUpdate.quantity;
       MainStock.cost_price = stockToUpdate.cost_price;
       MainStock.sale_price = stockToUpdate.sale_price;
       MainStock.last_updated = stockToUpdate.date;
     } else if (status === "Returned") {
-      MainStock = branch.stockData.find((item) =>
-        item.Item_Id.equals(Item_Id)
-      );
+      MainStock = branch.stockData.find((item) => item.Item_Id.equals(Item_Id));
       const suitToUpdate = await SuitsModel.findOne({
         id: branch.stockData.Item_Id,
       });
@@ -422,16 +422,20 @@ export const approveOrRejectStock = async (req, res) => {
     await branch.save();
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
     const StockEmailData = {
-      send_date:stockToUpdate.date,
-      recieveDate:today,
-      d_no:MainStock.d_no,
-      category:MainStock.category,
-      color:MainStock.color,
-      quantity:stockToUpdate.quantity,
-      branchName:branch.branchName,
-      stockStatus:status
+      send_date: stockToUpdate.date,
+      recieveDate: today,
+      d_no: MainStock.d_no,
+      category: MainStock.category,
+      color: MainStock.color,
+      quantity: stockToUpdate.quantity,
+      branchName: branch.branchName,
+      stockStatus: status,
     };
-    await sendEmail({email:"offical@nailaarts.com",email_Type:"Stock Update",StockEmailData});
+    await sendEmail({
+      email: "offical@nailaarts.com",
+      email_Type: "Stock Update",
+      StockEmailData,
+    });
     return res
       .status(200)
       .json({ success: true, message: "Stock Updated Successfully" });

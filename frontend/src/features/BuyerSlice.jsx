@@ -13,6 +13,7 @@ const updateBuyerCheckWithNewUrl = "/api/buyers/checks/updateBuyerCheckWithNew";
 const markCheckAsPaidUrl = "/api/buyers/checks/markCheckAsPaid";
 const getAllChecksForPartyUrl = "/api/buyers/checks/getAllChecksForParty";
 const deleteCheckUrl = "/api/buyers/checks/deleteCheck";
+const showNotificationsForChecksUrl = "/api/buyers/checks/showNotificationsForChecks";
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -157,6 +158,19 @@ export const deleteCheckAsync = createAsyncThunk(
   }
 );
 
+//GET ALL CHECKS DATA FOR PARTY
+export const showNotificationsForChecksAsync = createAsyncThunk(
+  "Buyers/showNotificationsForChecks",
+  async (data) => {
+    try {
+      const response = await axios.post(showNotificationsForChecksUrl, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -167,7 +181,8 @@ const initialState = {
   markAsPaidLoading: false,
   checkLoading: false,
   getBuyersChecksLoading: false,
-  BuyersChecks:[]
+  BuyersChecks:[],
+  CheckNotifications:[]
 };
 
 const BuyerSlice = createSlice({
@@ -175,6 +190,19 @@ const BuyerSlice = createSlice({
   initialState,
   extraReducers: (builder) => {
     builder
+
+     //SHOW NOTIFICATIONS DATA
+     .addCase(showNotificationsForChecksAsync.pending, (state, action) => {
+      state.getBuyersChecksLoading = true;
+    })
+    .addCase(showNotificationsForChecksAsync.fulfilled, (state, action) => {
+      state.getBuyersChecksLoading = false;
+      state.CheckNotifications = action.payload;
+    })
+    .addCase(showNotificationsForChecksAsync.rejected, (state, action) => {
+      state.getBuyersChecksLoading = false;
+      state.CheckNotifications = [];
+    })
 
       //ADD CHECK
       .addCase(addCheckAsync.pending, (state, action) => {

@@ -128,7 +128,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const validateValue = (value) => {
     return value === undefined || value === null || isNaN(value) || value === ""
       ? 0
-      : parseInt(value);
+      : Number(value);
   };
 
   useEffect(() => {
@@ -156,7 +156,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
     const { name, value } = e.target;
     setMeasurementData((prev) => {
       const updatedRows = [...prev.rowData];
-      updatedRows[index] = { ...updatedRows[index], [name]: parseInt(value) };
+      updatedRows[index] = { ...updatedRows[index], [name]: Number(value) };
       calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
@@ -181,7 +181,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const calulateTotalQuantity = (updatedRows) => {
     const totalQuantity = updatedRows.reduce((total, row) => {
       return (
-        total + validateValue(row.roleQuantity) * validateValue(row.measurement)
+        total + validateValue(row.roleQuantity) * Number(row.measurement)
       );
     }, 0);
     console.log("totalQuantity", totalQuantity);

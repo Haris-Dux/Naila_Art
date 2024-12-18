@@ -166,7 +166,7 @@ const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
                      payment Method
                     </option>
                     {PaymentData.map((item) => (
-                       <option key={item.value}>{item.label}</option>
+                       <option value={item.value} key={item.value}>{item.label}</option>
                     ))}
                   </select>
                 </div>

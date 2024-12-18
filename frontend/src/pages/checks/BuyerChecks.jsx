@@ -21,6 +21,7 @@ const BuyersChecks = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [markAsPaidModal, setMarkAsPaidModal] = useState(false);
   const [confirmationModal, setConfirmationModal] = useState(false);
+  const [isPartialPayment, setIsPartialPayment] = useState(false);
   const [category, setCategory] = useState("");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const { checkLoading, BuyersChecks, getBuyersChecksLoading } = useSelector(
@@ -36,13 +37,14 @@ const BuyersChecks = () => {
     checkId: "",
     id: "",
     payment_Method: "",
+    partialAmount: "",
   });
 
   const handleCheckDetailsChange = (e) => {
     const { name, value } = e.target;
     setCheckDetails((prev) => ({
       ...prev,
-      [name]: name === "checkAmount" ? parseInt(value) : value,
+      [name]: name === "checkAmount" || name === "partialAmount" ? parseInt(value) : value,
     }));
   };
 
@@ -59,13 +61,13 @@ const BuyersChecks = () => {
     setCheckDetails((prev) => ({
       ...prev,
       checkId: data.id,
-      date: today,
     }));
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setMarkAsPaidModal(false);
+    setIsPartialPayment(false);
     document.body.style.overflow = "auto";
     setCheckDetails({
       checkNumber: "",
@@ -84,6 +86,7 @@ const BuyersChecks = () => {
       const updatedData = {
         ...checkDetails,
         id: BuyersChecks.id,
+        partialPayment:true
       };
       dispatch(updateBuyerCheckWithNewAsync(updatedData)).then((res) => {
         if (res.payload.success) {
@@ -148,7 +151,7 @@ const BuyersChecks = () => {
     document.body.style.overflow = "hidden";
     setCheckDetails((prev) => ({
       ...prev,
-      checkId:id,
+      checkId: id,
       id: BuyersChecks.id,
     }));
     setConfirmationModal(true);
@@ -165,7 +168,7 @@ const BuyersChecks = () => {
         {/* -------------- HEADER -------------- */}
         <div className="header flex justify-between items-center pt-6 mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
-            Buyer Checks
+            Buyer Cheques
           </h1>
           <div className="search_bar flex items-center gap-3 mr-2">
             <button
@@ -195,7 +198,7 @@ const BuyersChecks = () => {
               <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
                   <th className="px-6 py-3 " scope="col">
-                    Date
+                    Due Date
                   </th>
                   <th className="px-6 py-3" scope="col">
                     Check Number
@@ -348,11 +351,12 @@ const BuyersChecks = () => {
                   <div>
                     <input
                       name="date"
-                      type="text"
+                      type="date"
                       placeholder="Date"
                       value={checkDetails.date}
+                      onChange={handleCheckDetailsChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      readOnly
+                      required
                     />
                   </div>
 
@@ -395,6 +399,71 @@ const BuyersChecks = () => {
                     required
                   />
                 </div>
+
+                {/* PARTIAL PAYMENT SECTION */}
+                {category === "UpdateCheck" &&
+                  <>
+                    <div className="grid grid-cols-1 mt-4 gap-4 lg:grid-cols-2 lg:gap-x-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          className="form-checkbox h-4 w-4 text-blue-600"
+                          checked={isPartialPayment}
+                          onChange={(e) =>
+                            setIsPartialPayment(e.target.checked)
+                          }
+                        />
+                        <span className="text-gray-700 dark:text-gray-300">
+                          Partial Payment
+                        </span>
+                      </label>
+                      {/* PARTIAL AMOUNT */}
+                      {isPartialPayment && (
+                        <div>
+                          <input
+                            name="partialAmount"
+                            type="number"
+                            placeholder="Enter Partial Amount"
+                            onChange={handleCheckDetailsChange}
+                            value={checkDetails.partialAmount}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {isPartialPayment && (
+                      <div className="grid grid-cols-1 gap-4 mt-4">
+                        {/* PAYMENT METHOD */}
+                        <div>
+                          <select
+                            id="payment-method"
+                            name="payment_Method"
+                            className="bg-gray-50 border w-full border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
+                            value={checkDetails?.payment_Method}
+                            onChange={(e) =>
+                              setCheckDetails({
+                                ...checkDetails,
+                                payment_Method: e.target.value,
+                              })
+                            }
+                            required
+                          >
+                            <option value="" disabled>
+                              Payment Method
+                            </option>
+                            {PaymentData?.map((item) => (
+                              <option value={item.value} key={item.value}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                }
                 <div className="flex justify-center mt-6">
                   <button
                     disabled={checkLoading}
@@ -474,6 +543,7 @@ const BuyersChecks = () => {
                         payment_Method: e.target.value,
                       })
                     }
+                    required
                   >
                     <option value="" disabled>
                       Payment Method
