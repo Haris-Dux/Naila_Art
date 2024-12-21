@@ -1,6 +1,7 @@
 import { LaceModel } from "../../models/Stock/Lace.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
+
 export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,session}) => {
   try {
     if (!category || !bill_no || !quantity || !r_Date || !name)
@@ -30,6 +31,33 @@ export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,sess
     }
 
     return { message: "Successfully Added" };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
+export const removeLaceFromStock = async ({bill_no,name,category,quantity,r_Date,session}) => {
+  try {
+    if (!category || !bill_no || !quantity || !r_Date || !name)
+      throw new Error("All Fields Required To Delete Stock");
+    const checkExistingStock = await LaceModel.findOne({
+      category: category,
+    }).session(session);
+    const modifiedQuantity = `Deleted/${quantity}`;
+    let recordData = {bill_no,name,category,quantity:modifiedQuantity,date:r_Date};
+    if (checkExistingStock) {
+      const updatedTotalQuantity = checkExistingStock.totalQuantity - quantity;
+      if(updatedTotalQuantity < 0){
+        throw new Error("Not Enough Lace Quantity In Stock");
+      }
+          checkExistingStock.totalQuantity = updatedTotalQuantity,
+          checkExistingStock.all_Records.push(recordData)
+          await checkExistingStock.save({session});     
+    } else {
+     throw new Error("Lace Stock Not Found")
+    }
+
+    return { message: "Stock Successfully Deleted" };
   } catch (error) {
     return { error: error.message };
   }

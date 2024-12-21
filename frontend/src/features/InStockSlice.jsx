@@ -20,6 +20,7 @@ const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
 const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
 const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock"
+const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
 // GET ALL BRANCHES API
 const getAllBranches = "/api/branches/getAllBranches";
 
@@ -305,6 +306,20 @@ export const DeleteExpenseAsync = createAsyncThunk(
   }
 );
 
+// DELETE EXPENSE
+export const DeleteBaseStockAsync = createAsyncThunk(
+  "Base/DeleteBaseStock",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteBaseStockUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   SuitLoading: false,
@@ -348,6 +363,7 @@ const InStockSlic = createSlice({
         state.accessories = action.payload;
       })
 
+      //DELETE EXPENSE STOCK
       .addCase(DeleteExpenseAsync.pending, (state, action) => {
         state.deleteLodaing = true;
       })
@@ -355,6 +371,17 @@ const InStockSlic = createSlice({
         state.deleteLodaing = false;
       })
       .addCase(DeleteExpenseAsync.rejected, (state, action) => {
+        state.deleteLodaing = false;
+      })
+
+      //DELETE BASE STOCK
+      .addCase(DeleteBaseStockAsync.pending, (state, action) => {
+        state.deleteLodaing = true;
+      })
+      .addCase(DeleteBaseStockAsync.fulfilled, (state, action) => {
+        state.deleteLodaing = false;
+      })
+      .addCase(DeleteBaseStockAsync.rejected, (state, action) => {
         state.deleteLodaing = false;
       })
 

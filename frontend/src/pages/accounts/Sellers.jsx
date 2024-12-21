@@ -24,22 +24,17 @@ const PhoneComponent = ({ phone }) => {
 
 const Sellers = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
   const [search, setSearch] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState();
 
   const [validateOldBuyer, setValidateOldBuyer] = useState('');
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { user } = useSelector((state) => state.auth);
   const { loading, Buyers, AllSeller } = useSelector((state) => state.Seller);
-
-  const [selectedBranchId, setSelectedBranchId] = useState();
 
   const [selectedCategory, setSelectedCategory] = useState('Base');
 

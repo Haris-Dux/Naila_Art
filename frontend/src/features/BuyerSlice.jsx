@@ -13,7 +13,11 @@ const updateBuyerCheckWithNewUrl = "/api/buyers/checks/updateBuyerCheckWithNew";
 const markCheckAsPaidUrl = "/api/buyers/checks/markCheckAsPaid";
 const getAllChecksForPartyUrl = "/api/buyers/checks/getAllChecksForParty";
 const deleteCheckUrl = "/api/buyers/checks/deleteCheck";
-const showNotificationsForChecksUrl = "/api/buyers/checks/showNotificationsForChecks";
+const showNotificationsForChecksUrl =
+  "/api/buyers/checks/showNotificationsForChecks";
+const generateReturnBillWithoutRecordUrl =
+  "/api/buyers/generateReturnBillWithoutRecord";
+const getReturnBillWithoutRecordUrl = "/api/buyers/getReturnBillWithoutRecord";
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -171,6 +175,42 @@ export const showNotificationsForChecksAsync = createAsyncThunk(
   }
 );
 
+//GENERATE RETURN BILL(NO RECORD)
+export const generateReturnBillNoRecordAsync = createAsyncThunk(
+  "Buyers/ReturnBillNoRecordA",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        generateReturnBillWithoutRecordUrl,
+        data
+      );
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+//GET RETURN BILL(NO RECORD)
+export const getReturnBillNoRecordAsync = createAsyncThunk(
+  "Buyers/getReturnBillNoRecord",
+  async (data) => {
+    const searchQuery =
+    data?.search !== undefined && data?.search !== null
+      ? `&search=${data?.search}`
+      : "";
+    try {
+      const response = await axios.post(
+        `${getReturnBillWithoutRecordUrl}?&page=${data.page}${searchQuery}`,
+        { id: data.id }
+      );
+      return response.data;
+    } catch (error) {
+     throw new Error(error);
+    }
+  }
+);
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -181,8 +221,11 @@ const initialState = {
   markAsPaidLoading: false,
   checkLoading: false,
   getBuyersChecksLoading: false,
-  BuyersChecks:[],
-  CheckNotifications:[]
+  BuyersChecks: [],
+  CheckNotifications: [],
+  returnBillLoading: false,
+  getReturnBillLoading: false,
+  returnBillsNoRecord: [],
 };
 
 const BuyerSlice = createSlice({
@@ -191,18 +234,18 @@ const BuyerSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-     //SHOW NOTIFICATIONS DATA
-     .addCase(showNotificationsForChecksAsync.pending, (state, action) => {
-      state.getBuyersChecksLoading = true;
-    })
-    .addCase(showNotificationsForChecksAsync.fulfilled, (state, action) => {
-      state.getBuyersChecksLoading = false;
-      state.CheckNotifications = action.payload;
-    })
-    .addCase(showNotificationsForChecksAsync.rejected, (state, action) => {
-      state.getBuyersChecksLoading = false;
-      state.CheckNotifications = [];
-    })
+      //SHOW NOTIFICATIONS DATA
+      .addCase(showNotificationsForChecksAsync.pending, (state, action) => {
+        state.getBuyersChecksLoading = true;
+      })
+      .addCase(showNotificationsForChecksAsync.fulfilled, (state, action) => {
+        state.getBuyersChecksLoading = false;
+        state.CheckNotifications = action.payload;
+      })
+      .addCase(showNotificationsForChecksAsync.rejected, (state, action) => {
+        state.getBuyersChecksLoading = false;
+        state.CheckNotifications = [];
+      })
 
       //ADD CHECK
       .addCase(addCheckAsync.pending, (state, action) => {
@@ -210,6 +253,27 @@ const BuyerSlice = createSlice({
       })
       .addCase(addCheckAsync.fulfilled, (state, action) => {
         state.checkLoading = false;
+      })
+
+      //GENERATE RETURN BILL(NO RECORD)
+      .addCase(generateReturnBillNoRecordAsync.pending, (state, action) => {
+        state.returnBillLoading = true;
+      })
+      .addCase(generateReturnBillNoRecordAsync.fulfilled, (state, action) => {
+        state.returnBillLoading = false;
+      })
+
+      //GET GENERATE RETURN BILL(NO RECORD)
+      .addCase(getReturnBillNoRecordAsync.pending, (state, action) => {
+        state.getReturnBillLoading = true;
+      })
+      .addCase(getReturnBillNoRecordAsync.fulfilled, (state, action) => {
+        state.getReturnBillLoading = false;
+        state.returnBillsNoRecord = action.payload;
+      })
+      .addCase(getReturnBillNoRecordAsync.rejected, (state, action) => {
+        state.getReturnBillLoading = false;
+        state.returnBillsNoRecord = [];
       })
 
       //UPDATECHECK WITH NEW CHECK
@@ -242,13 +306,12 @@ const BuyerSlice = createSlice({
       })
 
       //DELETE CHECK
-       .addCase(deleteCheckAsync.pending, (state, action) => {
+      .addCase(deleteCheckAsync.pending, (state, action) => {
         state.checkLoading = true;
       })
       .addCase(deleteCheckAsync.fulfilled, (state, action) => {
         state.checkLoading = false;
       })
-
 
       //MARK AS PAID ACCOUNT
       .addCase(markAsPaidAsync.pending, (state, action) => {

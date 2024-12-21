@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addBaseInStock,
+  deleteBaseStock,
   getAllBases,
   getAllBasesForEmbroidery,
   getAllCategoriesForbase,
@@ -20,6 +21,11 @@ baseRouter.post(
   "/getAllBasesForEmbroidery",
   verifyUser,
   getAllBasesForEmbroidery
+);
+baseRouter.post(
+  "/deleteBaseStock",
+  verifyUser,
+  deleteBaseStock
 );
 
 export default baseRouter;

@@ -2,6 +2,7 @@ import express from "express";
 import {
   addInStockAndGeneraeSellerData_NEW,
   addInStockAndGeneraeSellerData_OLD,
+  deleteSellerBillAndReverseStock,
   getAllPurchasingHistory,
   getAllSellersForPurchasing,
   getSelleForPurchasingById,
@@ -18,5 +19,6 @@ sellerRouter.post("/getSelleForPurchasingById", superAdminAndAdminOnly, getSelle
 sellerRouter.post("/validateAndGetOldSellerData", superAdminAndAdminOnly, validateAndGetOldSellerData);
 sellerRouter.post("/addInStockAndGeneraeSellerData_OLD", superAdminAndAdminOnly, addInStockAndGeneraeSellerData_OLD);
 sellerRouter.post("/getAllPurchasingHistory", superAdminAndAdminOnly, getAllPurchasingHistory);
+sellerRouter.post("/deleteSellerBillAndReverseStock", superAdminAndAdminOnly, deleteSellerBillAndReverseStock);
 
 export default sellerRouter;

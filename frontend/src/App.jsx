@@ -52,6 +52,7 @@ import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHist
 import ReturnBills from "./pages/bills/ReturnBills";
 import PackingDetails from "./pages/process/Packing/PackingDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
+import W_R_R_Bills from "./pages/bills/W_R_R_Bills";
 
 function App() {
   const dispatch = useDispatch();
@@ -109,6 +110,7 @@ useEffect(() => {
             <Route path="processbills" element={<ProcessBills />} />
             <Route path="process-details/:id/:category" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
+            <Route path="return-Bills-No-Record" element={<W_R_R_Bills />} />
             <Route path="naila-arts-return-bills" element={<ReturnBills />} />
 
         

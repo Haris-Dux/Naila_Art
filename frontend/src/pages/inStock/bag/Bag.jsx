@@ -31,7 +31,6 @@ const Bag = () => {
 
   const filteredData = Bags?.data?.filter((data) => data.id === bagId);
 
-
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[60vh] rounded-lg">
@@ -40,8 +39,6 @@ const Bag = () => {
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Bag / Box
           </h1>
-
-   
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
@@ -116,8 +113,6 @@ const Bag = () => {
         )}
       </section>
 
-
-
       {isOpen && (
         <div
           aria-hidden="true"
@@ -175,24 +170,26 @@ const Bag = () => {
                 <tbody>
                   {filteredData && filteredData.length > 0 ? (
                     filteredData?.map((item, index) =>
-                      item?.all_Records?.map((data, subIndex) => (
-                        <tr
-                          key={`${index}-${subIndex}`}
-                          className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                          <th
-                            className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                            scope="row"
+                      item?.all_Records
+                        ?.slice()
+                        ?.reverse()
+                        ?.map((data, subIndex) => (
+                          <tr
+                            key={`${index}-${subIndex}`}
+                            className={`${
+                              data?.name.startsWith("Delete")
+                                ? "bg-red-500 text-white"
+                                : "bg-white text-black"
+                            } border-b text-sm font-medium `}
                           >
-                            {data.bill_no}
-                          </th>
-                          <td className="px-6 py-4">
-                            {new Date(data?.date).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4">{data.name}</td>
-                          <td className="px-6 py-4">{data.quantity} p</td>
-                        </tr>
-                      ))
+                            <th className="px-6 py-4 ">{data.bill_no}</th>
+                            <td className="px-6 py-4">
+                              {new Date(data?.date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4">{data.name}</td>
+                            <td className="px-6 py-4">{data.quantity} p</td>
+                          </tr>
+                        ))
                     )
                   ) : (
                     <tr className="w-full flex justify-center items-center">
