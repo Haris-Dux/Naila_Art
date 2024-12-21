@@ -230,3 +230,56 @@ const historySchema = new mongoose.Schema(
 );
 
 export const BuyersBillsModel = mongoose.model("Buyers Bills", historySchema);
+
+
+//WITH OUT RECORDS RETURN BILLS
+
+const W_R_R_BillSchema = new mongoose.Schema(
+  {
+    branchId: {
+      type: String,
+      required: [true, "Branch Id required"],
+    },
+    name: {
+      type: String,
+      required: [true, "Name Value is required"],
+    },
+    date: {
+      type: String,
+      required: [true, "Date value is required"],
+    },
+    phone: {
+      type: String,
+      required: [true, "Phone value is required"],
+    },
+    note: {
+      type: String,
+      required: [true, "Note value is required"],
+    },
+    cash: {
+      type: Number,
+      required: [true, "Cash value is required"],
+    },
+    category: {
+      type: String,
+      required: [true, "Category value is required"],
+    },
+    quantity: {
+      type: Number,
+      required: [true, "Remaining Value is required"],
+    },
+    color: {
+      type: String,
+      required: [true, "Color Value is is required"],
+    },
+    payment_Method:{
+      type: String,
+      required: [true, "Payment Method value is required"],
+    }
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export const W_R_R_BillModel = mongoose.model("W_R_R Bills", W_R_R_BillSchema);

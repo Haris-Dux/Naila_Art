@@ -4,7 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { IoLogOutOutline } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
-import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
+import {
+  generateReturnBillNoRecordAsync,
+  showNotificationsForChecksAsync,
+} from "../../features/BuyerSlice";
+import moment from "moment-timezone";
+import { GetAllBranches } from "../../features/InStockSlice";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -12,6 +17,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const menuRef = useRef(null);
   const menuButtonRef = useRef(null);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   // STATES
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,6 +29,28 @@ const Dashboard = () => {
   const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
   const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
   const [isAccountsDropdownOpen, setIsAccountsDropdownOpen] = useState(false);
+  const [returnBillModal, setReturnBillModal] = useState(false);
+
+  const [formData, setFormData] = useState({
+    cash: "",
+    name: "",
+    phone: "",
+    category: "",
+    color: "",
+    quantity: "",
+    branchId: "",
+    payment_Method: "cashSale",
+    date: "",
+    note: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
   const toggleInStockDropdown = () => {
     setIsInStockDropdownOpen((prevState) => !prevState);
@@ -53,9 +81,9 @@ const Dashboard = () => {
   };
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
-  const { getBuyersChecksLoading, CheckNotifications } = useSelector(
-    (state) => state.Buyer
-  );
+  const { getBuyersChecksLoading, CheckNotifications, returnBillLoading } =
+    useSelector((state) => state.Buyer);
+  const { Branches } = useSelector((state) => state.InStock);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -72,13 +100,15 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.addEventListener("click", closeMenu);
+    const id = user?.user?.id;
     if (user && user?.user?.role !== "user") {
       dispatch(showNotificationsForChecksAsync());
+      dispatch(GetAllBranches({ id }));
     }
     return () => {
       document.removeEventListener("click", closeMenu);
     };
-  }, []);
+  }, [dispatch, user]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -119,9 +149,44 @@ const Dashboard = () => {
   const closeModal = () => {
     document.body.style.overflow = "auto";
     setChecksNotifications(false);
+    setReturnBillModal(false);
+    setFormData({
+      cash: "",
+      name: "",
+      phone: "",
+      category: "",
+      color: "",
+      quantity: "",
+      branchId: "",
+      payment_Method: "cashSale",
+      date: "",
+      note: "",
+    });
+  };
+
+  const openReturnBillModal = () => {
+    setReturnBillModal(true);
+    document.body.style.overflow = "hidden";
   };
 
   const notificationValue = CheckNotifications?.data?.length || 0;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      ...formData,
+      date: today,
+      branchId:
+        user?.user?.role === "superadmin"
+          ? formData.branchId
+          : user?.user?.branchId,
+    };
+    dispatch(generateReturnBillNoRecordAsync(data)).then((res) => {
+      if (res.payload.success) {
+        closeModal();
+      }
+    });
+  };
 
   return (
     <>
@@ -170,15 +235,30 @@ const Dashboard = () => {
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS
+                  {/* NAILA ARTS */}
                 </span>
               </Link>
             </div>
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
+           
+              <Link
+                to="/dashboard/generate-bill"
+                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+              >
+                Generate Buyer Bill
+              </Link>
+
+              <button
+                onClick={openReturnBillModal}
+                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+              >
+                Return Bill (No Record)
+              </button>
+
               {user && user?.user?.role !== "user" && (
-                <button className="relative">
+                <button className="relative mr-2">
                   <RiNotification2Line
                     onClick={viewChecksData}
                     size={32}
@@ -189,13 +269,6 @@ const Dashboard = () => {
                   </div>
                 </button>
               )}
-
-              <Link
-                to="/dashboard/generate-bill"
-                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
-              >
-                Generate Bill
-              </Link>
 
               <div className="relative inline-block text-left">
                 <div>
@@ -764,6 +837,7 @@ const Dashboard = () => {
           <Outlet />
         </main>
       </div>
+
       {/* CHECKS MODAL */}
       {checkNotifications && (
         <div
@@ -877,6 +951,207 @@ const Dashboard = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RETURN BILL MODAL */}
+      {returnBillModal && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Return Bill For Buyers (No record)
+              </h3>
+              <div className="flex items-center space-x-4">
+                {/* View All Button */}
+
+                <Link
+                  className="px-4 py-1.5 ml-1 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  to={"/dashboard/return-Bills-No-Record"}
+                  onClick={closeModal}
+                >
+                  View All
+                </Link>
+
+                {/* Close Button */}
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 md:p-5">
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Name */}
+                  <div>
+                    <input
+                      name="name"
+                      type="text"
+                      placeholder="Party Name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <input
+                      name="phone"
+                      type="text"
+                      placeholder="Phone Number"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <input
+                      name="category"
+                      type="text"
+                      placeholder="Category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Color */}
+                  <div>
+                    <input
+                      name="color"
+                      type="text"
+                      placeholder="Color"
+                      value={formData.color}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <input
+                      name="quantity"
+                      type="number"
+                      placeholder="Quantity"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Cash */}
+                  <div>
+                    <input
+                      name="cash"
+                      type="number"
+                      placeholder="Amount"
+                      value={formData.cash}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Date */}
+                  <div>
+                    <input
+                      name="date"
+                      type="date"
+                      value={today}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                      readOnly
+                    />
+                  </div>
+
+                  {/* NOTE */}
+                  <div className="col-span-2">
+                    <input
+                      name="note"
+                      type="text"
+                      placeholder="Enter Note"
+                      value={formData.note}
+                      onChange={handleChange}
+                      className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {user?.user?.role === "superadmin" ? (
+                    <div className="col-span-3">
+                      <select
+                        id="branches"
+                        name="branchId"
+                        value={formData.branchId}
+                        onChange={handleChange}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      >
+                        <option value="">Select Branch</option>
+                        {Branches?.map((data) => (
+                          <option key={data.id} value={data.id}>
+                            {data.branchName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-center mt-6">
+                  {returnBillLoading ? (
+                    <button
+                      disabled
+                      type="submit"
+                      className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
+                    >
+                      Submit
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
+                    >
+                      Submit
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
           </div>
         </div>

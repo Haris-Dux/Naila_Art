@@ -38,6 +38,37 @@ export const addBagsAndBoxInStock = async ({name, bill_no, r_Date, quantity,sess
   }
 };
 
+export const removeBagsAndBoxFromStock = async ({name, bill_no, r_Date, quantity,session}) => {
+  try {
+    if (!name || !bill_no || !quantity || !r_Date)
+      throw new Error("All Fields Required To Delete Stock");
+    // Ensure name is either 'Bags' or 'Box'
+  if (name !== "Bags" && name !== "Box") {
+    throw new Error("Name must be either 'Bags' or 'Box'");
+  }
+    const checkExistingStock = await BagsAndBoxModel.findOne({
+      name: name,
+    }).session(session);
+    const modifiedName = `Deleted/${name}`;
+    let recordData = { bill_no, name:modifiedName, quantity, date: r_Date };
+    if (checkExistingStock) {
+      const updatedTotalQuantity = checkExistingStock.totalQuantity - parseInt(quantity);
+      if(updatedTotalQuantity < 0){
+        throw new Error(`Not Enough ${name} Quantity In Stock`);
+      }
+        checkExistingStock.totalQuantity = updatedTotalQuantity;
+      checkExistingStock.all_Records.push(recordData);
+      await checkExistingStock.save({session});
+    } else {
+      throw new Error("Bags/Box Stock Not Found")
+    }
+
+    return { message: "Stock Successfully Deleted" };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
 export const getAllBagsAndBox = async (req, res, next) => {
   try {
    

@@ -95,3 +95,40 @@ export const getAllBasesForEmbroidery = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const deleteBaseStock = async (req, res, next) => {
+  try {
+    const { baseId, itemId } = req.body;
+
+    if (!baseId || !itemId) {
+      throw new Error("Required Missing Fields");
+    }
+
+    const base = await BaseModel.findById(baseId);
+    if (!base) {
+      throw new Error("Base Not Found");
+    }
+
+    const item = base.all_Records.find((record) => record._id.toString() === itemId);
+    if (!item) {
+      throw new Error("Item Not Found in Base");
+    }
+
+    const itemQuantity = parseInt(item.quantity, 10);
+
+    if (base.TYm < itemQuantity) {
+      throw new Error("Not Enough Quantity in Stock");
+    }
+
+    base.TYm -= itemQuantity;
+
+    item.quantity = `Deleted/${item.quantity}`;
+
+    await base.save();
+
+    return res.status(200).json({success:true , message: "Successfully Deleted Base Stock" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+

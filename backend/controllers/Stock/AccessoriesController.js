@@ -33,6 +33,32 @@ export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,se
   }
 };
 
+export const removeAccesoriesFromStock = async ({serial_No, name, r_Date, quantity,session,category}) => {
+  try {
+    if (!serial_No || !quantity || !r_Date || !name || !category)
+      throw new Error("All Fields Required To Delete Stock");
+    const checkExistingStock = await AccssoriesModel.findOne({
+      name: { $regex: new RegExp(`^${category}$`, "i") },
+    }).session(session);
+    const modifiedQuantity = `Deleted/${quantity}`
+    let recordData = { serial_No, name: category, quantity:modifiedQuantity, date: r_Date };
+    if (checkExistingStock) {
+      const updatedTotalQuantity = checkExistingStock.totalQuantity - quantity;
+      if(updatedTotalQuantity < 0){
+        throw new Error(`Not Enough ${category}  In Stock`);
+      }
+        (checkExistingStock.totalQuantity = updatedTotalQuantity),
+        checkExistingStock.all_Records.push(recordData);
+      await checkExistingStock.save({session});
+    } else {
+      throw new Error("Accessories Stock Not Found")
+    }
+    return { message: "Stock Successfully Deleted" };
+  } catch (error) {
+    return { error: error.message };
+  }
+};
+
 export const getAllAccesoriesInStock = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;

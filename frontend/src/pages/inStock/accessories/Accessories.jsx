@@ -417,8 +417,12 @@ const Accessories = () => {
                                             {filteredData && filteredData.length > 0 ? (
                                                 filteredData?.map((item, index) => (
                                                     item?.all_Records?.slice().reverse().map((data, subIndex) => (
-                                                        <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                                        <tr key={`${index}-${subIndex}`}  className={`${
+                                                            data?.quantity.startsWith("Delete")
+                                                              ? "bg-red-500 text-white"
+                                                              : "bg-white text-black"
+                                                          } border-b text-sm font-medium `}>
+                                                            <th className="px-6 py-4">
                                                                 {data.serial_No}
                                                             </th>
                                                             <td className="px-6 py-4">
