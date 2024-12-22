@@ -336,12 +336,12 @@ const GenerateBill = () => {
   const handleBillType = (e) => {
     const value = e.target.checked;
     setPastBill(value);
-    if(!value){
+    if (!value) {
       setBillData((prev) => ({
         ...prev,
-        date:today
-      }))
-    };
+        date: today,
+      }));
+    }
   };
   return (
     <>
@@ -434,7 +434,6 @@ const GenerateBill = () => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           value={billData.date}
                           onChange={handleInputChange}
-                         
                         />
                       </div>
                     ) : (
@@ -620,6 +619,19 @@ const GenerateBill = () => {
                       onChange={handleOtherBillCahange}
                       required={otherBillData.show}
                     />
+                  </div>
+                  <div className="flex items-center my-auto justify-between  px-5 border border-red-600 p-2 rounded-md">
+                    <label
+                      htmlFor="otherBillData"
+                      className="text-md font-bold"
+                    >
+                      Total Bill 
+                    </label>
+                    <span
+                      className={`text-sm font-medium text-black`}
+                    >
+                      {(otherBillData.o_b_amount + billData.total) || 0}
+                    </span>
                   </div>
                 </div>
               )}

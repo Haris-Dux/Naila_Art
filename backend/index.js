@@ -31,6 +31,7 @@ import returnRouter from "./routes/Returns/ReturnRoutes.js";
 import pictureRouter from "./routes/Process/PictureRoutes.js";
 import { AppErrorHandler } from '../backend/config/exceptionHandlers/handler.js';
 import checkRouter from "./routes/Checks/CheckRoutes.js";
+import otherSaleRouter from "./routes/OtherSaleRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -84,6 +85,7 @@ app.use(session({
   app.use("/api/returns",returnRouter);
   app.use("/api/process/pictures",pictureRouter);
   app.use("/api/buyers/checks",checkRouter);
+  app.use("/api/otherSale",otherSaleRouter);
 
 // const root = path.resolve();
 // app.use(express.static(path.join(root, 'dist')));

@@ -73,7 +73,7 @@ export const addExpense = async (req, res, next) => {
             reason,
             Date,
             rate,
-            serial_no: lastExpenseS_N[0].serial_no + 1,
+            serial_no: lastExpenseS_N[0]?.serial_no + 1 || 1,
             ...(payment_Method && {payment_Method} ),
           },
         ],
