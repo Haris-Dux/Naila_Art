@@ -10,6 +10,8 @@ import {
 } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
 import { GetAllBranches } from "../../features/InStockSlice";
+import { PaymentData } from "../../Utils/AccountsData";
+import { generateOtherSaleAsync } from "../../features/OtherSale";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,18 +32,23 @@ const Dashboard = () => {
   const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
   const [isAccountsDropdownOpen, setIsAccountsDropdownOpen] = useState(false);
   const [returnBillModal, setReturnBillModal] = useState(false);
+  const [othersaleModal, setOtherSaleModal] = useState(false);
 
   const [formData, setFormData] = useState({
     cash: "",
+    amount: "",
+    city: "",
+    cargo: "",
     name: "",
     phone: "",
     category: "",
     color: "",
     quantity: "",
     branchId: "",
-    payment_Method: "cashSale",
+    payment_Method: "",
     date: "",
     note: "",
+    bill_by: "",
   });
 
   const handleChange = (e) => {
@@ -81,6 +88,7 @@ const Dashboard = () => {
   };
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
+  const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
   const { getBuyersChecksLoading, CheckNotifications, returnBillLoading } =
     useSelector((state) => state.Buyer);
   const { Branches } = useSelector((state) => state.InStock);
@@ -150,22 +158,32 @@ const Dashboard = () => {
     document.body.style.overflow = "auto";
     setChecksNotifications(false);
     setReturnBillModal(false);
+    setOtherSaleModal(false);
     setFormData({
       cash: "",
+      amount: "",
+      city: "",
+      cargo: "",
       name: "",
       phone: "",
       category: "",
       color: "",
       quantity: "",
       branchId: "",
-      payment_Method: "cashSale",
+      payment_Method: "",
       date: "",
       note: "",
+      bill_by: "",
     });
   };
 
   const openReturnBillModal = () => {
     setReturnBillModal(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const openOtherSaleModal = () => {
+    setOtherSaleModal(true);
     document.body.style.overflow = "hidden";
   };
 
@@ -176,12 +194,34 @@ const Dashboard = () => {
     const data = {
       ...formData,
       date: today,
+      payment_Method: "cashSale",
       branchId:
         user?.user?.role === "superadmin"
           ? formData.branchId
           : user?.user?.branchId,
     };
     dispatch(generateReturnBillNoRecordAsync(data)).then((res) => {
+      if (res.payload.success) {
+        closeModal();
+      }
+    });
+  };
+
+  const handleGenerateOtherSale = (e) => {
+    e.preventDefault();
+    const payload = {
+      name: formData.name,
+      phone: formData.phone,
+      amount: Number(formData.amount),
+      city: formData.city,
+      cargo: formData.cargo,
+      date: today,
+      bill_by: formData.bill_by,
+      payment_Method: formData.payment_Method,
+      quantity: formData.quantity,
+      note: formData.note,
+    };
+    dispatch(generateOtherSaleAsync(payload)).then((res) => {
       if (res.payload.success) {
         closeModal();
       }
@@ -242,13 +282,19 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
-           
               <Link
                 to="/dashboard/generate-bill"
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Generate Buyer Bill
               </Link>
+
+              <button
+                onClick={openOtherSaleModal}
+                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+              >
+                Generate Other Sale
+              </button>
 
               <button
                 onClick={openReturnBillModal}
@@ -1135,6 +1181,228 @@ const Dashboard = () => {
                 {/* Submit Button */}
                 <div className="flex justify-center mt-6">
                   {returnBillLoading ? (
+                    <button
+                      disabled
+                      type="submit"
+                      className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
+                    >
+                      Submit
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
+                    >
+                      Submit
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTHER SALE MODAL */}
+      {othersaleModal && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Generate Other Sale
+              </h3>
+              <div className="flex items-center space-x-4">
+                {/* View All Button */}
+
+                <Link
+                  className="px-4 py-1.5 ml-1 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  to={"/dashboard/other-sale"}
+                  onClick={closeModal}
+                >
+                  View All
+                </Link>
+
+                {/* Close Button */}
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 md:p-5">
+              <form onSubmit={handleGenerateOtherSale}>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Name */}
+                  <div>
+                    <input
+                      name="name"
+                      type="text"
+                      placeholder="Party Name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Amount */}
+                  <div>
+                    <input
+                      name="amount"
+                      type="number"
+                      placeholder="Amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <input
+                      name="city"
+                      type="text"
+                      placeholder="City"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Cargo */}
+                  <div>
+                    <input
+                      name="cargo"
+                      type="text"
+                      placeholder="Cargo"
+                      value={formData.cargo}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <input
+                      name="phone"
+                      type="text"
+                      placeholder="Phone Number"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Date */}
+                  <div>
+                    <input
+                      name="date"
+                      type="text"
+                      value={today}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                      readOnly
+                    />
+                  </div>
+
+                  {/* Bill By */}
+                  <div>
+                    <input
+                      name="bill_by"
+                      type="text"
+                      placeholder="Bill By"
+                      value={formData.bill_by}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <input
+                      name="quantity"
+                      type="number"
+                      placeholder="Quantity"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div>
+                    <select
+                      id="payment-method"
+                      name="payment_Method"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      value={formData.payment_Method}
+                      required
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          payment_Method: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="" disabled>
+                        Payment Method
+                      </option>
+                      {PaymentData?.map((item) => (
+                        <option value={item.value} key={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Note */}
+                  <div className="col-span-3">
+                    <input
+                      name="note"
+                      type="text"
+                      placeholder="Enter Note"
+                      value={formData.note}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-center mt-6">
+                  {generateOtherSaleLoading ? (
                     <button
                       disabled
                       type="submit"

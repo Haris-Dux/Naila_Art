@@ -47,6 +47,7 @@ export const addExpense = async (req, res, next) => {
             throw new Error("Not Enough Cash In Payment Method");
           virtualAccounts = updatedAccount;
           await virtualAccounts[0].save({ session });
+          await existingDailySaleData.save({ session });
         }
       } else {
         existingDailySaleData.saleData.totalExpense += rate;
