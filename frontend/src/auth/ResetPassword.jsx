@@ -6,159 +6,206 @@ import "./auth.css";
 import toast from "react-hot-toast";
 
 const ResetPassword = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
-    const { loading } = useSelector((state) => state.auth);
+  const { loading } = useSelector((state) => state.auth);
+  const id = useSelector((state) => state.auth.userId);
 
-    const id = useSelector((state) => state.auth.userId);
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
-    const [formData, setFormData] = useState({
-        password: "",
-        confirmPassword: "",
-    });
+  const { password, confirmPassword } = formData;
 
-    const { password, confirmPassword } = formData;
+  const [passwordValid, setPasswordValid] = useState({
+    minLength: false,
+    hasSymbol: false,
+    hasUpperLower: false,
+    passwordsMatch: false,
+  });
 
+  const handlePasswordChange = (name, value) => {
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
 
-    // HANDLE SUBMIT
-    const handleSubmit = async (e) => {
-        const resetPassword = password;
-        e.preventDefault();
-        if (password === confirmPassword) {
-            try {
-                await dispatch(resetPassAsync({ id, resetPassword }))
-                    .then((res) => {
-                        if (res.payload.message === "Password Updated") {
-                            navigate('/');
-                            setFormData({
-                                password: "",
-                                confirmPassword: "",
-                            });
-                        }
-                    })
-            } catch (error) {
-                console.error("Error resetting password:", error);
-            }
-        } else {
-            toast.error("Passwords do not match");
-        }
-    };
+    if (name === "password") {
+      const minLength = value.length >= 8;
+      const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+      const hasUpperLower = /[a-z]/.test(value) && /[A-Z]/.test(value);
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword);
-    };
+      setPasswordValid((prev) => ({
+        ...prev,
+        minLength,
+        hasSymbol,
+        hasUpperLower,
+        passwordsMatch: value === updatedFormData.confirmPassword,
+      }));
+    }
 
-    return (
-        <>
-            <section className="bg">
-                <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-screen lg:py-0">
-                    <div className="flex items-center mb-6 text-4xl font-semibold tracking-wider text-gray-100 dark:text-white">
-                        NAILA ARTS
-                    </div>
+    if (name === "confirmPassword") {
+      setPasswordValid((prev) => ({
+        ...prev,
+        passwordsMatch: updatedFormData.password === value,
+      }));
+    }
+  };
 
-                    <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-                        <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-                            <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                                Reset Password
-                            </h1>
-                            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (passwordValid.passwordsMatch) {
+      const resetPassword = password;
+      try {
+        await dispatch(resetPassAsync({ id, resetPassword })).then((res) => {
+          if (res.payload.message === "Password Updated") {
+            navigate("/");
+            setFormData({
+              password: "",
+              confirmPassword: "",
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Error resetting password:", error);
+      }
+    } else {
+      toast.error("Passwords do not match");
+    }
+  };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
-                                {/* PASSWORD */}
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                        htmlFor="password"
-                                    >
-                                        Password:
-                                    </label>
-                                    <input
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        type={showPassword ? "text" : "password"}
-                                        id="password"
-                                        name="password"
-                                        placeholder="••••••••"
-                                        value={formData.password}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, password: e.target.value })
-                                        }
-                                        required
-                                    />
-                                </div>
-
-
-                                {/* Confirm PASSWORD */}
-                                <div>
-                                    <label
-                                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                        htmlFor="confirmpassword"
-                                    >
-                                        Confirm Password:
-                                    </label>
-                                    <input
-                                        className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        type={showPassword ? "text" : "password"}
-                                        id="confirmpassword"
-                                        name="confirmPassword"
-                                        placeholder="••••••••"
-                                        value={formData.confirmPassword}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, confirmPassword: e.target.value })
-                                        }
-                                        required
-                                    />
-                                </div>
-
-                                {/* TOGGLE PASSWORD VISIBILITY */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-start">
-                                        <div className="flex items-center h-5">
-                                            <input
-                                                aria-describedby="remember"
-                                                className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-0 dark:bg-gray-700 dark:border-gray-600"
-                                                id="remember"
-                                                type="checkbox"
-                                                onChange={togglePasswordVisibility}
-                                            />
-                                        </div>
-                                        <div className="ml-3 text-sm">
-                                            <label
-                                                className="text-gray-500 dark:text-gray-300 select-none cursor-pointer"
-                                                htmlFor="remember"
-                                            >
-                                                show password
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                {loading ? (
-                                    <button disabled="" type="button" className="text-white cursor-not-allowed bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mx-auto dark:bg-blue-600 dark:hover:bg-blue-700  flex items-center justify-center w-full">
-                                        <svg aria-hidden="true" role="status" className="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"></path>
-                                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"></path>
-                                        </svg>
-                                        Loading...
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="submit"
-                                        className="w-full text-white bg-primary-600 hover:bg-primary-700  focus:outline-none focus:ring-primary-300 font-medium rounded-md text-sm px-5 h-10 text-center dark:bg-primary-600 dark:hover:bg-primary-700"
-                                    >
-                                        Submit
-                                    </button>
-                                )}
-
-                            </form>
-                        </div>
-                    </div>
+  return (
+    <section className="bg">
+      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-screen lg:py-0">
+        <div className="flex items-center mb-6 text-4xl font-semibold tracking-wider text-gray-100 dark:text-white">
+          NAILA ARTS
+        </div>
+        <div className="w-full bg-white rounded-lg shadow dark:border sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+          <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
+            <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+              Reset Password
+            </h1>
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+              {/* Password */}
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Password:
+                </label>
+                <input
+                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) =>
+                    handlePasswordChange("password", e.target.value)
+                  }
+                  required
+                />
+                <div className="mt-4">
+                  <p
+                    className={`text-sm ${
+                      passwordValid.minLength
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    ✔ Must be at least 8 characters
+                  </p>
+                  <p
+                    className={`text-sm ${
+                      passwordValid.hasSymbol
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    ✔ Must contain a special character (e.g., @, #, $)
+                  </p>
+                  <p
+                    className={`text-sm ${
+                      passwordValid.hasUpperLower
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    ✔ Must contain uppercase and lowercase letters
+                  </p>
                 </div>
-            </section>
-        </>
-    );
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Confirm Password:
+                </label>
+                <input
+                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5"
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    handlePasswordChange("confirmPassword", e.target.value)
+                  }
+                  required
+                />
+                <p
+                  className={`mt-2 text-sm ${
+                    passwordValid.passwordsMatch
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {passwordValid.passwordsMatch
+                    ? "✔ Passwords match"
+                    : "✖ Passwords do not match"}
+                </p>
+              </div>
+
+              {/* Toggle Password Visibility */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  onChange={togglePasswordVisibility}
+                  className="w-4 h-4 border-gray-300 rounded"
+                />
+                <label className="ml-2 text-sm text-gray-500">
+                  Show Password
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={
+                  !passwordValid.minLength ||
+                  !passwordValid.hasSymbol ||
+                  !passwordValid.hasUpperLower ||
+                  !passwordValid.passwordsMatch ||
+                  loading
+                }
+                className={`w-full text-white font-medium rounded-md text-sm px-5 py-2.5 ${
+                  passwordValid.minLength &&
+                  passwordValid.hasSymbol &&
+                  passwordValid.hasUpperLower &&
+                  passwordValid.passwordsMatch
+                    ? "bg-gray-800 hover:bg-gray-700"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {loading ? "Loading..." : "Reset Password"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default ResetPassword;

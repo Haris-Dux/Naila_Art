@@ -57,6 +57,7 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length > 0 &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
+      console.log('executing this 1');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -73,9 +74,10 @@ const PackingDetails = () => {
       });
     } else if (
       SingleStitching &&
-      SingleStitching?.suits_category?.length === 0 &&
+      (SingleStitching?.suits_category?.length === 0 ||  SingleStitching?.suits_category === null) &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
+      console.log('executing this 2');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -93,8 +95,9 @@ const PackingDetails = () => {
     } else if (
       SingleStitching &&
       SingleStitching?.suits_category?.length > 0 &&
-      SingleStitching?.dupatta_category?.length === 0
+      (SingleStitching?.dupatta_category?.length === 0 || SingleStitching?.dupatta_category === null)
     ) {
+      console.log('executing this 3');
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -110,6 +113,7 @@ const PackingDetails = () => {
           })) || [],
       });
     } else if (id === "null" && suits_category?.length > 0) {
+      console.log('executing 4');
       setFormData({
         ...formData,
         d_no: design_no,
@@ -130,6 +134,8 @@ const PackingDetails = () => {
     const idData = SingleStitching.embroidery_Id || embroidery_Id;
     dispatch(GETEmbroiderySIngle({ id: idData }));
   }, [SingleStitching, id]);
+
+  console.log('SingleStitching',SingleStitching);
 
   if (loading) {
     return (
