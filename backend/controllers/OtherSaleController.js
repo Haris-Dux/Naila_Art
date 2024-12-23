@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import CustomError from "../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../middleware/Common.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
+import { BranchModel } from "../models/Branch.Model.js";
 import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 import { OtherSaleBillModel } from "../models/OtherSaleModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
@@ -122,11 +123,12 @@ export const getAllOtherSaleBills = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
-    let query = {
-      name: { $regex: name, $options: "i" },
-    };
-    const totalDocuments = await DailySaleModel.countDocuments(query);
-    const data = await DailySaleModel.find(query)
+    let query = {};
+    if(name){
+      query = {name:{$regex: name, $options: 'i'}}
+    }
+    const totalDocuments = await OtherSaleBillModel.countDocuments(query);
+    const data = await OtherSaleBillModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });

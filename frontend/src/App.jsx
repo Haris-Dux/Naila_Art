@@ -53,6 +53,7 @@ import ReturnBills from "./pages/bills/ReturnBills";
 import PackingDetails from "./pages/process/Packing/PackingDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
 import W_R_R_Bills from "./pages/bills/W_R_R_Bills";
+import OtherSaleBills from "./pages/bills/OtherSaleBills";
 
 function App() {
   const dispatch = useDispatch();
@@ -111,6 +112,7 @@ useEffect(() => {
             <Route path="process-details/:id/:category" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
             <Route path="return-Bills-No-Record" element={<W_R_R_Bills />} />
+            <Route path="other-sale" element={<OtherSaleBills />} />
             <Route path="naila-arts-return-bills" element={<ReturnBills />} />
 
         
