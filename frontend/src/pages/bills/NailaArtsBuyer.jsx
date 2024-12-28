@@ -343,7 +343,7 @@ const NailaArtsBuyer = () => {
                               openModal(data?.profitDataForHistory)
                             }
                           >
-                            <FaEye size={20} className="cursor-pointer" />
+                            <FaEye size={20} className="cursor-pointer mt-2" />
                           </button>
                           {data?.other_Bill_Data && (
                             <button

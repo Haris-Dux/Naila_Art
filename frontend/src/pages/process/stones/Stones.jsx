@@ -5,6 +5,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { deleteStoneAsync, GetAllStone } from "../../../features/stoneslice";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
+import { GrDocumentVerified } from "react-icons/gr";
 
 const Stones = () => {
   const dispatch = useDispatch();
@@ -192,7 +193,12 @@ const Stones = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          {index + 1}
+                          <div className="flex gap-3">
+                            <span className="text-green-500">
+                              {data?.bill_generated && <GrDocumentVerified size={18}/>}
+                            </span>
+                            {index + 1}
+                          </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>

@@ -160,6 +160,10 @@ const historyData = new mongoose.Schema({
     type: Number,
     required: [true, "Profit value is required"],
   },
+  quantity_for_return:{
+    type: Number,
+    required: [true, "Quantity for return value is required"],
+  },
 });
 
 const historySchema = new mongoose.Schema(

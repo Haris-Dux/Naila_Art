@@ -2,13 +2,19 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
-import { deleteStitchingAsync, GetAllStitching } from "../../../features/stitching";
+import {
+  deleteStitchingAsync,
+  GetAllStitching,
+} from "../../../features/stitching";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
+import { GrDocumentVerified } from "react-icons/gr";
 
 const Stitching = () => {
   const dispatch = useDispatch();
-  const { Stitching, loading,deleteloadings } = useSelector((state) => state.stitching);
+  const { Stitching, loading, deleteloadings } = useSelector(
+    (state) => state.stitching
+  );
   const [searchText, setSearchText] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
@@ -186,7 +192,14 @@ const Stitching = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          {data?.serial_No}
+                          <div className="flex gap-3">
+                            <span className="text-green-500">
+                              {data?.bill_generated && (
+                                <GrDocumentVerified size={18} />
+                              )}
+                            </span>
+                            {data.serial_No}
+                          </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
@@ -331,8 +344,8 @@ const Stitching = () => {
           </ul>
         </nav>
       </section>
-       {/* DELETE MODAL */}
-       {deleteModal && (
+      {/* DELETE MODAL */}
+      {deleteModal && (
         <DeleteModal
           title={"Delete Stitching"}
           message={"Are you sure want to delete this Stitching ?"}

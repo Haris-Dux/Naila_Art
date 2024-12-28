@@ -23,14 +23,17 @@ export const getAllSellerForPurchasingAsync = createAsyncThunk(
       data?.search !== undefined && data?.search !== null
         ? `&search=${data?.search}`
         : "";
-
+        const status =
+        data?.status !== undefined && data?.status !== null
+          ? `&status=${data?.status}`
+          : "";
     const category =
       data?.category !== undefined && data?.category !== null
         ? `&category=${data?.category}`
         : "";
     try {
       const response = await axios.post(
-        `${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}`
+        `${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}${status}`
       );
       return response.data;
     } catch (error) {

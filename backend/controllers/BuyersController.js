@@ -127,8 +127,10 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         branchId,
         date: { $eq: date },
       }).session(session);
-      if (date !== today) {
-        if (!dailySaleForToday && !isFutureDate) {
+
+      //PAST SALE HANDLING
+      if (date !== today && !isFutureDate) {
+        if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
           const totalCashFromLastSale = await findLastSaleBeforeDate(
             branchId,
@@ -174,11 +176,42 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
               }
             }
           }
-        } else {
-          throw new Error("Invalid future date error");
+        } else if (dailySaleForToday) {
+          //IF DAILY SALE EXISTS FOR THAT PAST DATE
+
+          //UPDATING THE SALE BETWEEN PAST DATE AND TODAY
+
+          if (payment_Method === "cashSale") {
+            let currentDate = moment(date); // Start from the current date
+            const endDate = moment(today); // Subtract 1 day to include up to `endDate - 1`
+
+            while (currentDate.isSameOrBefore(endDate)) {
+              // Use `isSameOrBefore` for inclusive comparison
+              const formattedDate = currentDate.format("YYYY-MM-DD");
+
+              const dailySale = await DailySaleModel.findOne({
+                branchId,
+                date: formattedDate,
+              }).session(session);
+
+              if (dailySale) {
+                // Update existing sales
+                console.log(`Updated existing sale for ${formattedDate}`);
+                dailySale.saleData.totalCash +=
+                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                await dailySale.save({ session });
+              } else {
+                console.log(`No sale found for ${formattedDate}, skipping.`);
+              }
+
+              currentDate.add(1, "days"); // Increment to the next day
+            }
+          }
         }
       } else if (!dailySaleForToday && date === today) {
         throw new Error("Daily Sale Not Found For Today");
+      } else if (!dailySaleForToday && isFutureDate) {
+        throw new Error("Invalid future date error");
       }
 
       //calculating profit
@@ -195,6 +228,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           quantity: suit.quantity,
           suitSalePrice: suit.price,
           profit: profitOnSale,
+          quantity_for_return: suit.quantity,
         });
         TotalProfit += profitOnSale * suit.quantity;
       });
@@ -246,7 +280,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           total_balance > 0:
           status = "Partially Paid";
           break;
-        case total_credit === 0 && total_balance === total_credit:
+        case total_credit === 0 &&
+          (total_balance === total_credit || total_balance === total_debit):
           status = "Unpaid";
           break;
         case total_balance < 0:
@@ -262,6 +297,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         total_balance,
         status,
       };
+
+      console.log("virtualAccountData", virtualAccountData);
 
       //DATA FOR CREDIT DEBIT HISTORY
 
@@ -479,8 +516,9 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         branchId,
         date: { $eq: date },
       }).session(session);
-      if (date !== today) {
-        if (!dailySaleForToday && !isFutureDate) {
+      if (date !== today && !isFutureDate) {
+        //IF NO DAILY SALE EXIST FOR THAT PAST DATE
+        if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
           const totalCashFromLastSale = await findLastSaleBeforeDate(
             branchId,
@@ -526,11 +564,42 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
               }
             }
           }
-        } else {
-          throw new Error("Invalid future date error");
+        } else if (dailySaleForToday) {
+          //IF DAILY SALE EXISTS FOR THAT PAST DATE
+
+          //UPDATING THE SALE BETWEEN PAST DATE AND TODAY
+
+          if (payment_Method === "cashSale") {
+            let currentDate = moment(date); // Start from the current date
+            const endDate = moment(today); // Subtract 1 day to include up to `endDate - 1`
+
+            while (currentDate.isSameOrBefore(endDate)) {
+              // Use `isSameOrBefore` for inclusive comparison
+              const formattedDate = currentDate.format("YYYY-MM-DD");
+
+              const dailySale = await DailySaleModel.findOne({
+                branchId,
+                date: formattedDate,
+              }).session(session);
+
+              if (dailySale) {
+                // Update existing sales
+                console.log(`Updated existing sale for ${formattedDate}`);
+                dailySale.saleData.totalCash +=
+                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                await dailySale.save({ session });
+              } else {
+                console.log(`No sale found for ${formattedDate}, skipping.`);
+              }
+
+              currentDate.add(1, "days"); // Increment to the next day
+            }
+          }
         }
       } else if (!dailySaleForToday && date === today) {
         throw new Error("Daily Sale Not Found For Today");
+      } else if (!dailySaleForToday && isFutureDate) {
+        throw new Error("Invalid future date error");
       }
 
       //calculating profit
@@ -547,6 +616,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           quantity: suit.quantity,
           suitSalePrice: suit.price,
           profit: profitOnSale,
+          quantity_for_return: suit.quantity,
         });
         TotalProfit += profitOnSale * suit.quantity;
       });
@@ -607,7 +677,9 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           new_total_balance > 0:
           new_status = "Partially Paid";
           break;
-        case new_total_credit === 0 && new_total_balance === new_total_debit:
+        case new_total_credit === 0 &&
+          (new_total_balance === new_total_credit ||
+            new_total_balance === new_total_debit):
           new_status = "Unpaid";
           break;
         case new_total_balance < 0:

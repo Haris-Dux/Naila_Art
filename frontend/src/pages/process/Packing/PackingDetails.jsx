@@ -6,9 +6,10 @@ import {
   GetSingleStitching,
 } from "../../../features/stitching";
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
-import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import { FaEye } from "react-icons/fa";
+import {  FaEye } from "react-icons/fa";
 import PicturesOrder from "../../bills/Modals/PicturesOrder";
+import { CgShoppingBag } from "react-icons/cg";
+import { AiOutlinePicture } from "react-icons/ai";
 
 const PackingDetails = () => {
   const { id } = useParams();
@@ -57,7 +58,7 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length > 0 &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log('executing this 1');
+      console.log("executing this 1");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -74,10 +75,11 @@ const PackingDetails = () => {
       });
     } else if (
       SingleStitching &&
-      (SingleStitching?.suits_category?.length === 0 ||  SingleStitching?.suits_category === null) &&
+      (SingleStitching?.suits_category?.length === 0 ||
+        SingleStitching?.suits_category === null) &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log('executing this 2');
+      console.log("executing this 2");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -95,9 +97,10 @@ const PackingDetails = () => {
     } else if (
       SingleStitching &&
       SingleStitching?.suits_category?.length > 0 &&
-      (SingleStitching?.dupatta_category?.length === 0 || SingleStitching?.dupatta_category === null)
+      (SingleStitching?.dupatta_category?.length === 0 ||
+        SingleStitching?.dupatta_category === null)
     ) {
-      console.log('executing this 3');
+      console.log("executing this 3");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
@@ -113,7 +116,7 @@ const PackingDetails = () => {
           })) || [],
       });
     } else if (id === "null" && suits_category?.length > 0) {
-      console.log('executing 4');
+      console.log("executing 4");
       setFormData({
         ...formData,
         d_no: design_no,
@@ -135,7 +138,7 @@ const PackingDetails = () => {
     dispatch(GETEmbroiderySIngle({ id: idData }));
   }, [SingleStitching, id]);
 
-  console.log('SingleStitching',SingleStitching);
+  console.log("SingleStitching", SingleStitching);
 
   if (loading) {
     return (
@@ -261,67 +264,65 @@ const PackingDetails = () => {
             <div className="box_1">
               <div className="flex items-center gap-40">
                 {SingleStitching?.suits_category?.length > 0 ||
-                  (suits_category?.length > 0 && id === "null") ? (
-                    <div className="details space-y-2">
-                      <h3 className="mb-4 font-semibold text-lg">
-                        Shirt Data For Stock
-                      </h3>
-                      {suitMapdata?.map((data, index) => (
-                        <div
-                          key={data.id}
-                          className="details_box flex items-center gap-x-3"
-                        >
-                          <p className="w-44">{data.color}</p>
-                          {/* RETURN QUANTITY */}
+                (suits_category?.length > 0 && id === "null") ? (
+                  <div className="details space-y-2">
+                    <h3 className="mb-4 font-semibold text-lg">
+                      Shirt Data For Stock
+                    </h3>
+                    {suitMapdata?.map((data, index) => (
+                      <div
+                        key={data.id}
+                        className="details_box flex items-center gap-x-3"
+                      >
+                        <p className="w-44">{data.color}</p>
+                        {/* RETURN QUANTITY */}
+                        <input
+                          type="text"
+                          placeholder="R.Q"
+                          className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                          value={
+                            formData?.suits_category[index]?.return_quantity
+                          }
+                          readOnly
+                        />
+                        <>
                           <input
-                            type="text"
-                            placeholder="R.Q"
+                            type="number"
+                            placeholder="C.P"
                             className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
                             value={
-                              formData?.suits_category[index]?.return_quantity
+                              formData?.suits_category[index]?.cost_price || ""
                             }
-                            readOnly
+                            onChange={(e) =>
+                              handleInputChange(
+                                "suits_category",
+                                index,
+                                "cost_price",
+                                e.target.value
+                              )
+                            }
                           />
-                          <>
-                            <input
-                              type="number"
-                              placeholder="C.P"
-                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                              value={
-                                formData?.suits_category[index]?.cost_price ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "suits_category",
-                                  index,
-                                  "cost_price",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <input
-                              type="number"
-                              placeholder="S.P"
-                              className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                              value={
-                                formData?.suits_category[index]?.sale_price ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "suits_category",
-                                  index,
-                                  "sale_price",
-                                  e.target.value
-                                )
-                              }
-                            />{" "}
-                          </>
-                        </div>
-                      ))}
-                    </div>
-                  ): null}
+                          <input
+                            type="number"
+                            placeholder="S.P"
+                            className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
+                            value={
+                              formData?.suits_category[index]?.sale_price || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "suits_category",
+                                index,
+                                "sale_price",
+                                e.target.value
+                              )
+                            }
+                          />{" "}
+                        </>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
 
                 {/* DUPPATTA SECTION */}
                 {SingleStitching?.dupatta_category?.length > 0 &&
@@ -402,15 +403,89 @@ const PackingDetails = () => {
           </button>
         </div>
 
+        {/* ADD IN STOCK CONFIRMATION MODAL */}
         {confirmationModal && (
-          <ConfirmationModal
-            title="Add In Stock"
-            message="Are you sure you want this quantity with this price to be added in stock?"
-            onConfirm={handleAddInStock}
-            onClose={closeConfirmationModal}
-            updateStitchingLoading={addInStockLoading}
-            bagsValue={formData?.useBags}
-          />
+          <div
+            aria-hidden="true"
+            className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          >
+            <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Add In Stock
+                </h3>
+              </div>
+              <div className="p-2">
+                <p className="text-gray-700 text-center dark:text-gray-300">
+                  Are you sure you want this quantity with this price to be
+                  added in stock?
+                </p>
+              </div>
+              
+                <div className="flex items-center justify-center gap-2">
+                  <CgShoppingBag  size={24} className={`${formData?.useBags ? "text-green-500" : "text-red-500"}`} />
+                  <p className={`font-bold  ${formData?.useBags ? "text-green-500 text-center" : "text-red-500 text-center"}`}>
+                    {formData?.useBags  ? "Packing bags selected" : "Packing bags not selected" }
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center gap-2  my-2">
+                  <AiOutlinePicture size={24} className={`${SingleEmbroidery?.pictures_Order ? "text-green-500" : "text-red-500"}`} />
+                  <p className={`font-bold ${SingleEmbroidery?.pictures_Order ? "text-green-500 text-center" : "text-red-500 text-center"}`}>
+                    {SingleEmbroidery?.pictures_Order  ? "Order includes pictures" : "No pictures in the order" }
+                  </p>
+                </div>
+              
+              <div className="flex justify-center p-2">
+                <button
+                  onClick={closeConfirmationModal}
+                  className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white mr-2"
+                >
+                  Cancel
+                </button>
+                {addInStockLoading ? (
+                  <button
+                    disabled
+                    className="px-4 py-2.5 cursor-not-allowed text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Confirm
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddInStock}
+                    className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Confirm
+                  </button>
+                )}
+              </div>
+
+              <div className="button_box absolute top-6 right-6">
+                <button
+                  onClick={closeConfirmationModal}
+                  className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-3 h-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
 

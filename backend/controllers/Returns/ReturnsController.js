@@ -71,7 +71,7 @@ export const createReturn = async (req, res, next) => {
       });
       if (missingFields.length > 0) {
         throw new Error(`Missing Fields: ${missingFields}`);
-      }
+      };
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
       const branch = await BranchModel.findById(branchId).session(session);
@@ -94,7 +94,7 @@ export const createReturn = async (req, res, next) => {
       }).session(session);
       if (!dailySaleForToday) {
         throw new Error("Daily sale record not found for Today");
-      }
+      };
 
       //GET BUYER DETAILS
       const buyer = await BuyersModel.findById(buyerId).session(session);
@@ -153,13 +153,17 @@ export const createReturn = async (req, res, next) => {
       if (!dailySaleForSaleDay) {
         throw new Error("Daily sale record not found for Sale Day");
       }
-      const buyerBill = await BuyersBillsModel.findById(bill_Id);
+      const buyerBill = await BuyersBillsModel.findById(bill_Id).session(session);
       let profitToDeduct = 0;
       suits_data.forEach((suit) => {
         buyerBill.profitDataForHistory.forEach((record) => {
           if (record.suitId === suit.id) {
             const amount = record.profit * suit.quantity;
             profitToDeduct += amount;
+            record.quantity_for_return -= suit.quantity;
+            if (record.quantity_for_return < 0) {
+              throw new Error(`Not Enough Returnable Quantity For (Category/${record.category},Color/${record.color})`);
+            }
           }
         });
       });
@@ -174,6 +178,7 @@ export const createReturn = async (req, res, next) => {
           `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
         );
       }
+      await buyerBill.save({session});
       await dailySaleForSaleDay.save({ session });
 
       //DEDEUCTION FROM TOTAL CASH IN DAILY SALE

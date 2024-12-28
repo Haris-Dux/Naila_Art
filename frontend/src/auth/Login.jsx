@@ -120,9 +120,9 @@ const Login = () => {
 
                 {loading ? (
                   <button
-                    disabled=""
+                    disabled
                     type="button"
-                    className="text-white cursor-not-allowed bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mx-auto dark:bg-blue-600 dark:hover:bg-blue-700  flex items-center justify-center w-full"
+                    className="w-full text-white cursor-not-allowed bg-gray-800 hover:bg-gray-600  focus:outline-none focus:ring-gray-400 font-medium rounded-md text-sm px-5 h-10 text-center "
                   >
                     <svg
                       aria-hidden="true"

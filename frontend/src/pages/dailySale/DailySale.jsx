@@ -85,7 +85,6 @@ const DailySale = () => {
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
               i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
-            // onClick={() => dispatch(getDailySaleAsync({ page: i }))}
             onClick={() => handlePaginationClick(i)}
           >
             {i}

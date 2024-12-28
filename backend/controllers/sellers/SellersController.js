@@ -223,14 +223,19 @@ export const getSelleForPurchasingById = async (req, res, next) => {
 export const getAllSellersForPurchasing = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = 20;
+    let limit = 30;
     let search = req.query.search || "";
     let category = req.query.category || "";
+    const status = req.query.status || "";
 
     let query = {};
 
     if (category) {
       query.seller_stock_category = category;
+    }
+
+    if (status) {
+      query["virtual_account.status"] = status;
     }
 
     if (search) {

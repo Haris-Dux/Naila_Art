@@ -550,6 +550,37 @@ const StonesDetails = () => {
     };
   });
 
+  console.log('Single',SingleStone);
+
+  const suitDataForPacking = () => {
+    const suitData = {};
+    return suitData;
+  }
+
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    switch (true) {
+    
+      case value === "Packing":
+        if (SingleStone.T_Recieved_Suit === 0) {
+          return toast.error("Invalid Recieved Suit Quantity");
+        }
+        navigate("/dashboard/packing-details/null", {
+          state: {
+            embroidery_Id: SingleStone.id,
+            design_no: SingleStone.design_no,
+            serial_No: SingleStone.serial_No,
+            from: location.pathname,
+            suits_category:suitData
+          },
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -746,6 +777,15 @@ const StonesDetails = () => {
           >
             Next Step
           </button>
+          <select
+            onChange={handleSkipStep}
+            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          >
+            <option value="" disabled selected hidden>
+              Skip To
+            </option>
+            <option value="Packing">Packing</option>
+          </select>
         </div>
       </section>
 

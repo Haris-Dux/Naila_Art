@@ -22,7 +22,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
       const initializedSuitsData = selected.profitDataForHistory.map(
         (data) => ({
           ...data,
-          quantity: "",
+          quantity_to_send: "",
           price: "",
         })
       );
@@ -39,7 +39,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
   // Calculate Total Return Amount whenever updatedSuitsData changes
   useEffect(() => {
     const totalReturnAmount = updatedSuitsData.reduce((total, data) => {
-      const price = validateValue(data.price) *  validateValue(data.quantity);
+      const price = validateValue(data.price) * validateValue(data.quantity_to_send);
 
       return total + price;
     }, 0);
@@ -60,8 +60,8 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
   const handleQuantityChange = (index, value) => {
     const newSuitsData = [...updatedSuitsData];
     const MaxQuantity = selected.profitDataForHistory[index].quantity;
-    let validateValue =  value > MaxQuantity ? MaxQuantity : value;
-    newSuitsData[index] = { ...newSuitsData[index], quantity: validateValue };
+    let validateValue = value > MaxQuantity ? MaxQuantity : value;
+    newSuitsData[index] = { ...newSuitsData[index], quantity_to_send: validateValue };
     setUpdatedSuitsData(newSuitsData);
   };
 
@@ -87,7 +87,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
       Amount_From_TotalCash,
       suits_data: updatedSuitsData.map((data) => ({
         id: data.suitId,
-        quantity: parseInt(data.quantity),
+        quantity: parseInt(data.quantity_to_send),
         profit: data.profit,
         d_no: data.d_no,
         color: data.color,
@@ -104,11 +104,13 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
   };
 
   const handleRemoveRow = (suitIndex) => {
-    let newSuitData = updatedSuitsData.filter((_,index) => index !== suitIndex);
-    setUpdatedSuitsData(newSuitData);
-  }
 
-  
+    setUpdatedSuitsData((prevState) => {
+      const newSuitData = prevState.filter((_, index) => index !== suitIndex);
+      return newSuitData;
+    });
+  };
+
   return (
     <div
       aria-hidden="true"
@@ -206,7 +208,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
             </div>
 
             {/* Suits Data Input Table */}
-            <div  className="relative overflow-x-auto mt-5">
+            <div className="relative overflow-x-auto mt-5">
               <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
@@ -214,7 +216,8 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                       Category
                     </th>
                     <th className="px-6 py-4 text-center text-md font-medium">
-                      Quantity
+                      <span className="text-green-500">Quantity</span>/
+                      <span className="text-red-500">Returnable</span>
                     </th>
                     <th className="px-6 py-4 text-center text-md font-medium">
                       Color
@@ -235,60 +238,65 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {updatedSuitsData.map((data, index) => (
-                    <tr
-                      key={index}
-                      className="bg-white border-b text-md font-normal dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                    >
-                      <td className="px-6 text-center py-4">
-                        {selected.profitDataForHistory[index].category}
-                      </td>
-                      <td className="px-6 text-center py-4">
-                        {selected.profitDataForHistory[index].quantity}
-                      </td>
-                      <td className="px-6 text-center py-4">
-                        {selected.profitDataForHistory[index].color}
-                      </td>
-                      <td className="px-6 text-center py-4">
-                        {selected.profitDataForHistory[index].suitSalePrice}
-                      </td>
-                      <td className="px-6 text-center py-4">
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          placeholder="0"
-                          required
-                          value={updatedSuitsData[index].quantity}
-                          onChange={(e) =>
-                            handleQuantityChange(index, e.target.value)
-                          }
-                          className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-600"
-                        />
-                      </td>
-                      <td className="px-6 text-center py-4">
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          placeholder="0"
-                          required
-                          value={updatedSuitsData[index].price}
-                          onChange={(e) =>
-                            handlePriceChange(index, e.target.value)
-                          }
-                          className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-600"
-                        />
-                      </td>
-                      <td className="px-6 flex justify-center py-4">
-                        
+                  {updatedSuitsData &&
+                    updatedSuitsData?.map((data, index) => (
+                      <tr
+                        key={index}
+                        className="bg-white border-b text-md font-normal dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      >
+                        <td className="px-6 text-center py-4">
+                          {data?.category}
+                        </td>
+                        <td className="px-6 text-center py-4">
+                          <span className="text-green-500">
+                            {data?.quantity}
+                          </span>
+                          /
+                          <span className="text-red-500">
+                            {data?.quantity_for_return}
+                          </span>
+                        </td>
+                        <td className="px-6 text-center py-4">
+                          {data?.color}
+                        </td>
+                        <td className="px-6 text-center py-4">
+                          {data?.suitSalePrice}
+                        </td>
+                        <td className="px-6 text-center py-4">
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="0"
+                            required
+                            value={updatedSuitsData[index].quantity_to_send}
+                            onChange={(e) =>
+                              handleQuantityChange(index, e.target.value)
+                            }
+                            className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-600"
+                          />
+                        </td>
+                        <td className="px-6 text-center py-4">
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="0"
+                            required
+                            value={updatedSuitsData[index].price}
+                            onChange={(e) =>
+                              handlePriceChange(index, e.target.value)
+                            }
+                            className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-600"
+                          />
+                        </td>
+                        <td className="px-6 flex justify-center py-4">
                           <RxCross2
-                          onClick={() => handleRemoveRow(index)}
+                            onClick={() => handleRemoveRow(index)}
                             className="text-red-500 cursor-pointer"
                             size={28}
                           />
-                        
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

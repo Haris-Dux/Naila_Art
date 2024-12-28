@@ -17,6 +17,7 @@ import Select from "react-select";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
+import { GrDocumentVerified } from "react-icons/gr";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -225,7 +226,7 @@ const Embroidery = () => {
       D_Patch_Stitch: { value: 0, head: 0 },
       F_Patch_Stitch: { value: 0, head: 0 },
       project_status: "Pending",
-    })
+    });
   };
 
   const filteredData = searchText
@@ -439,7 +440,12 @@ const Embroidery = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          {data.serial_No}
+                          <div className="flex gap-3">
+                            <span className="text-green-500">
+                              {data?.bill_generated && <GrDocumentVerified size={18}/>}
+                            </span>
+                            {data.serial_No}
+                          </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
