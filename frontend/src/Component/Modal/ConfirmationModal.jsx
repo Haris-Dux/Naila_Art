@@ -16,10 +16,6 @@ const ConfirmationModal = ({ onClose, onConfirm, message, title,updateStitchingL
         <div className="p-4">
           <p className="text-gray-700 text-center dark:text-gray-300">{message}</p>
         </div>
-       {bagsValue ? <div className=" flex items-center justify-center">
-        <FaExclamation  size={18} className='text-red-500'/>
-        <p className="text-red-500 text-center dark:text-gray-300">Bags not selected for packing.</p>
-        </div> : null}
         <div className="flex justify-center p-2">
           <button
             onClick={onClose}

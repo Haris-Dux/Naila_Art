@@ -261,7 +261,7 @@ const ReturnBills = () => {
                 <tbody>
                   {ReturnsBillHistory &&
                   ReturnsBillHistory?.data?.length > 0 ? (
-                    ReturnsBillHistory?.data?.map((data, index) => (
+                    ReturnsBillHistory?.data?.slice()?.reverse()?.map((data, index) => (
                       <tr
                         key={index}
                         className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -465,9 +465,7 @@ const ReturnBills = () => {
                     <th className=" px-6 py-3 text-center" scope="col">
                       Quantity
                     </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Sale Price
-                    </th>
+                  
                   </tr>
                 </thead>
               </table>
@@ -487,9 +485,7 @@ const ReturnBills = () => {
                         <td className=" px-6 py-3 text-center">
                           {data?.quantity}
                         </td>
-                        <td className=" px-6 py-3 text-center">
-                          {data?.suitSalePrice}
-                        </td>
+                      
                       </tr>
                     ))}
                   </tbody>

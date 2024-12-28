@@ -91,7 +91,7 @@ console.log('DailySaleById',DailySaleById);
           <div className="content">
             {/* HEADER */}
             <div className="header pt-3 pb-4 w-full border-b">
-              <h2 className="text-3xl font-medium text-center">Daily Sale</h2>
+              <h2 className="text-3xl font-medium text-center">Daily Sale ({DailySaleById?.date})</h2>
             </div>
 
             {/* ALL ENTRIES */}

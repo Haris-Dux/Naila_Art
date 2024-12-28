@@ -1,57 +1,55 @@
-import { useEffect, useState } from 'react';
-import { IoAdd } from "react-icons/io5";
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
-import { getBuyerForBranchAsync } from '../../features/BuyerSlice';
-import { validateOldBuyerAsync } from '../../features/GenerateBillSlice';
-import { getAllSellerForPurchasingAsync } from '../../features/SellerSlice';
-
+import { validateOldBuyerAsync } from "../../features/GenerateBillSlice";
+import { getAllSellerForPurchasingAsync } from "../../features/SellerSlice";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
     if (phone.length > 3) {
-      return phone.slice(0, 3) + '*******'.slice(0, phone.length - 3);
+      return phone.slice(0, 3) + "*******".slice(0, phone.length - 3);
     } else {
       return phone;
     }
   };
 
-  return (
-    <p>{maskPhoneNumber(phone)}</p>
-  );
+  return <p>{maskPhoneNumber(phone)}</p>;
 };
 
 const Sellers = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
   const [search, setSearch] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("");
 
-  const [validateOldBuyer, setValidateOldBuyer] = useState('');
+  const [validateOldBuyer, setValidateOldBuyer] = useState("");
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { loading, Buyers, AllSeller } = useSelector((state) => state.Seller);
+  const { loading, AllSeller } = useSelector((state) => state.Seller);
 
-  const [selectedCategory, setSelectedCategory] = useState('Base');
-
+  const [selectedCategory, setSelectedCategory] = useState("Base");
 
   useEffect(() => {
+    setPaymentStatus(paymentStatus || "All");
     const payload = {
       category: selectedCategory,
-      page: 1,
+      page,
+      status: paymentStatus !== "All" ? paymentStatus : null
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
-  }, [dispatch]);
+  }, [dispatch,page]);
 
   const closeModal = () => {
     setIsOpen(false);
-    setSearchUser(!searchUser)
+    setSearchUser(!searchUser);
     setValidateOldBuyer("");
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = "auto";
   };
 
   const renderPaginationLinks = () => {
@@ -62,13 +60,22 @@ const Sellers = () => {
         <li key={i} onClick={ToDown}>
           <Link
             to={`/dashboard/sellers?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-              }`}
-            onClick={() => dispatch(getAllSellerForPurchasingAsync({ category: selectedCategory, page: i }))}
+            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
+              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+            }`}
+            onClick={() =>
+              dispatch(
+                getAllSellerForPurchasingAsync({
+                  category: selectedCategory,
+                  page: i,
+                  status: paymentStatus !== "All" ? paymentStatus : null
+                })
+              )
+            }
           >
             {i}
           </Link>
-        </li >
+        </li>
       );
     }
     return paginationLinks;
@@ -108,14 +115,14 @@ const Sellers = () => {
 
   const handleTabClick = (category) => {
     setSelectedCategory(category);
-    setSearch("")
-
+    setSearch("");
+    setPaymentStatus("All");
     const payload = {
       category: category,
       page: 1,
+      status: paymentStatus !== "All" ? paymentStatus : null,
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
-
   };
 
   const setStatusColor = (status) => {
@@ -133,18 +140,52 @@ const Sellers = () => {
     }
   };
 
+  const handleStatusClick = (status) => {
+    setPaymentStatus(status);
+    setSearch("");
+    const payload = {
+      page: 1,
+      category:selectedCategory,
+      status: status !== "All" ? status : null,
+    };
+
+    dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
+      console.log('navigating');
+      navigate(`/dashboard/sellers?page=${payload.page}`)
+    })
+  };
 
   return (
     <>
-      <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg'>
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+        {/* UPPER TABS */}
+        <div className="mb-3 upper_tabs flex justify-start items-center">
+          <div className="tabs_button">
+            {["Base", "Lace", "Bag/box", "Accessories"]?.map((category) => (
+              <Link
+                to={`/dashboard/sellers?page=${1}`}
+                key={category}
+                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${
+                  selectedCategory === category
+                    ? "bg-gray-800 text-white dark:bg-gray-600  dark:text-white"
+                    : ""
+                }`}
+                onClick={() => handleTabClick(category)}
+              >
+                {category}
+              </Link>
+            ))}
+          </div>
+        </div>
 
         {/* -------------- HEADER -------------- */}
         <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className='text-gray-800 dark:text-gray-200 text-3xl font-medium'>Seller</h1>
+          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+            Sellers
+          </h1>
 
           {/* <!-- search bar --> */}
           <div className="search_bar flex items-center gap-3 mr-2">
-          
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg
@@ -173,28 +214,75 @@ const Sellers = () => {
           </div>
         </div>
 
-        <p className='w-full bg-gray-300 h-px mt-5'></p>
+        <p className="w-full bg-gray-300 h-px mt-5"></p>
 
         <div className="tabs flex justify-between items-center my-5">
           <div className="tabs_button">
-            {['Base', 'Lace', 'Bag/box', 'Accessories']?.map((category) => (
-              <Link
-                to={`/dashboard/sellers?page=${1}`}
-                key={category}
-                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${selectedCategory === category ? 'bg-gray-800 text-white dark:bg-gray-600  dark:text-white' : ''}`}
-                onClick={() => handleTabClick(category)}
-              >
-                {category}
-              </Link>
-            ))}
+            <button
+              onClick={() => handleStatusClick("All")}
+              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                paymentStatus === undefined || paymentStatus === "All"
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : "dark:text-white"
+              }`}
+            >
+              All
+            </button>
+
+            <button
+              onClick={() => handleStatusClick("Paid")}
+              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                paymentStatus === "Paid"
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : "dark:text-white"
+              }`}
+            >
+              Paid
+            </button>
+
+            <button
+              onClick={() => handleStatusClick("Unpaid")}
+              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                paymentStatus === "Unpaid"
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : "dark:text-white"
+              }`}
+            >
+              Unpaid
+            </button>
+
+            <button
+              onClick={() => handleStatusClick("Partially Paid")}
+              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                paymentStatus === "Partially Paid"
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : "dark:text-white"
+              }`}
+            >
+              Partially Paid
+            </button>
+
+            <button
+              onClick={() => handleStatusClick("Advance Paid")}
+              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                paymentStatus === "Advance Paid"
+                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
+                  : "dark:text-white"
+              }`}
+            >
+              Advance Paid
+            </button>
           </div>
-       
         </div>
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
           <div className="pt-16 flex justify-center mt-12 items-center">
-            <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+            <div
+              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+              role="status"
+              aria-label="loading"
+            >
               <span className="sr-only">Loading...</span>
             </div>
           </div>
@@ -203,46 +291,25 @@ const Sellers = () => {
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
               <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Party Name
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Bill No
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Credit
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Debit
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Balance
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Status
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  >
+                  <th className="px-6 py-4 text-md font-medium" scope="col">
                     Details
                   </th>
                 </tr>
@@ -250,48 +317,59 @@ const Sellers = () => {
               <tbody>
                 {AllSeller && AllSeller?.sellers?.length > 0 ? (
                   AllSeller?.sellers?.map((data, index) => (
-                    <tr key={index} className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                      <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    <tr
+                      key={index}
+                      className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    >
+                      <th
+                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                         scope="row"
                       >
                         <p>{data.name}</p>
                         <PhoneComponent phone={data.phone} />
                       </th>
+                      <td className="px-6 py-4 font-medium">{data.bill_no}</td>
                       <td className="px-6 py-4 font-medium">
-                        {data.bill_no}
+                        {data.virtual_account.total_credit === null
+                          ? "0"
+                          : data.virtual_account.total_credit + " Rs"}
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.virtual_account.total_credit === null ? "0" : data.virtual_account.total_credit + " Rs"}
+                        {data.virtual_account.total_debit === null
+                          ? "0"
+                          : data.virtual_account.total_debit + " Rs"}
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {data.virtual_account.total_debit === null ? "0" : data.virtual_account.total_debit + " Rs"}
-                      </td>
-                      <td className="px-6 py-4 font-medium">
-                        {data.virtual_account.total_balance === null ? "0" : data.virtual_account.total_balance + " Rs"}
+                        {data.virtual_account.total_balance === null
+                          ? "0"
+                          : data.virtual_account.total_balance + " Rs"}
                       </td>
                       <td className="px-6 py-4 font-medium">
                         {setStatusColor(data.virtual_account.status)}
                       </td>
                       <td className="pl-10 py-4">
-                        <Link onClick={() => window.scrollTo(0, 0)} to={`/dashboard/sellers-details/${data.id}`}>
-                          <FaEye size={20} className='cursor-pointer' />
+                        <Link
+                          onClick={() => window.scrollTo(0, 0)}
+                          to={`/dashboard/sellers-details/${data.id}`}
+                        >
+                          <FaEye size={20} className="cursor-pointer" />
                         </Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr className="w-full flex justify-center items-center">
-                    <td className='text-xl mt-3'>No Data Available</td>
+                    <td className="text-xl mt-3">No Data Available</td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div >
+          </div>
         )}
-      </section >
+      </section>
 
       {/* -------- PAGINATION -------- */}
-      <section className="flex justify-center" >
+      <section className="flex justify-center">
         <nav aria-label="Page navigation example">
           <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
             <li>
@@ -393,8 +471,7 @@ const Sellers = () => {
             </li>
           </ul>
         </nav>
-      </section >
-
+      </section>
 
       {isOpen && (
         <div
@@ -404,8 +481,6 @@ const Sellers = () => {
           <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
-
-
               <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
                 Generate Bill
               </h3>
@@ -414,8 +489,19 @@ const Sellers = () => {
             {/* ------------- BODY ------------- */}
             <div className="p-3">
               <div className="flex justify-center items-center gap-x-4">
-                <Link to="/dashboard/generate-bill" onClick={closeModal} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">New Buyer</Link>
-                <button onClick={() => setSearchUser(!searchUser)} className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Old Buyer</button>
+                <Link
+                  to="/dashboard/generate-bill"
+                  onClick={closeModal}
+                  className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                >
+                  New Buyer
+                </Link>
+                <button
+                  onClick={() => setSearchUser(!searchUser)}
+                  className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                >
+                  Old Buyer
+                </button>
               </div>
 
               {searchUser && (
@@ -432,34 +518,50 @@ const Sellers = () => {
                   {getBuyerLoading ? (
                     <>
                       <div className="py-6 flex justify-center items-center">
-                        <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full " role="status" aria-label="loading">
+                        <div
+                          className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                          role="status"
+                          aria-label="loading"
+                        >
                           <span className="sr-only">Loading...</span>
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      {validateOldBuyer.length > 0 && OldBuyerData && OldBuyerData.oldBuyerData && OldBuyerData.oldBuyerData.length > 0 ? (
+                      {validateOldBuyer.length > 0 &&
+                      OldBuyerData &&
+                      OldBuyerData.oldBuyerData &&
+                      OldBuyerData.oldBuyerData.length > 0 ? (
                         <ul className="mt-4 max-h-60 overflow-y-auto border rounded-lg">
                           {OldBuyerData.oldBuyerData.map((buyer) => (
                             <li key={buyer.id}>
                               <Link
                                 to={`/dashboard/old-buyer-generate-bill/${buyer.id}`}
                                 onClick={closeModal}
-                                className='py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between'>
-                                <span>{buyer.name}</span><span>{buyer.phone}</span>
+                                className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
+                              >
+                                <span>{buyer.name}</span>
+                                <span>{buyer.phone}</span>
                               </Link>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-4 text-gray-600 pl-4">No matching buyers found.</p>
+                        <p className="mt-4 text-gray-600 pl-4">
+                          No matching buyers found.
+                        </p>
                       )}
                     </>
                   )}
 
-
-                  <Link to="" onClick={closeModal} className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500">Create Bill</Link>
+                  <Link
+                    to=""
+                    onClick={closeModal}
+                    className="inline-block mt-4 w-40 mx-auto rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                  >
+                    Create Bill
+                  </Link>
                 </div>
               )}
             </div>
@@ -489,10 +591,10 @@ const Sellers = () => {
               </button>
             </div>
           </div>
-        </div >
+        </div>
       )}
     </>
   );
-}
+};
 
 export default Sellers;
