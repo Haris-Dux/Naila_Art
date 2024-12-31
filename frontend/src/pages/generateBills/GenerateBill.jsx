@@ -69,6 +69,8 @@ const GenerateBill = () => {
     setShowPreview(false);
   };
 
+  console.log('SuitFromDesign',SuitFromDesign);
+
   useEffect(() => {
     if (user?.user?.id) {
       dispatch(GetAllBranches({ id: user?.user?.id }));
@@ -212,6 +214,7 @@ const GenerateBill = () => {
   };
 
   const handleColorChange = (index, e) => {
+    console.log('e',e);
     const selectedColor = e.target.value;
 
     const selectedDesign = SuitFromDesign.find(
@@ -240,6 +243,8 @@ const GenerateBill = () => {
 
     return payLoad;
   };
+
+  console.log('billData',billData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -630,7 +635,7 @@ const GenerateBill = () => {
                     <span
                       className={`text-sm font-medium text-black`}
                     >
-                      {(otherBillData.o_b_amount + billData.total) || 0}
+                      {(otherBillData.o_b_amount + Number(billData.paid)) || 0}
                     </span>
                   </div>
                 </div>

@@ -192,7 +192,10 @@ export const getCuttingDataBypartyName = async (req, res, next) => {
       partyName: { $regex: partyName, $options: "i" },
       process_Category: "Cutting",
     };
-    const cuttingData = await CuttingModel.find(cuttingQuery, ["partyName"]);
+    let cuttingData = await CuttingModel.find(cuttingQuery, ["partyName"]);
+    cuttingData = Array.from(
+      new Map(cuttingData.map((item) => [item.partyName, item])).values()
+    );
     const accountData = await processBillsModel.find(billQuery, [
       "virtual_account",
       "partyName",

@@ -136,7 +136,7 @@ export const cashIn = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date, accountCategory } =
+      const { cash, partyId, branchId, payment_Method, date, accountCategory,note } =
         req.body;
       if (
         !cash ||
@@ -144,7 +144,8 @@ export const cashIn = async (req, res) => {
         !payment_Method ||
         !date ||
         !branchId ||
-        !accountCategory
+        !accountCategory ||
+        !note
       )
         throw new Error("All Fields Required");
 
@@ -252,7 +253,7 @@ export const cashIn = async (req, res) => {
 
         const credit_debit_history_details = {
           date,
-          particular: payment_Method,
+          particular: `${payment_Method}/${note}`,
           credit: cash,
           balance: userDataToUpdate.virtual_account.total_balance + cash,
         };
@@ -301,13 +302,11 @@ export const cashIn = async (req, res) => {
           status: new_status,
         };
 
-        console.log('virtualAccountData',virtualAccountData);
-
         //DATA FOR CREDIT DEBIT HISTORY
 
         const credit_debit_history_details = {
           date,
-          particular: payment_Method,
+          particular: `${payment_Method}/${note}`,
           credit: cash,
           balance: userDataToUpdate.virtual_account.total_balance - cash,
         };
@@ -367,7 +366,7 @@ export const cashOut = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date, accountCategory } =
+      const { cash, partyId, branchId, payment_Method, date, accountCategory ,note} =
         req.body;
       if (
         !cash ||
@@ -375,7 +374,8 @@ export const cashOut = async (req, res, next) => {
         !payment_Method ||
         !date ||
         !branchId ||
-        !accountCategory
+        !accountCategory ||
+        !note
       )
         throw new Error("All Fields Required");
       //GETTING ACCOUNT CATEGORY DATA
@@ -492,7 +492,7 @@ export const cashOut = async (req, res, next) => {
 
         const credit_debit_history_details = {
           date,
-          particular: payment_Method,
+          particular: `${payment_Method}/${note}`,
           debit: cash,
           balance: userDataToUpdate.virtual_account.total_balance + cash,
         };
@@ -543,7 +543,7 @@ export const cashOut = async (req, res, next) => {
 
         const credit_debit_history_details = {
           date,
-          particular: payment_Method,
+          particular: `${payment_Method}/${note}`,
           debit: cash,
           balance: userDataToUpdate.virtual_account.total_balance - cash,
         };

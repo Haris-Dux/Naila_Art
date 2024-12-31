@@ -56,6 +56,7 @@ const processBillsSchema = new mongoose.Schema(
     partyName: {
       type: String,
       required: [true, "Party Name required"],
+      unique: true,
     },
     date: {
       type: String,
