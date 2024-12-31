@@ -434,7 +434,10 @@ export const getPreviousDataBypartyName = async (req, res, next) => {
       partyName: { $regex: partyName, $options: "i" },
       process_Category: "Embroidery",
     };
-    const embData = await EmbroideryModel.find(Embquery, ["partyName"]);
+    let embData = await EmbroideryModel.find(Embquery, ["partyName"]);
+    embData = Array.from(
+      new Map(embData.map((item) => [item.partyName, item])).values()
+    );
     const accountData = await processBillsModel.find(billQuery, [
       "virtual_account",
       "partyName",

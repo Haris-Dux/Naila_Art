@@ -292,9 +292,12 @@ export const getStitchingDataBypartyName = async (req, res, next) => {
       partyName: { $regex: partyName, $options: "i" },
       process_Category: "Stitching",
     };
-    const stitchingData = await StitchingModel.find(StitchingQuery, [
+    let stitchingData = await StitchingModel.find(StitchingQuery, [
       "partyName",
     ]);
+    stitchingData = Array.from(
+      new Map(stitchingData.map((item) => [item.partyName, item])).values()
+    );
     const accountData = await processBillsModel.find(billQuery, [
       "virtual_account",
       "partyName",

@@ -185,7 +185,10 @@ export const getCalenderDataBypartyName = async (req, res, next) => {
       partyName: { $regex: partyName, $options: "i" },
       process_Category: "Calender",
     };
-    const calenderData = await CalenderModel.find(CalenderQuery, ["partyName"]);
+    let calenderData = await CalenderModel.find(CalenderQuery, ["partyName"]);
+    calenderData = Array.from(
+      new Map(calenderData.map((item) => [item.partyName, item])).values()
+    );
     const accountData = await processBillsModel.find(billQuery, [
       "virtual_account",
       "partyName",

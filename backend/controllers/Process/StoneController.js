@@ -277,7 +277,10 @@ export const getStoneDataBypartyName = async (req, res, next) => {
       partyName: { $regex: partyName, $options: "i" },
       process_Category: "Stone",
     };
-    const stoneData = await StoneModel.find(StoneQuery, ["partyName"]);
+    let stoneData = await StoneModel.find(StoneQuery, ["partyName"]);
+    stoneData = Array.from(
+      new Map(stoneData.map((item) => [item.partyName, item])).values()
+    );
     const accountData = await processBillsModel.find(billQuery, [
       "virtual_account",
       "partyName",
