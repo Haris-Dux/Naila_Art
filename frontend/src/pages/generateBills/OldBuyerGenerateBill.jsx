@@ -388,6 +388,8 @@ const OldBuyerGenerateBill = () => {
     }
   };
 
+  console.log('billData',billData);
+
   return (
     <>
       {showPreview ? (

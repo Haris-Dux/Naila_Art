@@ -11,10 +11,16 @@ import {
   markAsPaidAsync,
 } from "../../features/ProcessBillSlice";
 import { FaEye } from "react-icons/fa";
-import { MdOutlineDelete } from "react-icons/md";
+import {
+  MdOutlineCreditScore,
+  MdOutlineDelete,
+  MdOutlineDiscount,
+} from "react-icons/md";
 import DeleteModal from "../../Component/Modal/DeleteModal";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import PicturesOrder from "./Modals/PicturesOrder";
+import { CiLogin } from "react-icons/ci";
+import { CiLogout } from "react-icons/ci";
 
 const ProcessDetails = () => {
   const dispatch = useDispatch();
@@ -157,16 +163,16 @@ const ProcessDetails = () => {
   const [claimData, setClaimData] = useState({
     claimAmount: "",
     claimReason: "",
-    claimCategory : ""
+    claimCategory: "",
   });
 
   const openClaimProcessModal = (category) => {
     setprocessClaimModal(true);
     setClaimData((prev) => ({
       ...prev,
-      claimCategory : category
-    }))
-  }
+      claimCategory: category,
+    }));
+  };
 
   const handleClaimDataChange = (e) => {
     const { name, value } = e.target;
@@ -184,7 +190,7 @@ const ProcessDetails = () => {
       amount: claimData.claimAmount,
       category: modelCategory,
       note: claimData.claimReason,
-      claimCategory : claimData.claimCategory
+      claimCategory: claimData.claimCategory,
     };
     dispatch(applyClaimAccountAsync(data)).then((res) => {
       if (res.payload.success === true) {
@@ -193,16 +199,16 @@ const ProcessDetails = () => {
         } else {
           dispatch(GetProcessBillByIdAsync({ id }));
         }
-      };
+      }
       closeDiscountModal();
-    })
+    });
   };
-
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
-        {/* BUYER DETAILS */}
+      
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-5 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+        {/* PROCESS DETAILS */}
         <div className="px-2 py-2 mb-3 grid border-2 mx-auto max-w-3xl  text-center rounded-lg grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-4 text-gray-900 dark:text-gray-100">
           <div className="box">
             <h3 className="pb-1 font-medium">Party Name</h3>
@@ -233,6 +239,51 @@ const ProcessDetails = () => {
             </h3>
           </div>
         </div>
+
+        <div className="mt-5 mx-auto max-w-3xl text-center">
+        {ProcessBillsDetails?.virtual_account?.status !== "Paid" && (
+          <>
+            <button
+              onClick={openConfirmationModaL}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <span>
+                  <MdOutlineCreditScore />
+                </span>
+                Mark As Paid
+              </div>
+            </button>
+            <button
+              onClick={openDiscountModal}
+              className=" mx-2 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <MdOutlineDiscount />
+                Discount
+              </div>
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => openClaimProcessModal("Calim In")}
+          className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+        >
+             <div className="flex items-center justify-center gap-2">
+          <CiLogout />
+          Claim Out
+          </div>
+        </button>
+        <button
+          onClick={() => openClaimProcessModal("Claim Out")}
+          className="mx-2 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+        >
+          <div className="flex items-center justify-center gap-2">
+          <CiLogin />
+            Claim In
+          </div>
+        </button>
+      </div>
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
@@ -351,36 +402,7 @@ const ProcessDetails = () => {
           </div>
         )}
       </section>
-      <div className="ml-6 mt-5">
-        {ProcessBillsDetails?.virtual_account?.status !== "Paid" && (
-          <>
-            <button
-              onClick={openConfirmationModaL}
-              className="bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-            >
-              Mark As Paid
-            </button>
-            <button
-              onClick={openDiscountModal}
-              className="mx-2 bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-            >
-              Discount
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => openClaimProcessModal('Calim In')}
-          className=" bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-        >
-          Claim In
-        </button>
-        <button
-          onClick={() => openClaimProcessModal("Claim Out")}
-          className="mx-2 bg-red-500  text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-        >
-          Claim Out
-        </button>
-      </div>
+
       {deleteModal && (
         <DeleteModal
           title={"Delete Bill And Order"}
@@ -395,7 +417,7 @@ const ProcessDetails = () => {
         <ConfirmationModal
           onClose={closeConfirmationModal}
           onConfirm={UpdateAccount}
-          message={"Are You sure want To Math This Account AS Paid."}
+          message={"Are You sure want To Mark This Account As Paid."}
           title={"Mark Account As Paid"}
           updateStitchingLoading={loading}
         />
@@ -542,7 +564,6 @@ const ProcessDetails = () => {
               <div className="p-4 md:p-5">
                 <form onSubmit={handleClaimSubmit}>
                   <div className="grid grid-cols-1 lg:gap-4">
-
                     {/* Claim AMount */}
                     <input
                       name="claimAmount"
@@ -554,7 +575,6 @@ const ProcessDetails = () => {
                       required
                     />
 
-                    
                     {/* Claim Reason */}
                     <input
                       name="claimReason"
