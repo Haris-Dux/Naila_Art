@@ -243,7 +243,7 @@ export const generateProcessBill = async (req, res, next) => {
           date: today,
           particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
           credit: amount,
-          balance: amount,
+          balance: new_total_balance,
           orderId: filrerdId,
         };
 
