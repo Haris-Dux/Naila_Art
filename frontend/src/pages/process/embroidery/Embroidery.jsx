@@ -418,8 +418,9 @@ const Embroidery = () => {
                     <th className="px-6 py-3 font-medium" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
-                      Quantity
+                    <th className="px-6 py-3 font-medium text-center" scope="col">
+                      <span className="text-red-500">Qty</span>/
+                      <span className="text-green-500">Suit Qty</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Status
@@ -442,7 +443,9 @@ const Embroidery = () => {
                         >
                           <div className="flex gap-3">
                             <span className="text-green-500">
-                              {data?.bill_generated && <GrDocumentVerified size={18}/>}
+                              {data?.bill_generated && (
+                                <GrDocumentVerified size={18} />
+                              )}
                             </span>
                             {data.serial_No}
                           </div>
@@ -452,7 +455,12 @@ const Embroidery = () => {
                         <td className="px-6 py-4">
                           {new Date(data.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4">{data.T_Quantity}</td>
+                        <td className="px-6 text-center py-4">
+                          <span className="text-red-500">
+                            {data?.T_Quantity}
+                          </span>
+                          /<span className="text-green-500">{data?.T_Suit ?? "--"}</span>
+                        </td>
                         <td className="px-6 py-4">
                           {setStatusColor(data.project_status)}
                         </td>

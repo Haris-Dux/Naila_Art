@@ -247,6 +247,9 @@ const DailySale = () => {
                       Total Expense
                     </th>
                     <th className="px-6 py-3" scope="col">
+                      Total Profit
+                    </th>
+                    <th className="px-6 py-3" scope="col">
                       Date
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
@@ -269,6 +272,9 @@ const DailySale = () => {
                         </td>
                         <td className="px-6 py-4">
                           {expense?.saleData?.totalExpense}
+                        </td>
+                        <td className="px-6 py-4">
+                          {expense?.saleData?.totalProfit}
                         </td>
                         <td className="px-6 py-4">
                           {new Date(expense.date).toLocaleDateString()}

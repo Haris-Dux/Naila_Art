@@ -36,13 +36,26 @@ const Login = () => {
 
   return (
     <>
-      <section className="bg">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-screen lg:py-0">
-          <div className="flex items-center mb-6 text-4xl font-semibold tracking-wider text-gray-100 dark:text-white">
-            NAILA ARTS
-          </div>
+      <section className="bg flex items-center justify-center">
+        {/* LEFT SECTION */}
+        <div className="flex flex-col items-center py-3 rounded-tl-lg sm:max-w-md rounded-bl-lg  justify-center text-gray-900 bg-white">
+          <h1 className="text-4xl font-semibold">NAILA ARTS</h1>
+          <img
+            src="https://cdn.shopify.com/s/files/1/0704/6378/2946/files/Untitled_design_2.png?v=1723727238"
+            alt="Retail Management System"
+            className="w-3/4 max-w-xs rounded-lg"
+          />
+          <p className="text-md uppercase font-bold text-center mb-1 mx-4">
+            The ultimate retail management system
+          </p>
+          <p className="text-sm text-gray-400">
+            © 2025 NAILA ARTS. All rights reserved.
+          </p>
+        </div>
 
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+        {/* RIGHT SECTION */}
+        <div className="flex flex-col items-center justify-center py-6 min-h-screen ">
+          <div className="w-full bg-white rounded-tr-lg rounded-br-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
               <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                 {/* EMAIL */}
@@ -90,7 +103,7 @@ const Login = () => {
                 </div>
 
                 {/* TOGGLE PASSWORD VISIBILITY */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-6">
                   <div className="flex items-start">
                     <div className="flex items-center h-5">
                       <input
