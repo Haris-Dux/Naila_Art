@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
+import { VA_HistoryModal, VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -48,6 +48,18 @@ export const addExpense = async (req, res, next) => {
           virtualAccounts = updatedAccount;
           await virtualAccounts[0].save({ session });
           await existingDailySaleData.save({ session });
+          //ADDING TRANSACTION DETAIL HISTORY
+          const historyData = {
+            date:Date,
+            transactionType:"WithDraw",
+            payment_Method,
+            new_balance,
+            amount:rate,
+            note:`Expense Entry/${reason}`,
+          };
+          await VA_HistoryModal.create([
+            historyData
+          ],{session});
         }
       } else {
         existingDailySaleData.saleData.totalExpense += rate;
@@ -150,6 +162,19 @@ export const deleteExpense = async (req, res, next) => {
 
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING EXPENSE DETAILS HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date:today,
+          transactionType:"Deposit",
+          payment_Method,
+          new_balance,
+          amount:rate,
+          note:`Expense Entry Deleted/${ExpenseData.name}/${ExpenseData.reason}`,
+        };
+        await VA_HistoryModal.create([
+          historyData
+        ],{session});
       } else {
         dailySaleForToday.saleData.totalCash += rate;
         if (dailySaleForToday.saleData.totalCash < 0) {

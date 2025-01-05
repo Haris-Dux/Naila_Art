@@ -9,6 +9,7 @@ import {
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { GrDocumentVerified } from "react-icons/gr";
+import { LuPackageCheck } from "react-icons/lu";
 
 const Stitching = () => {
   const dispatch = useDispatch();
@@ -97,6 +98,8 @@ const Stitching = () => {
       }
     });
   };
+
+  console.log("filteredData", filteredData);
 
   return (
     <>
@@ -192,13 +195,13 @@ const Stitching = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <div className="flex gap-3">
+                          <div className="flex gap-2">
+                            {data.serial_No}
                             <span className="text-green-500">
-                              {data?.bill_generated && (
-                                <GrDocumentVerified size={18} />
+                              {data?.packed && (
+                                <LuPackageCheck size={20} />
                               )}
                             </span>
-                            {data.serial_No}
                           </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
@@ -210,10 +213,10 @@ const Stitching = () => {
                         <td className="px-6 py-4">
                           {data.r_quantity ? `${data.r_quantity} suit` : "--"}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className=" px-6 py-4">
                           {setStatusColor(data.project_status)}
                         </td>
-                        <td className="pl-10 py-4 flex gap-3">
+                        <td className="pl-8 py-4 flex gap-3">
                           <Link to={`/dashboard/stitching-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>

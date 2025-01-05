@@ -387,14 +387,13 @@ export const addInStockFromPackaging = async (req,res,next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { suits_category,dupatta_category, d_no,embroidery_Id,useBags } = req.body;
+      const { suits_category,dupatta_category, d_no,embroidery_Id,useBags,packing_Id } = req.body;
       //CHECK PICTURES ORDER
       const checkPicturesOrder = await PicruresModel.findOne({embroidery_Id:embroidery_Id});
       if(checkPicturesOrder && checkPicturesOrder.status === 'Pending'){
         throw new Error("Please Complete the Pictures Order First");
       }
       if (suits_category && suits_category.length > 0) {
-        console.log('adding suit');
         for (const item of suits_category) {
           const data = {
             ...item,
@@ -408,7 +407,6 @@ export const addInStockFromPackaging = async (req,res,next) => {
         }
       };
       if (dupatta_category && dupatta_category.length > 0) {
-        console.log('adding duppata');
         for (const item of dupatta_category) {
           const data = {
             ...item,
@@ -427,6 +425,18 @@ export const addInStockFromPackaging = async (req,res,next) => {
        const EmbroideryData = await EmbroideryModel.findById(embroidery_Id).session(session);
        EmbroideryData.next_steps.packing = true;
        await EmbroideryData.save({ session });
+
+       //UPDATING PACKING STATUS FOR STITCHING
+       console.log('packing_Id',packing_Id);
+       if(packing_Id){
+        const stitching = await StitchingModel.findById(packing_Id);
+        console.log('executing');
+        if(stitching.packed){
+          throw new Error("This Stitching Is Already Packed");
+        };
+        stitching.packed = true;
+        await stitching.save({session});
+       };
     });
     return res
     .status(200)
