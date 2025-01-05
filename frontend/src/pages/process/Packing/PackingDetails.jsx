@@ -58,11 +58,11 @@ const PackingDetails = () => {
       SingleStitching?.suits_category?.length > 0 &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log("executing this 1");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleEmbroidery?.id,
+        packing_Id:SingleStitching.id,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -79,11 +79,11 @@ const PackingDetails = () => {
         SingleStitching?.suits_category === null) &&
       SingleStitching?.dupatta_category?.length > 0
     ) {
-      console.log("executing this 2");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleEmbroidery?.id,
+        packing_Id:SingleStitching.id,
         dupatta_category:
           SingleStitching.dupatta_category?.map((item) => ({
             id: item.id,
@@ -100,11 +100,11 @@ const PackingDetails = () => {
       (SingleStitching?.dupatta_category?.length === 0 ||
         SingleStitching?.dupatta_category === null)
     ) {
-      console.log("executing this 3");
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleEmbroidery?.id,
+        packing_Id:SingleStitching.id,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -116,7 +116,6 @@ const PackingDetails = () => {
           })) || [],
       });
     } else if (id === "null" && suits_category?.length > 0) {
-      console.log("executing 4");
       setFormData({
         ...formData,
         d_no: design_no,
