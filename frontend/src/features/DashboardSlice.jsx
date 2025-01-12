@@ -1,6 +1,8 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
+
 
 //API URL
 const getDashboardDataForSuperAdmin =
@@ -10,16 +12,15 @@ const getDashboardDataForBranch =
 const sendDashBoardAccessOTPUrl = "/api/dashboardRouter/sendDashBoardAccessOTP";
 const verifyOtpForDasboardDataPUrl =
   "/api/dashboardRouter/verifyOtpForDasboardData";
-  const createTransactionUrl = "/api/dashboardRouter/makeTransactionInAccounts";
-  const transactionHistoryUrl = `/api/dashboardRouter/getTransactionsHistory`;
-
+const createTransactionUrl = "/api/dashboardRouter/makeTransactionInAccounts";
+const transactionHistoryUrl = `/api/dashboardRouter/getTransactionsHistory`;
 
 // GET DATA FOR SUPER ADMIN THUNK
 export const getDataForSuperAdminAsync = createAsyncThunk(
   "dashboard/superAdmin",
   async () => {
     try {
-      const response = await axios.post(getDashboardDataForSuperAdmin);
+      const response = await axios.get(getDashboardDataForSuperAdmin);
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);
@@ -84,53 +85,58 @@ export const createTransactionAsync = createAsyncThunk(
 
 export const getTransactionHIstoryAsync = createAsyncThunk(
   "Transaction/TransactionHistory",
-  async (data) => {
-    const date =
-    data?.date !== undefined && data?.date !== null
-      ? `&date=${data?.date}`
-      : "";
+  async ({page,filters}) => {
+          
+    const query = buildQueryParams({
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      account: filters.account,
+      transactionType: filters.transactionType,
+      page: page,
+    });
     try {
-      const response = await axios.post(`${transactionHistoryUrl}?page=${data.page}&${date}`);
+      const response = await axios.post(`${transactionHistoryUrl}?${query}`);
       return response.data;
     } catch (error) {
-     throw new Error(error);
+      throw new Error(error);
     }
   }
 );
 
-
 // INITIAL STATE
 const initialState = {
   DashboardData: [],
-  TransactionsHistory:[],
+  TransactionsHistory: [],
   loading: false,
   otpLoading: false,
-  transactionLoading:false
+  transactionLoading: false,
 };
 
 const DashboardSlice = createSlice({
   name: "DashboardSlice",
   initialState,
-  reducers : {
-    updateAccount (state,action) {
-      const {amount,payment_Method,transactionType} = action.payload;
+  reducers: {
+    updateAccount(state, action) {
+      const { amount, payment_Method, transactionType } = action.payload;
       const paymentMethodMapping = {
         cashInMeezanBank: "Meezan Bank",
         cashInJazzCash: "JazzCash",
         cashInEasyPaisa: "EasyPaisa",
       };
       const readablePaymentMethod = paymentMethodMapping[payment_Method];
-      const paymentMethodData = state.DashboardData.bankAccountsData.find((account) =>{
-        return  account.name === readablePaymentMethod
-      })
-      if(paymentMethodData){
+      const paymentMethodData = state.DashboardData.bankAccountsData.find(
+        (account) => {
+          return account.name === readablePaymentMethod;
+        }
+      );
+      if (paymentMethodData) {
         if (transactionType === "Deposit") {
-          paymentMethodData.value += amount; 
+          paymentMethodData.value += amount;
         } else if (transactionType === "WithDraw") {
-          paymentMethodData.value -= amount; 
+          paymentMethodData.value -= amount;
         }
       }
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -147,8 +153,8 @@ const DashboardSlice = createSlice({
         state.loading = false;
       })
 
-       // TRANSACTION CASES
-       .addCase(createTransactionAsync.pending, (state) => {
+      // TRANSACTION CASES
+      .addCase(createTransactionAsync.pending, (state) => {
         state.transactionLoading = true;
       })
       .addCase(createTransactionAsync.fulfilled, (state, action) => {
@@ -181,7 +187,6 @@ const DashboardSlice = createSlice({
       .addCase(getDataForOtherBranchAsync.rejected, (state, action) => {
         state.loading = false;
       })
-
 
       // OTP Cases
       .addCase(sendDashBoardAccessOTPAsync.pending, (state) => {

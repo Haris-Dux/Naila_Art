@@ -18,7 +18,7 @@ dashboardRouter.post(
   getDashBoardDataForBranch
 );
 
-dashboardRouter.post(
+dashboardRouter.get(
   "/getDashBoardDataForSuperAdmin",
   verifyUser,verifyOtp,
   getDashBoardDataForSuperAdmin
