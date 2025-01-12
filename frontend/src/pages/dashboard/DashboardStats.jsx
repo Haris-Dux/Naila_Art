@@ -27,6 +27,7 @@ import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
 import { PaymentData } from "../../Utils/AccountsData";
 import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
+import { GrPowerReset } from "react-icons/gr";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -44,11 +45,11 @@ const DashboardStats = () => {
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [historyModal, setHistoryModal] = useState(false);
 
-    useEffect(() => {
-      if (user && user?.user?.role !== "user") {
-        dispatch(showNotificationsForChecksAsync());
-      }
-    }, [user,dispatch]);
+  useEffect(() => {
+    if (user && user?.user?.role !== "user") {
+      dispatch(showNotificationsForChecksAsync());
+    }
+  }, [user, dispatch]);
 
   const [formData, setFormData] = useState({
     date: today,
@@ -182,10 +183,19 @@ const DashboardStats = () => {
     setConfirmationModal(false);
   };
 
+  const [filters, setFilters] = useState({
+    dateFrom: "",
+    dateTo: "",
+    transactionType: "",
+    account: "",
+  });
+
   const openHistoryModal = () => {
     setHistoryModal(true);
+    document.body.style.overflow = "hidden";
     const data = {
       page: 1,
+      filters
     };
     dispatch(getTransactionHIstoryAsync(data));
   };
@@ -193,6 +203,7 @@ const DashboardStats = () => {
   const closeHistoryModal = () => {
     setHistoryModal(false);
     setDate("");
+    document.body.style.overflow = "auto";
   };
 
   const handleTransaction = (e) => {
@@ -219,15 +230,28 @@ const DashboardStats = () => {
   };
 
   const page = TransactionsHistory?.page;
-  const [date, setDate] = useState("");
 
-  const handleDateChange = (e) => {
-    const value = e.target.value;
-    setDate(value);
+  const handleChangeFilters = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  const handleDateSearch = () => {
-    dispatch(getTransactionHIstoryAsync({ page: 1, date }));
+  const handleFiltersSearch = () => {
+    dispatch(getTransactionHIstoryAsync({ page: 1, filters }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      dateFrom: "",
+      dateTo: "",
+      transactionType: "",
+      payment_Method: "",
+      account: "",
+    });
+    dispatch(getTransactionHIstoryAsync({ page: 1, filters }));
   };
 
   const renderPaginationLinks = () => {
@@ -255,7 +279,7 @@ const DashboardStats = () => {
       top: 0,
       behavior: "smooth",
     });
-    dispatch(getTransactionHIstoryAsync({ page: pageValue, date }));
+    dispatch(getTransactionHIstoryAsync({ page: pageValue, filters }));
   };
 
   if (hasError) {
@@ -729,7 +753,7 @@ const DashboardStats = () => {
                       <option value="" disabled>
                         Payment Method
                       </option>
-                      {PaymentData?.slice(0,-1)?.map((item) => (
+                      {PaymentData?.slice(0, -1)?.map((item) => (
                         <option value={item.value} key={item.value}>
                           {item.label}
                         </option>
@@ -871,53 +895,115 @@ const DashboardStats = () => {
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Transaction History
+                Accounts Statement
               </h3>
-
-              <div className="flex items-center space-x-4">
-                <div className="relative mt-4 md:mt-0">
-                  <input
-                    type="date"
-                    className="md:w-44 lg:w-60 py-1 pl-14 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-xs dark:placeholder:text-gray-300"
-                    placeholder="Search by date"
-                    value={date}
-                    onChange={handleDateChange}
-                  />
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <CiSearch
-                      size={24}
-                      onClick={handleDateSearch}
-                      className="cursor-pointer"
-                    />
-                  </span>
-                </div>
-                <button
-                  onClick={closeHistoryModal}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
+              {/*   CLOSE BUTTON */}
+              <button
+                onClick={closeHistoryModal}
+                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              </div>
+                  <path
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
             </div>
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
+              {/* SEARCH FILTERS */}
+              <div className="flex items-center gap-3 justify-center mb-4">
+                {/* DATES*/}
+
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
+                    From
+                  </span>
+                  <input
+                    type="date"
+                    name="dateFrom"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block pl-14 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={filters.dateFrom}
+                    onChange={handleChangeFilters}
+                  />
+                </div>
+
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
+                    To
+                  </span>
+                  <input
+                    type="date"
+                    name="dateTo"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block pl-14 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={filters.dateTo}
+                    onChange={handleChangeFilters}
+                  />
+                </div>
+
+                {/* ACCOUNT */}
+                <select
+                  id="account"
+                  name="account"
+                  className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  value={filters.account}             
+                  onChange={handleChangeFilters}
+                >
+                  <option value="" disabled>
+                    Select Account
+                  </option>
+                  {PaymentData?.map((item) => (
+                    <option value={item.value} key={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                {/* TRANSACTION TYPE */}
+                <select
+                  id="transactionType"
+                  name="transactionType"
+                  className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  value={filters.transactionType}                 
+                  onChange={handleChangeFilters}
+                >
+                  <option value="" disabled>
+                    Transaction Type
+                  </option>
+                  <option value="Deposit">Deposit</option>
+                  <option value="WithDraw">WithDraw</option>
+                </select>
+                {/* SEARCH BUTTON */}
+                <button
+                  onClick={handleFiltersSearch}
+                  type="button"
+                  className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                >
+                  <CiSearch size={20} className="cursor-pointer" />
+                  Search
+                </button>
+                {/* RESET BUTTON */}
+                <button
+                  onClick={handleResetFilters}
+                  className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                >
+                  <GrPowerReset size={20} className="cursor-pointer" />
+                  Reset
+                </button>
+              </div>
+              {/* TABLE */}
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>

@@ -710,6 +710,8 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
       g_Otp,
       email_Type: "Dashboard OTP",
     });
+
+    console.log('g_Otp',g_Otp);
     
     return res.status(200).json({
       message: "OTP has been sent to your email",
@@ -831,12 +833,25 @@ export const makeTransactionInAccounts = async (req, res, next) => {
 
 export const getTransactionsHistory = async (req, res, next) => {
   try {
-    const date = req.query.date || "";
+    const dateFrom = req.query.dateFrom || "";
+    const dateTo = req.query.dateTo || "";
+    const account = req.query.account || "";
+    const transactionType = req.query.transactionType || "";
     const page =  parseInt(req.query.page || 1);
     const limit = 30;
 
-    let query = {
-      date: { $regex: date, $options: "i" },
+    let query = {};
+
+    if(dateFrom && dateTo) {
+      query.date = {$gte: dateFrom , $lte: dateTo}
+    } else if (dateFrom){
+      query.date = {$eq: dateFrom}
+    }
+    if(account){
+      query.payment_Method = account;
+    };
+    if(transactionType){
+      query.transactionType = transactionType;
     };
     const totalDocs = await VA_HistoryModal.countDocuments(query);
     const result = await VA_HistoryModal.find(query)
