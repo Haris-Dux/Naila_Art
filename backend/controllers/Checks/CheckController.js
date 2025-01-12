@@ -3,7 +3,10 @@ import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import { CheckModel } from "../../models/Checks/CheckModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
-import { VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../../models/DashboardData/VirtalAccountsModal.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import { setMongoose } from "../../utils/Mongoose.js";
@@ -68,7 +71,7 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
         "note",
         "date",
       ]);
-      if(checkAmount === 0){
+      if (checkAmount === 0) {
         throw new CustomError("Check Amount cannot be zero", 400);
       }
       if ((partialPayment && !payment_Method) || !partialAmount) {
@@ -103,11 +106,8 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
       checkData.checkDetails.splice(toUpdate + 1, 0, data);
       await checkData.save({ session });
       if (partialPayment) {
-  
         //GET BUYER DATA
-        const userDataToUpdate = await BuyersModel.findById(
-          checkData.buyerId
-        );
+        const userDataToUpdate = await BuyersModel.findById(checkData.buyerId);
         if (!userDataToUpdate) {
           throw new CustomError("Buyer Data Not Found", 404);
         }
@@ -154,6 +154,17 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
           };
           virtualAccounts = updatedAccount;
           await virtualAccounts[0].save({ session });
+          //ADDING STATEMENT HISTORY
+          const new_balance = updatedAccount[0][payment_Method];
+          const historyData = {
+            date,
+            transactionType: "Deposit",
+            payment_Method,
+            new_balance,
+            amount: partialAmount,
+            note: ` Check transaction For : ${userDataToUpdate.name}`,
+          };
+          await VA_HistoryModal.create([historyData], { session });
         }
 
         //UPDATING BUYER ACCOUNT
@@ -297,6 +308,17 @@ export const markCheckAsPaid = async (req, res, next) => {
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING STATEMENT HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount: toUpdate.checkAmount,
+          note: ` Check transaction For : ${userDataToUpdate.name}`,
+        };
+        await VA_HistoryModal.create([historyData], { session });
       }
 
       //UPDATING BUYER ACCOUNT
@@ -433,7 +455,10 @@ export const deleteCheck = async (req, res, next) => {
 export const showNotificationsForChecks = async (req, res, next) => {
   try {
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-    const threeDaysAhead = moment.tz("Asia/Karachi").add(3, 'days').format("YYYY-MM-DD");
+    const threeDaysAhead = moment
+      .tz("Asia/Karachi")
+      .add(3, "days")
+      .format("YYYY-MM-DD");
 
     const all_Checks = await CheckModel.aggregate([
       {
@@ -462,9 +487,7 @@ export const showNotificationsForChecks = async (req, res, next) => {
         $lookup: {
           from: "buyers",
           let: { buyerId: { $toObjectId: "$buyerId" } },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$buyerId"] } } },
-          ],
+          pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$buyerId"] } } }],
           as: "buyerDetails",
         },
       },
@@ -480,8 +503,8 @@ export const showNotificationsForChecks = async (req, res, next) => {
           note: "$checkDetails.note",
           paid: "$checkDetails.paid",
           updated: "$checkDetails.updated",
-          buyerName: "$buyerDetails.name", 
-          buyerPhone: "$buyerDetails.phone", 
+          buyerName: "$buyerDetails.name",
+          buyerPhone: "$buyerDetails.phone",
         },
       },
     ]);
@@ -491,4 +514,3 @@ export const showNotificationsForChecks = async (req, res, next) => {
     next(error);
   }
 };
-

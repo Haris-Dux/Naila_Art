@@ -9,6 +9,7 @@ import {
   generateBillForOlderBuyerAsync,
   generatePdfAsync,
   getSuitFromDesignAsync,
+  resetSuitData,
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import { getBuyerByIdAsync } from "../../features/BuyerSlice";
@@ -347,6 +348,7 @@ const OldBuyerGenerateBill = () => {
               ],
               other_Bill_Data: {},
             });
+            dispatch(resetSuitData())
           }
         });
       }

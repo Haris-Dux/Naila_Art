@@ -11,7 +11,10 @@ import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
 import { sendEmail } from "../utils/nodemailer.js";
-import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../models/DashboardData/VirtalAccountsModal.js";
 import moment from "moment-timezone";
 
 //TODAY
@@ -264,8 +267,19 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING STATEMENT HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount: paid + (other_Bill_Data?.o_b_amount ?? 0),
+          note:`Bill Generated For : ${name}`,
+        };
+        await VA_HistoryModal.create([historyData], { session });
       }
-      //DATA FOR VIRTUAL ACCOUNT
+      //DATA FOR VIRTUAL ACCOUNT OF BUYER
       const total_debit = remaining;
       const total_credit = paid;
       const total_balance = remaining;
@@ -633,6 +647,17 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING STATEMENT HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount: paid + (other_Bill_Data?.o_b_amount ?? 0),
+          note:`Bill Generated For : ${name}`,
+        };
+        await VA_HistoryModal.create([historyData], { session });
       }
       //UPDATING DAILY SALE
 
