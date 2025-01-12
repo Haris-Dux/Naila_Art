@@ -214,6 +214,17 @@ export const cashIn = async (req, res) => {
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING STATEMENT HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount: cash,
+          note:`Cash In Transaction For : ${userDataToUpdate.name}`,
+        };
+        await VA_HistoryModal.create([historyData], { session });
       }
 
       if (accountCategory !== "Buyers") {
@@ -443,7 +454,7 @@ export const cashOut = async (req, res, next) => {
           payment_Method,
           new_balance,
           amount: cash,
-          note: "Cash Out Transaction",
+          note: `Cash Out Transaction For ${userDataToUpdate.name}`,
         };
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");

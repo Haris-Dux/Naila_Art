@@ -6,7 +6,7 @@ import {
 } from "../../../features/InStockSlice";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FaDatabase } from "react-icons/fa";
+import { FaDatabase, FaHistory } from "react-icons/fa";
 import moment from "moment-timezone";
 
 const AssignStock = () => {
@@ -40,7 +40,7 @@ const AssignStock = () => {
       cost_price: item.cost_price,
       sale_price: item.sale_price,
       d_no: item.d_no,
-      date: today
+      date: today,
     }));
 
     setFormData((prevFormData) => ({
@@ -70,7 +70,6 @@ const AssignStock = () => {
       ...updatedItems[index],
       assignQuantity: value === "" ? null : Number(value),
     };
-
 
     const updatedStockDetails = updatedItems.map((item) => ({
       Item_Id: item._id,
@@ -115,7 +114,6 @@ const AssignStock = () => {
     });
   };
 
-
   return (
     <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
       <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
@@ -138,8 +136,12 @@ const AssignStock = () => {
             </option>
           ))}
         </select>
-        <Link to={"/dashboard/AssignedStockHistory"}>
-        <FaDatabase  size={32} className="cursor-pointer" />
+        <Link
+          className="flex items-center justify-center gap-3 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+          to={"/dashboard/AssignedStockHistory"}
+        >
+          Branch Stock Records
+          <FaHistory size={20} className="cursor-pointer" />
         </Link>
       </div>
 

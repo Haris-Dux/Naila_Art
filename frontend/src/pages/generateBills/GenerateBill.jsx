@@ -8,6 +8,7 @@ import {
   generateBuyerBillAsync,
   generatePdfAsync,
   getSuitFromDesignAsync,
+  resetSuitData,
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
@@ -308,6 +309,7 @@ const GenerateBill = () => {
               ],
               other_Bill_Data: {},
             });
+            dispatch(resetSuitData())
           }
         });
       }

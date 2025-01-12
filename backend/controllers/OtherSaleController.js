@@ -3,10 +3,12 @@ import CustomError from "../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../middleware/Common.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import { BranchModel } from "../models/Branch.Model.js";
-import { VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../models/DashboardData/VirtalAccountsModal.js";
 import { OtherSaleBillModel } from "../models/OtherSaleModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
-
 
 export const generateOtherSaleBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -78,6 +80,17 @@ export const generateOtherSaleBill = async (req, res, next) => {
         };
         virtualAccounts = updatedAccount;
         await virtualAccounts[0].save({ session });
+        //ADDING STATEMENT HISTORY
+        const new_balance = updatedAccount[0][payment_Method];
+        const historyData = {
+          date,
+          transactionType: "Deposit",
+          payment_Method,
+          new_balance,
+          amount: amount,
+          note: ` Other Sale Bill Generated For : ${name}`,
+        };
+        await VA_HistoryModal.create([historyData], { session });
       }
 
       //GET LAST SERIAL NUMBER
@@ -124,8 +137,8 @@ export const getAllOtherSaleBills = async (req, res, next) => {
     const limit = 50;
 
     let query = {};
-    if(name){
-      query = {name:{$regex: name, $options: 'i'}}
+    if (name) {
+      query = { name: { $regex: name, $options: "i" } };
     }
     const totalDocuments = await OtherSaleBillModel.countDocuments(query);
     const data = await OtherSaleBillModel.find(query)
@@ -141,7 +154,7 @@ export const getAllOtherSaleBills = async (req, res, next) => {
     setMongoose();
     return res.status(200).json(response);
   } catch (error) {
-   next(error);
+    next(error);
   }
 };
 
