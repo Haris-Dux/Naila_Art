@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getBuyerByIdAsync, markAsPaidAsync } from "../../features/BuyerSlice";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
