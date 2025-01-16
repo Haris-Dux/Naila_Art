@@ -19,6 +19,7 @@ import { GoPlus } from "react-icons/go";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
+import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -30,6 +31,8 @@ const EmployeeDetails = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [salaryReverseModal, setSalaryReverseModal] = useState(false);
+  const [afterConfirmation, setAfterConfirmation] = useState(null);
   const [leavesModal, setLeavesModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
@@ -151,6 +154,7 @@ const EmployeeDetails = () => {
 
   const closeConfirmationModal = () => {
     setIsConfirmationOpen(false);
+    setSalaryReverseModal(false);
     setOverTimeModal(false);
     setFormData((prev) => ({
       ...prev,
@@ -240,6 +244,7 @@ const EmployeeDetails = () => {
   };
 
   const handleReverseSalary = (data) => {
+    setSalaryReverseModal(true);
     const reqData = {
       id,
       transactionId: data.id,
@@ -249,11 +254,15 @@ const EmployeeDetails = () => {
       leaves: data.leaves,
       over_time: data.over_time,
     };
-    dispatch(reverseSalaryAsync(reqData)).then((res) => {
-      if (res.payload.success === true) {
-        dispatch(GetEmployeeById({ id }));
-      }
-    });
+    const reverseSalary = () => {
+      dispatch(reverseSalaryAsync(reqData)).then((res) => {
+        if (res.payload.success === true) {
+          dispatch(GetEmployeeById({ id }));
+          setSalaryReverseModal(false);
+        }
+      });
+    };
+    setAfterConfirmation(() => reverseSalary);
   };
 
   const openOverTimeHistory = () => {
@@ -1021,42 +1030,52 @@ const EmployeeDetails = () => {
                     </tr>
                   </thead>
                 </table>
-         
-                  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                    <tbody>
-                      {filteredData && filteredData.length > 0 ? (
-                        filteredData
-                          .slice()
-                          .reverse()
-                          .map((data, index) => (
-                            <tr
-                              key={index}
-                              className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                            >
-                              <td className="px-6 py-2 text-center">
-                                {data?.time}
-                              </td>
-                              <td className="px-6 py-2 text-center">
-                                {data?.date}
-                              </td>
-                              <td className="px-6 py-2 text-center">
-                                {data?.note}
-                              </td>
-                            </tr>
-                          ))
-                      ) : (
-                        <tr className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                          <td colSpan="3" className="px-6 py-3 text-center">
-                            No data available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-             
+
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <tbody>
+                    {filteredData && filteredData.length > 0 ? (
+                      filteredData
+                        .slice()
+                        .reverse()
+                        .map((data, index) => (
+                          <tr
+                            key={index}
+                            className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                          >
+                            <td className="px-6 py-2 text-center">
+                              {data?.time}
+                            </td>
+                            <td className="px-6 py-2 text-center">
+                              {data?.date}
+                            </td>
+                            <td className="px-6 py-2 text-center">
+                              {data?.note}
+                            </td>
+                          </tr>
+                        ))
+                    ) : (
+                      <tr className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <td colSpan="3" className="px-6 py-3 text-center">
+                          No data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
+        )}
+
+        {/* REVERSE SALARY CONFIRMATION */}
+        {salaryReverseModal && (
+          <ConfirmationModal
+            onClose={closeConfirmationModal}
+            onConfirm={afterConfirmation}
+            message={"Are You Sure Want to Reverse This Salary Transaction."}
+            title={"Reverse Salary"}
+            updateStitchingLoading={employeEditLoading}
+          />
         )}
       </section>
     </>

@@ -123,11 +123,7 @@ const initialState = {
 const GenerateBillSlice = createSlice({
   name: "GenerateBillSlice",
   initialState,
-  reducers: {
-    resetSuitData: (state) => {
-      state.SuitFromDesign = [];
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
 
@@ -177,5 +173,4 @@ const GenerateBillSlice = createSlice({
   },
 });
 
-export const { resetSuitData } = GenerateBillSlice.actions;
 export default GenerateBillSlice.reducer;

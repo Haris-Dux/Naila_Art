@@ -210,7 +210,7 @@ const Stones = () => {
                             (total, item) => total + item.quantity,
                             0
                           )}{" "}
-                          m
+                          suit
                         </td>
                         <td className="px-6 py-4">
                           {data.r_quantity ? `${data.r_quantity} m` : "--"}

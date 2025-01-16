@@ -6,13 +6,12 @@ import { GetAllBags, GetAllBranches } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 import {
   generateBuyerBillAsync,
-  generatePdfAsync,
-  getSuitFromDesignAsync,
-  resetSuitData,
+  generatePdfAsync
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
 import { PaymentData } from "../../Utils/AccountsData";
+import Select from "react-select";
 
 const GenerateBill = () => {
   const dispatch = useDispatch();
@@ -20,7 +19,7 @@ const GenerateBill = () => {
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
   const PackagingData = useSelector((state) => state.InStock?.Bags);
-  const { SuitFromDesign, pdfLoading, generateBillloading } = useSelector(
+  const { pdfLoading, generateBillloading } = useSelector(
     (state) => state.BuyerBills
   );
   const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
@@ -60,6 +59,7 @@ const GenerateBill = () => {
   const [colorOptions, setColorOptions] = useState([[]]);
   const [showPreview, setShowPreview] = useState(false);
   const [pastBill, setPastBill] = useState(false);
+  const [branchStockData, setBranchStockData] = useState([]);
 
   const handlePreviewClick = () => {
     setShowPreview(true);
@@ -70,13 +70,17 @@ const GenerateBill = () => {
     setShowPreview(false);
   };
 
-  console.log('SuitFromDesign',SuitFromDesign);
-
   useEffect(() => {
     if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
+      dispatch(GetAllBranches({ id: user?.user?.id })).then((res) => {
+        if (user?.user?.role !== "superadmin") {
+          setBranchStockData(res?.payload[0]?.stockData);
+        }
+      });
     }
   }, [dispatch, user]);
+
+  console.log("branchStockData", branchStockData);
 
   useEffect(() => {
     dispatch(GetAllBags());
@@ -154,6 +158,11 @@ const GenerateBill = () => {
       ...prevState,
       branchId: value,
     }));
+    const data =
+      Branches.find((branch) => {
+        return branch.id === value;
+      }).stockData || [];
+    setBranchStockData(data);
   };
 
   const addNewRow = () => {
@@ -189,42 +198,51 @@ const GenerateBill = () => {
     });
   };
 
-  const handleSuitChange = (index, e) => {
-    const { name, value } = e.target;
+  const validateBranch = () => {
+    if (user?.user?.role === "superadmin" && !billData.branchId) {
+      toast.error("Please select a branch"); 
+    };
+  }
+
+  const handleSuitChange = (selectedDesignNumber, index) => {
+    const designNumber = selectedDesignNumber.value;
     const newSuitsData = [...billData.suits_data];
-    newSuitsData[index][name] = value;
+    newSuitsData[index]["d_no"] = designNumber;
+    newSuitsData[index]["color"] = "";
+    newSuitsData[index]["id"] = "";
 
-    if (name === "d_no") {
-      const data = {
-        branchId: billData.branchId,
-        d_no: value,
-      };
-      dispatch(getSuitFromDesignAsync(data)).then((response) => {
-        const colors = response.payload.map((item) => item.color);
+    //DATA BY DESIGN NUMBER
+    const DataFromDesignNumber = branchStockData.filter(
+      (item) => item.d_no === selectedDesignNumber.value
+    );
+    // Extract colors from the filtered items
+    const colors = DataFromDesignNumber.map((item) => item.color);
 
-        // Update color options for this specific row
-        setColorOptions((prevOptions) => {
-          const newColorOptions = [...prevOptions];
-          newColorOptions[index] = colors;
-          return newColorOptions;
-        });
-      });
-    }
+    // Update color options for this specific row
+    setColorOptions((prevOptions) => {
+      const newColorOptions = [...prevOptions];
+      newColorOptions[index] = colors;
+      return newColorOptions;
+    });
 
     setBillData({ ...billData, suits_data: newSuitsData });
   };
 
+  console.log("billData.suits_data", billData.suits_data);
+
   const handleColorChange = (index, e) => {
-    console.log('e',e);
     const selectedColor = e.target.value;
 
-    const selectedDesign = SuitFromDesign.find(
-      (design) => design.color === selectedColor
+    const selectedDesign = branchStockData.find(
+      (design) =>
+        design.color === selectedColor &&
+        design.d_no === billData.suits_data[index].d_no
     );
+
     setBillData((prevState) => {
       const updatedSuitsData = [...prevState.suits_data];
       updatedSuitsData[index].color = selectedColor;
-      updatedSuitsData[index].id = selectedDesign?.Item_Id || "";
+      updatedSuitsData[index].id = selectedDesign?.Item_Id;
 
       return {
         ...prevState,
@@ -244,8 +262,6 @@ const GenerateBill = () => {
 
     return payLoad;
   };
-
-  console.log('billData',billData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -309,7 +325,6 @@ const GenerateBill = () => {
               ],
               other_Bill_Data: {},
             });
-            dispatch(resetSuitData())
           }
         });
       }
@@ -350,6 +365,7 @@ const GenerateBill = () => {
       }));
     }
   };
+
   return (
     <>
       {showPreview ? (
@@ -537,6 +553,7 @@ const GenerateBill = () => {
                     ))}
                   </select>
                 </div>
+
                 <div>
                   <input
                     name="quantity"
@@ -632,12 +649,10 @@ const GenerateBill = () => {
                       htmlFor="otherBillData"
                       className="text-md font-bold"
                     >
-                      Total Bill 
+                      Total Bill
                     </label>
-                    <span
-                      className={`text-sm font-medium text-black`}
-                    >
-                      {(otherBillData.o_b_amount + Number(billData.paid)) || 0}
+                    <span className={`text-sm font-medium text-black`}>
+                      {otherBillData.o_b_amount + Number(billData.paid) || 0}
                     </span>
                   </div>
                 </div>
@@ -726,12 +741,12 @@ const GenerateBill = () => {
               </div>
             </div>
 
-            {/* DESIGN FIELDS */}
+            {/* SUIT FIELDS */}
             <div className="fields mt-10">
               {/* header */}
               <div className="header flex justify-between items-center">
                 <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-                  Enter Design Number
+                  Enter Suit Details
                 </h3>
 
                 <button
@@ -751,17 +766,64 @@ const GenerateBill = () => {
                     className="flex items-center justify-between gap-x-4"
                   >
                     <div className="grid items-start grid-cols-1 lg:grid-cols-4 gap-5 w-full">
+                      {/* DESIGN FIELD */}
                       <div>
-                        <input
-                          name="d_no"
-                          type="text"
-                          placeholder="Design No"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          value={suit.d_no}
-                          onChange={(e) => handleSuitChange(index, e)}
-                          required
+                        <Select
+                          options={Array.from(
+                            new Set(
+                              branchStockData?.map(
+                                (item) => `${item.d_no}-${item.category}`
+                              )
+                            )
+                          ).map((uniqueItem) => {
+                            const [d_no, category] = uniqueItem.split("-");
+                            return {
+                              value: Number(d_no),
+                              label: `${d_no} (${category})`,
+                            };
+                          })}
+                          onChange={(newValue) =>
+                            handleSuitChange(newValue, index)
+                          }
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              backgroundColor: "rgb(249 250 251)",
+                              borderColor: "rgb(209 213 219)",
+                              color: "rgb(17 24 39)",
+                              borderWidth: "1px",
+                              borderRadius: "0.375rem",
+                              padding: "0.135rem",
+                              boxShadow: "none",
+                              "&:hover": {
+                                borderColor: "rgb(209 213 219)",
+                              },
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                              backgroundColor: "rgb(249 250 251)",
+                            }),
+                            menuPortal: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                            placeholder: (base) => ({
+                              ...base,
+                              color: "rgb(17 24 39)",
+                            }),
+                            singleValue: (base) => ({
+                              ...base,
+                              color: "rgb(17 24 39)",
+                            }),
+                          }}
+                          className="block w-full custom-reactSelect "
+                          placeholder="Enter Design Number"
+                          menuPortalTarget={document.body}
+                          onMenuOpen={validateBranch}
                         />
                       </div>
+                      {/* COLOR FIELD */}
                       <div>
                         <select
                           id="color"
@@ -780,6 +842,7 @@ const GenerateBill = () => {
                           ))}
                         </select>
                       </div>
+                      {/* QUANTITY FIELD */}
                       <div>
                         <input
                           name="quantity"
@@ -791,6 +854,7 @@ const GenerateBill = () => {
                           required
                         />
                       </div>
+                      {/* PRICE FIELD */}
                       <div>
                         <input
                           name="price"
