@@ -142,7 +142,7 @@ const EmbroideryDetails = () => {
 
   const {
     partyName,
-    serial_No,
+    Manual_No,
     date,
     per_suit,
     project_status,
@@ -427,8 +427,8 @@ const EmbroideryDetails = () => {
               <span> {partyName}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Serial No:</span>
-              <span> {serial_No}</span>
+              <span className="font-medium">Manual No:</span>
+              <span> {Manual_No ?? '--'}</span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
@@ -582,6 +582,7 @@ const EmbroideryDetails = () => {
         {/* -------------- RECEIVED STOCK SECTION -------------- */}
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
+            {/* SHIRT DATA */}
             {formData?.shirt.length > 0 && (
               <div className="box_1">
                 <h3 className="mb-4 font-semibold text-lg">
@@ -619,6 +620,7 @@ const EmbroideryDetails = () => {
                 </div>
               </div>
             )}
+            {/* DUPPATA DATA */}
             {formData?.duppata.length > 0 && (
               <div className="box_2">
                 <h3 className="mb-4 font-semibold text-lg">
@@ -655,6 +657,7 @@ const EmbroideryDetails = () => {
                 </div>
               </div>
             )}
+            {/* TROUSER DATA */}
             {formData?.trouser.length > 0 && (
               <div className="box_3">
                 <h3 className="mb-4 font-semibold text-lg">
@@ -1038,6 +1041,7 @@ const EmbroideryDetails = () => {
             handleSubmit={generateBill}
             loading={generateBillLoading}
             closeModal={closeBillModal}
+            Manual_No={SingleEmbroidery.Manual_No}
             processBillAmount={Math.round(
               SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit
             )}

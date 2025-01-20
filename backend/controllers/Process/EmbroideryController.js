@@ -13,6 +13,7 @@ export const addEmbriodery = async (req, res, next) => {
       const {
         partyName,
         partytype,
+        Manual_No,
         date,
         per_suit,
         project_status,
@@ -39,6 +40,7 @@ export const addEmbriodery = async (req, res, next) => {
 
       const requiredFields = [
         "partyName",
+        "Manual_No",
         "partytype",
         "date",
         "per_suit",
@@ -152,7 +154,7 @@ export const addEmbriodery = async (req, res, next) => {
         }
       }
 
-      // INVENTORY DEDUCTION THROUGH TRANSACTIONS
+      // INVENTORY BASE STOCK DEDUCTION THROUGH TRANSACTIONS
       const handleInventory = async (items) => {
         if (items && items.length > 0) {
           await Promise.all(
@@ -201,6 +203,7 @@ export const addEmbriodery = async (req, res, next) => {
         [
           {
             partyName,
+            Manual_No,
             date,
             per_suit,
             project_status,

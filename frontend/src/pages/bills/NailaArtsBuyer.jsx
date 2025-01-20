@@ -143,10 +143,12 @@ const NailaArtsBuyer = () => {
   const openReturnModal = (data) => {
     setselected(data);
     setreturnModal(true);
+    document.body.style.overflow = "hidden";
   };
   const closeReturnModal = () => {
     setselected("");
     setreturnModal(false);
+    document.body.style.overflow = "auto";
   };
 
   const searchTimerRef = useRef();

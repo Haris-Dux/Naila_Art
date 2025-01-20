@@ -117,7 +117,7 @@ const AssignStock = () => {
   return (
     <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
       <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
-        Assign Stock
+        Send Stock To Branch
       </h1>
 
       <div className="flex justify-between items-center pt-6">
@@ -231,14 +231,14 @@ const AssignStock = () => {
               disabled
               className="inline-block cursor-progress rounded border border-gray-600 bg-gray-300 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indigo-500"
             >
-              Assign Stock
+              Send Stock
             </button>
           ) : (
             <button
               onClick={handleSubmit}
               className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
             >
-              Assign Stock
+              Send Stock
             </button>
           )}
         </div>

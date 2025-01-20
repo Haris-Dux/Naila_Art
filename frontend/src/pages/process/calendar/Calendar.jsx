@@ -156,7 +156,8 @@ const Calendar = () => {
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-medium" scope="col">
-                      Sr # No
+                      <span className="text-red-500">S.N</span>/
+                      <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -189,14 +190,10 @@ const Calendar = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <div className="flex gap-3">
-                            <span className="text-green-500">
-                              {entry?.bill_generated && (
-                                <GrDocumentVerified size={18} />
-                              )}
-                            </span>
-                            {index + 1}
-                          </div>
+                          <span className="text-red-500"> {index + 1}</span>/
+                          <span className="text-green-600">
+                            {entry.Manual_No ?? "--"}
+                          </span>
                         </th>
                         <td className="px-6 py-4">{entry.partyName}</td>
                         <td className="px-6 py-4">{entry.design_no}</td>

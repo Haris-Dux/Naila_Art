@@ -38,12 +38,16 @@ export const addCalender = async (req, res, next) => {
     if (partytype === "newParty") {
       const checkExistingCalender = await CalenderModel.findOne({
         partyName: { $regex: partyName, $options: "i" },
-      })
+      });
       if (checkExistingCalender) {
         throw new Error("Party Name Already In Use");
       }
-    };
-     await CalenderModel.create({
+    }
+    //GET EMBROIDERY DATA
+    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
+    
+    //CREATE CALENDER DATA
+    await CalenderModel.create({
       embroidery_Id,
       partyName,
       rate,
@@ -51,10 +55,10 @@ export const addCalender = async (req, res, next) => {
       T_Quantity,
       date,
       design_no,
+      Manual_No: mainEmbroidery.Manual_No,
     });
 
     //UPDATE MAIN EMBROIDERY NextStep
-    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id)
     mainEmbroidery.next_steps.calender = true;
     await mainEmbroidery.save();
     return res
@@ -161,9 +165,11 @@ export const deleteCalender = async (req, res, next) => {
     if (!id) throw new Error("Calender Id Required");
     const data = await CalenderModel.findByIdAndDelete(id);
     if (!data) throw new Error("Calender Not Found");
-    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This calender");
+    if (data.bill_generated)
+      throw new Error("Bill Generated Cannot Delete This calender");
     const embData = await EmbroideryModel.findById(data.embroidery_Id);
-    if (!embData) throw new Error("Embroidery Data not Found For this Calender");
+    if (!embData)
+      throw new Error("Embroidery Data not Found For this Calender");
     embData.next_steps.calender = false;
     await embData.save();
     return res
@@ -203,4 +209,3 @@ export const getCalenderDataBypartyName = async (req, res, next) => {
     res.status(500).json({ error: error.message });
   }
 };
-

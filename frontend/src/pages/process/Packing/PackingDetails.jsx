@@ -6,7 +6,7 @@ import {
   GetSingleStitching,
 } from "../../../features/stitching";
 import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
-import {  FaEye } from "react-icons/fa";
+import { FaEye } from "react-icons/fa";
 import PicturesOrder from "../../bills/Modals/PicturesOrder";
 import { CgShoppingBag } from "react-icons/cg";
 import { AiOutlinePicture } from "react-icons/ai";
@@ -61,8 +61,8 @@ const PackingDetails = () => {
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
-        embroidery_Id: SingleEmbroidery?.id,
-        packing_Id:SingleStitching.id,
+        embroidery_Id: SingleStitching?.embroidery_Id,
+        packing_Id: SingleStitching.id,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -82,8 +82,8 @@ const PackingDetails = () => {
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
-        embroidery_Id: SingleEmbroidery?.id,
-        packing_Id:SingleStitching.id,
+        embroidery_Id: SingleStitching?.embroidery_Id,
+        packing_Id: SingleStitching.id,
         dupatta_category:
           SingleStitching.dupatta_category?.map((item) => ({
             id: item.id,
@@ -103,8 +103,8 @@ const PackingDetails = () => {
       setFormData({
         ...formData,
         d_no: SingleStitching?.design_no,
-        embroidery_Id: SingleEmbroidery?.id,
-        packing_Id:SingleStitching.id,
+        embroidery_Id: SingleStitching?.embroidery_Id,
+        packing_Id: SingleStitching.id,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -137,8 +137,6 @@ const PackingDetails = () => {
     dispatch(GETEmbroiderySIngle({ id: idData }));
   }, [SingleStitching, id]);
 
-  console.log("SingleStitching", SingleStitching);
-
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -166,6 +164,7 @@ const PackingDetails = () => {
 
   const handleAddInStock = (e) => {
     e.preventDefault();
+    console.log("formData", formData);
     dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
       if (res.payload.success) {
         closeConfirmationModal();
@@ -420,21 +419,49 @@ const PackingDetails = () => {
                   added in stock?
                 </p>
               </div>
-              
-                <div className="flex items-center justify-center gap-2">
-                  <CgShoppingBag  size={24} className={`${formData?.useBags ? "text-green-500" : "text-red-500"}`} />
-                  <p className={`font-bold  ${formData?.useBags ? "text-green-500 text-center" : "text-red-500 text-center"}`}>
-                    {formData?.useBags  ? "Packing bags selected" : "Packing bags not selected" }
-                  </p>
-                </div>
 
-                <div className="flex items-center justify-center gap-2  my-2">
-                  <AiOutlinePicture size={24} className={`${SingleEmbroidery?.pictures_Order ? "text-green-500" : "text-red-500"}`} />
-                  <p className={`font-bold ${SingleEmbroidery?.pictures_Order ? "text-green-500 text-center" : "text-red-500 text-center"}`}>
-                    {SingleEmbroidery?.pictures_Order  ? "Order includes pictures" : "No pictures in the order" }
-                  </p>
-                </div>
-              
+              <div className="flex items-center justify-center gap-2">
+                <CgShoppingBag
+                  size={24}
+                  className={`${
+                    formData?.useBags ? "text-green-500" : "text-red-500"
+                  }`}
+                />
+                <p
+                  className={`font-bold  ${
+                    formData?.useBags
+                      ? "text-green-500 text-center"
+                      : "text-red-500 text-center"
+                  }`}
+                >
+                  {formData?.useBags
+                    ? "Packing bags selected"
+                    : "Packing bags not selected"}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-center gap-2  my-2">
+                <AiOutlinePicture
+                  size={24}
+                  className={`${
+                    SingleEmbroidery?.pictures_Order
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                />
+                <p
+                  className={`font-bold ${
+                    SingleEmbroidery?.pictures_Order
+                      ? "text-green-500 text-center"
+                      : "text-red-500 text-center"
+                  }`}
+                >
+                  {SingleEmbroidery?.pictures_Order
+                    ? "Order includes pictures"
+                    : "No pictures in the order"}
+                </p>
+              </div>
+
               <div className="flex justify-center p-2">
                 <button
                   onClick={closeConfirmationModal}

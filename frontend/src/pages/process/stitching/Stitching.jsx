@@ -99,8 +99,6 @@ const Stitching = () => {
     });
   };
 
-  console.log("filteredData", filteredData);
-
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -158,8 +156,12 @@ const Stitching = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3 font-medium" scope="col">
-                      Sr #
+                    <th
+                      className="px-6 py-3 font-medium text-center"
+                      scope="col"
+                    >
+                      <span className="text-red-500">S.N</span>/
+                      <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -195,13 +197,17 @@ const Stitching = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <div className="flex gap-2">
-                            {data.serial_No}
+                          <div className="flex items-center justify-center gap-2">
                             <span className="text-green-500">
-                              {data?.packed && (
-                                <LuPackageCheck size={20} />
-                              )}
+                              {data?.packed && <LuPackageCheck size={20} />}
                             </span>
+                            <div>
+                              <span className="text-red-500"> {index + 1}</span>
+                              /
+                              <span className="text-green-600">
+                                {data?.Manual_No ?? "--"}
+                              </span>
+                            </div>
                           </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
