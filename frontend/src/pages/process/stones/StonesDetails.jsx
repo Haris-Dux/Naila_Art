@@ -600,8 +600,8 @@ const StonesDetails = () => {
               <span> {SingleStone?.partyName}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Serial No:</span>
-              <span>{SingleStone?.serial_No}</span>
+              <span className="font-medium">Manual No:</span>
+              <span>{SingleStone?.Manual_No ?? '--'}</span>
             </div>
             <div className="box">
               <span className="font-medium">Design No:</span>
@@ -1266,6 +1266,7 @@ const StonesDetails = () => {
           handleSubmit={generateBill}
           loading={StnoneBillLoading}
           closeModal={closeBillModal}
+          Manual_No={SingleStone?.Manual_No}
           processBillAmount={Math.round(
             SingleStone?.rate * SingleStone?.r_quantity
           )}

@@ -6,11 +6,12 @@ const ProcessBillModal = ({
   handleSubmit,
   processBillAmount,
   onDataChange,
+  Manual_No,
 }) => {
   // State variables to hold form data
   const [formData, setFormData] = useState({
     additionalExpenditure: "",
-    Manual_No: "",
+    Manual_No: Manual_No,
   });
 
   // Function to handle changes in form inputs
@@ -33,7 +34,7 @@ const ProcessBillModal = ({
         {/* ------------- HEADER ------------- */}
         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Additionl Process Bill Details
+            Additional Process Bill Details
           </h3>
           <button
             onClick={closeModal}
@@ -65,6 +66,12 @@ const ProcessBillModal = ({
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-x-4">
               {/* Manual_No */}
               <div>
+                <label
+                  htmlFor="Manual_No"
+                  className="block text-sm font-bold text-gray-700 dark:text-gray-300"
+                >
+                  Manual Number
+                </label>
                 <input
                   name="Manual_No"
                   type="text"
@@ -73,28 +80,43 @@ const ProcessBillModal = ({
                   onChange={handleChange}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   required
+                  readOnly
                 />
               </div>
 
               {/* Additional Expenditure */}
-
-              <input
-                name="additionalExpenditure"
-                type="number"
-                placeholder="A.E"
-                value={formData.additionalExpenditure}
-                onChange={handleChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                required
-              />
-
-              <input
-                name="processBillAmount"
-                type="text"
-                value={processBillAmount}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                readOnly
-              />
+              <div>
+                <label
+                  htmlFor="Manual_No"
+                  className="block text-sm font-bold text-gray-700 dark:text-gray-300"
+                >
+                  Additional Cost
+                </label>
+                <input
+                  name="additionalExpenditure"
+                  type="number"
+                  placeholder="A.E"
+                  value={formData.additionalExpenditure}
+                  onChange={handleChange}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="Manual_No"
+                  className="block text-sm font-bold text-gray-700 dark:text-gray-300"
+                >
+                  Bill Amount
+                </label>
+                <input
+                  name="processBillAmount"
+                  type="text"
+                  value={processBillAmount}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  readOnly
+                />
+              </div>
             </div>
 
             <div className="flex justify-center mt-6">

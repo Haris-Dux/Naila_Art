@@ -21,12 +21,14 @@ export const createReturn = async (req, res, next) => {
         bill_Date,
         T_Return_Amount,
         Amount_From_Balance,
-        Amount_From_TotalCash,
+        Amount_Payable,
         suits_data,
+        method,
       } = req.body;
       const requiredFields = [
         "branchId",
         "buyerId",
+        "method",
         "bill_Id",
         "partyName",
         "serialNumber",
@@ -35,7 +37,7 @@ export const createReturn = async (req, res, next) => {
         "bill_Date",
         "T_Return_Amount",
         "Amount_From_Balance",
-        "Amount_From_TotalCash",
+        "Amount_Payable",
         "suits_data",
       ];
 
@@ -69,9 +71,10 @@ export const createReturn = async (req, res, next) => {
           });
         }
       });
+
       if (missingFields.length > 0) {
         throw new Error(`Missing Fields: ${missingFields}`);
-      };
+      }
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
       const branch = await BranchModel.findById(branchId).session(session);
@@ -94,12 +97,50 @@ export const createReturn = async (req, res, next) => {
       }).session(session);
       if (!dailySaleForToday) {
         throw new Error("Daily sale record not found for Today");
-      };
+      }
+
+      //DEDUCTING TOTAL PROFIT FROM SALE DAY
+      const dailySaleForSaleDay = await DailySaleModel.findOne({
+        branchId,
+        date: bill_Date,
+      }).session(session);
+
+      if (!dailySaleForSaleDay) {
+        throw new Error("Daily sale record not found for Sale Day");
+      }
+      const buyerBill = await BuyersBillsModel.findById(bill_Id).session(
+        session
+      );
+      let profitToDeduct = 0;
+      suits_data.forEach((suit) => {
+        buyerBill.profitDataForHistory.forEach((record) => {
+          if (record.suitId === suit.id) {
+            const amount = record.profit * suit.quantity;
+            profitToDeduct += amount;
+            record.quantity_for_return -= suit.quantity;
+            if (record.quantity_for_return < 0) {
+              throw new Error(
+                `Not Enough Returnable Quantity For (Category/${record.category},Color/${record.color})`
+              );
+            }
+          }
+        });
+      });
+      dailySaleForSaleDay.saleData.totalProfit -= profitToDeduct;
+      dailySaleForSaleDay.saleData.totalSale -= T_Return_Amount;
+      if (dailySaleForSaleDay.saleData.totalSale < 0) {
+        throw new Error(
+          `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
+        );
+      }
+      await buyerBill.save({ session });
+      await dailySaleForSaleDay.save({ session });
 
       //GET BUYER DETAILS
       const buyer = await BuyersModel.findById(buyerId).session(session);
-      if (buyer.virtual_account.status !== "Paid") {
-        //DATA FOR VIRTUAL ACCOUNT
+
+      //UPDATE BUYERS ACCOUNT
+      if (Amount_Payable <= 0 && method === "default-account") {
         const new_total_debit =
           buyer.virtual_account.total_debit - Amount_From_Balance;
         const new_total_credit =
@@ -112,16 +153,20 @@ export const createReturn = async (req, res, next) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_debit && new_total_credit > 0:
+          case new_total_balance === new_total_debit &&
+            new_total_credit > 0 &&
+            new_total_balance > 0:
             new_status = "Partially Paid";
             break;
           case new_total_credit === 0 && new_total_balance === new_total_debit:
             new_status = "Unpaid";
             break;
+          case new_total_balance < 0:
+            new_status = "Advance Paid";
+            break;
+          default:
+            new_status = "";
         }
-
-        if (new_total_balance < 0)
-          throw new Error("Invalid Balance Amount For This Party");
 
         const virtualAccountData = {
           total_debit: new_total_debit,
@@ -142,44 +187,42 @@ export const createReturn = async (req, res, next) => {
         buyer.virtual_account = virtualAccountData;
         buyer.credit_debit_history.push(credit_debit_history_details);
         await buyer.save({ session });
-      }
+      } else if (Amount_Payable > 0 && method === "account") {
+        const new_total_debit =
+          buyer.virtual_account.total_debit >= 0
+            ? -Amount_Payable
+            : buyer.virtual_account.total_debit - Amount_Payable;
+        const new_total_credit = buyer.virtual_account.total_credit;
+        const new_total_balance =
+          buyer.virtual_account.total_balance >= 0
+            ? -Amount_Payable
+            : buyer.virtual_account.total_balance - Amount_Payable;
+        let new_status = "Advance Paid";
 
-      //DEDUCTING TOTAL PROFIT FROM SALE DAY
-      const dailySaleForSaleDay = await DailySaleModel.findOne({
-        branchId,
-        date: bill_Date,
-      }).session(session);
+        const virtualAccountData = {
+          total_debit: new_total_debit,
+          total_credit: new_total_credit,
+          total_balance: new_total_balance,
+          status: new_status,
+        };
 
-      if (!dailySaleForSaleDay) {
-        throw new Error("Daily sale record not found for Sale Day");
-      }
-      const buyerBill = await BuyersBillsModel.findById(bill_Id).session(session);
-      let profitToDeduct = 0;
-      suits_data.forEach((suit) => {
-        buyerBill.profitDataForHistory.forEach((record) => {
-          if (record.suitId === suit.id) {
-            const amount = record.profit * suit.quantity;
-            profitToDeduct += amount;
-            record.quantity_for_return -= suit.quantity;
-            if (record.quantity_for_return < 0) {
-              throw new Error(`Not Enough Returnable Quantity For (Category/${record.category},Color/${record.color})`);
-            }
-          }
-        });
-      });
-      dailySaleForSaleDay.saleData.totalProfit -= profitToDeduct;
-      dailySaleForSaleDay.saleData.totalSale -= T_Return_Amount;
-     if (dailySaleForSaleDay.saleData.totalSale < 0) {
-        throw new Error(
-          `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
-        );
-      }
-      await buyerBill.save({session});
-      await dailySaleForSaleDay.save({ session });
+        //DATA FOR CREDIT DEBIT HISTORY
 
-      //DEDEUCTION FROM TOTAL CASH IN DAILY SALE
-      if (Amount_From_TotalCash > 0) {
-        dailySaleForToday.saleData.totalCash -= Amount_From_TotalCash;
+        const credit_debit_history_details = {
+          date,
+          particular: `Return Payment`,
+          credit: Amount_Payable,
+          balance: buyer.virtual_account.total_balance - Amount_Payable,
+        };
+
+        //UPDATING USER DATA IN DB
+
+        buyer.virtual_account = virtualAccountData;
+        buyer.credit_debit_history.push(credit_debit_history_details);
+
+        await buyer.save({ session });
+      } else if (Amount_Payable > 0 && method === "cash") {
+        dailySaleForToday.saleData.totalCash -= Amount_Payable;
         if (dailySaleForToday.saleData.totalCash < 0) {
           throw new Error("Not Enough Total Cash");
         }
@@ -200,7 +243,7 @@ export const createReturn = async (req, res, next) => {
             bill_Date,
             T_Return_Amount,
             Amount_From_Balance,
-            Amount_From_TotalCash,
+            Amount_Payable,
             suits_data,
           },
         ],

@@ -27,8 +27,6 @@ export const addCutting = async (req, res, next) => {
       "date",
     ];
 
-  
-
     const missingFields = [];
     requiredFields.forEach((field) => {
       if (req.body[field] === undefined || req.body[field] === null) {
@@ -42,13 +40,16 @@ export const addCutting = async (req, res, next) => {
     if (partytype === "newParty") {
       const checkExistingCutting = await CuttingModel.findOne({
         partyName: { $regex: partyName, $options: "i" },
-      })
+      });
       if (checkExistingCutting) {
         throw new Error("Party Name Already In Use");
       }
-    };
+    }
+    //GET MAIN EMBROIDERY DATA
+    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
 
-     await CuttingModel.create({
+    //ADD CONTROLLER DATA
+    await CuttingModel.create({
       embroidery_Id,
       partyName,
       rate,
@@ -56,10 +57,10 @@ export const addCutting = async (req, res, next) => {
       T_Quantity,
       date,
       design_no,
+      Manual_No: mainEmbroidery.Manual_No,
     });
 
     //UPDATE MAIN EMBROIDERY NextStep
-    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
     mainEmbroidery.next_steps.cutting = true;
     await mainEmbroidery.save();
     return res
@@ -78,11 +79,16 @@ export const updateCutting = async (req, res, next) => {
     if (!cutting) throw new Error("cutting not Found");
     let updateQuery = {};
     if (r_quantity) {
-      if(r_quantity > cutting.T_Quantity){
-        throw new Error("Invalid Recieved quantity")
-      };
+      if (r_quantity > cutting.T_Quantity) {
+        throw new Error("Invalid Recieved quantity");
+      }
       const Available_Quantity = r_quantity;
-      updateQuery = { ...updateQuery, r_quantity,Available_Quantity, updated:true };
+      updateQuery = {
+        ...updateQuery,
+        r_quantity,
+        Available_Quantity,
+        updated: true,
+      };
     }
     if (project_status) {
       updateQuery = { ...updateQuery, project_status };
@@ -168,7 +174,8 @@ export const deleteCutting = async (req, res, next) => {
     if (!id) throw new Error("Cutting Id Required");
     const data = await CuttingModel.findByIdAndDelete(id);
     if (!data) throw new Error("Cutting Not Found");
-    if(data.bill_generated) throw new Error("Bill Generated Cannot Delete This Cutting");
+    if (data.bill_generated)
+      throw new Error("Bill Generated Cannot Delete This Cutting");
     const embData = await EmbroideryModel.findById(data.embroidery_Id);
     if (!embData) throw new Error("Embroidery Data not Found For this Cutting");
     embData.next_steps.cutting = false;

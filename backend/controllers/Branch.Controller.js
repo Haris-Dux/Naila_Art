@@ -215,7 +215,7 @@ export const getAllBranchStockHistory = async (req, res) => {
     if (!branch) throw new Error("Branch Not Found");
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 30;
     let search = parseInt(req.query.search) || "";
 
     let query = {};
@@ -230,9 +230,9 @@ export const getAllBranchStockHistory = async (req, res) => {
       { $unwind: "$stockData" },
       { $unwind: "$stockData.all_records" },
       { $match: query },
+      { $sort: { "stockData.all_records.date": -1 } },
       { $skip: (page - 1) * limit },
       { $limit: limit },
-      { $sort: { "stockData.createdAt": -1 } },
       {
         $project: {
           category: "$stockData.category",
@@ -411,9 +411,7 @@ export const approveOrRejectStock = async (req, res) => {
       MainStock.last_updated = stockToUpdate.date;
     } else if (status === "Returned") {
       MainStock = branch.stockData.find((item) => item.Item_Id.equals(Item_Id));
-      const suitToUpdate = await SuitsModel.findOne({
-        id: branch.stockData.Item_Id,
-      });
+      const suitToUpdate = await SuitsModel.findById(Item_Id);
       if (suitToUpdate) {
         suitToUpdate.quantity += stockToUpdate.quantity;
         await suitToUpdate.save();

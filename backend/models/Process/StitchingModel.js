@@ -56,6 +56,9 @@ const stitchingSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Serial No required"],
     },
+    Manual_No: {
+      type: String,
+    },
     Quantity: {
       type: Number,
       required: [true, "Quantity value required"],

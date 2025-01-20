@@ -222,7 +222,7 @@ export const cashIn = async (req, res) => {
           payment_Method,
           new_balance,
           amount: cash,
-          note:`Cash In Transaction For : ${userDataToUpdate.name}`,
+          note:`Cash In Transaction For : ${userDataToUpdate.partyName}`,
         };
         await VA_HistoryModal.create([historyData], { session });
       }
@@ -454,7 +454,7 @@ export const cashOut = async (req, res, next) => {
           payment_Method,
           new_balance,
           amount: cash,
-          note: `Cash Out Transaction For ${userDataToUpdate.name}`,
+          note: `Cash Out Transaction For ${userDataToUpdate.partyName}`,
         };
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");

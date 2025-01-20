@@ -288,14 +288,14 @@ const Dashboard = () => {
               >
                 Generate Buyer Bill
               </Link>
-
+              {user && user?.user?.role === "superadmin" && (
               <button
                 onClick={openOtherSaleModal}
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Generate Other Sale
               </button>
-
+)}
               <button
                 onClick={openReturnBillModal}
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
@@ -1022,7 +1022,7 @@ const Dashboard = () => {
                   to={"/dashboard/return-Bills-No-Record"}
                   onClick={closeModal}
                 >
-                  View All
+                  View All Bills
                 </Link>
 
                 {/* Close Button */}
@@ -1223,7 +1223,7 @@ const Dashboard = () => {
                   to={"/dashboard/other-sale"}
                   onClick={closeModal}
                 >
-                  View All
+                  View All Bills
                 </Link>
 
                 {/* Close Button */}

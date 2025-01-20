@@ -214,8 +214,8 @@ const StitchingDetails = () => {
               <span> {SingleStitching?.partyName}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Serial No:</span>
-              <span> {SingleStitching?.serial_No}</span>
+              <span className="font-medium">Manual No:</span>
+              <span> {SingleStitching?.Manual_No ?? '--'}</span>
             </div>
             <div className="box">
               <span className="font-medium">Design No:</span>
@@ -439,6 +439,7 @@ const StitchingDetails = () => {
           handleSubmit={generateBill}
           loading={StitchingBillLoading}
           closeModal={closeBillModal}
+          Manual_No={SingleStitching?.Manual_No}
           processBillAmount={Math.round(
             SingleStitching?.rate * SingleStitching?.r_quantity
           )}
@@ -460,48 +461,3 @@ export default StitchingDetails;
 
 
 
-//TO REUSE 
-//  {/* COST PRICE SALE PRICE */}
-//  {(adddInStock &&
-//   SingleStitching?.project_status === "Pending") ||
-// (!adddInStock &&
-//   SingleStitching?.project_status === "Completed") ? (
-//   <>
-//     <input
-//       type="number"
-//       placeholder="C.P"
-//       className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-//       value={
-//         formData?.suits_category[index]?.cost_price ||
-//         ""
-//       }
-//       onChange={(e) =>
-//         handleInputChange(
-//           "suits_category",
-//           index,
-//           "cost_price",
-//           e.target.value
-//         )
-//       }
-//     />
-//     <input
-//       type="number"
-//       placeholder="S.P"
-//       className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-//       value={
-//         formData?.suits_category[index]?.sale_price ||
-//         ""
-//       }
-//       onChange={(e) =>
-//         handleInputChange(
-//           "suits_category",
-//           index,
-//           "sale_price",
-//           e.target.value
-//         )
-//       }
-//     />{" "}
-//   </>
-// ) : (
-//   ""
-// )}

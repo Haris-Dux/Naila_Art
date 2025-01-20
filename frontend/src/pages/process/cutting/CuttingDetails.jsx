@@ -401,8 +401,8 @@ const CuttingDetails = () => {
               <span> {SingleCutting?.partyName}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Serial No:</span>
-              <span> {SingleCutting?.serial_No}</span>
+              <span className="font-medium">Manual No:</span>
+              <span> {SingleCutting?.Manual_No ?? '--'}</span>
             </div>
             <div className="box">
               <span className="font-medium">Design No:</span>
@@ -849,6 +849,7 @@ const CuttingDetails = () => {
             handleSubmit={generateBill}
             loading={generateCuttingBillLoading}
             closeModal={closeBillModal}
+            Manual_No={SingleCutting.Manual_No}
             processBillAmount={Math.round(
               SingleCutting?.rate * SingleCutting?.r_quantity
             )}

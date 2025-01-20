@@ -81,7 +81,7 @@ export const addStitching = async (req, res, next) => {
       const lace = await LaceModel.findOne({ category: lace_category }).session(
         session
       );
-      if (!lace) throw new Error("Lace Not found");
+      if (!lace) throw new Error("Please Select Valid Lace Category");
       if (parseInt(lace_quantity) > lace.totalQuantity)
         throw new Error("Not Enough Lace In Stock");
       const newLaceTotalQuantity =
@@ -89,6 +89,11 @@ export const addStitching = async (req, res, next) => {
       await LaceModel.updateOne(
         { category: lace_category },
         { totalQuantity: newLaceTotalQuantity }
+      ).session(session);
+
+      //GET MAIN EMBROIDERY DATA
+      const mainEmbroidery = await EmbroideryModel.findById(
+        embroidery_Id
       ).session(session);
 
       await StitchingModel.create(
@@ -105,14 +110,13 @@ export const addStitching = async (req, res, next) => {
             lace_category,
             suits_category,
             dupatta_category,
+            Manual_No:mainEmbroidery.Manual_No
           },
         ],
         { session }
       );
+
       //UPDATE MAIN EMBROIDERY NextStep
-      const mainEmbroidery = await EmbroideryModel.findById(
-        embroidery_Id
-      ).session(session);
       mainEmbroidery.next_steps.stitching = true;
       await mainEmbroidery.save({ session });
     });
@@ -420,17 +424,15 @@ export const addInStockFromPackaging = async (req,res,next) => {
           }
         }
       };
-      
+      console.log('embroidery_Id',embroidery_Id);
       //UPDATING NEXT STEP IN EMBROIDERY
        const EmbroideryData = await EmbroideryModel.findById(embroidery_Id).session(session);
        EmbroideryData.next_steps.packing = true;
        await EmbroideryData.save({ session });
 
        //UPDATING PACKING STATUS FOR STITCHING
-       console.log('packing_Id',packing_Id);
        if(packing_Id){
-        const stitching = await StitchingModel.findById(packing_Id);
-        console.log('executing');
+        const stitching = await StitchingModel.findById(packing_Id).session(session);
         if(stitching.packed){
           throw new Error("This Stitching Is Already Packed");
         };

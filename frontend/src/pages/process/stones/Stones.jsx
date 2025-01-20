@@ -9,7 +9,9 @@ import { GrDocumentVerified } from "react-icons/gr";
 
 const Stones = () => {
   const dispatch = useDispatch();
-  const { loading, Stone ,deleteloadings} = useSelector((state) => state.stone);
+  const { loading, Stone, deleteloadings } = useSelector(
+    (state) => state.stone
+  );
   const [searchText, setSearchText] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
@@ -157,7 +159,8 @@ const Stones = () => {
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-medium" scope="col">
-                      Sr # No
+                    <span className="text-red-500">S.N</span>/
+                    <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -193,12 +196,10 @@ const Stones = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <div className="flex gap-3">
-                            <span className="text-green-500">
-                              {data?.bill_generated && <GrDocumentVerified size={18}/>}
-                            </span>
-                            {index + 1}
-                          </div>
+                          <span className="text-red-500"> {index + 1}</span>/
+                          <span className="text-green-600">
+                            {data.Manual_No ?? "--"}
+                          </span>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
@@ -213,7 +214,7 @@ const Stones = () => {
                           suit
                         </td>
                         <td className="px-6 py-4">
-                          {data.r_quantity ? `${data.r_quantity} m` : "--"}
+                          {data.r_quantity ? `${data.r_quantity} suit` : "--"}
                         </td>
                         <td className="px-6 py-4 ">
                           {setStatusColor(data.project_status)}
@@ -349,8 +350,8 @@ const Stones = () => {
           </ul>
         </nav>
       </section>
-        {/* DELETE MODAL */}
-        {deleteModal && (
+      {/* DELETE MODAL */}
+      {deleteModal && (
         <DeleteModal
           title={"Delete Stone"}
           message={"Are you sure want to delete this Stone ?"}

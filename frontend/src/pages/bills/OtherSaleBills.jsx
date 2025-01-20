@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams ,Link} from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { getAllOtherSaleBillsAsync } from "../../features/OtherSale";
 
 const OtherSaleBills = () => {
@@ -32,7 +32,7 @@ const OtherSaleBills = () => {
             onClick={() =>
               dispatch(
                 getAllOtherSaleBillsAsync({
-                  page: i
+                  page: i,
                 })
               )
             }
@@ -124,37 +124,40 @@ const OtherSaleBills = () => {
           </div>
         ) : (
           <div className="relative overflow-x-auto mt-5 ">
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+            <table className="w-full text-xs text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
+                    Sr.
+                  </th>
+                  <th className="px-2 text-base py-2" scope="col">
                     Party Name
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Amount
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     City
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Cargo
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Phone
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Date
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Bill By
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Payment Method
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Quantity
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 text-base py-2" scope="col">
                     Note
                   </th>
                 </tr>
@@ -164,29 +167,24 @@ const OtherSaleBills = () => {
                   otherSaleBills?.data?.map((data, index) => (
                     <tr
                       key={index}
-                      className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="bg-white border-b text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     >
-                      <td className="px-6 py-4 font-medium">{data.name}</td>
-                      <td className="px-6 py-4 font-medium">
-                        {data.amount} Rs
-                      </td>
-                      <td className="px-6 py-4 font-medium">{data.city}</td>
-                      <td className="px-6 py-4 font-medium">{data.cargo}</td>
-                      <td className="px-6 py-4 font-medium">{data.phone}</td>
-                      <td className="px-6 py-4 font-medium">{data.date}</td>
-                      <td className="px-6 py-4 font-medium">{data.bill_by}</td>
-                      <td className="px-6 py-4 font-medium">
-                        {data.payment_Method}
-                      </td>
-                      <td className="px-6 py-4 font-medium">{data.quantity}</td>
-                      <td className="px-6 py-4 max-w-52 font-medium">
-                        {data.note}
-                      </td>
+                      <td className="px-2 py-2">{index + 1}</td>
+                      <td className="px-2 py-2">{data.name}</td>
+                      <td className="px-2 py-2">{data.amount} Rs</td>
+                      <td className="px-2 py-2">{data.city}</td>
+                      <td className="px-2 py-2">{data.cargo}</td>
+                      <td className="px-2 py-2">{data.phone}</td>
+                      <td className="px-2 py-2">{data.date}</td>
+                      <td className="px-2 py-2">{data.bill_by}</td>
+                      <td className="px-2 py-2">{data.payment_Method}</td>
+                      <td className="px-2 py-2">{data.quantity}</td>
+                      <td className="px-2 py-2 max-w-[200px] ">{data.note}</td>
                     </tr>
                   ))
                 ) : (
                   <tr className="w-full flex justify-center items-center">
-                    <td className="text-xl mt-3">No Data Available</td>
+                    <td className="text-sm mt-3">No Data Available</td>
                   </tr>
                 )}
               </tbody>

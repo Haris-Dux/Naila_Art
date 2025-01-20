@@ -72,7 +72,10 @@ export const addStone = async (req, res, next) => {
       cuttingData.Available_Quantity = availableQuantity;
       await cuttingData.save();
     }
+    //GET MAIN EMBROIDERY DATA
+    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
 
+    //ADD STONES
     await StoneModel.create({
       embroidery_Id,
       partyName,
@@ -81,9 +84,10 @@ export const addStone = async (req, res, next) => {
       category_quantity,
       date,
       design_no,
+      Manual_No:mainEmbroidery.Manual_No
     });
+
     //UPDATE MAIN EMBROIDERY NextStep
-    const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
     mainEmbroidery.next_steps.stones = true;
     await mainEmbroidery.save();
     return res

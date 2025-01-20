@@ -838,7 +838,7 @@ export const getTransactionsHistory = async (req, res, next) => {
     const account = req.query.account || "";
     const transactionType = req.query.transactionType || "";
     const page =  parseInt(req.query.page || 1);
-    const limit = 30;
+    const limit = 50;
 
     let query = {};
 

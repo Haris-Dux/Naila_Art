@@ -9,6 +9,9 @@ const calenderSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Serial No required"],
   },
+  Manual_No: {
+    type: String,
+  },
   T_Quantity: {
     type: Number,
   },

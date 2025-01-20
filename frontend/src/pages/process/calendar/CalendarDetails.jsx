@@ -64,7 +64,7 @@ const CalendarDetails = () => {
   });
 
   const [billData, setBilldata] = useState({
-    Manual_No: "",
+    Manual_No: SingleCalender.Manual_No,
     additionalExpenditure: "",
   });
 
@@ -390,8 +390,8 @@ const CalendarDetails = () => {
               <span> {SingleCalender?.partyName}</span>
             </div>
             <div className="box">
-              <span className="font-medium">Serial No:</span>
-              <span> {SingleCalender?.serial_No}</span>
+              <span className="font-medium">Manual No:</span>
+              <span> {SingleCalender?.Manual_No ?? '--'}</span>
             </div>
             <div className="box">
               <span className="font-medium">Design No:</span>
@@ -814,6 +814,7 @@ const CalendarDetails = () => {
                         onChange={handleBillDataChange}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
+                        readOnly
                       />
                     </div>
 

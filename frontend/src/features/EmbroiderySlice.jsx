@@ -369,6 +369,7 @@ const EmbroiderySlice = createSlice({
 
       .addCase(GETEmbroiderySIngle.pending, (state, action) => {
         state.loading = true;
+        state.SingleEmbroidery = {};
       })
       .addCase(GETEmbroiderySIngle.fulfilled, (state, action) => {
         state.loading = false;
