@@ -64,9 +64,10 @@ const CalendarDetails = () => {
   });
 
   const [billData, setBilldata] = useState({
-    Manual_No: SingleCalender.Manual_No,
+    Manual_No: "",
     additionalExpenditure: "",
   });
+
 
   const [convertedQuantity, setConvertedQuantity] = useState(0);
   const [convertedAmount, setConvertedAmount] = useState(0);
@@ -245,6 +246,10 @@ const CalendarDetails = () => {
   };
 
   const openGenerateBillForm = () => {
+    setBilldata((prev) => ({
+      ...prev,
+      Manual_No: SingleCalender?.Manual_No                                                                                        
+    }))
     setProcessBillModal(true);
   };
 
@@ -695,6 +700,7 @@ const CalendarDetails = () => {
                         placeholder="rate"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CuttingData.rate}
+                        step="0.1"
                         onChange={handleInputChangeCutting}
                         required
                       />
@@ -811,7 +817,6 @@ const CalendarDetails = () => {
                         type="text"
                         placeholder="Manual No"
                         value={billData.Manual_No}
-                        onChange={handleBillDataChange}
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
                         readOnly

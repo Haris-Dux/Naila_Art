@@ -199,7 +199,7 @@ const Cutting = () => {
                        
                          <span className="text-red-500">
                             {" "}
-                            {index + 1}
+                            {data.serial_No}
                           </span>
                           /<span className="text-green-600">{data.Manual_No ?? '--'}</span>                          
                          
