@@ -51,16 +51,13 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
     //CALCULATING OTHER PRICES
     const AFB = buyerBalance - totalReturnAmount;
     if (totalReturnAmount > 0 && AFB >= 0) {
-      console.log('executing 1');
       setAmount_From_Balance(validateValue(totalReturnAmount));
       setAmount_From_TotalCash(0);
     } else if (totalReturnAmount > 0 && AFB < 0 && buyerBalance >= 0) {
-      console.log('executing 2');
       const AFTC = validateValue(buyerBalance - totalReturnAmount);
       setAmount_From_TotalCash(Math.abs(AFTC));
       setAmount_From_Balance(validateValue(totalReturnAmount - Math.abs(AFTC)));
     } else if (totalReturnAmount > 0 && buyerBalance <= 0){
-      console.log('executing 3');
       setAmount_From_TotalCash(totalReturnAmount);
       setAmount_From_Balance(0);
     }

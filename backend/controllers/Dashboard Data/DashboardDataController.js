@@ -268,8 +268,6 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
 
     //banks data
 
-    
-
     const banksDataRaw = await VirtalAccountModal.find({}).select(
       "-Transaction_History"
     );
@@ -711,8 +709,8 @@ export const sendDashBoardAccessOTP = async (req, res, next) => {
       email_Type: "Dashboard OTP",
     });
 
-    console.log('g_Otp',g_Otp);
-    
+    console.log("g_Otp", g_Otp);
+
     return res.status(200).json({
       message: "OTP has been sent to your email",
       success: true,
@@ -837,22 +835,22 @@ export const getTransactionsHistory = async (req, res, next) => {
     const dateTo = req.query.dateTo || "";
     const account = req.query.account || "";
     const transactionType = req.query.transactionType || "";
-    const page =  parseInt(req.query.page || 1);
+    const page = parseInt(req.query.page || 1);
     const limit = 50;
 
     let query = {};
 
-    if(dateFrom && dateTo) {
-      query.date = {$gte: dateFrom , $lte: dateTo}
-    } else if (dateFrom){
-      query.date = {$eq: dateFrom}
+    if (dateFrom && dateTo) {
+      query.date = { $gte: dateFrom, $lte: dateTo };
+    } else if (dateFrom) {
+      query.date = { $eq: dateFrom };
     }
-    if(account){
+    if (account) {
       query.payment_Method = account;
-    };
-    if(transactionType){
+    }
+    if (transactionType) {
       query.transactionType = transactionType;
-    };
+    }
     const totalDocs = await VA_HistoryModal.countDocuments(query);
     const result = await VA_HistoryModal.find(query)
       .skip((page - 1) * limit)
@@ -860,7 +858,7 @@ export const getTransactionsHistory = async (req, res, next) => {
       .sort({ createdAt: -1 });
     const response = {
       data: result,
-       page,
+      page,
       totalPages: Math.ceil(totalDocs / limit),
     };
     setMongoose();
@@ -869,3 +867,5 @@ export const getTransactionsHistory = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+

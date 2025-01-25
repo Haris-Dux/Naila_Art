@@ -190,7 +190,7 @@ const Calendar = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <span className="text-red-500"> {index + 1}</span>/
+                          <span className="text-red-500"> {entry.serial_No}</span>/
                           <span className="text-green-600">
                             {entry.Manual_No ?? "--"}
                           </span>

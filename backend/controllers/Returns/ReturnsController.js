@@ -4,6 +4,11 @@ import { BuyersBillsModel, BuyersModel } from "../../models/BuyersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ReturnSuitModel } from "../../models/Returns/ReturnModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { CalenderModel } from "../../models/Process/CalenderModel.js";
+import { CuttingModel } from "../../models/Process/CuttingModel.js";
+import { StoneModel } from "../../models/Process/StoneModel.js";
+import { StitchingModel } from "../../models/Process/StitchingModel.js";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -74,6 +79,10 @@ export const createReturn = async (req, res, next) => {
 
       if (missingFields.length > 0) {
         throw new Error(`Missing Fields: ${missingFields}`);
+      }
+
+      if (Amount_Payable > 0 && method === "default-account") {
+        throw new Error("Please Select a Valid Method");
       }
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
@@ -288,6 +297,46 @@ export const getAllReturnsForBranch = async (req, res, next) => {
     };
     setMongoose();
     return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const temporaryendpoint = async (req, res, next) => {
+  try {
+    const { serial_No, category, Manual_No } = req.body;
+    if (!serial_No || !category || !Manual_No) {
+      throw new Error("Missing Fields");
+    }
+
+    let Data = {};
+
+    switch (true) {
+      case category === "Embroidery":
+        Data = await EmbroideryModel.findOne({ serial_No: serial_No });
+        break;
+      case category === "Calender":
+        Data = await CalenderModel.findOne({ serial_No: serial_No });
+        break;
+      case category === "Cutting":
+        Data = await CuttingModel.findOne({ serial_No: serial_No });
+        break;
+      case category === "Stones":
+        Data = await StoneModel.findOne({ serial_No: serial_No });
+        break;
+      case category === "Stitching":
+        Data = await StitchingModel.findOne({ serial_No: serial_No });
+        break;
+
+      default:
+        throw new Error("Invalid category");
+    }
+
+    if (!Data) throw new Error("No Data Found With For This Name");
+
+    Data.Manual_No = Manual_No;
+    await Data.save();
+    return res.status(200).json({ success: true, message: "Updated" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

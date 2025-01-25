@@ -10,9 +10,11 @@ import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { UserModel } from "../models/User.Model.js";
-import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../models/DashboardData/VirtalAccountsModal.js";
 import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
-
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -61,7 +63,7 @@ export const validatePartyNameForMainBranch = async (req, res, next) => {
 
 export const validatePartyNameForAdminBranch = async (req, res, next) => {
   try {
-    const { name,accountCategory } = req.body;
+    const { name, accountCategory } = req.body;
     if (!name || !accountCategory) throw new Error("Search Fields Required");
     const id = req.session.userId;
     if (!id) {
@@ -100,7 +102,7 @@ export const validatePartyNameForAdminBranch = async (req, res, next) => {
         break;
       default:
         throw new Error("Invalid account category");
-    };
+    }
 
     if (!Data) throw new Error("No Data Found With For This Name");
     setMongoose();
@@ -136,8 +138,15 @@ export const cashIn = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date, accountCategory,note } =
-        req.body;
+      const {
+        cash,
+        partyId,
+        branchId,
+        payment_Method,
+        date,
+        accountCategory,
+        note,
+      } = req.body;
       if (
         !cash ||
         !partyId ||
@@ -222,7 +231,9 @@ export const cashIn = async (req, res) => {
           payment_Method,
           new_balance,
           amount: cash,
-          note:`Cash In Transaction For : ${userDataToUpdate.partyName}`,
+          note: `Cash In Transaction For : ${
+            userDataToUpdate.partyName || userDataToUpdate.name
+          }`,
         };
         await VA_HistoryModal.create([historyData], { session });
       }
@@ -240,7 +251,9 @@ export const cashIn = async (req, res) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
+          case new_total_balance === new_total_credit &&
+            new_total_debit > 0 &&
+            new_total_balance > 0:
             new_status = "Partially Paid";
             break;
           case new_total_debit === 0 && new_total_balance === new_total_credit:
@@ -293,10 +306,12 @@ export const cashIn = async (req, res) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-            case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
+          case new_total_balance === new_total_debit &&
+            new_total_credit > 0 &&
+            new_total_balance > 0:
             new_status = "Partially Paid";
             break;
-            case new_total_credit === 0 && new_total_balance === new_total_debit:
+          case new_total_credit === 0 && new_total_balance === new_total_debit:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
@@ -377,8 +392,15 @@ export const cashOut = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { cash, partyId, branchId, payment_Method, date, accountCategory ,note} =
-        req.body;
+      const {
+        cash,
+        partyId,
+        branchId,
+        payment_Method,
+        date,
+        accountCategory,
+        note,
+      } = req.body;
       if (
         !cash ||
         !partyId ||
@@ -454,17 +476,17 @@ export const cashOut = async (req, res, next) => {
           payment_Method,
           new_balance,
           amount: cash,
-          note: `Cash Out Transaction For ${userDataToUpdate.partyName}`,
+          note: `Cash Out Transaction For ${
+            userDataToUpdate.partyName || userDataToUpdate.name
+          }`,
         };
         if (new_balance < 0)
           throw new Error("Not Enough Cash In Payment Method");
         virtualAccounts = updatedAccount;
-      
+
         await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([
-          historyData
-        ],{session})
-      };
+        await VA_HistoryModal.create([historyData], { session });
+      }
 
       if (accountCategory === "Buyers") {
         //DATA FOR VIRTUAL ACCOUNT
@@ -479,10 +501,12 @@ export const cashOut = async (req, res, next) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-            case new_total_balance === new_total_debit && new_total_credit > 0 && new_total_balance > 0:
+          case new_total_balance === new_total_debit &&
+            new_total_credit > 0 &&
+            new_total_balance > 0:
             new_status = "Partially Paid";
             break;
-            case new_total_credit === 0 && new_total_balance === new_total_debit:
+          case new_total_credit === 0 && new_total_balance === new_total_debit:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
@@ -530,7 +554,9 @@ export const cashOut = async (req, res, next) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
+          case new_total_balance === new_total_credit &&
+            new_total_debit > 0 &&
+            new_total_balance > 0:
             new_status = "Partially Paid";
             break;
           case new_total_debit === 0 && new_total_balance === new_total_credit:
@@ -632,11 +658,10 @@ export const getTodaysCashInOut = async (req, res, next) => {
 export const markAsPaidForBuyers = async (req, res, next) => {
   try {
     const { id } = req.body;
-   if(!id) throw new Error("Id is Required")
+    if (!id) throw new Error("Id is Required");
     const accountData = await BuyersModel.findById(id);
     if (!accountData) throw new CustomError("Account not found", 404);
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-
 
     //UPDATING ACCOUNT STATUS
     accountData.virtual_account.status = "Paid";
@@ -703,3 +728,5 @@ corn.schedule(
     timezone: "Asia/Karachi",
   }
 );
+
+

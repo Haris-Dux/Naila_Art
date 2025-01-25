@@ -8,7 +8,6 @@ import {
 } from "../../../features/stitching";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
-import { GrDocumentVerified } from "react-icons/gr";
 import { LuPackageCheck } from "react-icons/lu";
 
 const Stitching = () => {
@@ -202,7 +201,7 @@ const Stitching = () => {
                               {data?.packed && <LuPackageCheck size={20} />}
                             </span>
                             <div>
-                              <span className="text-red-500"> {index + 1}</span>
+                              <span className="text-red-500"> {data?.serial_No}</span>
                               /
                               <span className="text-green-600">
                                 {data?.Manual_No ?? "--"}

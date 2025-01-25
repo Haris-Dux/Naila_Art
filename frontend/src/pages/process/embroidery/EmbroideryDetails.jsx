@@ -143,6 +143,7 @@ const EmbroideryDetails = () => {
   const {
     partyName,
     Manual_No,
+    serial_No,
     date,
     per_suit,
     project_status,
@@ -950,6 +951,7 @@ const EmbroideryDetails = () => {
                         placeholder="rate"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CalenderData.rate}
+                        step="0.1"
                         onChange={handleInputChangeCalender}
                         required
                       />
