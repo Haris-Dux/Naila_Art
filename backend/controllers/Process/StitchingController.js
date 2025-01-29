@@ -424,7 +424,6 @@ export const addInStockFromPackaging = async (req,res,next) => {
           }
         }
       };
-      console.log('embroidery_Id',embroidery_Id);
       //UPDATING NEXT STEP IN EMBROIDERY
        const EmbroideryData = await EmbroideryModel.findById(embroidery_Id).session(session);
        EmbroideryData.next_steps.packing = true;

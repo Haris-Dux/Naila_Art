@@ -5,7 +5,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { deleteCuttingAsync, GetAllCutting } from "../../../features/CuttingSlice";
 import DeleteModal from '../../../Component/Modal/DeleteModal';
 import { MdOutlineDelete } from 'react-icons/md';
-import { GrDocumentVerified } from "react-icons/gr";
 const Cutting = () => {
   const dispatch = useDispatch();
   const [searchText, setSearchText] = useState("");
