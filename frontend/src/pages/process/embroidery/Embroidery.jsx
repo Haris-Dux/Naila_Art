@@ -18,6 +18,7 @@ import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { GrDocumentVerified } from "react-icons/gr";
+import { LuPackageCheck } from "react-icons/lu";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -408,8 +409,8 @@ const Embroidery = () => {
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-medium" scope="col">
-                    <span className="text-red-500">S.N</span>/
-                    <span className="text-green-600">M.N</span>
+                      <span className="text-red-500">S.N</span>/
+                      <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -420,7 +421,10 @@ const Embroidery = () => {
                     <th className="px-6 py-3 font-medium" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-3 font-medium text-center" scope="col">
+                    <th
+                      className="px-6 py-3 font-medium text-center"
+                      scope="col"
+                    >
                       <span className="text-red-500">Qty</span>/
                       <span className="text-green-500">Suit Qty</span>
                     </th>
@@ -443,13 +447,21 @@ const Embroidery = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          
-                          <span className="text-red-500">
-                            {" "}
-                            {data.serial_No}
-                          </span>
-                          /<span className="text-green-600">{data.Manual_No ?? '--'}</span>
-                         
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-green-500">
+                              {data?.next_steps?.packing && <LuPackageCheck size={20} />}
+                            </span>
+                            <div>
+                              <span className="text-red-500">
+                                {" "}
+                                {data?.serial_No}
+                              </span>
+                              /
+                              <span className="text-green-600">
+                                {data?.Manual_No ?? "--"}
+                              </span>
+                            </div>
+                          </div>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
@@ -460,7 +472,10 @@ const Embroidery = () => {
                           <span className="text-red-500">
                             {data?.T_Quantity}
                           </span>
-                          /<span className="text-green-500">{data?.T_Suit ?? "--"}</span>
+                          /
+                          <span className="text-green-500">
+                            {data?.T_Suit ?? "--"}
+                          </span>
                         </td>
                         <td className="px-6 py-4">
                           {setStatusColor(data.project_status)}
@@ -739,14 +754,14 @@ const Embroidery = () => {
                     )}
                   </div>
                   <input
-                        name="Manual_No"
-                        type="text"
-                        placeholder="Manual Number"
-                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                        value={formData.Manual_No}
-                        onChange={handleInputChange}
-                      />
+                    name="Manual_No"
+                    type="text"
+                    placeholder="Manual Number"
+                    className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    required
+                    value={formData.Manual_No}
+                    onChange={handleInputChange}
+                  />
                   <div>
                     <input
                       name="date"

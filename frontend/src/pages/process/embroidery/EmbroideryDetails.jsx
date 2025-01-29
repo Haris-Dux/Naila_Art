@@ -166,7 +166,8 @@ const EmbroideryDetails = () => {
     pictures_Order,
     updated,
     discount,
-    discountType
+    discountType,
+    next_steps
   } = SingleEmbroidery;
 
   const handleSubmit = (event) => {
@@ -265,7 +266,7 @@ const EmbroideryDetails = () => {
       Manual_No: processBillData.Manual_No,
       additionalExpenditure: processBillData.additionalExpenditure,
       Embroidery_id: SingleEmbroidery?.id,
-      embroidery_Id: SingleEmbroidery?.id
+      embroidery_Id: SingleEmbroidery?.id,
     };
     dispatch(generateEmbroideryBillAsync(formData)).then((res) => {
       if (res.payload.success === true) {
@@ -380,6 +381,7 @@ const EmbroideryDetails = () => {
           },
         });
         break;
+
       case value === "Stitching":
         navigate("/dashboard/stones-details/null", {
           state: {
@@ -390,6 +392,7 @@ const EmbroideryDetails = () => {
           },
         });
         break;
+
       case value === "Packing":
         if (SingleEmbroidery.T_Recieved_Suit === 0) {
           return toast.error("Invalid Recieved Suit Quantity");
@@ -400,7 +403,7 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
-            suits_category:SingleEmbroidery.shirt
+            suits_category: SingleEmbroidery.shirt,
           },
         });
         break;
@@ -429,7 +432,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Manual No:</span>
-              <span> {Manual_No ?? '--'}</span>
+              <span> {Manual_No ?? "--"}</span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
@@ -575,7 +578,10 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Discount:</span>
-              <span> {discount ?? "--"} {discountType}</span>
+              <span>
+                {" "}
+                {discount ?? "--"} {discountType}
+              </span>
             </div>
           </div>
         </div>
@@ -741,24 +747,29 @@ const EmbroideryDetails = () => {
             </button>
           )}
 
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={openModal}
-          >
-            Next Step
-          </button>
-          <select
-            onChange={handleSkipStep}
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-          >
-            <option value="" disabled selected hidden>
-              Skip To
-            </option>
-            <option value="Cutting">Cutting</option>
-            <option value="Stones">Stone</option>
-            <option value="Stitching">Stitching</option>
-            <option value="Packing">Packing</option>
-          </select>
+          {!next_steps?.packing && (
+            <>
+              {" "}
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openModal}
+              >
+                Next Step
+              </button>
+              <select
+                onChange={handleSkipStep}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                <option value="" disabled selected hidden>
+                  Skip To
+                </option>
+                <option value="Cutting">Cutting</option>
+                <option value="Stones">Stone</option>
+                <option value="Stitching">Stitching</option>
+                <option value="Packing">Packing</option>
+              </select>{" "}
+            </>
+          )}
           {pictures_Order === false && (
             <button
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
@@ -951,7 +962,7 @@ const EmbroideryDetails = () => {
                         placeholder="rate"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={CalenderData.rate}
-                        step="0.1"
+                        step="0.01"
                         onChange={handleInputChangeCalender}
                         required
                       />

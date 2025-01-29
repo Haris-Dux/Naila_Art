@@ -137,6 +137,8 @@ const PackingDetails = () => {
     dispatch(GETEmbroiderySIngle({ id: idData }));
   }, [SingleStitching, id]);
 
+  console.log('suits_category',suits_category);
+
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -164,7 +166,6 @@ const PackingDetails = () => {
 
   const handleAddInStock = (e) => {
     e.preventDefault();
-    console.log("formData", formData);
     dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
       if (res.payload.success) {
         closeConfirmationModal();

@@ -123,7 +123,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       await branch.save({ session });
 
       //CHECK FUTURE DATE
-      const isFutureDate = moment(date).isAfter(today);
+      const isFutureDate = moment.tz(date, "Asia/Karachi").isAfter(moment.tz(today, "Asia/Karachi"));
 
       //ADDING IN DAILY SALE AND HANDLING PAST SALE
       let dailySaleForToday = await DailySaleModel.findOne({
@@ -523,7 +523,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       await branch.save({ session });
 
       //CHECK FUTURE DATE
-      const isFutureDate = moment(date).isAfter(today);
+      const isFutureDate = moment.tz(date, "Asia/Karachi").isAfter(moment.tz(today, "Asia/Karachi"));
 
       //ADDING IN DAILY SALE
       let dailySaleForToday = await DailySaleModel.findOne({
