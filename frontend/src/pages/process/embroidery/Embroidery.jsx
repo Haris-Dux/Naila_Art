@@ -17,8 +17,9 @@ import Select from "react-select";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
-import { GrDocumentVerified } from "react-icons/gr";
+import { GrPowerReset } from "react-icons/gr";
 import { LuPackageCheck } from "react-icons/lu";
+import { CiSearch } from "react-icons/ci";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,10 +35,9 @@ const Embroidery = () => {
     previousDataByPartyName,
     deleteLoadings,
   } = useSelector((state) => state.Embroidery);
-  const [search, setSearch] = useState();
+  console.log('embroidery',embroidery);
   const [accountData, setAccountData] = useState(null);
-  const [searchParams] = useSearchParams();
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = embroidery?.page || "1";
   const dispatch = useDispatch();
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [formData, setFormData] = useState({
@@ -66,14 +66,21 @@ const Embroidery = () => {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    dispatch(GETEmbroidery({ search, page }));
-  }, [page, dispatch]);
+    dispatch(GETEmbroidery({ page }));
+  }, [dispatch]);
 
   // Convert your design numbers into options for Select
   const designOptions = designNumbers.map((num) => ({
     value: num,
     label: num,
   }));
+
+  const [filters, setFilters] = useState({
+    Manual_No: "",
+    partyName: "",
+    project_status: ""
+  });
+
 
   const calculateTotal = (formData1) => {
     const rate = parseFloat(formData.rATE_per_stitching) || 0;
@@ -115,16 +122,6 @@ const Embroidery = () => {
     return roundedTotal;
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-
-    if (value === "") {
-      dispatch(GETEmbroidery({ page }));
-    } else {
-      dispatch(GETEmbroidery({ search: value, page: 1 }));
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -244,11 +241,10 @@ const Embroidery = () => {
       paginationLinks.push(
         <li key={i} onClick={ToDown}>
           <Link
-            to={`/dashboard/embroidery?page=${i}`}
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === parseInt(page) ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
-            onClick={() => dispatch(GETEmbroidery({ page: i }))}
+            onClick={() => dispatch(GETEmbroidery({filters, page: i }))}
           >
             {i}
           </Link>
@@ -258,7 +254,13 @@ const Embroidery = () => {
     return paginationLinks;
   };
 
-  const ToDown = () => {
+  const ToDown = (value) => {
+    if(value === "+"){
+      console.log('calling');
+      dispatch(GETEmbroidery({filters, page: parseInt(page) + 1 }))
+    } else if(value === "-"){
+      dispatch(GETEmbroidery({ filters ,page: parseInt(page) - 1 }))
+    }
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -345,6 +347,30 @@ const Embroidery = () => {
     });
   };
 
+ 
+  const handleChangeFilters = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleFiltersSearch = () => {
+    dispatch(GETEmbroidery({ filters, page: 1 }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      Manual_No: "",
+      partyName: "",
+      project_status: ""
+    });
+    dispatch(GETEmbroidery({ page: 1 }));
+  };
+
+  console.log('page',page);
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -354,40 +380,67 @@ const Embroidery = () => {
             Embroidery
           </h1>
 
-          {/* <!-- ADD BUTTON & SEARCH BAR --> */}
-          <div className="flex items-center gap-2 mr-2">
+          {/* SEARCH FILTERS */}
+          <div className="flex items-center gap-3 justify-center">
+            {/* TRANSACTION TYPE */}
+            <select
+              id="project_status"
+              name="project_status"
+              className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              value={filters.project_status}
+              onChange={handleChangeFilters}
+            >
+              <option value="" disabled>
+                Choose Status
+              </option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+            </select>
+
+            {/* Party Name */}
+            <input
+              name="partyName"
+              type="text"
+              className="bg-gray-50 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              placeholder="Party Name"
+              value={filters.partyName}
+              onChange={handleChangeFilters}
+            />
+
+            {/* Manual Number */}
+            <input
+              name="Manual_No"
+              type="text"
+              className="bg-gray-50 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              placeholder="Manual Number"
+              value={filters.Manual_No}
+              onChange={handleChangeFilters}
+            />
+
+            {/* SEARCH BUTTON */}
+            <button
+              onClick={handleFiltersSearch}
+              type="button"
+              className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+            >
+              <CiSearch size={20} className="cursor-pointer" />
+              Search
+            </button>
+            {/* RESET BUTTON */}
+            <button
+              onClick={handleResetFilters}
+              className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+            >
+              <GrPowerReset size={20} className="cursor-pointer" />
+              Reset
+            </button>
+            {/* <!-- ADD BUTTON--> */}
             <button
               onClick={openModal}
               className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
             >
               <IoAdd size={22} className="text-white" />
             </button>
-
-            <div className="search_bar relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by party name"
-                value={search}
-                onChange={handleSearch}
-              />
-            </div>
           </div>
         </div>
 
@@ -408,7 +461,7 @@ const Embroidery = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-6 py-3 text-left font-medium" scope="col">
                       <span className="text-red-500">S.N</span>/
                       <span className="text-green-600">M.N</span>
                     </th>
@@ -447,9 +500,11 @@ const Embroidery = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-start gap-2">
                             <span className="text-green-500">
-                              {data?.next_steps?.packing && <LuPackageCheck size={20} />}
+                              {data?.next_steps?.packing && (
+                                <LuPackageCheck size={20} />
+                              )}
                             </span>
                             <div>
                               <span className="text-red-500">
@@ -514,8 +569,8 @@ const Embroidery = () => {
             <li>
               {embroidery?.page > 1 ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/embroidery ? page = ${page - 1}`}
+                  onClick={() => ToDown("-")}
+                  // to={`/dashboard/embroidery?page = ${page - 1}`}
                   className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Previous</span>
@@ -561,10 +616,10 @@ const Embroidery = () => {
             </li>
             {renderPaginationLinks()}
             <li>
-              {embroidery?.totalPages !== page ? (
+              {embroidery?.totalPages !== parseInt(page) ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/embroidery ? page = ${page + 1}`}
+                onClick={() => ToDown("+")}
+                  // to={`/dashboard/embroidery?page = ${page + 1}`}
                   className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Next</span>

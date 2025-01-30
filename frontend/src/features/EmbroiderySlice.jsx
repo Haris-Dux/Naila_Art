@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from '../Utils/Common';
 
 //API URL
 const AddEmbroidery = "/api/process/embriodery/addEmbriodery";
@@ -67,13 +68,17 @@ export const CreateEmbroidery = createAsyncThunk(
 export const GETEmbroidery = createAsyncThunk(
   "Embroidery/GET",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const filters = data?.filters ?? {};
+    const query = buildQueryParams({
+      Manual_No: filters.Manual_No,
+      partyName: filters.partyName,
+      project_status: filters.project_status,
+      page: data.page,
+    });
     try {
+  
       const response = await axios.post(
-        `${getEmbroidery}?&page=${data.page}${searchQuery}`
+        `${getEmbroidery}?${query}`
       );
 
       return response.data;
