@@ -203,23 +203,33 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, salary, payment_Method, over_time, branchId, leaves } =
+      const { id, salary, payment_Method, over_time, branchId, leaves, month } =
         req.body;
-      if (!id || !salary || !payment_Method || !branchId)
+      if (!id || !salary || !payment_Method || !branchId || !month)
         throw new Error("Missing Fields");
+      if (month < 1 || month > 12) {
+        throw new Error("Invalid month");
+      }
       const employe = await EmployeModel.findById(id).session(session);
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       if (!employe) throw new Error("Employe Not Found");
-
       const paymentMethodName = PaymentData.find(
         (method) => method.value === payment_Method
       )?.label;
+
+      //VERIFY IF SALARY IS CREDITED FOR CURRENT MOTN OR NOT
+      const isSalaryPaid = employe.salaryStatus[Number(month)];
+      if (isSalaryPaid) {
+        throw new Error("Salary Already Paid For This Month");
+      } else {
+        employe.salaryStatus[month] = true;
+      }
 
       employe.financeData.push({
         credit: 0,
         debit: salary,
         balance: 0,
-        particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves} `,
+        particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
         date: today,
         over_time,
         leaves,
@@ -449,18 +459,19 @@ export const addLeave = async (req, res) => {
 
 export const updateOvertime = async (req, res, next) => {
   try {
-    const { over_time, employeeId ,note} = req.body;
+    const { over_time, employeeId, note } = req.body;
     if (!over_time || !employeeId) throw new Error("Missing Data Error");
     const employeData = await EmployeModel.findById(employeeId);
-    const currentMonth = moment.tz("Asia/Karachi").format("YYYY-MM");
+    const currentMonth = moment.tz("Asia/Karachi").month() + 1;
     const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-    employeData.overtime_Data.hours += over_time;
-    employeData.overtime_Data.month = currentMonth;
+
+    employeData.overtime_Data[currentMonth] += over_time;
+
     //ADD OVERTIME HISTORY
     const O_H_D = {
-      date:today,
-      time:over_time,
-      note:note
+      date: today,
+      time: over_time,
+      note: note,
     };
     employeData.over_time_history.push(O_H_D);
     await employeData.save();
@@ -474,15 +485,12 @@ export const reverseSalary = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, transactionId, amount, payment_Method, over_time, branchId } =
-        req.body;
+      const { id, transactionId, amount, payment_Method, branchId } = req.body;
       if (!id || !transactionId || !amount || !branchId || !payment_Method)
         throw new Error("Missing Fields");
       const employe = await EmployeModel.findById(id).session(session);
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       if (!employe) throw new Error("Employe Not Found");
-
-      employe.overtime_Data.hours += over_time;
 
       //ADD IN PAYMENT METHID
       const dailySaleForToday = await DailySaleModel.findOne({
@@ -530,6 +538,12 @@ export const reverseSalary = async (req, res, next) => {
       );
       if (!transaction || !transaction.salaryTransaction) {
         throw new Error("Can Not Delete Transaction");
+      }
+      const month = transaction.particular.match(/Month:(\d+)/);
+      if (month) {
+        employe.salaryStatus[Number(month[1])] = false;
+      } else {
+        throw new Error("Something Went Wrong");
       }
       transaction.reversed = true;
       await employe.save({ session });
