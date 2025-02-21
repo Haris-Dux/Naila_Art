@@ -6,7 +6,7 @@ import { GetAllBags, GetAllBranches } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 import {
   generateBuyerBillAsync,
-  generatePdfAsync
+  generatePdfAsync,
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
@@ -79,8 +79,6 @@ const GenerateBill = () => {
       });
     }
   }, [dispatch, user]);
-
-  console.log("branchStockData", branchStockData);
 
   useEffect(() => {
     dispatch(GetAllBags());
@@ -200,9 +198,9 @@ const GenerateBill = () => {
 
   const validateBranch = () => {
     if (user?.user?.role === "superadmin" && !billData.branchId) {
-      toast.error("Please select a branch"); 
-    };
-  }
+      toast.error("Please select a branch");
+    }
+  };
 
   const handleSuitChange = (selectedDesignNumber, index) => {
     const designNumber = selectedDesignNumber.value;
@@ -216,7 +214,7 @@ const GenerateBill = () => {
       (item) => item.d_no === selectedDesignNumber.value
     );
     // Extract colors from the filtered items
-    const colors = DataFromDesignNumber.map((item) => item.color);
+    const colors = DataFromDesignNumber.map((item) => `${item.color} (${item.quantity})`);
 
     // Update color options for this specific row
     setColorOptions((prevOptions) => {
@@ -232,7 +230,6 @@ const GenerateBill = () => {
 
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
-
     const selectedDesign = branchStockData.find(
       (design) =>
         design.color === selectedColor &&
@@ -835,11 +832,14 @@ const GenerateBill = () => {
                           <option value="" disabled>
                             Choose Color
                           </option>
-                          {colorOptions[index]?.map((color, idx) => (
-                            <option key={idx} value={color}>
-                              {color}
-                            </option>
-                          ))}
+                          {colorOptions[index]?.map((color, idx) => {
+                            const colorName = color.split(/\(|\)/)[0].trim();
+                            return (
+                              <option key={idx} value={colorName}>
+                                {color}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                       {/* QUANTITY FIELD */}

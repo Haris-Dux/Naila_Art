@@ -255,7 +255,9 @@ const OldBuyerGenerateBill = () => {
       (item) => item.d_no === selectedDesignNumber.value
     );
     // Extract colors from the filtered items
-    const colors = DataFromDesignNumber.map((item) => item.color);
+    const colors = DataFromDesignNumber.map(
+      (item) => `${item.color} (${item.quantity})`
+    );
 
     // Update color options for this specific row
     setColorOptions((prevOptions) => {
@@ -908,11 +910,16 @@ const OldBuyerGenerateBill = () => {
                               <option value="" disabled>
                                 Choose Color
                               </option>
-                              {colorOptions[index]?.map((color, idx) => (
-                                <option key={idx} value={color}>
-                                  {color}
-                                </option>
-                              ))}
+                              {colorOptions[index]?.map((color, idx) => {
+                                const colorName = color
+                                  .split(/\(|\)/)[0]
+                                  .trim();
+                                return (
+                                  <option key={idx} value={colorName}>
+                                    {color}
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
                           <div>

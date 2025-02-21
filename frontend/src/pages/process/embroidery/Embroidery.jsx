@@ -35,7 +35,6 @@ const Embroidery = () => {
     previousDataByPartyName,
     deleteLoadings,
   } = useSelector((state) => state.Embroidery);
-  console.log('embroidery',embroidery);
   const [accountData, setAccountData] = useState(null);
   const page = embroidery?.page || "1";
   const dispatch = useDispatch();
@@ -369,7 +368,7 @@ const Embroidery = () => {
     dispatch(GETEmbroidery({ page: 1 }));
   };
 
-  console.log('page',page);
+  
 
   return (
     <>

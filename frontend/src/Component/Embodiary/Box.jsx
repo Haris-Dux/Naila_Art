@@ -285,7 +285,6 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
 
     let updateFormData = { ...formData1 };
     updateFormData = validateEightFields(updateFormData);
-    // Merge updated formData1 (without per_suit) with formData
     const { per_suit, ...restFormData1 } = updateFormData;
 
     const toValidNumber = (value) => {

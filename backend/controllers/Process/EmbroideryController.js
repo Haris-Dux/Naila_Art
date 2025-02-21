@@ -145,6 +145,10 @@ export const addEmbriodery = async (req, res, next) => {
         throw new Error(`Missing fields : ${missingFields}`);
       }
 
+      if (!per_suit || isNaN(per_suit) || parseFloat(per_suit) <= 0) {
+        throw new Error("Invalid Per Suit value");
+      }
+
       if (partytype === "newParty") {
         const checkExistingEmbroidery = await EmbroideryModel.findOne({
           partyName: { $regex: partyName, $options: "i" },

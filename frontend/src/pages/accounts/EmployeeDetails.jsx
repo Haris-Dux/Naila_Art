@@ -40,6 +40,8 @@ const EmployeeDetails = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [overTimeModal, setOverTimeModal] = useState(false);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const currentMonth = moment.tz("Asia/Karachi").month() + 1;
+
   const [formData, setFormData] = useState({
     date: today,
     particular: "",
@@ -50,11 +52,28 @@ const EmployeeDetails = () => {
     salary: "",
     branchId: "",
     note: "",
+    salaryMonth: null,
   });
 
-  const currentMonth = moment.tz("Asia/Karachi").format("YYYY-MM");
+  const months = [
+    { label: "January", value: 1 },
+    { label: "February", value: 2 },
+    { label: "March", value: 3 },
+    { label: "April", value: 4 },
+    { label: "May", value: 5 },
+    { label: "June", value: 6 },
+    { label: "July", value: 7 },
+    { label: "August", value: 8 },
+    { label: "September", value: 9 },
+    { label: "October", value: 10 },
+    { label: "November", value: 11 },
+    { label: "December", value: 12 },
+  ];
+
+  const currentYear = moment.tz("Asia/Karachi").format("YYYY");
+  const formattedMonth = String(formData.salaryMonth).padStart(2, "0");
   const currentMonthLeaves = Employee?.leaves?.filter((item) =>
-    item.startsWith(currentMonth)
+    item.startsWith(`${currentYear}-${formattedMonth}`)
   );
 
   useEffect(() => {
@@ -110,13 +129,17 @@ const EmployeeDetails = () => {
     if (!formData.payment_Method) {
       return toast.error("Please Select Payment Method");
     }
+    if (!formData.salaryMonth) {
+      return toast.error("Please Select Salary Month");
+    }
     const data = {
       id: id,
       salary: formData.salary,
       payment_Method: formData.payment_Method,
-      over_time: Employee?.overtime_Data?.hours,
+      over_time: Employee?.overtime_Data[formData.salaryMonth],
       leaves: currentMonthLeaves?.length,
       branchId: formData.branchId,
+      month: formData.salaryMonth,
     };
     dispatch(CreditSalary(data)).then((res) => {
       if (res.payload.success === true) {
@@ -162,6 +185,7 @@ const EmployeeDetails = () => {
       date: "",
       over_time: "",
       note: "",
+      salaryMonth: null,
     }));
   };
 
@@ -231,7 +255,7 @@ const EmployeeDetails = () => {
     const totalDays = moment().daysInMonth();
     const paidDays = totalDays - leaves;
     const salaryForOneDay = salary / totalDays;
-    const overtimeHours = Employee?.overtime_Data?.hours || 0;
+    const overtimeHours = Employee?.overtime_Data[formData.salaryMonth] || 0;
     const overtimeDays = overtimeHours / 12;
     const payableSalary = Math.round(
       (paidDays + overtimeDays) * salaryForOneDay
@@ -252,7 +276,6 @@ const EmployeeDetails = () => {
       payment_Method: data.payment_Method,
       branchId: data.branchId,
       leaves: data.leaves,
-      over_time: data.over_time,
     };
     const reverseSalary = () => {
       dispatch(reverseSalaryAsync(reqData)).then((res) => {
@@ -277,6 +300,12 @@ const EmployeeDetails = () => {
     });
     setFilteredData(filtered);
   };
+
+  useEffect(() => {
+    if (formData.salaryMonth) {
+      calculatePayableSlary();
+    }
+  }, [formData.salaryMonth]);
 
   return (
     <>
@@ -802,7 +831,7 @@ const EmployeeDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative py-4 px-3 max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="relative py-4 px-3 max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-2 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Confirm Credit Salary
@@ -839,7 +868,9 @@ const EmployeeDetails = () => {
                       <span className="text-sm font-bold">
                         Overtime Hours :
                       </span>{" "}
-                      {Employee?.overtime_Data?.hours}
+                      {formData.salaryMonth
+                        ? Employee?.overtime_Data[formData.salaryMonth]
+                        : "Select Month"}
                     </div>
                     <div className="w-full text-center">
                       {" "}
@@ -851,10 +882,10 @@ const EmployeeDetails = () => {
                     <div className="w-full text-center">
                       {" "}
                       <span className="text-sm font-bold ">Leaves :</span>{" "}
-                      {currentMonthLeaves?.length}
+                      {formData.salaryMonth ? currentMonthLeaves?.length : "Select Month"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 p-3 gap-2 gap-x-4">
+                  <div className="grid grid-cols-4 p-3 gap-2 gap-x-4">
                     <div className="col-span-1 items-center grid grid-cols-2">
                       <h3 className="text-sm font-bold col-span-1">
                         T.Salary :
@@ -905,6 +936,29 @@ const EmployeeDetails = () => {
                         {PaymentData?.map((item) => (
                           <option value={item.value} key={item.value}>
                             {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-span-1">
+                      <select
+                        id="salary-month"
+                        name="salaryMonth"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        value={formData?.salaryMonth || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            salaryMonth: Number(e.target.value),
+                          })
+                        }
+                      >
+                        <option value="" disabled>
+                          Select Month
+                        </option>
+                        {months.map((month) => (
+                          <option key={month.value} value={month.value}>
+                            {month.label}
                           </option>
                         ))}
                       </select>

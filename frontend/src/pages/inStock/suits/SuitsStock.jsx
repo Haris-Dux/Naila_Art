@@ -24,6 +24,8 @@ const SuitsStock = () => {
     (state) => state.InStock
   );
 
+  console.log('Suit',Suit);
+
   const { SuitCategories } = useSelector((state) => state.InStock);
   const { user } = useSelector((state) => state.auth);
 
