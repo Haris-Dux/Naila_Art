@@ -310,9 +310,9 @@ export const updateEmbroidery = async (req, res, next) => {
     }
     if (shirt) {
       shirt.forEach((item) => {
-        const { category, color, received } = item;
+        const { received, id } = item;
         const shirtItem = embroideryData.shirt.find(
-          (s) => s.category === category && s.color === color
+          (s) =>  s._id.toString() === id
         );
         if (shirtItem) {
           shirtItem.received = received;
@@ -321,9 +321,9 @@ export const updateEmbroidery = async (req, res, next) => {
     }
     if (duppata) {
       duppata.forEach((item) => {
-        const { category, color, received } = item;
+        const { received, id } = item;
         const dupattaItem = embroideryData.duppata.find(
-          (s) => s.category === category && s.color === color
+          (d) => d._id.toString() === id
         );
         if (dupattaItem) {
           dupattaItem.received = received;
@@ -332,9 +332,9 @@ export const updateEmbroidery = async (req, res, next) => {
     }
     if (trouser) {
       trouser.forEach((item) => {
-        const { category, color, received } = item;
+        const { received, id } = item;
         const trouserItem = embroideryData.trouser.find(
-          (s) => s.category === category && s.color === color
+          (t) => t._id.toString() === id
         );
         if (trouserItem) {
           trouserItem.received = received;

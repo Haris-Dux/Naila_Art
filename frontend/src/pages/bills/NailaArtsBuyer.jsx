@@ -78,31 +78,55 @@ const NailaArtsBuyer = () => {
 
   const renderPaginationLinks = () => {
     const totalPages = BuyerBillHistory?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/naila-arts-buyer?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() =>
-              dispatch(
-                getBuyerBillsHistoryForBranchAsync({
-                  id: selectedBranchId,
-                  page: i,
-                })
-              )
-            }
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
+      const paginationLinks = [];
+      const visiblePages = 5; 
+      const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
+      const endPage = Math.min(totalPages, startPage + visiblePages - 1);
+    
+  
+      if (startPage > 1) {
+        paginationLinks.push(
+          <li key="start-ellipsis" className="text-black my-auto">
+            .....
+          </li>
+        );
+      }
+    
+      
+      for (let i = startPage; i <= endPage; i++) {
+        paginationLinks.push(
+          <li key={i} onClick={ToDown}>
+            <Link
+               to={`/dashboard/naila-arts-buyer?page=${i}`}
+              className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
+                i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              }`}
+              onClick={() =>
+                dispatch(
+                  getBuyerBillsHistoryForBranchAsync({
+                    id: selectedBranchId,
+                    page: i,
+                  })
+                )
+              }
+            >
+              {i}
+            </Link>
+          </li>
+        );
+      }
+    
+  
+      if (endPage < totalPages) {
+        paginationLinks.push(
+          <li key="end-ellipsis" className="text-black my-auto">
+            .....
+          </li>
+        );
+      }
+    
+      return paginationLinks;
+    };
 
   const ToDown = () => {
     window.scrollTo({
