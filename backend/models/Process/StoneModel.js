@@ -70,6 +70,9 @@ const stoneSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       required: [true, "Embroidery Id required"],
     },
+    cuttingId: {
+      type:String
+    },
     serial_No: {
       type: Number,
       required: [true, "Serial No required"],
