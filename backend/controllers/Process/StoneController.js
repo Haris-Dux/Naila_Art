@@ -9,6 +9,7 @@ export const addStone = async (req, res, next) => {
   try {
     const {
       embroidery_Id,
+      cuttingId,
       partyName,
       serial_No,
       design_no,
@@ -84,7 +85,8 @@ export const addStone = async (req, res, next) => {
       category_quantity,
       date,
       design_no,
-      Manual_No:mainEmbroidery.Manual_No
+      Manual_No:mainEmbroidery.Manual_No,
+      cuttingId
     });
 
     //UPDATE MAIN EMBROIDERY NextStep
@@ -261,6 +263,14 @@ export const deleteStone = async (req, res, next) => {
       if (!embData) throw new Error("Embroidery Data not Found For this Stone");
       embData.next_steps.stones = false;
       await embData.save();
+    };
+    const cuttingData = await CuttingModel.findById(data.cuttingId);
+    if (cuttingData) {
+      const quantity = data.category_quantity.reduce((sum,item) => {
+        return sum + item.quantity;
+      },0)
+      cuttingData.Available_Quantity += quantity;
+      await cuttingData.save();
     }
     return res
       .status(200)

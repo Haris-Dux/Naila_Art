@@ -64,6 +64,7 @@ const CuttingDetails = () => {
     date: "",
     rate: "",
     category_quantity: [initialRow],
+    cuttingId:""
   });
 
   const { embroidery_Id, design_no, serial_No, from } = location.state || {};
@@ -169,8 +170,11 @@ const CuttingDetails = () => {
 
   const handleSubmitstome = (e) => {
     e.preventDefault();
-
-    dispatch(createStone(formData)).then((res) => {
+    const data = {
+      ...formData,
+      cuttingId:id
+    };
+    dispatch(createStone(data)).then((res) => {
       if (res.payload.success === true) {
         closeModal();
         navigate("/dashboard/stones");
