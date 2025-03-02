@@ -226,8 +226,6 @@ const GenerateBill = () => {
     setBillData({ ...billData, suits_data: newSuitsData });
   };
 
-  console.log("billData.suits_data", billData.suits_data);
-
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
     const selectedDesign = branchStockData.find(
@@ -285,44 +283,44 @@ const GenerateBill = () => {
     if (modifiedBillData.branchId === "") {
       toast.error("Please Select Branch");
       return;
-    }
+    };
 
     if (otherBillData.show === true) {
       modifiedBillData.other_Bill_Data = otherBillData;
-    }
+    };
 
     const payloadData = validatePackaging(modifiedBillData);
 
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
         dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
-          if (res.payload.status === 200) {
-            setBillData({
-              branchId:
-                user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
-              serialNumber: "",
-              name: "",
-              city: "",
-              cargo: "",
-              phone: "",
-              date: today,
-              bill_by: "",
-              payment_Method: "",
-              total: "",
-              paid: "",
-              remaining: "",
-              discount: "",
-              packaging: {
-                name: "",
-                id: "",
-                quantity: "",
-              },
-              suits_data: [
-                { id: "", quantity: "", d_no: "", color: "", price: "" },
-              ],
-              other_Bill_Data: {},
-            });
-          }
+          // if (res.payload.status === 200) {
+          //   setBillData({
+          //     branchId:
+          //       user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+          //     serialNumber: "",
+          //     name: "",
+          //     city: "",
+          //     cargo: "",
+          //     phone: "",
+          //     date: today,
+          //     bill_by: "",
+          //     payment_Method: "",
+          //     total: "",
+          //     paid: "",
+          //     remaining: "",
+          //     discount: "",
+          //     packaging: {
+          //       name: "",
+          //       id: "",
+          //       quantity: "",
+          //     },
+          //     suits_data: [
+          //       { id: "", quantity: "", d_no: "", color: "", price: "" },
+          //     ],
+          //     other_Bill_Data: {},
+          //   });
+          // };
         });
       }
     });

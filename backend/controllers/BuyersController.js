@@ -102,7 +102,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
         bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
         await bagsorBoxStock.save({ session });
-      }
+      };
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
@@ -140,6 +140,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             date,
             session
           );
+
+          console.log('totalCashFromLastSale',totalCashFromLastSale);
 
           //CREATE NEW DAILY SALE FOR PAST DATE
           const newDailySale = new DailySaleModel({
@@ -278,7 +280,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           note:`Bill Generated For : ${name}`,
         };
         await VA_HistoryModal.create([historyData], { session });
-      }
+      };
+
       //DATA FOR VIRTUAL ACCOUNT OF BUYER
       const total_debit = remaining;
       const total_credit = paid;
@@ -303,7 +306,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           break;
         default:
           status = "";
-      }
+      };
 
       const virtualAccountData = {
         total_debit,
@@ -311,8 +314,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         total_balance,
         status,
       };
-
-      console.log("virtualAccountData", virtualAccountData);
 
       //DATA FOR CREDIT DEBIT HISTORY
 
