@@ -48,7 +48,9 @@ pipeline {
                 script {
                     sh '''
                         cd frontend && npm cache clean --force && npm install --legacy-peer-deps
-                        cd backend && npm install --legacy-peer-deps
+                        cd ../
+                        cd backend && npm install 
+                       
                     '''
                 }
             }
