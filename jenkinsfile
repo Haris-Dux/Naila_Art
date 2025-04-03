@@ -76,12 +76,12 @@ pipeline {
                     echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
 
                        echo "Building frontend image"
-                            docker build -t ${DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile 
+                            docker build -t ${DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile frontend
                                 # Push the frontend-image
                             docker push ${DOCKER_IMAGE_FRONTEND}
                             
                         echo "Building backend image"
-                            docker build -t ${DOCKER_IMAGE_BACKEND} -f backend/Dockerfile
+                            docker build -t ${DOCKER_IMAGE_BACKEND} -f backend/Dockerfile backend
                                 # Push the backend-image
                             docker push ${DOCKER_IMAGE_BACKEND}
                 """
