@@ -7,10 +7,9 @@ pipeline {
     
     environment {
         DOCKER_BUILDKIT = '1'
-        FRONTEND_APP_NAME = 'nailadev-frontend'
-        BACKEND_APP_NAME = 'nailadev-backend'
-        DOCKER_IMAGE_FRONTEND = "${FRONTEND_APP_NAME}:frontend-${BUILD_NUMBER}"
-        DOCKER_IMAGE_BACKEND = "${BACKEND_APP_NAME}:backend-${BUILD_NUMBER}"
+        APP_NAME = 'nailadev'
+        DOCKER_IMAGE_FRONTEND = "${APP_NAME}:frontend-${BUILD_NUMBER}"
+        DOCKER_IMAGE_BACKEND = "${APP_NAME}:backend-${BUILD_NUMBER}"
         HUB_REPOSITORY = 'naila-arts'
         HUB_USERNAME = 'harisdux'
         VPS_IP = '31.220.109.115'
