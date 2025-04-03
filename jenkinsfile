@@ -42,28 +42,6 @@ pipeline {
             }
         }
         
-        // stage('Install Dependencies') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //                 cd frontend && npm cache clean --force && npm install --legacy-peer-deps
-        //                 cd ../
-        //                 cd backend && npm install 
-                       
-        //             '''
-        //         }
-        //     }
-        // }
-        
-        // stage('Build React App') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //                 cd frontend && npm run build
-        //             '''
-        //         }
-        //     }
-        // }
         
        stage('Docker Build & Deploy') {
           steps {
@@ -86,6 +64,42 @@ pipeline {
                 """
             }
 
+        }
+    }
+}
+
+stage('Deploy to VPS') {
+    steps {
+        script {
+            withCredentials([
+                usernamePassword(credentialsId: 'VPS_CREDENTIALS', usernameVariable: 'VPS_USER', passwordVariable: 'VPS_PASS'),
+                string(credentialsId: 'DOCKERHUB_TOKEN', variable: 'DOCKERHUB_PAT')
+            ]) {
+                sh """
+                    sshpass -p "${VPS_PASS}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} <<EOF
+                        echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
+                        
+                        echo "Pulling latest frontend image"
+                        docker pull ${DOCKER_IMAGE_FRONTEND}
+                        
+                        echo "Pulling latest backend image"
+                        docker pull ${DOCKER_IMAGE_BACKEND}
+
+                        echo "Stopping old containers"
+                        docker stop naila-frontend || true
+                        docker rm naila-frontend || true
+                        docker stop naila-backend || true
+                        docker rm naila-backend || true
+
+                        echo "Running new containers"
+                        docker run -d --name naila-frontend -p 3000:80 ${DOCKER_IMAGE_FRONTEND}
+                        docker run -d --name naila-backend -p 5000:5000 ${DOCKER_IMAGE_BACKEND}
+
+                        echo "Restarting Nginx"
+                        systemctl restart nginx
+                    EOF
+                """
+            }
         }
     }
 }
