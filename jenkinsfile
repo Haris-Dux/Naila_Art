@@ -97,7 +97,7 @@ stage('Deploy to VPS') {
 
                         echo "Restarting Nginx"
                         systemctl restart nginx
-                    EOF
+                    
                 """
             }
         }
