@@ -42,28 +42,28 @@ pipeline {
             }
         }
         
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh '''
-                        cd frontend && npm cache clean --force && npm install --legacy-peer-deps
-                        cd ../
-                        cd backend && npm install 
+        // stage('Install Dependencies') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //                 cd frontend && npm cache clean --force && npm install --legacy-peer-deps
+        //                 cd ../
+        //                 cd backend && npm install 
                        
-                    '''
-                }
-            }
-        }
+        //             '''
+        //         }
+        //     }
+        // }
         
-        stage('Build React App') {
-            steps {
-                script {
-                    sh '''
-                        cd frontend && npm run build
-                    '''
-                }
-            }
-        }
+        // stage('Build React App') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //                 cd frontend && npm run build
+        //             '''
+        //         }
+        //     }
+        // }
         
        stage('Docker Build & Deploy') {
           steps {
