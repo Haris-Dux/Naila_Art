@@ -108,14 +108,14 @@ stage('Deploy to VPS') {
                         docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Stopping old containers"
-                        docker stop naila-frontend || true
-                        docker rm naila-frontend || true
-                        docker stop naila-backend || true
-                        docker rm naila-backend || true
+                        docker stop naila-frontend-${env.ENVIRONMENT} || true
+                        docker rm naila-frontend-${env.ENVIRONMENT} || true
+                        docker stop naila-backend-${env.ENVIRONMENT} || true
+                        docker rm naila-backend-${env.ENVIRONMENT} || true
 
                         echo "Running new containers"
-                        docker run -d --name naila-frontend -p 3000:80 ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
-                        docker run -d --name naila-backend -p 5000:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
+                        docker run -d --name naila-frontend-${env.ENVIRONMENT} -p 3000:80 ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
+                        docker run -d --name naila-backend-${env.ENVIRONMENT} -p 5000:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Restarting Nginx"
                         systemctl restart nginx
