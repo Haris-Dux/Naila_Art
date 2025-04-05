@@ -9,7 +9,7 @@ WORKDIR /
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --legacy-peer-deps && npm cache clean --force
+RUN npm install --legacy-peer-deps
 
 # Copy project files
 COPY . .
@@ -28,4 +28,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 
 # Start nginx
-CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
