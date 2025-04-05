@@ -48,10 +48,10 @@ pipeline {
                    def branchName = env.GIT_BRANCH?.replace('origin/', '')
                     echo "Branch name is: ${branchName}"
                     if (branchName == 'main') {
-                        echo "Branch name: ${env.BRANCH_NAME}"
+                        echo "Branch name: ${branchName}"
                          env.ENVIRONMENT = 'production'
                     } else if (branchName == 'develop') {
-                        echo "Branch name: ${env.BRANCH_NAME}"
+                        echo "Branch name: ${branchName}"
                          env.ENVIRONMENT = 'develop'
                     } else {
                         error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
