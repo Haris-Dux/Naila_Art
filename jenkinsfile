@@ -8,14 +8,37 @@ pipeline {
     environment {
         DOCKER_BUILDKIT = '1'
         APP_NAME = 'naila-arts'
-        DOCKER_IMAGE_FRONTEND = "${APP_NAME}:frontend-${BUILD_NUMBER}"
-        DOCKER_IMAGE_BACKEND = "${APP_NAME}:backend-${BUILD_NUMBER}"
         HUB_REPOSITORY = 'naila-arts'
         HUB_USERNAME = 'harisdux'
         VPS_IP = '31.220.109.115'
     }
     
     stages {
+
+        stage('Set Environment') {
+            steps {
+                script {
+                    echo "Setting Environment"
+                   def branchName = env.GIT_BRANCH?.replace('origin/', '')
+                    echo "Branch name is: ${branchName}"
+                    if (branchName == 'main') {
+                        echo "Branch name: ${branchName}"
+                         env.ENVIRONMENT = 'prod'
+                    } else if (branchName == 'develop') {
+                        echo "Branch name: ${branchName}"
+                         env.ENVIRONMENT = 'dev'
+                    } else {
+                        error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
+                    }
+                    echo "Building for ${env.ENVIRONMENT} environment."
+                    env.DOCKER_IMAGE_FRONTEND = "${APP_NAME}:frontend-${env.ENVIRONMENT}-${BUILD_NUMBER}"
+                    env.DOCKER_IMAGE_BACKEND = "${APP_NAME}:backend-${env.ENVIRONMENT}-${BUILD_NUMBER}"
+                    echo "Frontend image to be configured: ${env.DOCKER_IMAGE_FRONTEND}"
+                    echo "Backend image to be configured: ${env.DOCKER_IMAGE_BACKEND}"
+                }
+            }
+        }
+
         stage('Verify Prerequisites') {
             steps {
                 script {
@@ -41,26 +64,6 @@ pipeline {
             }
         }
 
-        stage('Set Environment') {
-            steps {
-                script {
-                    echo "Setting Environment"
-                   def branchName = env.GIT_BRANCH?.replace('origin/', '')
-                    echo "Branch name is: ${branchName}"
-                    if (branchName == 'main') {
-                        echo "Branch name: ${branchName}"
-                         env.ENVIRONMENT = 'production'
-                    } else if (branchName == 'develop') {
-                        echo "Branch name: ${branchName}"
-                         env.ENVIRONMENT = 'develop'
-                    } else {
-                        error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
-                    }
-                    echo "Building for ${env.ENVIRONMENT} environment."
-                }
-            }
-        }
-        
         
        stage('Docker Build & Deploy') {
           steps {
@@ -72,14 +75,14 @@ pipeline {
                     echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
 
                        echo "Building frontend image"
-                            docker build -t ${HUB_USERNAME}/${DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile frontend
+                            docker build -t ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile frontend
                                 # Push the frontend-image
-                            docker push  ${HUB_USERNAME}/${DOCKER_IMAGE_FRONTEND}
+                            docker push  ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
                             
                         echo "Building backend image"
-                            docker build -t ${HUB_USERNAME}/${DOCKER_IMAGE_BACKEND} -f backend/Dockerfile backend
+                            docker build -t ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND} -f backend/Dockerfile backend
                                 # Push the backend-image
-                            docker push  ${HUB_USERNAME}/${DOCKER_IMAGE_BACKEND}
+                            docker push  ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
                 """
             }
 
@@ -99,10 +102,10 @@ stage('Deploy to VPS') {
                         echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
                         
                         echo "Pulling latest frontend image"
-                        docker pull ${HUB_USERNAME}/${DOCKER_IMAGE_FRONTEND}
+                        docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
                         
                         echo "Pulling latest backend image"
-                        docker pull ${HUB_USERNAME}/${DOCKER_IMAGE_BACKEND}
+                        docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Stopping old containers"
                         docker stop naila-frontend || true
@@ -111,8 +114,8 @@ stage('Deploy to VPS') {
                         docker rm naila-backend || true
 
                         echo "Running new containers"
-                        docker run -d --name naila-frontend -p 3000:80 ${HUB_USERNAME}/${DOCKER_IMAGE_FRONTEND}
-                        docker run -d --name naila-backend -p 5000:5000 ${HUB_USERNAME}/${DOCKER_IMAGE_BACKEND}
+                        docker run -d --name naila-frontend -p 3000:80 ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
+                        docker run -d --name naila-backend -p 5000:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Restarting Nginx"
                         systemctl restart nginx
