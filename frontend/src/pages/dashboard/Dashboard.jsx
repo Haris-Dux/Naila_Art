@@ -316,7 +316,7 @@ const Dashboard = () => {
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS (DEV ENVIROMENT)
+                  NAILA ARTS (DEV-ENVIROMENT)
                 </span>
               </Link>
             </div>
