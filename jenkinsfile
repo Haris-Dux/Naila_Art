@@ -41,6 +41,24 @@ pipeline {
                 }
             }
         }
+
+        stage('Set Environment') {
+            steps {
+                script {
+                    // Dynamically set environment based on the branch
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Branch name: ${env.BRANCH_NAME}"
+                         env.ENVIRONMENT = 'production'
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo "Branch name: ${env.BRANCH_NAME}"
+                         env.ENVIRONMENT = 'develop'
+                    } else {
+                        error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'dev' and 'main' are supported."
+                    }
+                    echo "Building for ${env.ENVIRONMENT} environment."
+                }
+            }
+        }
         
         
        stage('Docker Build & Deploy') {
