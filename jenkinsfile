@@ -45,7 +45,7 @@ pipeline {
         stage('Set Environment') {
             steps {
                 script {
-                    // Dynamically set environment based on the branch
+                      echo "Setting Environment"
                     if (env.BRANCH_NAME == 'main') {
                         echo "Branch name: ${env.BRANCH_NAME}"
                          env.ENVIRONMENT = 'production'
