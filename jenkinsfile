@@ -45,7 +45,7 @@ pipeline {
             steps {
                 script {
                     echo "Setting Environment"
-                   def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                   def branchName = env.GIT_BRANCH?.replace('origin/', '')
                     echo "Branch name is: ${branchName}"
                     if (branchName == 'main') {
                         echo "Branch name: ${env.BRANCH_NAME}"
