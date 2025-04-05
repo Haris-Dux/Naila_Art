@@ -53,7 +53,7 @@ pipeline {
                         echo "Branch name: ${env.BRANCH_NAME}"
                          env.ENVIRONMENT = 'develop'
                     } else {
-                        error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'dev' and 'main' are supported."
+                        error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
                     }
                     echo "Building for ${env.ENVIRONMENT} environment."
                 }
