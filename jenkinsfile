@@ -121,7 +121,7 @@ stage('Deploy to VPS') {
                         sudo docker run -d --name naila-backend-${env.ENVIRONMENT} --env-file /root/Naila-Arts/env-files/.env.${env.ENVIRONMENT} -p ${BACKEND_PORT}:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Restarting Nginx"
-                        systemctl restart nginx
+                        sudo systemctl restart nginx
                     
                 """
             }
