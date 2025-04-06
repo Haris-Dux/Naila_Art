@@ -269,9 +269,13 @@ const Dashboard = () => {
     }
   };
 
-  const enviroment = import.meta.env.VITE_APP_ENV;
+  const enviroment = process.env.VITE_APP_ENV;
+  const API_URL = process.env.VITE_API_URL || 'http://localhost:5000';
+
 
   console.log("Mode",enviroment)
+  console.log("API_URL",API_URL)
+
 
   return (
     <>
