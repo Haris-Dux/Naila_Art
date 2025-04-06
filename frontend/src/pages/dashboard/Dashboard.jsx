@@ -269,6 +269,10 @@ const Dashboard = () => {
     }
   };
 
+  const enviroment = import.meta.env.APP_ENV;
+
+  console.log("Mode",enviroment)
+
   return (
     <>
       <div className="antialiased bg-gray-50 dark:bg-gray-900">
@@ -316,7 +320,7 @@ const Dashboard = () => {
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS (DEV ENVIROMENT)
+                  NAILA ARTS {enviroment === 'dev' ? <span>DEV ENVIROMENT</span> : null}
                 </span>
               </Link>
             </div>

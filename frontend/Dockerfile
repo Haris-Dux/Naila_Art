@@ -5,6 +5,12 @@ FROM node:22.14.0-alpine as build
 # Set working directory
 WORKDIR /
 
+ARG API_URL
+ARG APP_ENV
+
+ENV VITE_API_URL=$API_URL
+ENV VITE_APP_ENV=$APP_ENV
+
 # Copy package files
 COPY package*.json ./
 
