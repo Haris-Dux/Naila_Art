@@ -1,7 +1,6 @@
 
 import express from "express";
 import cors from "cors";
-import path from "path";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import  MongoDBStore  from "connect-mongodb-session";
@@ -29,7 +28,7 @@ import dashboardRouter from "./routes/Dashboard Data/DashboardRoutes.js";
 import b_PairRouter from "./routes/Process/B_PairRoutes.js";
 import returnRouter from "./routes/Returns/ReturnRoutes.js";
 import pictureRouter from "./routes/Process/PictureRoutes.js";
-import { AppErrorHandler } from '../backend/config/exceptionHandlers/handler.js';
+import { AppErrorHandler } from './config/exceptionHandlers/handler.js';
 import checkRouter from "./routes/Checks/CheckRoutes.js";
 import otherSaleRouter from "./routes/OtherSaleRoutes.js";
 import moment from "moment-timezone";
@@ -88,12 +87,6 @@ app.use(session({
   app.use("/api/buyers/checks",checkRouter);
   app.use("/api/otherSale",otherSaleRouter);
 
-// const root = path.resolve();
-// app.use(express.static(path.join(root, 'dist')));
-
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(root, 'dist/index.html'));
-// });
 
 app.use(AppErrorHandler);
  

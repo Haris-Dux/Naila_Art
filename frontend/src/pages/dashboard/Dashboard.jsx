@@ -269,6 +269,15 @@ const Dashboard = () => {
     }
   };
 
+  const enviroment = import.meta.env.VITE_APP_ENV;
+  const VITE_API_URL = import.meta.env.VITE_API_URL;
+
+  console.log("Mode",enviroment)
+  console.log("VITE_API_URL",VITE_API_URL)
+
+
+
+
   return (
     <>
       <div className="antialiased bg-gray-50 dark:bg-gray-900">
@@ -316,7 +325,7 @@ const Dashboard = () => {
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS
+                  NAILA ARTS {enviroment === 'dev' ? <span>( DEV ENVIROMENT )</span> : null}
                 </span>
               </Link>
             </div>
