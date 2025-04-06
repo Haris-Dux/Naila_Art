@@ -31,7 +31,7 @@ pipeline {
                         echo "Branch name: ${branchName}"
                          env.ENVIRONMENT = 'dev'
                          env.FRONTEND_PORT = '3000'
-                         env.BACKEND_PORT = '5000'
+                         env.BACKEND_PORT = '8040'
                          env.VITE_API_URL = 'http://31.220.109.115:5000'
                     } else {
                         error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
