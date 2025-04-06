@@ -269,7 +269,7 @@ const Dashboard = () => {
     }
   };
 
-  const enviroment = import.meta.env.APP_ENV;
+  const enviroment = import.meta.env.VITE_APP_ENV;
 
   console.log("Mode",enviroment)
 
