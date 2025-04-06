@@ -105,23 +105,23 @@ stage('Deploy to VPS') {
                         echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
                         
                         echo "Pulling latest frontend image"
-                        docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
+                        sudo docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
                         
                         echo "Pulling latest backend image"
-                        docker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
+                         sudodocker pull ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Stopping old containers"
-                        docker stop naila-frontend-${env.ENVIRONMENT} || true
-                        docker rm naila-frontend-${env.ENVIRONMENT} || true
-                        docker stop naila-backend-${env.ENVIRONMENT} || true
-                        docker rm naila-backend-${env.ENVIRONMENT} || true
+                        sudo docker stop naila-frontend-${env.ENVIRONMENT} || true
+                        sudo docker rm naila-frontend-${env.ENVIRONMENT} || true
+                        sudo docker stop naila-backend-${env.ENVIRONMENT} || true
+                        sudo docker rm naila-backend-${env.ENVIRONMENT} || true
 
                         echo "Running new containers"
-                        docker run -d --name naila-frontend-${env.ENVIRONMENT}  -p ${FRONTEND_PORT}:80 ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
-                        docker run -d --name naila-backend-${env.ENVIRONMENT} --env-file /root/Naila-Arts/env-files/.env.${env.ENVIRONMENT} -p ${BACKEND_PORT}:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
+                        sudo docker run -d --name naila-frontend-${env.ENVIRONMENT}  -p ${FRONTEND_PORT}:80 ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
+                        sudo docker run -d --name naila-backend-${env.ENVIRONMENT} --env-file /root/Naila-Arts/env-files/.env.${env.ENVIRONMENT} -p ${BACKEND_PORT}:5000 ${HUB_USERNAME}/${env.DOCKER_IMAGE_BACKEND}
 
                         echo "Restarting Nginx"
-                        systemctl restart nginx
+                        sudo systemctl restart nginx
                     
                 """
             }
