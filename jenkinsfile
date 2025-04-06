@@ -32,7 +32,6 @@ pipeline {
                          env.ENVIRONMENT = 'dev'
                          env.FRONTEND_PORT = '3000'
                          env.BACKEND_PORT = '5000'
-                         env.VITE_API_URL = 'http://31.220.109.115:5000'
                     } else {
                         error "Unrecognized branch: ${env.BRANCH_NAME}. Only 'develop' and 'main' are supported."
                     }
@@ -81,7 +80,7 @@ pipeline {
                     echo '${DOCKERHUB_PAT}' | docker login -u ${HUB_USERNAME} --password-stdin
 
                        echo "Building frontend image"
-                            docker build --build-arg API_URL=${env.VITE_API_URL} --build-arg APP_ENV=${env.ENVIRONMENT} -t ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile frontend
+                            docker build  --build-arg APP_ENV=${env.ENVIRONMENT} -t ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND} -f frontend/Dockerfile frontend
                                 # Push the frontend-image
                             docker push  ${HUB_USERNAME}/${env.DOCKER_IMAGE_FRONTEND}
                             
