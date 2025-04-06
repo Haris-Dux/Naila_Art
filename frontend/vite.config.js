@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const API_URL = '';
+const API_URL = import.meta.env.VITE_API_URL;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,7 +11,10 @@ export default defineConfig({
   server: {
     
     proxy: {
-      '/api': ''
+      '/api': {
+        target:API_URL,
+        changeOrigin: true,
+      },
     },
 
   },
