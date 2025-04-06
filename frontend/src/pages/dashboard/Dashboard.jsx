@@ -270,11 +270,20 @@ const Dashboard = () => {
   };
 
   const enviroment = process.env.VITE_APP_ENV;
-  const API_URL = process.env.VITE_API_URL ;
+  const enviroment2 = process.env.APP_ENV;
+  const enviroment3 = import.meta.env.APP_ENV;
+  const enviroment4 = import.meta.env.VITE_APP_ENV;
+
+
+
 
 
   console.log("Mode",enviroment)
-  console.log("API_URL",API_URL)
+  console.log("Mode 2",enviroment2)
+  console.log("Mode 3",enviroment3)
+
+  console.log("Mode 4",enviroment4)
+
 
 
   return (
