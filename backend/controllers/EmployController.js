@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { EmployeModel } from "../models/EmployModel.js";
-import { PaymentData } from "../utils/Common.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
@@ -213,9 +212,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
       const employe = await EmployeModel.findById(id).session(session);
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       if (!employe) throw new Error("Employe Not Found");
-      const paymentMethodName = PaymentData.find(
-        (method) => method.value === payment_Method
-      )?.label;
+ 
 
       //VERIFY IF SALARY IS CREDITED FOR CURRENT MOTN OR NOT
       const isSalaryPaid = employe.salaryStatus[Number(month)];
@@ -229,7 +226,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         credit: 0,
         debit: salary,
         balance: 0,
-        particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
+        particular: `Salary Credit/${payment_Method}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
         date: today,
         over_time,
         leaves,
