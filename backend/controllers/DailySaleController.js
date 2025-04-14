@@ -6,6 +6,7 @@ import { DailySaleModel } from "../models/DailySaleModel.js";
 import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../utils/nodemailer.js";
+import { PaymentMethodModel } from "../models/PaymentMethods/PaymentMethodModel.js";
 
 export const getTodaysdailySaleforBranch = async (req, res, next) => {
   try {
@@ -150,7 +151,7 @@ export const cashOutForBranch = async (req, res, next) => {
 };
 
 corn.schedule(
-  "01 00 * * *",
+  "51 00 * * *",
   async () => {
     try {
       const branchData = await BranchModel.find({});
@@ -175,6 +176,11 @@ corn.schedule(
             branchId: branch._id,
             date: yesterday,
           });
+          const activeMethods = await PaymentMethodModel.find({active:{$ne:false}});
+          const dynamicMethods = activeMethods.reduce((acc, method) => {
+            acc[method.name] = 0;
+            return acc;
+          }, {});
           return await DailySaleModel.create({
             branchId: branch._id,
             date: today,
@@ -182,6 +188,7 @@ corn.schedule(
               totalCash: previousDaySale
                 ? previousDaySale.saleData.totalCash
                 : 0,
+                ...dynamicMethods
             },
           });
         } catch (error) {
