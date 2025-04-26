@@ -12,13 +12,12 @@ import {
 import PreviewBill from "./PreviewBill";
 import { getBuyerByIdAsync } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
-import { PaymentData } from "../../Utils/AccountsData";
 import Select from "react-select";
 
 const OldBuyerGenerateBill = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
   const PackagingData = useSelector((state) => state.InStock?.Bags);
@@ -340,8 +339,6 @@ const OldBuyerGenerateBill = () => {
     // Uncomment and use this once ready to dispatch the action
     dispatch(generateBillForOlderBuyerAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
-        dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
-          if (res.payload.status === 200) {
             setBillData({
               buyerId: id,
               branchId:
@@ -368,8 +365,6 @@ const OldBuyerGenerateBill = () => {
               ],
               other_Bill_Data: {},
             });
-          }
-        });
       }
     });
   };

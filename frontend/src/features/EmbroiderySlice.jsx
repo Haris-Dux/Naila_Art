@@ -43,7 +43,6 @@ export const updatePictureOrderByIdIdAsync = createAsyncThunk(
       const response = await axios.post(updatePictureOrderByIdURL, data);
       return response.data;
     } catch (error) {
-      console.log('error',error);
       toast.error(error.response.data);
     }
   }

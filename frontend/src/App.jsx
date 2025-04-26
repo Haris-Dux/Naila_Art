@@ -54,6 +54,8 @@ import PackingDetails from "./pages/process/Packing/PackingDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
 import W_R_R_Bills from "./pages/bills/W_R_R_Bills";
 import OtherSaleBills from "./pages/bills/OtherSaleBills";
+import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
+import { getAllPaymentMetodsForTransactionAsync } from "./features/PaymentMethodsSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -61,8 +63,9 @@ function App() {
   useEffect(() => {
     dispatch(authUserAsync()).then((res) => {
       if(res.payload === undefined){
-        console.log('navigating');
         navigate("/");
+      } else {
+        dispatch(getAllPaymentMetodsForTransactionAsync())
       }
     });
   }, [dispatch]);
@@ -154,7 +157,12 @@ useEffect(() => {
             <Route path="Shop" element={<Shop />} />
             <Route path="PendingRequest" element={<PendingRequest />} />
 
+            {/* Payment Methods */}
+            <Route path="paymentMethods" element={<PaymentMethods />} />
+
+
           </Route >
+
           {/* WILD CARD */}
           <Route path="*" element={<Navigate to={"/"}/>} />
         </Routes >

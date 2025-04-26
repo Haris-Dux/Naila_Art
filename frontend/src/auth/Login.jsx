@@ -12,8 +12,8 @@ const Login = () => {
   const { loading } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "dev.offical@nailaarts.com",
+    password: "Bilal_Haseeb@786",
   });
 
   // HANDLE SUBMIT

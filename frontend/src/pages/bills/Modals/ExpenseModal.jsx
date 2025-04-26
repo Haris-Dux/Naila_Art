@@ -3,11 +3,11 @@ import { CeateExpenseAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
-import { PaymentData } from "../../../Utils/AccountsData";
 
 const ExpenseModal = ({ isOpen, closeModal }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { Branches } = useSelector((state) => state.InStock);
   const { expenseLoading } = useSelector((state) => state.PurchaseBills);
   const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");

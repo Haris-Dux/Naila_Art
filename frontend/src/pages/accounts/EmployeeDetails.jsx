@@ -9,7 +9,6 @@ import {
   reverseSalaryAsync,
   updateOvertimeHoursAsync,
 } from "../../features/AccountSlice";
-import { PaymentData } from "../../Utils/AccountsData";
 import toast from "react-hot-toast";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -27,6 +26,7 @@ const EmployeeDetails = () => {
     (state) => state.Account
   );
   const { Branches } = useSelector((state) => state.InStock);
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
@@ -882,7 +882,9 @@ const EmployeeDetails = () => {
                     <div className="w-full text-center">
                       {" "}
                       <span className="text-sm font-bold ">Leaves :</span>{" "}
-                      {formData.salaryMonth ? currentMonthLeaves?.length : "Select Month"}
+                      {formData.salaryMonth
+                        ? currentMonthLeaves?.length
+                        : "Select Month"}
                     </div>
                   </div>
                   <div className="grid grid-cols-4 p-3 gap-2 gap-x-4">

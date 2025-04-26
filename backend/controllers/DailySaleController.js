@@ -151,7 +151,7 @@ export const cashOutForBranch = async (req, res, next) => {
 };
 
 corn.schedule(
-  "51 00 * * *",
+  "1 00 * * *",
   async () => {
     try {
       const branchData = await BranchModel.find({});

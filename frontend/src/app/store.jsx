@@ -19,6 +19,8 @@ import DashboardSlice from "../features/DashboardSlice";
 import B_pairSlice from "../features/B_pairSlice";
 import ReturnSlice from "../features/ReturnSlice";
 import OtherSale from "../features/OtherSale";
+import PaymentMethodsSlice from "../features/PaymentMethodsSlice";
+
 
 export const store = configureStore({
   reducer: {
@@ -41,6 +43,8 @@ export const store = configureStore({
     ProcessBill: ProcessBillSlice,
     B_Pair:B_pairSlice,
     Return:ReturnSlice,
-    OtherBills:OtherSale
+    OtherBills:OtherSale,
+    PaymentMethods:PaymentMethodsSlice,
+
   },
 });
