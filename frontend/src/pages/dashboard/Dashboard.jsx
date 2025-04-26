@@ -10,7 +10,6 @@ import {
 } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
 import { GetAllBranches } from "../../features/InStockSlice";
-import { PaymentData } from "../../Utils/AccountsData";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
 import axios from "axios";
 
@@ -27,7 +26,7 @@ const Dashboard = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [checkNotifications, setChecksNotifications] = useState(false);
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [isInStockDropdownOpen, setIsInStockDropdownOpen] = useState(false);
   const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
   const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
@@ -224,7 +223,7 @@ const Dashboard = () => {
     };
     dispatch(generateOtherSaleAsync(payload)).then((res) => {
       if (res.payload.success) {
-        closeModal();
+        // closeModal();
       }
     });
   };
@@ -934,7 +933,7 @@ const Dashboard = () => {
                 </li>
                 <li>
                 <Link
-                  to="/dashboard/Shop"
+                  to="/dashboard/paymentMethods"
                   onClick={handleMoveTop}
                   className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
                     location.pathname === "/dashboard/paymentMethods"

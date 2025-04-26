@@ -71,17 +71,28 @@ export const generateOtherSaleBill = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
-        };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
+        let virtualAccounts = await VirtalAccountModal.find({}).session(session);
+        const updatedDoc = await VirtalAccountModal.findOneAndUpdate(
+          { _id: virtualAccounts[0]._id },
+          {
+            $inc: {
+              [payment_Method]: amount,
+            },
+          },
+          {
+            new: true, 
+            session, 
+          }
+        );
+
+
+        console.log("Updated Amount:", updatedDoc);
+
+
         //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
+        const new_balance =  virtualAccounts[0][payment_Method] + amount;
+        console.log("updated",new_balance)
+
         const historyData = {
           date,
           transactionType: "Deposit",

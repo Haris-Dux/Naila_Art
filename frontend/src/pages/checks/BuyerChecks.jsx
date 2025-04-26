@@ -12,7 +12,6 @@ import {
 } from "../../features/BuyerSlice";
 import { IoAdd } from "react-icons/io5";
 import moment from "moment-timezone";
-import { PaymentData } from "../../Utils/AccountsData";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
 const BuyersChecks = () => {
@@ -27,6 +26,8 @@ const BuyersChecks = () => {
   const { checkLoading, BuyersChecks, getBuyersChecksLoading } = useSelector(
     (state) => state.Buyer
   );
+    const { PaymentData } = useSelector((state) => state.PaymentMethods);
+  
 
   const [checkDetails, setCheckDetails] = useState({
     checkNumber: "",

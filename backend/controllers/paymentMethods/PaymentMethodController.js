@@ -48,7 +48,7 @@ export const createPaymentMethod = async (req, res, next) => {
 
 export const getAllPaymentMethodsForSuperAdmin = async (req, res, next) => {
   try {
-    const methods = (await PaymentMethodModel.find({name:{$ne:'cashSale'}}));
+    const methods = await PaymentMethodModel.find({ name: { $ne: 'cashSale' } }).sort({ createdAt: -1 });
     setMongoose();
    return res.status(200).json(methods);
   } catch (error) {
@@ -167,4 +167,6 @@ export const updatePaymentMethod = async (req, res, next) => {
     session.endSession();
   }
 };
+
+//IMPLEMENT OTHER SALE FUNCTIONALITY EVERYWHERE
 

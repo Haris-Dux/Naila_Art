@@ -268,21 +268,14 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
 
     //banks data
 
-    const banksDataRaw = await VirtalAccountModal.find({}).select(
-      "-Transaction_History"
-    );
-
+    const banksDataRaw = await VirtalAccountModal.findOne();
+    const plainData = banksDataRaw.toObject();
     let banksData = [];
-    if (banksDataRaw.length > 0) {
-      const account = banksDataRaw[0];
-      banksData = [
-        { name: "Meezan Bank", value: account.cashInMeezanBank },
-        { name: "JazzCash", value: account.cashInJazzCash },
-        { name: "EasyPaisa", value: account.cashInEasyPaisa },
-        { name: "A_Meezan", value: account.A_Meezan },
-        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
-        { name: "H_Meezan", value: account.H_Meezan },
-      ];
+    for (const key in plainData) {
+      if (banksDataRaw.hasOwnProperty(key) && key !== "cashSale") {
+        const data = { name: key, value: banksDataRaw[key] };
+        banksData.push(data);
+      }
     }
 
     //cash in hand data
@@ -601,21 +594,15 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     };
 
     //banks data
-    const banksDataRaw = await VirtalAccountModal.find({}).select(
-      "-Transaction_History"
-    );
+    const banksDataRaw = await VirtalAccountModal.findOne();
 
+    const plainData = banksDataRaw.toObject();
     let banksData = [];
-    if (banksDataRaw.length > 0) {
-      const account = banksDataRaw[0];
-      banksData = [
-        { name: "Meezan Bank", value: account.cashInMeezanBank },
-        { name: "JazzCash", value: account.cashInJazzCash },
-        { name: "EasyPaisa", value: account.cashInEasyPaisa },
-        { name: "A_Meezan", value: account.A_Meezan },
-        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
-        { name: "H_Meezan", value: account.H_Meezan },
-      ];
+    for (const key in plainData) {
+      if (banksDataRaw.hasOwnProperty(key) && key !== "cashSale") {
+        const data = { name: key, value: banksDataRaw[key] };
+        banksData.push(data);
+      }
     }
 
     //cash in hand data
@@ -867,5 +854,3 @@ export const getTransactionsHistory = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
-

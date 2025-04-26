@@ -11,11 +11,11 @@ import {
 } from "../../features/CashInOutSlice";
 import moment from "moment-timezone";
 import toast from "react-hot-toast";
-import { accountTypeData, PaymentData } from "../../Utils/AccountsData";
+import { accountTypeData } from "../../Utils/AccountsData";
 
 const CashInOut = () => {
   const dispatch = useDispatch();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [isOpen, setIsOpen] = useState(false);
   const [validatePartyName, setvalidatePartyName] = useState();
   const [selectedParty, setSelectedParty] = useState("");

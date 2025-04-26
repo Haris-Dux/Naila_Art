@@ -37,7 +37,8 @@ export const VA_HistoryModal = mongoose.model(
   historySchema
 );
 
-const AccountsSchema = new mongoose.Schema({}, { strict: false });
+const AccountsSchema = new mongoose.Schema({ }, { strict: false });
+
 
 export const VirtalAccountModal = mongoose.model(
   "Virtual Accounts",

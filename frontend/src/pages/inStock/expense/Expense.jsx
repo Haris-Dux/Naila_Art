@@ -10,13 +10,11 @@ import { IoAdd } from "react-icons/io5";
 import ExpenseModal from "../../bills/Modals/ExpenseModal";
 import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import { PaymentData } from "../../../Utils/AccountsData";
 
 const Expense = () => {
   const dispatch = useDispatch();
-
   const [search, setSearch] = useState();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const { Branches, loading, deleteLodaing } = useSelector(
