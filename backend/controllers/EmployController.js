@@ -267,6 +267,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           note: `Salary credit for ${employe.name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      }
 
         //PUSH DATA FOR CASH BOOK
         const dataForCashBook = {
@@ -280,7 +281,6 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           session,
         };
         await cashBookService.createCashBookEntry(dataForCashBook);
-      }
 
       return res.status(200).json({ success: true, message: "Success" });
     });
@@ -515,20 +515,20 @@ export const reverseSalary = async (req, res, next) => {
           note: `Salary Reversed for ${employe.name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-
-        //PUSH DATA FOR CASH BOOK
-        const dataForCashBook = {
-          pastTransaction: false,
-          branchId,
-          amount,
-          tranSactionType: "Deposit",
-          transactionFrom: "Employe",
-          partyName: employe.name,
-          payment_Method,
-          session,
-        };
-        await cashBookService.createCashBookEntry(dataForCashBook);
       }
+
+       //PUSH DATA FOR CASH BOOK
+       const dataForCashBook = {
+        pastTransaction: false,
+        branchId,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Employe",
+        partyName: employe.name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //MARKING TRANSACTION AS DELETED
       const transaction = employe.financeData.find(
