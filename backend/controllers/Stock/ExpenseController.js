@@ -4,7 +4,11 @@ import mongoose from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import { VA_HistoryModal, VirtalAccountModal } from "../../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../../models/DashboardData/VirtalAccountsModal.js";
+import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -35,31 +39,15 @@ export const addExpense = async (req, res, next) => {
             throw new Error("Not Enough Cash");
           await existingDailySaleData.save({ session });
         } else {
-          let virtualAccounts = await VirtalAccountModal.find({})
-            .select("-Transaction_History")
-            .session(session);
-          let updatedAccount = {
-            ...virtualAccounts,
-            [payment_Method]: (virtualAccounts[0][payment_Method] -= rate),
-          };
-          const new_balance = updatedAccount[0][payment_Method];
-          if (new_balance < 0)
-            throw new Error("Not Enough Cash In Payment Method");
-          virtualAccounts = updatedAccount;
-          await virtualAccounts[0].save({ session });
-          await existingDailySaleData.save({ session });
-          //ADDING TRANSACTION DETAIL HISTORY
-          const historyData = {
-            date:Date,
-            transactionType:"WithDraw",
+          const data = {
+            session,
             payment_Method,
-            new_balance,
-            amount:rate,
-            note:`Expense Entry/${reason}`,
+            amount: rate,
+            transactionType: "WithDraw",
+            date: Date,
+            note: `Expense Entry/${reason}`,
           };
-          await VA_HistoryModal.create([
-            historyData
-          ],{session});
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
       } else {
         existingDailySaleData.saleData.totalExpense += rate;
@@ -70,6 +58,19 @@ export const addExpense = async (req, res, next) => {
         }
         await existingDailySaleData.save({ session });
       }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId,
+        amount: rate,
+        tranSactionType: "WithDraw",
+        transactionFrom: "Expense",
+        partyName: name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //GET LAST SERIAL NUMBER
       const lastExpenseS_N = await ExpenseModel.find({
@@ -87,7 +88,7 @@ export const addExpense = async (req, res, next) => {
             Date,
             rate,
             serial_no: lastExpenseS_N[0]?.serial_no + 1 || 1,
-            ...(payment_Method && {payment_Method} ),
+            ...(payment_Method && { payment_Method }),
           },
         ],
         { session }
@@ -152,36 +153,22 @@ export const deleteExpense = async (req, res, next) => {
       const payment_Method = ExpenseData.payment_Method;
       const rate = ExpenseData.rate;
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += rate),
-        };
-
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING EXPENSE DETAILS HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date:today,
-          transactionType:"Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
-          amount:rate,
-          note:`Expense Entry Deleted/${ExpenseData.name}/${ExpenseData.reason}`,
+          amount: rate,
+          transactionType: "Deposit",
+          date: today,
+          note: `Expense Entry Deleted/${ExpenseData.name}/${ExpenseData.reason}`,
         };
-        await VA_HistoryModal.create([
-          historyData
-        ],{session});
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       } else {
         dailySaleForToday.saleData.totalCash += rate;
         if (dailySaleForToday.saleData.totalCash < 0) {
           throw new Error("Not Enough Cash");
         }
         await dailySaleForToday.save({ session });
-      };
+      }
 
       //DEDUCTING EXPENSE FROM THE ACTUAL EXPENSE DATE
       const actualDailySale = await DailySaleModel.findOne({
@@ -190,12 +177,28 @@ export const deleteExpense = async (req, res, next) => {
       }).session(session);
       if (!actualDailySale) throw new Error("Daily Sale Not Found Error");
       actualDailySale.saleData.totalExpense -= rate;
-      await actualDailySale.save({ session }); 
+      await actualDailySale.save({ session });
 
-      //DELETE EXPENSE 
+      //DELETE EXPENSE
       await ExpenseModel.findByIdAndDelete(id).session(session);
 
-      return res.status(200).json({ success: true, message: "Deleted Successfully" });
+       //PUSH DATA FOR CASH BOOK
+            const dataForCashBook = {
+              pastTransaction:false,
+              branchId:headOffice._id,
+              amount:rate,
+              tranSactionType:"Deposit",
+              transactionFrom:"Expense",
+              partyName:ExpenseData.name,
+              payment_Method,
+              session
+            };
+            await cashBookService.createCashBookEntry(dataForCashBook);
+      
+
+      return res
+        .status(200)
+        .json({ success: true, message: "Deleted Successfully" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

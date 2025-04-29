@@ -596,8 +596,7 @@ export async function sendEmail(data) {
     tls: {
       rejectUnauthorized: false,
     },
-    logger: true,  // Enable logging
-  debug: true,   // Enable debugging
+  debug: true,   
   });
 
   let mailoptions = {
@@ -608,7 +607,6 @@ export async function sendEmail(data) {
   };
 
   transport.sendMail(mailoptions, (error, info) => {
-    console.log("✅ Email sent:", info);
     if (error) {
       console.error("❌ Email sending error:", error);
       return false;

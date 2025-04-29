@@ -11,6 +11,8 @@ import { BuyersModel } from "../../models/BuyersModel.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import moment from "moment-timezone";
+import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
+import { cashBookService } from "../../services/CashbookService.js";
 
 export const addBuyerCheck = async (req, res, next) => {
   try {
@@ -127,7 +129,7 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
 
         const updatedSaleData = {
           ...dailySaleForToday.saleData,
-          payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+          [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
             partialAmount),
           totalSale: (dailySaleForToday.saleData.totalSale += partialAmount),
           todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit +=
@@ -144,28 +146,29 @@ export const updateBuyerCheckWithNew = async (req, res, next) => {
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
-          let virtualAccounts = await VirtalAccountModal.find({})
-            .select("-Transaction_History")
-            .session(session);
-          let updatedAccount = {
-            ...virtualAccounts,
-            [payment_Method]: (virtualAccounts[0][payment_Method] +=
-              partialAmount),
-          };
-          virtualAccounts = updatedAccount;
-          await virtualAccounts[0].save({ session });
-          //ADDING STATEMENT HISTORY
-          const new_balance = updatedAccount[0][payment_Method];
-          const historyData = {
-            date,
-            transactionType: "Deposit",
+          const data = {
+            session,
             payment_Method,
-            new_balance,
             amount: partialAmount,
-            note: ` Check transaction For : ${userDataToUpdate.name}`,
+            transactionType: "Deposit",
+            date,
+            note: `Check transaction For : ${userDataToUpdate.name}`,
           };
-          await VA_HistoryModal.create([historyData], { session });
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
+
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction: false,
+          branchId: userDataToUpdate.branchId,
+          amount,
+          tranSactionType: "Deposit",
+          transactionFrom: "Checks",
+          partyName: userDataToUpdate.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
 
         //UPDATING BUYER ACCOUNT
 
@@ -280,7 +283,7 @@ export const markCheckAsPaid = async (req, res, next) => {
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
           toUpdate.checkAmount),
         totalSale: (dailySaleForToday.saleData.totalSale +=
           toUpdate.checkAmount),
@@ -298,28 +301,29 @@ export const markCheckAsPaid = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] +=
-            toUpdate.checkAmount),
-        };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount: toUpdate.checkAmount,
-          note: ` Check transaction For : ${userDataToUpdate.name}`,
+          transactionType: "Deposit",
+          date,
+          note: `Check transaction For : ${userDataToUpdate.name}`,
         };
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId: userDataToUpdate.branchId,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Checks",
+        partyName: userDataToUpdate.name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //UPDATING BUYER ACCOUNT
 

@@ -11,11 +11,9 @@ import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
 import { sendEmail } from "../utils/nodemailer.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
 import moment from "moment-timezone";
+import { virtualAccountsService } from "../services/VirtualAccountsService.js";
+import { cashBookService } from "../services/CashbookService.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -42,6 +40,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         remaining,
         other_Bill_Data,
       } = req.body;
+
+      let isPastTransaction = false;
 
       //VALIDATING FIELDS DATA
       const requiredFields = [
@@ -88,7 +88,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const branch = await BranchModel.findOne({ _id: branchId }).session(
         session
       );
-      if (!branch) throw new Error("Branch Not Found");
 
       //DEDUCTING BOXES FROM STOCK
       if (packaging) {
@@ -102,7 +101,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           throw new Error(`Not Enough ${bagsorBoxStock.name} in Stock`);
         bagsorBoxStock.totalQuantity = updatedBagsorBoxQuantity;
         await bagsorBoxStock.save({ session });
-      };
+      }
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
@@ -123,7 +122,9 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       await branch.save({ session });
 
       //CHECK FUTURE DATE
-      const isFutureDate = moment.tz(date, "Asia/Karachi").isAfter(moment.tz(today, "Asia/Karachi"));
+      const isFutureDate = moment
+        .tz(date, "Asia/Karachi")
+        .isAfter(moment.tz(today, "Asia/Karachi"));
 
       //ADDING IN DAILY SALE AND HANDLING PAST SALE
       let dailySaleForToday = await DailySaleModel.findOne({
@@ -133,6 +134,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //PAST SALE HANDLING
       if (date !== today && !isFutureDate) {
+        isPastTransaction = true;
         if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
           const totalCashFromLastSale = await findLastSaleBeforeDate(
@@ -140,8 +142,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             date,
             session
           );
-
-          console.log('totalCashFromLastSale',totalCashFromLastSale);
 
           //CREATE NEW DAILY SALE FOR PAST DATE
           const newDailySale = new DailySaleModel({
@@ -187,8 +187,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           //UPDATING THE SALE BETWEEN PAST DATE AND TODAY
 
           if (payment_Method === "cashSale") {
-            let currentDate = moment(date); // Start from the current date
-            const endDate = moment(today); // Subtract 1 day to include up to `endDate - 1`
+            let currentDate = moment(date);
+            const endDate = moment(today);
 
             while (currentDate.isSameOrBefore(endDate)) {
               // Use `isSameOrBefore` for inclusive comparison
@@ -240,7 +240,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
           paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
@@ -257,30 +257,36 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
+      //TOTAL AMOUNT PAID + OTHER BILL
+      const totalAmount = paid + (other_Bill_Data?.o_b_amount ?? 0);
+
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] +=
-            paid + (other_Bill_Data?.o_b_amount ?? 0)),
-        };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
-          amount: paid + (other_Bill_Data?.o_b_amount ?? 0),
-          note:`Bill Generated For : ${name}`,
+          amount: totalAmount,
+          transactionType: "Deposit",
+          date,
+          note: `Bill Generated For : ${name}`,
         };
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       };
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: isPastTransaction,
+        branchId,
+        totalAmount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Buyer Bills",
+        partyName: name,
+        payment_Method,
+        session,
+        ...(isPastTransaction && { pastDate: date }),
+      };
+
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //DATA FOR VIRTUAL ACCOUNT OF BUYER
       const total_debit = remaining;
@@ -306,7 +312,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           break;
         default:
           status = "";
-      };
+      }
 
       const virtualAccountData = {
         total_debit,
@@ -444,6 +450,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         other_Bill_Data,
       } = req.body;
 
+      let isPastTransaction = false;
+
       //VALIDATING FIELDS DATA
       const requiredFields = [
         "buyerId",
@@ -524,7 +532,9 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       await branch.save({ session });
 
       //CHECK FUTURE DATE
-      const isFutureDate = moment.tz(date, "Asia/Karachi").isAfter(moment.tz(today, "Asia/Karachi"));
+      const isFutureDate = moment
+        .tz(date, "Asia/Karachi")
+        .isAfter(moment.tz(today, "Asia/Karachi"));
 
       //ADDING IN DAILY SALE
       let dailySaleForToday = await DailySaleModel.findOne({
@@ -532,6 +542,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         date: { $eq: date },
       }).session(session);
       if (date !== today && !isFutureDate) {
+        isPastTransaction = true;
         //IF NO DAILY SALE EXIST FOR THAT PAST DATE
         if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
@@ -636,35 +647,42 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         TotalProfit += profitOnSale * suit.quantity;
       });
 
+      //TOTAL AMOUNT PAID + OTHER BILL
+      const totalAmount = paid + (other_Bill_Data?.o_b_amount ?? 0);
+
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] +=
-            paid + (other_Bill_Data?.o_b_amount ?? 0)),
-        };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
-          amount: paid + (other_Bill_Data?.o_b_amount ?? 0),
-          note:`Bill Generated For : ${name}`,
+          amount: totalAmount,
+          transactionType: "Deposit",
+          date,
+          note: `Bill Generated For : ${name}`,
         };
-        await VA_HistoryModal.create([historyData], { session });
-      }
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      };
+
+          //PUSH DATA FOR CASH BOOK
+          const dataForCashBook = {
+            pastTransaction: isPastTransaction,
+            branchId,
+            totalAmount,
+            tranSactionType: "Deposit",
+            transactionFrom: "Buyer Bills",
+            partyName: name,
+            payment_Method,
+            session,
+            ...(isPastTransaction && { pastDate: date }),
+          };
+
+          await cashBookService.createCashBookEntry(dataForCashBook);
+
       //UPDATING DAILY SALE
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] +=
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
           paid + (other_Bill_Data?.o_b_amount ?? 0)),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
