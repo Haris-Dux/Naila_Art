@@ -183,7 +183,7 @@ export const deleteExpense = async (req, res, next) => {
        //PUSH DATA FOR CASH BOOK
             const dataForCashBook = {
               pastTransaction:false,
-              branchId:headOffice._id,
+              branchId:ExpenseData.branchId,
               amount:rate,
               tranSactionType:"Deposit",
               transactionFrom:"Expense",
