@@ -96,7 +96,7 @@ export const creditDebitBalance = async (req, res, next) => {
           date: date,
         });
         //DEDUCTION FROM DAILY SALE
-        const dailySalepayment_MethodForToday = await DailySaleModel.findOne({
+        const dailySaleForToday = await DailySaleModel.findOne({
           branchId,
           date: today,
         }).session(session);
