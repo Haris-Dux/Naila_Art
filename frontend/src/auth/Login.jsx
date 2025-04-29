@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginuserAsync } from "../features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import "./auth.css";
+import { getAllPaymentMetodsForTransactionAsync } from "../features/PaymentMethodsSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
