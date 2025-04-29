@@ -15,6 +15,8 @@ import {
   VirtalAccountModal,
 } from "../models/DashboardData/VirtalAccountsModal.js";
 import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
+import { virtualAccountsService } from "../services/VirtualAccountsService.js";
+import { cashBookService } from "../services/CashbookService.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -199,7 +201,7 @@ export const cashIn = async (req, res) => {
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += cash),
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += cash),
         totalSale: (dailySaleForToday.saleData.totalSale += cash),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += cash),
       };
@@ -214,29 +216,31 @@ export const cashIn = async (req, res) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += cash),
-        };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount: cash,
+          transactionType: "Deposit",
+          date,
           note: `Cash In Transaction For : ${
             userDataToUpdate.partyName || userDataToUpdate.name
           }`,
         };
-        await VA_HistoryModal.create([historyData], { session });
-      }
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      };
+
+        //PUSH DATA FOR CASH BOOK
+            const dataForCashBook = {
+              pastTransaction:false,
+              branchId,
+              amount: cash,
+              tranSactionType:"Deposit",
+              transactionFrom:"Cash In",
+              partyName:userDataToUpdate.partyName || userDataToUpdate.name,
+              payment_Method,
+              session
+            };
+            await cashBookService.createCashBookEntry(dataForCashBook)
 
       if (accountCategory !== "Buyers") {
         //SELLERS , PROCESS , PICTURES CASE
@@ -460,33 +464,36 @@ export const cashOut = async (req, res, next) => {
 
       await dailySaleForToday.save({ session });
 
+     
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] -= cash),
-        };
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "WithDraw",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount: cash,
-          note: `Cash Out Transaction For ${
+          transactionType: "WithDraw",
+          date,
+          note: `Cash Out Transaction For : ${
             userDataToUpdate.partyName || userDataToUpdate.name
           }`,
         };
-        if (new_balance < 0)
-          throw new Error("Not Enough Cash In Payment Method");
-        virtualAccounts = updatedAccount;
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      };
 
-        await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([historyData], { session });
-      }
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction:false,
+          branchId,
+          amount: cash,
+          tranSactionType:"WithDraw",
+          transactionFrom:"Cash Out",
+          partyName:userDataToUpdate.partyName || userDataToUpdate.name,
+          payment_Method,
+          session
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook)
+
+     
 
       if (accountCategory === "Buyers") {
         //DATA FOR VIRTUAL ACCOUNT
@@ -728,5 +735,3 @@ corn.schedule(
     timezone: "Asia/Karachi",
   }
 );
-
-

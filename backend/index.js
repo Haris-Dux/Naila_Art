@@ -29,11 +29,11 @@ import b_PairRouter from "./routes/Process/B_PairRoutes.js";
 import returnRouter from "./routes/Returns/ReturnRoutes.js";
 import pictureRouter from "./routes/Process/PictureRoutes.js";
 import { AppErrorHandler } from './config/exceptionHandlers/handler.js';
-
 import checkRouter from "./routes/Checks/CheckRoutes.js";
 import otherSaleRouter from "./routes/OtherSaleRoutes.js";
 import moment from "moment-timezone";
 import paymentMethodRouter from "./routes/PaymentMethods/PaymentMethodRoutes.js";
+import cashBookRouter from "./routes/CashBook/CashBookRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -89,6 +89,8 @@ app.use(session({
   app.use("/api/buyers/checks",checkRouter);
   app.use("/api/otherSale",otherSaleRouter);
   app.use("/api/paymentMethods",paymentMethodRouter);
+  app.use("/api/cashBook",cashBookRouter);
+
 
 
   app.use(AppErrorHandler);
