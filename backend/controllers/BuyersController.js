@@ -667,7 +667,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           const dataForCashBook = {
             pastTransaction: isPastTransaction,
             branchId,
-            totalAmount,
+            amount:totalAmount,
             tranSactionType: "Deposit",
             transactionFrom: "Buyer Bills",
             partyName: name,
