@@ -3,10 +3,6 @@ import { EmployeModel } from "../models/EmployModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 
@@ -85,7 +81,7 @@ export const creditDebitBalance = async (req, res, next) => {
       let newBalance = lastNonSalaryTransaction
         ? lastNonSalaryTransaction.balance
         : 0;
-
+      //CREDIT LOGIC
       if (credit >= 0) {
         newBalance += credit;
         employe.financeData.push({
@@ -120,20 +116,19 @@ export const creditDebitBalance = async (req, res, next) => {
             note: `Credit Transaction for ${employe.name}`,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-
-          //PUSH DATA FOR CASH BOOK
-          const dataForCashBook = {
-            pastTransaction: false,
-            branchId,
-            amount: credit,
-            tranSactionType: "Deposit",
-            transactionFrom: "Employe",
-            partyName: employe.name,
-            payment_Method,
-            session,
-          };
-          await cashBookService.createCashBookEntry(dataForCashBook);
         }
+         //PUSH DATA FOR CASH BOOK
+         const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: credit,
+          tranSactionType: "Deposit",
+          transactionFrom: "Employe",
+          partyName: employe.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
       }
 
       //DEBIT LOGIC
@@ -176,21 +171,22 @@ export const creditDebitBalance = async (req, res, next) => {
             note: `Debit Transaction for ${employe.name}`,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-
-          //PUSH DATA FOR CASH BOOK
-          const dataForCashBook = {
-            pastTransaction: false,
-            branchId,
-            amount: debit,
-            tranSactionType: "WithDraw",
-            transactionFrom: "Employe",
-            partyName: employe.name,
-            payment_Method,
-            session,
-          };
-          await cashBookService.createCashBookEntry(dataForCashBook);
         }
+         //PUSH DATA FOR CASH BOOK
+         const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: debit,
+          tranSactionType: "WithDraw",
+          transactionFrom: "Employe",
+          partyName: employe.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
       }
+
+
       await employe.save({ session });
       return res
         .status(200)
