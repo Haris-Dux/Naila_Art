@@ -4,11 +4,9 @@ import mongoose from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../../models/DashboardData/VirtalAccountsModal.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
+import { cashBookService } from "../../services/CashbookService.js";
+
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();

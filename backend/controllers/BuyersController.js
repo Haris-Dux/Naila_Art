@@ -277,7 +277,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       const dataForCashBook = {
         pastTransaction: isPastTransaction,
         branchId,
-        totalAmount,
+        amount: totalAmount,
         tranSactionType: "Deposit",
         transactionFrom: "Buyer Bills",
         partyName: name,
