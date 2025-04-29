@@ -21,6 +21,7 @@ const Login = () => {
     e.preventDefault();
     dispatch(loginuserAsync(formData)).then((res) => {
       if (res?.payload?.login) {
+        dispatch(getAllPaymentMetodsForTransactionAsync())
         navigate("/dashboard");
         setFormData({
           email: "",
