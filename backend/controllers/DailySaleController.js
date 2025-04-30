@@ -141,9 +141,9 @@ export const cashOutForBranch = async (req, res, next) => {
         pastTransaction: false,
         branchId,
         amount,
-        tranSactionType: "Deposit",
+        tranSactionType: "WithDraw",
         transactionFrom: "Branch Cash Out",
-        partyName: branch.branchName,
+        partyName:headOffice.branchName,
         payment_Method,
         session,
       };
