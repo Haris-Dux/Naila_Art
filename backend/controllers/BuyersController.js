@@ -39,9 +39,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         paid,
         remaining,
         other_Bill_Data,
+        pastBill
       } = req.body;
-
-      let isPastTransaction = false;
 
       //VALIDATING FIELDS DATA
       const requiredFields = [
@@ -134,7 +133,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //PAST SALE HANDLING
       if (date !== today && !isFutureDate) {
-        isPastTransaction = true;
         if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
           const totalCashFromLastSale = await findLastSaleBeforeDate(
@@ -275,7 +273,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: isPastTransaction,
+        pastTransaction: pastBill,
         branchId,
         amount: totalAmount,
         tranSactionType: "Deposit",
@@ -283,7 +281,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         partyName: name,
         payment_Method,
         session,
-        ...(isPastTransaction && { pastDate: date }),
+        ...(pastBill && { pastDate: date }),
       };
 
       await cashBookService.createCashBookEntry(dataForCashBook);
@@ -448,9 +446,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         paid,
         remaining,
         other_Bill_Data,
+        pastBill
       } = req.body;
-
-      let isPastTransaction = false;
 
       //VALIDATING FIELDS DATA
       const requiredFields = [
@@ -542,7 +539,6 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         date: { $eq: date },
       }).session(session);
       if (date !== today && !isFutureDate) {
-        isPastTransaction = true;
         //IF NO DAILY SALE EXIST FOR THAT PAST DATE
         if (!dailySaleForToday) {
           //GET LAST CREATED SALE TOTAL CASH
@@ -665,7 +661,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
           //PUSH DATA FOR CASH BOOK
           const dataForCashBook = {
-            pastTransaction: isPastTransaction,
+            pastTransaction: pastBill,
             branchId,
             amount:totalAmount,
             tranSactionType: "Deposit",
@@ -673,7 +669,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             partyName: name,
             payment_Method,
             session,
-            ...(isPastTransaction && { pastDate: date }),
+            ...(pastBill && { pastDate: date }),
           };
 
           await cashBookService.createCashBookEntry(dataForCashBook);
