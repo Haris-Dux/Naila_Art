@@ -96,6 +96,10 @@ export const cashOutForBranch = async (req, res, next) => {
       }
       await dailySaleForToday.save({ session });
 
+      const headOffice = await BranchModel.findOne({
+        branchName: "Head Office",
+      });
+
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
         const data = {
@@ -109,9 +113,7 @@ export const cashOutForBranch = async (req, res, next) => {
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       } else if (payment_Method === "cashSale") {
         //UPDATING TOTAL CASH FOR HEAD OFFICE
-        const headOffice = await BranchModel.findOne({
-          branchName: "Head Office",
-        });
+
         if (!headOffice) throw new Error("Cannot find head office data ");
         const dailySaleForHeadOffice = await DailySaleModel.findOne({
           branchId: headOffice._id,
@@ -121,20 +123,20 @@ export const cashOutForBranch = async (req, res, next) => {
           throw new Error("Cannot find daily sales for head office");
         dailySaleForHeadOffice.saleData.totalCash += amount;
         await dailySaleForHeadOffice.save({ session });
-
-        //PUSH DATA FOR CASH BOOK FOR HEAD OFFICE
-        const dataForCashBook = {
-          pastTransaction: false,
-          branchId: headOffice._id,
-          amount,
-          tranSactionType: "Deposit",
-          transactionFrom: "Branch Cash Out",
-          partyName: branch.branchName,
-          payment_Method,
-          session,
-        };
-        await cashBookService.createCashBookEntry(dataForCashBook);
       }
+
+      //PUSH DATA FOR CASH BOOK FOR HEAD OFFICE
+      const dataForCashBookHeadOffice = {
+        pastTransaction: false,
+        branchId: headOffice._id,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Branch Cash Out",
+        partyName: branch.branchName,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBookHeadOffice);
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
@@ -143,7 +145,7 @@ export const cashOutForBranch = async (req, res, next) => {
         amount,
         tranSactionType: "WithDraw",
         transactionFrom: "Branch Cash Out",
-        partyName:headOffice.branchName,
+        partyName: headOffice.branchName,
         payment_Method,
         session,
       };
