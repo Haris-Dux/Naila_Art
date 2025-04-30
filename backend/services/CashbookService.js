@@ -7,7 +7,7 @@ import { setMongoose } from "../utils/Mongoose.js";
 class cashBookHistoryService {
   constructor() {
     this.transactionTime = moment.tz("Asia/Karachi").format("HH:mm");
-    this.today = getTodayDate()
+    this.today = getTodayDate();
   }
 
   async createCashBookEntry(data) {
@@ -33,66 +33,82 @@ class cashBookHistoryService {
         "payment_Method",
       ]);
 
-
       if (pastTransaction && !pastDate) {
         throw new Error("Past date is required for past transaction");
-      };
-
-      await cashBookServiceModel.create([
-        {
-        pastTransaction,
-        branchId,
-        amount,
-        tranSactionType,
-        transactionFrom,
-        partyName,
-        payment_Method,
-        currentDate:this.today,
-        transactionTime:this.transactionTime
       }
-    ], { session });
 
+      await cashBookServiceModel.create(
+        [
+          {
+            pastTransaction,
+            branchId,
+            amount,
+            tranSactionType,
+            transactionFrom,
+            partyName,
+            payment_Method,
+            currentDate: this.today,
+            transactionTime: this.transactionTime,
+            ...(pastTransaction && { pastDate: pastDate }),
+          },
+        ],
+        { session }
+      );
     } catch (error) {
       throw error;
     }
-  };
+  }
 
   async getAllCashBookEntries(req) {
     try {
-        const dateFrom = req.query.dateFrom || "";
-        const dateTo = req.query.dateTo || "";
-        const account = req.query.account || "";
-        const transactionType = req.query.transactionType || "";
-        const userRole = req.user_role;
-        let branchId = req.branch_id;
+      const dateFrom = req.query.dateFrom || "";
+      const dateTo = req.query.dateTo || "";
+      const account = req.query.account || "";
+      const transactionType = req.query.transactionType || "";
+      const userRole = req.user_role;
+      let branchId = req.branch_id;
 
-    
-        let query = {};
-    
-        if (dateFrom && dateTo) {
-          query.currentDate = { $gte: dateFrom, $lte: dateTo };
-        } else if (dateFrom) {
-          query.currentDate = { $eq: dateFrom };
-        }
-        if (account) {
-          query.payment_Method = account;
-        }
-        if (transactionType) {
-          query.tranSactionType = transactionType;
-        }
-        if(userRole !== "superadmin") {
-          query.branchId = branchId
-        }
+      let query = {};
+      let dateQuery = [];
 
-        const data = await cashBookServiceModel.find(query).sort({ createdAt: -1 }).populate({
-          path:"branchId",
-          select:"branchName"
-        })
-        setMongoose();
-        return data
-      } catch (error) {
-        throw error;
+      if (dateFrom && dateTo) {
+        dateQuery.push(
+          { currentDate: { $gte: dateFrom, $lte: dateTo } },
+          { pastDate: { $gte: dateFrom, $lte: dateTo } }
+        );
+      } else if (dateFrom) {
+        dateQuery.push(
+          { currentDate: { $eq: dateFrom } },
+          { pastDate: { $eq: dateFrom } }
+        );
       }
+
+      if (dateQuery.length) {
+        query.$or = dateQuery;
+      }
+      
+      if (account) {
+        query.payment_Method = account;
+      }
+      if (transactionType) {
+        query.tranSactionType = transactionType;
+      }
+      if (userRole !== "superadmin") {
+        query.branchId = branchId;
+      }
+
+      const data = await cashBookServiceModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .populate({
+          path: "branchId",
+          select: "branchName",
+        });
+      setMongoose();
+      return data;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

@@ -277,6 +277,7 @@ const GenerateBill = () => {
         d_no: Number(suit.d_no),
         price: Number(suit.price),
       })),
+      pastBill:pastBill
     };
 
     // Check Branch ID
@@ -294,33 +295,33 @@ const GenerateBill = () => {
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
       
-            setBillData({
-              branchId:
-                user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
-              serialNumber: "",
-              name: "",
-              city: "",
-              cargo: "",
-              phone: "",
-              date: today,
-              bill_by: "",
-              payment_Method: "",
-              total: "",
-              paid: "",
-              remaining: "",
-              discount: "",
-              packaging: {
-                name: "",
-                id: "",
-                quantity: "",
-              },
-              suits_data: [
-                { id: "", quantity: "", d_no: "", color: "", price: "" },
-              ],
-              other_Bill_Data: {},
-            });
+        //     setBillData({
+        //       branchId:
+        //         user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+        //       serialNumber: "",
+        //       name: "",
+        //       city: "",
+        //       cargo: "",
+        //       phone: "",
+        //       date: today,
+        //       bill_by: "",
+        //       payment_Method: "",
+        //       total: "",
+        //       paid: "",
+        //       remaining: "",
+        //       discount: "",
+        //       packaging: {
+        //         name: "",
+        //         id: "",
+        //         quantity: "",
+        //       },
+        //       suits_data: [
+        //         { id: "", quantity: "", d_no: "", color: "", price: "" },
+        //       ],
+        //       other_Bill_Data: {},
+        //     });
         
-        
+        // setPastBill(false);
       }
     });
   };

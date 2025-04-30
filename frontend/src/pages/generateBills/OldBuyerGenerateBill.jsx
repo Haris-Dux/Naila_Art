@@ -322,6 +322,8 @@ const OldBuyerGenerateBill = () => {
         d_no: Number(suit.d_no),
         price: Number(suit.price),
       })),
+      pastBill:pastBill
+
     };
 
     // Check Branch ID
@@ -365,6 +367,7 @@ const OldBuyerGenerateBill = () => {
               ],
               other_Bill_Data: {},
             });
+            setPastBill(false)
       }
     });
   };
