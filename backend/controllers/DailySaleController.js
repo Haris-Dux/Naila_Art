@@ -107,7 +107,7 @@ export const cashOutForBranch = async (req, res, next) => {
           payment_Method,
           amount,
           transactionType: "Deposit",
-          date,
+          date:today,
           note: `Recieved Amount From ${branch.branchName}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
