@@ -99,7 +99,7 @@ class cashBookHistoryService {
         query.branchId = branchId;
       }
 
-      if(userRole === "superadmin"){
+      if(userRole === "superadmin" && branchIdFromQuery){
         query.branchId = branchIdFromQuery
       }
 
