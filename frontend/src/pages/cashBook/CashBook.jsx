@@ -9,6 +9,8 @@ const CashBook = () => {
   const dispatch = useDispatch();
   const { loading, cashBookData } = useSelector((state) => state.CashBook);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
+   const { user } = useSelector((state) => state.auth);
+    const { Branches } = useSelector((state) => state.InStock);
 
   const today = moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -17,6 +19,7 @@ const CashBook = () => {
     dateTo: "",
     transactionType: "",
     account: "",
+    branchId:""
   });
 
   useEffect(() => {
@@ -42,6 +45,7 @@ const CashBook = () => {
       transactionType: "",
       payment_Method: "",
       account: "",
+      branchId:""
     };
   
     setFilters(updatedFilters);
@@ -58,7 +62,7 @@ const CashBook = () => {
           </h1>
 
           {/* SEARCH FILTERS */}
-          <div className="flex items-center gap-3 justify-center mb-4">
+          <div className="flex items-center gap-3 justify-center mb-2">
             {/* DATES*/}
 
             <div className="relative">
@@ -104,6 +108,29 @@ const CashBook = () => {
                 </option>
               ))}
             </select>
+
+
+
+            {user && user?.user?.role === "superadmin" ? (
+                   
+                      <select
+                        id="branchId"
+                        name='branchId'
+                        value={filters.branchId}
+                        onChange={handleChangeFilters}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      >
+                        <option value="">Select Branch</option>
+                        {Branches?.map((data) => (
+                          <option key={data.id} value={data.id}>
+                            {data.branchName}
+                          </option>
+                        ))}
+                      </select>
+
+                  ) : null}
+
+
             {/* TRANSACTION TYPE */}
             <select
               id="transactionType"

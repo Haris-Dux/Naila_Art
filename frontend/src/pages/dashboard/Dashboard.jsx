@@ -8,7 +8,6 @@ import {
   showNotificationsForChecksAsync,
 } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
-import { GetAllBranches } from "../../features/InStockSlice";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
 import { FaBookOpen } from "react-icons/fa";
 
@@ -106,10 +105,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.addEventListener("click", closeMenu);
-    const id = user?.user?.id;
     if (user && user?.user?.role !== "user") {
       dispatch(showNotificationsForChecksAsync());
-      dispatch(GetAllBranches({ id }));
     }
     return () => {
       document.removeEventListener("click", closeMenu);

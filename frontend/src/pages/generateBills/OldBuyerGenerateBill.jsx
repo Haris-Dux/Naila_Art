@@ -83,7 +83,7 @@ const OldBuyerGenerateBill = () => {
 
   useEffect(() => {
     if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id })).then((res) => {
+      dispatch(GetAllBranches()).then((res) => {
         if (user?.user?.role !== "superadmin") {
           setBranchStockData(res?.payload[0]?.stockData);
         }

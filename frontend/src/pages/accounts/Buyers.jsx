@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getBuyerForBranchAsync } from "../../features/BuyerSlice";
-import { GetAllBranches } from "../../features/InStockSlice";
 import { validateOldBuyerAsync } from "../../features/GenerateBillSlice";
 
 const PhoneComponent = ({ phone }) => {
@@ -45,11 +44,6 @@ const Buyers = () => {
 
   const [selectedBranchId, setSelectedBranchId] = useState();
 
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   useEffect(() => {
     if (Branches?.length > 0) {

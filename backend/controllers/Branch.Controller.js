@@ -2,7 +2,6 @@ import { BranchModel } from "../models/Branch.Model.js";
 import { CashInOutModel } from "../models/CashInOutModel.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import { SuitsModel } from "../models/Stock/Suits.Model.js";
-import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
@@ -78,16 +77,16 @@ export const deleteBranch = async (req, res) => {
 
 export const getAllBranches = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) throw new Error("User Id Required");
-    const user = await UserModel.findById(id);
-    if (!user) throw new Error("User Not Found");
+    const branchId = req.branch_id;
+     const role = req.user_role
+    if (role !== "superadmin" && !branchId) throw new Error("Branch Id Required");
+    if (!role) throw new Error("User Role Not Found");
     let response;
-    if (user?.role === "superadmin") {
+    if (role === "superadmin") {
       const branches = await BranchModel.find({});
       response = branches;
     } else {
-      const branch = await BranchModel.findOne({ _id: user.branchId });
+      const branch = await BranchModel.findOne({ _id: branchId });
       response = [branch];
     }
     setMongoose();

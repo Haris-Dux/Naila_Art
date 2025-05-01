@@ -13,7 +13,7 @@ const AssignedStockHistory = () => {
   const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { Suit, StockHistoryLoading, StockHistory, Branches } = useSelector(
+  const { StockHistoryLoading, StockHistory, Branches } = useSelector(
     (state) => state.InStock
   );
   const { user } = useSelector((state) => state.auth);

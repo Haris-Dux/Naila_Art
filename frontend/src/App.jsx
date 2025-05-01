@@ -56,6 +56,7 @@ import OtherSaleBills from "./pages/bills/OtherSaleBills";
 import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
 import { getAllPaymentMetodsForTransactionAsync } from "./features/PaymentMethodsSlice";
 import CashBook from "./pages/cashBook/CashBook";
+import { GetAllBranches } from "./features/InStockSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -66,6 +67,7 @@ function App() {
         navigate("/");
       } else {
         dispatch(getAllPaymentMetodsForTransactionAsync())
+        dispatch(GetAllBranches())
       }
     });
   }, [dispatch]);

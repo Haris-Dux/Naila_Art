@@ -14,6 +14,7 @@ export const getAllCashBookEntriesAsync = createAsyncThunk(
           dateTo: filters.dateTo,
           account: filters.account,
           transactionType: filters.transactionType,
+          branchId:filters.branchId
         });
     try {
       const response = await axios.get(`${getAllCashBookEntriesUrl}?${query}`);
