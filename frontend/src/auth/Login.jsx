@@ -4,6 +4,7 @@ import { loginuserAsync } from "../features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import "./auth.css";
 import { getAllPaymentMetodsForTransactionAsync } from "../features/PaymentMethodsSlice";
+import { GetAllBranches } from "../features/InStockSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const Login = () => {
     dispatch(loginuserAsync(formData)).then((res) => {
       if (res?.payload?.login) {
         dispatch(getAllPaymentMetodsForTransactionAsync())
+         dispatch(GetAllBranches())
         navigate("/dashboard");
         setFormData({
           email: "",

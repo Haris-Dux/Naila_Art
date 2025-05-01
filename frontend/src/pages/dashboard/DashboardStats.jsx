@@ -290,10 +290,7 @@ const DashboardStats = () => {
     return <SendOTP />;
   }
 
-  const getPaymentMethodName = (method) => {
-    const name = PaymentData.find((item) => item.value === method).label;
-    return name;
-  };
+ 
 
   return (
     <>
@@ -1070,7 +1067,7 @@ const DashboardStats = () => {
                               {data?.amount}
                             </td>
                             <td className="px-6 py-3 text-center">
-                              {getPaymentMethodName(data?.payment_Method)}
+                              {data?.payment_Method}
                             </td>
                             <td className="px-6 py-3 text-center">
                               {data?.new_balance}

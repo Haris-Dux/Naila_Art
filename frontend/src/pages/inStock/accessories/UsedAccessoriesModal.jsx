@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllaccessories, GetAllBranches, GetAllExpense, UpdateUsedAccessories } from "../../../features/InStockSlice";
+import { GetAllaccessories, UpdateUsedAccessories } from "../../../features/InStockSlice";
 
 const UsedAccessoriesModal = ({ isOpen, closeModal, selectedUsedAccessories }) => {
     const dispatch = useDispatch();

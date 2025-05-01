@@ -66,6 +66,7 @@ class cashBookHistoryService {
       const account = req.query.account || "";
       const transactionType = req.query.transactionType || "";
       const userRole = req.user_role;
+      const branchIdFromQuery = req.query.branchId || "";
       let branchId = req.branch_id;
 
       let query = {};
@@ -93,8 +94,13 @@ class cashBookHistoryService {
       if (transactionType) {
         query.tranSactionType = transactionType;
       }
+
       if (userRole !== "superadmin") {
         query.branchId = branchId;
+      }
+
+      if(userRole === "superadmin"){
+        query.branchId = branchIdFromQuery
       }
 
       const data = await cashBookServiceModel

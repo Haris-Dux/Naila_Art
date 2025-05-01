@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBranches } from "../../features/InStockSlice";
 import {
   cashInAsync,
   cashOutAsync,
@@ -215,12 +214,6 @@ const CashInOut = () => {
     setSelectedBranchId(selectedBranch);
     dispatch(getTodayCashInOutAsync({ branchId }));
   };
-
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   useEffect(() => {
     if (Branches?.length > 0) {

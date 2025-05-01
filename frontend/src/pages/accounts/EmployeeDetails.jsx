@@ -13,7 +13,6 @@ import toast from "react-hot-toast";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import moment from "moment-timezone";
-import { GetAllBranches } from "../../features/InStockSlice";
 import { GoPlus } from "react-icons/go";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
@@ -90,12 +89,6 @@ const EmployeeDetails = () => {
           : value,
     }));
   };
-
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
