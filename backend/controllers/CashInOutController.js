@@ -298,8 +298,7 @@ export const cashIn = async (req, res) => {
           date,
           note: `Cash In Transaction For : ${
             userDataToUpdate.partyName || userDataToUpdate.name
-          }`,
-          ...(pastTransaction && {pastDate:date})
+          }`
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
