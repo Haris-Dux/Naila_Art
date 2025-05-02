@@ -4,11 +4,11 @@ import {
   getbPairDataAsync,
   salebPairAsync,
 } from "../../../features/B_pairSlice";
-import { PaymentData } from "../../../Utils/AccountsData";
 
 const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
   const dispatch = useDispatch();
   const { saleB_pairLoading } = useSelector((state) => state.B_Pair);
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
 
   const payload = {
     category: selectedCategory,

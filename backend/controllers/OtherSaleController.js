@@ -3,12 +3,10 @@ import CustomError from "../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../middleware/Common.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import { BranchModel } from "../models/Branch.Model.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
 import { OtherSaleBillModel } from "../models/OtherSaleModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
+import { virtualAccountsService } from "../services/VirtualAccountsService.js";
+import { cashBookService } from "../services/CashbookService.js";
 
 export const generateOtherSaleBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -57,7 +55,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
       //UPDATE DAILY SALE
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += amount),
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += amount),
         totalSale: (dailySaleForToday.saleData.totalSale += amount),
       };
 
@@ -71,27 +69,24 @@ export const generateOtherSaleBill = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({})
-          .select("-Transaction_History")
-          .session(session);
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
+        const data = {
+          session,payment_Method,amount,transactionType:"Deposit",date,note:`Other Sale Bill Generated For : ${name}`
         };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //ADDING STATEMENT HISTORY
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date,
-          transactionType: "Deposit",
-          payment_Method,
-          new_balance,
-          amount: amount,
-          note: ` Other Sale Bill Generated For : ${name}`,
-        };
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction:false,
+        branchId:headOffice._id,
+        amount,
+        tranSactionType:"Deposit",
+        transactionFrom:"Other Sale",
+        partyName:name,
+        payment_Method,
+        session
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //GET LAST SERIAL NUMBER
       const lastOtherSale = await OtherSaleBillModel.find({})

@@ -9,12 +9,10 @@ import {
   reverseSalaryAsync,
   updateOvertimeHoursAsync,
 } from "../../features/AccountSlice";
-import { PaymentData } from "../../Utils/AccountsData";
 import toast from "react-hot-toast";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import moment from "moment-timezone";
-import { GetAllBranches } from "../../features/InStockSlice";
 import { GoPlus } from "react-icons/go";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
@@ -27,6 +25,7 @@ const EmployeeDetails = () => {
     (state) => state.Account
   );
   const { Branches } = useSelector((state) => state.InStock);
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
@@ -90,12 +89,6 @@ const EmployeeDetails = () => {
           : value,
     }));
   };
-
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -882,7 +875,9 @@ const EmployeeDetails = () => {
                     <div className="w-full text-center">
                       {" "}
                       <span className="text-sm font-bold ">Leaves :</span>{" "}
-                      {formData.salaryMonth ? currentMonthLeaves?.length : "Select Month"}
+                      {formData.salaryMonth
+                        ? currentMonthLeaves?.length
+                        : "Select Month"}
                     </div>
                   </div>
                   <div className="grid grid-cols-4 p-3 gap-2 gap-x-4">

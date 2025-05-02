@@ -6,7 +6,6 @@ import {
   getDailySaleByIdAsync,
 } from "../../features/DailySaleSlice";
 import { PiHandDeposit } from "react-icons/pi";
-import { PaymentData } from "../../Utils/AccountsData";
 
 const DailySaleDetail = () => {
   const { id } = useParams();
@@ -16,7 +15,8 @@ const DailySaleDetail = () => {
   const { loading, DailySaleById, cashOutLoading } = useSelector(
     (state) => state.DailySale
   );
-console.log('DailySaleById',DailySaleById);
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
+
   const [formData, setFormData] = useState({
     amount: "",
     payment_Method: "",
@@ -76,7 +76,7 @@ console.log('DailySaleById',DailySaleById);
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 rounded-lg">
         {loading ? (
           <div className="pt-16 flex justify-center mt-12 items-center">
             <div
@@ -91,119 +91,72 @@ console.log('DailySaleById',DailySaleById);
           <div className="content">
             {/* HEADER */}
             <div className="header pt-3 pb-4 w-full border-b">
-              <h2 className="text-3xl font-medium text-center">Daily Sale ({DailySaleById?.date})</h2>
+              <h2 className="text-3xl font-medium text-center">
+                Daily Sale ({DailySaleById?.date})
+              </h2>
             </div>
 
             {/* ALL ENTRIES */}
             <div className="data px-6 pt-12 w-full">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-12">
-                {/* -------- LEFT -------- */}
-                <div className="left w-full">
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Total Sale:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.totalSale}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Meezan Bank:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.cashInMeezanBank}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      H_Meezan Bank:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.H_Meezan}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      A_Meezan Bank:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.A_Meezan}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      EasyPaisa:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.cashInEasyPaisa}
-                    />
-                  </div>
-                </div>
 
-                {/* -------- RIGHT -------- */}
-                <div className="right w-full">
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Jazz Cash:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.cashInJazzCash}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Bank_Al_Habib:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.Bank_Al_Habib}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Today Expense:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.totalExpense}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Today Buyer Credit:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.todayBuyerCredit}
-                    />
-                  </div>
-                  <div className="flex justify-center items-center gap-4 mb-3">
-                    <div className="title w-full text-md font-medium">
-                      Today buyer debit:
-                    </div>
-                    <input
-                      className="border border-gray-200 text-sm rounded-md"
-                      type="number"
-                      value={DailySaleById?.saleData?.todayBuyerDebit}
-                    />
-                  </div>
-                </div>
+                {(() => {
+                  const filteredEntries = Object.entries(
+                    DailySaleById?.saleData || {}
+                  ).filter(
+                    ([key]) =>
+                      !["cashSale", "totalCash", "totalProfit", "id"].includes(
+                        key
+                      )
+                  );
+                  const half = Math.ceil(filteredEntries.length / 2);
+                  const leftEntries = filteredEntries.slice(0, half);
+                  const rightEntries = filteredEntries.slice(half);
+
+                  return (
+                    <>
+                      {/* LEFT SIDE */}
+                      <div className="left w-full">
+                        {leftEntries.map(([key, value], index) => (
+                          <div
+                            key={index}
+                            className="flex justify-center items-center gap-4 mb-3"
+                          >
+                            <div className="title w-full text-md font-medium">
+                              {key}
+                            </div>
+                            <input
+                              className="border border-gray-200 text-sm rounded-md"
+                              type="number"
+                              value={value}
+                              readOnly
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* RIGHT SIDE */}
+                      <div className="right w-full">
+                        {rightEntries.map(([key, value], index) => (
+                          <div
+                            key={index}
+                            className="flex justify-center items-center gap-4 mb-3"
+                          >
+                            <div className="title w-full text-md font-medium">
+                              {key}
+                            </div>
+                            <input
+                              className="border border-gray-200 text-sm rounded-md"
+                              type="number"
+                              value={value}
+                              readOnly
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -263,6 +216,8 @@ console.log('DailySaleById',DailySaleById);
           </div>
         </button>
       )}
+
+      {/* BRANCH CASHOUT MODAL */}
       {cashOutModal && (
         <div
           aria-hidden="true"

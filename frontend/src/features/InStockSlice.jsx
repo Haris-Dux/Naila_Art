@@ -281,9 +281,9 @@ export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
 
 export const GetAllBranches = createAsyncThunk(
   "Branches/GetAll",
-  async (id) => {
+  async () => {
     try {
-      const response = await axios.post(getAllBranches, id);
+      const response = await axios.post(getAllBranches);
 
       return response.data;
     } catch (error) {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { GetAllBranches, GetAllExpense } from "../../features/InStockSlice";
 import { FaEye } from "react-icons/fa";
 import { getDailySaleAsync } from "../../features/DailySaleSlice";
 
@@ -30,12 +29,6 @@ const DailySale = () => {
         item.partyName.toLowerCase().includes(searchText.toLowerCase())
       )
     : DailySaleHistory?.dailySaleHistory;
-
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   useEffect(() => {
     if (Branches.length > 0) {

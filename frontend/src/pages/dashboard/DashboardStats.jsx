@@ -15,7 +15,6 @@ import {
   getDataForOtherBranchAsync,
   getDataForSuperAdminAsync,
   getTransactionHIstoryAsync,
-  updateAccount,
 } from "../../features/DashboardSlice";
 import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
@@ -25,14 +24,13 @@ import { FaHistory } from "react-icons/fa";
 import SendOTP from "./SendOTP";
 import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
-import { PaymentData } from "../../Utils/AccountsData";
 import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { GrPowerReset } from "react-icons/gr";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const { loading, DashboardData, transactionLoading, TransactionsHistory } =
     useSelector((state) => state.dashboard);
@@ -195,7 +193,7 @@ const DashboardStats = () => {
     document.body.style.overflow = "hidden";
     const data = {
       page: 1,
-      filters
+      filters,
     };
     dispatch(getTransactionHIstoryAsync(data));
   };
@@ -211,7 +209,13 @@ const DashboardStats = () => {
     setConfirmationModal(false);
     dispatch(createTransactionAsync(formData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(updateAccount(formData));
+        dispatch(getDataForSuperAdminAsync()).then((res) => {
+          if (res?.error) {
+            setHasError(true);
+            localStorage.removeItem("dashboardAccessTime");
+          }
+          setDataLoading(false);
+        });
         closeTransactionMOdal();
         setTransactionType("");
         resetFormData();
@@ -286,10 +290,7 @@ const DashboardStats = () => {
     return <SendOTP />;
   }
 
-  const getPaymentMethodName = (method) => {
-    const name = PaymentData.find((item) => item.value === method).label;
-    return name;
-  };
+ 
 
   return (
     <>
@@ -629,10 +630,10 @@ const DashboardStats = () => {
               </div>
 
               {/* BANK ACCOUNT */}
-              <div className="h-[18rem] px-4 pt-2 lg:col-span-4 xl:col-span-1 pb-2 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
+              <div className=" px-4 pt-2 lg:col-span-4 xl:col-span-1 pb-2 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
                 <div className="flex flex-col justify-between h-full">
-                  <div>
-                    <div className="flex justify-between items-center ">
+                  <div className="scrollable-content max-h-[17rem] pr-2">
+                    <div className="flex justify-between items-center">
                       <h2 className="mb-1 font-medium text-lg">
                         Bank Accounts
                       </h2>
@@ -657,8 +658,9 @@ const DashboardStats = () => {
                         </div>
                       ))}
                   </div>
+
                   {user?.user?.role === "superadmin" && (
-                    <div className="flex justify-evenly items-center">
+                    <div className="flex justify-evenly items-center mt-2">
                       <button onClick={(e) => opemTransactionMOdal("Deposit")}>
                         <PiHandDeposit size={32} className="text-green-500 " />
                       </button>
@@ -959,7 +961,7 @@ const DashboardStats = () => {
                   id="account"
                   name="account"
                   className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  value={filters.account}             
+                  value={filters.account}
                   onChange={handleChangeFilters}
                 >
                   <option value="" disabled>
@@ -976,7 +978,7 @@ const DashboardStats = () => {
                   id="transactionType"
                   name="transactionType"
                   className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  value={filters.transactionType}                 
+                  value={filters.transactionType}
                   onChange={handleChangeFilters}
                 >
                   <option value="" disabled>
@@ -1065,7 +1067,7 @@ const DashboardStats = () => {
                               {data?.amount}
                             </td>
                             <td className="px-6 py-3 text-center">
-                              {getPaymentMethodName(data?.payment_Method)}
+                              {data?.payment_Method}
                             </td>
                             <td className="px-6 py-3 text-center">
                               {data?.new_balance}

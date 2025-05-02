@@ -175,42 +175,8 @@ export const showNotificationsForChecksAsync = createAsyncThunk(
   }
 );
 
-//GENERATE RETURN BILL(NO RECORD)
-export const generateReturnBillNoRecordAsync = createAsyncThunk(
-  "Buyers/ReturnBillNoRecordA",
-  async (data) => {
-    try {
-      const response = await axios.post(
-        generateReturnBillWithoutRecordUrl,
-        data
-      );
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
-  }
-);
 
-//GET RETURN BILL(NO RECORD)
-export const getReturnBillNoRecordAsync = createAsyncThunk(
-  "Buyers/getReturnBillNoRecord",
-  async (data) => {
-    const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-    try {
-      const response = await axios.post(
-        `${getReturnBillWithoutRecordUrl}?&page=${data.page}${searchQuery}`,
-        { id: data.id }
-      );
-      return response.data;
-    } catch (error) {
-     throw new Error(error);
-    }
-  }
-);
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -225,7 +191,6 @@ const initialState = {
   CheckNotifications: [],
   returnBillLoading: false,
   getReturnBillLoading: false,
-  returnBillsNoRecord: [],
 };
 
 const BuyerSlice = createSlice({
@@ -255,26 +220,6 @@ const BuyerSlice = createSlice({
         state.checkLoading = false;
       })
 
-      //GENERATE RETURN BILL(NO RECORD)
-      .addCase(generateReturnBillNoRecordAsync.pending, (state, action) => {
-        state.returnBillLoading = true;
-      })
-      .addCase(generateReturnBillNoRecordAsync.fulfilled, (state, action) => {
-        state.returnBillLoading = false;
-      })
-
-      //GET GENERATE RETURN BILL(NO RECORD)
-      .addCase(getReturnBillNoRecordAsync.pending, (state, action) => {
-        state.getReturnBillLoading = true;
-      })
-      .addCase(getReturnBillNoRecordAsync.fulfilled, (state, action) => {
-        state.getReturnBillLoading = false;
-        state.returnBillsNoRecord = action.payload;
-      })
-      .addCase(getReturnBillNoRecordAsync.rejected, (state, action) => {
-        state.getReturnBillLoading = false;
-        state.returnBillsNoRecord = [];
-      })
 
       //UPDATECHECK WITH NEW CHECK
       .addCase(updateBuyerCheckWithNewAsync.pending, (state, action) => {

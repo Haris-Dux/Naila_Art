@@ -9,6 +9,8 @@ import {
   VirtalAccountModal,
 } from "../../models/DashboardData/VirtalAccountsModal.js";
 import CustomError from "../../config/errors/CustomError.js";
+import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
+import { cashBookService } from "../../services/CashbookService.js";
 
 export const addBPair = async (data, session = null) => {
   try {
@@ -108,7 +110,7 @@ export const saleBPair = async (req, res, next) => {
       }
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
-        payment_Method: (dailySaleForToday.saleData[payment_Method] += amount),
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += amount),
         totalSale: (dailySaleForToday.saleData.totalSale += amount),
       };
 
@@ -123,31 +125,29 @@ export const saleBPair = async (req, res, next) => {
       //UPDATING VIRTUAL ACCOUNTS
 
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
+        const data = {
+          session,
+          payment_Method,
+          amount,
+          transactionType: "Deposit",
+          date,
+          note: `B Pair Sale To ${name}`,
         };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-
-        //updating transaction history
-        await VA_HistoryModal.create(
-          [
-            {
-              date,
-              transactionType: "Deposit",
-              payment_Method,
-              amount,
-              note: `B Pair Sale To ${name}`,
-              new_balance: updatedAccount[0][payment_Method],
-            },
-          ],
-          { session }
-        );
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId: user.branchId,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "B Pair",
+        partyName: name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res
         .status(200)
@@ -276,7 +276,7 @@ export const reverseBpairSale = async (req, res, next) => {
           if (updatedSaleData[payment_Method] < 0) {
             errors.push("Selected Payment Method");
           }
-        };
+        }
 
         return errors;
       }
@@ -284,41 +284,40 @@ export const reverseBpairSale = async (req, res, next) => {
       const transactionErrors = validateUpdatesaleData(updatedSaleData);
 
       if (transactionErrors.length > 0) {
-        throw new Error(`Transaction failed: Insufficient Balance in ${transactionErrors}`);
+        throw new Error(
+          `Transaction failed: Insufficient Balance in ${transactionErrors}`
+        );
       }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
       //UPDATING VIRTUAL ACCOUNTS
+
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] -= amount),
+        const data = {
+          session,
+          payment_Method,
+          amount,
+          transactionType: "WithDraw",
+          date,
+          note: `Deleted B Pair Sale For ${saleData.name}`,
         };
-        if (updatedAccount[0][payment_Method] < 0) {
-          throw new Error("Insufficient Account Balance");
-        }
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        //updating transaction history
-        await VA_HistoryModal.create(
-          [
-            {
-              date,
-              transactionType: "WithDraw",
-              payment_Method,
-              amount,
-              note: `Deleted B Pair Sale For ${saleData.name}`,
-              new_balance: updatedAccount[0][payment_Method],
-            },
-          ],
-          { session }
-        );
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId: user.branchId,
+        amount,
+        tranSactionType: "WithDraw",
+        transactionFrom: "B Pair",
+        partyName: saleData.name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res
         .status(200)
@@ -331,15 +330,18 @@ export const reverseBpairSale = async (req, res, next) => {
   }
 };
 
-export const deletebPair = async (req,res,next) => {
+export const deletebPair = async (req, res, next) => {
   try {
     const id = req.params.id;
-    if(!id) throw new CustomError("b Pair Id Not Found",404);
+    if (!id) throw new CustomError("b Pair Id Not Found", 404);
     const Bpairdata = await B_PairModel.findById(id);
-    if(!Bpairdata) throw new CustomError("B Pair Not Found",404);
-    if(Bpairdata.status !== "UnSold") throw new CustomError("Can Not Delete This B pair",403);
+    if (!Bpairdata) throw new CustomError("B Pair Not Found", 404);
+    if (Bpairdata.status !== "UnSold")
+      throw new CustomError("Can Not Delete This B pair", 403);
     await B_PairModel.findByIdAndDelete(id);
-    res.status(200).json({success:true , message: "B Pair deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "B Pair deleted successfully" });
   } catch (error) {
     next(error);
   }

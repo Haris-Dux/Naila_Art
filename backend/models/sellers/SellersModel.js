@@ -61,7 +61,6 @@ const SellersSchema = new mongoose.Schema({
   },
   payment_Method: {
     type: String,
-    enum: ["cashInMeezanBank", "cashInJazzCash", "cashInEasyPaisa", "cashSale"],
   },
   seller_stock_category : {
     type: String,

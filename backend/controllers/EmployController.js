@@ -1,13 +1,10 @@
 import mongoose from "mongoose";
 import { EmployeModel } from "../models/EmployModel.js";
-import { PaymentData } from "../utils/Common.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
+import { virtualAccountsService } from "../services/VirtualAccountsService.js";
+import { cashBookService } from "../services/CashbookService.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -84,7 +81,7 @@ export const creditDebitBalance = async (req, res, next) => {
       let newBalance = lastNonSalaryTransaction
         ? lastNonSalaryTransaction.balance
         : 0;
-
+      //CREDIT LOGIC
       if (credit >= 0) {
         newBalance += credit;
         employe.financeData.push({
@@ -110,26 +107,28 @@ export const creditDebitBalance = async (req, res, next) => {
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
-          let virtualAccounts = await VirtalAccountModal.find({}).session(
-            session
-          );
-          let updatedAccount = {
-            ...virtualAccounts,
-            [payment_Method]: (virtualAccounts[0][payment_Method] += credit),
-          };
-          const new_balance = updatedAccount[0][payment_Method];
-          const historyData = {
-            date: today,
-            transactionType: "Deposit",
+          const data = {
+            session,
             payment_Method,
-            new_balance,
             amount: credit,
+            transactionType: "Deposit",
+            date: today,
             note: `Credit Transaction for ${employe.name}`,
           };
-          virtualAccounts = updatedAccount;
-          await virtualAccounts[0].save({ session });
-          await VA_HistoryModal.create([historyData], { session });
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
+         //PUSH DATA FOR CASH BOOK
+         const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: credit,
+          tranSactionType: "Deposit",
+          transactionFrom: "Employe",
+          partyName: employe.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
       }
 
       //DEBIT LOGIC
@@ -163,30 +162,31 @@ export const creditDebitBalance = async (req, res, next) => {
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
-          let virtualAccounts = await VirtalAccountModal.find({}).session(
-            session
-          );
-          let updatedAccount = {
-            ...virtualAccounts,
-            [payment_Method]: (virtualAccounts[0][payment_Method] -= debit),
-          };
-          const new_balance = updatedAccount[0][payment_Method];
-          const historyData = {
-            date: today,
-            transactionType: "WithDraw",
+          const data = {
+            session,
             payment_Method,
-            new_balance,
             amount: debit,
+            transactionType: "WithDraw",
+            date: today,
             note: `Debit Transaction for ${employe.name}`,
           };
-          if (new_balance < 0)
-            throw new Error("Not Enough Cash In Payment Method");
-          virtualAccounts = updatedAccount;
-
-          await virtualAccounts[0].save({ session });
-          await VA_HistoryModal.create([historyData], { session });
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
+         //PUSH DATA FOR CASH BOOK
+         const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: debit,
+          tranSactionType: "WithDraw",
+          transactionFrom: "Employe",
+          partyName: employe.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
       }
+
+
       await employe.save({ session });
       return res
         .status(200)
@@ -213,9 +213,6 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
       const employe = await EmployeModel.findById(id).session(session);
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
       if (!employe) throw new Error("Employe Not Found");
-      const paymentMethodName = PaymentData.find(
-        (method) => method.value === payment_Method
-      )?.label;
 
       //VERIFY IF SALARY IS CREDITED FOR CURRENT MOTN OR NOT
       const isSalaryPaid = employe.salaryStatus[Number(month)];
@@ -229,7 +226,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         credit: 0,
         debit: salary,
         balance: 0,
-        particular: `Salary Credit/${paymentMethodName}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
+        particular: `Salary Credit/${payment_Method}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
         date: today,
         over_time,
         leaves,
@@ -261,29 +258,29 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] -= salary),
-        };
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date: today,
-          transactionType: "WithDraw",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount: salary,
+          transactionType: "WithDraw",
+          date: today,
           note: `Salary credit for ${employe.name}`,
         };
-        if (new_balance < 0)
-          throw new Error("Not Enough Cash In Payment Method");
-        virtualAccounts = updatedAccount;
-
-        await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: salary,
+          tranSactionType: "WithDraw",
+          transactionFrom: "Employe",
+          partyName: employe.name,
+          payment_Method,
+          session,
+        };
+        await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res.status(200).json({ success: true, message: "Success" });
     });
@@ -509,28 +506,29 @@ export const reverseSalary = async (req, res, next) => {
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
-        };
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date: today,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount,
+          transactionType: "Deposit",
+          date: today,
           note: `Salary Reversed for ${employe.name}`,
         };
-
-        virtualAccounts = updatedAccount;
-
-        await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
+
+       //PUSH DATA FOR CASH BOOK
+       const dataForCashBook = {
+        pastTransaction: false,
+        branchId,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Employe",
+        partyName: employe.name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //MARKING TRANSACTION AS DELETED
       const transaction = employe.financeData.find(

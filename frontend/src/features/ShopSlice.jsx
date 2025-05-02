@@ -55,9 +55,9 @@ export const DeleteShop = createAsyncThunk(
 // VERIFY ASYNC THUNK
 export const GetAllShop = createAsyncThunk(
   "Shop/Get",
-  async (formData) => {
+  async () => {
     try {
-      const response = await axios.post(GetShop, formData);
+      const response = await axios.post(GetShop);
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error)

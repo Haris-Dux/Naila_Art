@@ -116,27 +116,6 @@ const DashboardSlice = createSlice({
   name: "DashboardSlice",
   initialState,
   reducers: {
-    updateAccount(state, action) {
-      const { amount, payment_Method, transactionType } = action.payload;
-      const paymentMethodMapping = {
-        cashInMeezanBank: "Meezan Bank",
-        cashInJazzCash: "JazzCash",
-        cashInEasyPaisa: "EasyPaisa",
-      };
-      const readablePaymentMethod = paymentMethodMapping[payment_Method];
-      const paymentMethodData = state.DashboardData.bankAccountsData.find(
-        (account) => {
-          return account.name === readablePaymentMethod;
-        }
-      );
-      if (paymentMethodData) {
-        if (transactionType === "Deposit") {
-          paymentMethodData.value += amount;
-        } else if (transactionType === "WithDraw") {
-          paymentMethodData.value -= amount;
-        }
-      }
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -206,4 +185,3 @@ const DashboardSlice = createSlice({
 });
 
 export default DashboardSlice.reducer;
-export const { updateAccount } = DashboardSlice.actions;

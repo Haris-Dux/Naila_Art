@@ -6,30 +6,6 @@ const dailySaleData = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  cashInMeezanBank: {
-    type: Number,
-    default: 0,
-  },
-  cashInJazzCash: {
-    type: Number,
-    default: 0,
-  },
-  cashInEasyPaisa: {
-    type: Number,
-    default: 0,
-  },
-  H_Meezan: {
-    type: Number,
-    default: 0,
-  },
-  A_Meezan: {
-    type: Number,
-    default: 0,
-  },
-  Bank_Al_Habib: {
-    type: Number,
-    default: 0,
-  },
   totalExpense: {
     type: Number,
     default: 0,
@@ -54,7 +30,7 @@ const dailySaleData = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-});
+},{strict:false});
 
 const DailySaleSchema = new mongoose.Schema(
   {
@@ -70,7 +46,7 @@ const DailySaleSchema = new mongoose.Schema(
     },
     saleData: dailySaleData,
   },
-  { timestamps: true }
+  { timestamps: true , strict:false}
 );
 
 export const DailySaleModel = mongoose.model("Daily Sale", DailySaleSchema);

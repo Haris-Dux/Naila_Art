@@ -33,8 +33,8 @@ const Shop = () => {
   });
 
   useEffect(() => {
-    dispatch(GetAllShop({ id: user?.user?.id }));
-  }, [dispatch, user?.user?.id]);
+    dispatch(GetAllShop());
+  }, [dispatch]);
 
   const handleEdit = (shop) => {
     setEditShop(shop);
@@ -52,7 +52,7 @@ const Shop = () => {
       const data = { branchId: deleteId };
       dispatch(DeleteShop(data)).then((res) => {
         if (res.payload.success === true) {
-          dispatch(GetAllShop({ id: user?.user?.id }));
+          dispatch(GetAllShop());
           setDeleteModal(false);
         }
       });
@@ -69,7 +69,7 @@ const Shop = () => {
           setFormData({ branchName: "" });
           setEditShop(null);
           closeModal();
-          dispatch(GetAllShop({ id: user?.user?.id }));
+          dispatch(GetAllShop());
         }
       });
     } else {
@@ -77,7 +77,7 @@ const Shop = () => {
         if (res.payload.success === true) {
           setFormData({ branchName: "" });
           closeModal();
-          dispatch(GetAllShop({ id: user?.user?.id }));
+          dispatch(GetAllShop());
         }
       });
     }

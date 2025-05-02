@@ -34,6 +34,9 @@ export const verifyUser = async (req, res, next) => {
   if (!user.authenticated) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  req.user_role = user.role;
+  req.user_id = id;
+  req.branch_id = user.branchId;
   next();
 };
 

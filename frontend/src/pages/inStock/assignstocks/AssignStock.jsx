@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  AssginStocktoBranch,
-  GetAllBranches,
+  AssginStocktoBranch
 } from "../../../features/InStockSlice";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -27,9 +26,7 @@ const AssignStock = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(GetAllBranches({ id: user?.user?.id }));
-  }, [dispatch, user?.user?.id]);
+
 
   useEffect(() => {
     const updatedStockDetails = selectedItems.map((item) => ({

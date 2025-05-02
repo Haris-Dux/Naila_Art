@@ -33,9 +33,9 @@ const PendingRequest = () => {
 
   // Fetch all shops
   useEffect(() => {
-    if (user?.user?.id) {
+   
       dispatch(GetAllShop({ id: user.user.id }));
-    }
+    
   }, [dispatch, user]);
 
   // Handle branch change

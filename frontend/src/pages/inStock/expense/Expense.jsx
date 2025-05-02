@@ -3,20 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   DeleteExpenseAsync,
-  GetAllBranches,
   GetAllExpense,
 } from "../../../features/InStockSlice";
 import { IoAdd } from "react-icons/io5";
 import ExpenseModal from "../../bills/Modals/ExpenseModal";
 import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import { PaymentData } from "../../../Utils/AccountsData";
 
 const Expense = () => {
   const dispatch = useDispatch();
-
   const [search, setSearch] = useState();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const { Branches, loading, deleteLodaing } = useSelector(
@@ -35,13 +32,10 @@ const Expense = () => {
   };
 
   useEffect(() => {
-    const id = user?.user?.id;
-    if (user?.user?.role === "superadmin") {
-      dispatch(GetAllBranches({ id }));
-    } else {
+    if (user?.user?.role !== "superadmin")  {
       setSelectedBranchId(user?.user?.branchId);
     }
-  }, [dispatch, user]);
+  }, [user]);
 
   useEffect(() => {
     if (user?.user?.role === "superadmin" && Branches.length > 0) {
@@ -133,10 +127,6 @@ const Expense = () => {
     setConfirmationAction(() => confirmDeletion);
   };
 
-  const getPaymentMethodName = (value) => {
-    const name = PaymentData.find((item) => item.value === value)?.label;
-    return name;
-  };
 
   return (
     <>
@@ -291,7 +281,7 @@ const Expense = () => {
                             {expense?.serial_no}
                           </th>
                           <td className="px-6 py-4">
-                            {getPaymentMethodName(expense?.payment_Method)}
+                            {expense?.payment_Method}
                           </td>
                           <td className="px-6 py-4">{expense?.name}</td>
                           <td className="px-2 py-4 text-xs max-w-48">

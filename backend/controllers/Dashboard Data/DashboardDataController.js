@@ -17,6 +17,8 @@ import {
   VirtalAccountModal,
 } from "../../models/DashboardData/VirtalAccountsModal.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
+import mongoose from "mongoose";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -268,21 +270,14 @@ export const getDashBoardDataForBranch = async (req, res, next) => {
 
     //banks data
 
-    const banksDataRaw = await VirtalAccountModal.find({}).select(
-      "-Transaction_History"
-    );
-
+    const banksDataRaw = await VirtalAccountModal.findOne();
+    const plainData = banksDataRaw.toObject();
     let banksData = [];
-    if (banksDataRaw.length > 0) {
-      const account = banksDataRaw[0];
-      banksData = [
-        { name: "Meezan Bank", value: account.cashInMeezanBank },
-        { name: "JazzCash", value: account.cashInJazzCash },
-        { name: "EasyPaisa", value: account.cashInEasyPaisa },
-        { name: "A_Meezan", value: account.A_Meezan },
-        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
-        { name: "H_Meezan", value: account.H_Meezan },
-      ];
+    for (const key in plainData) {
+      if (banksDataRaw.hasOwnProperty(key) && key !== "cashSale") {
+        const data = { name: key, value: banksDataRaw[key] };
+        banksData.push(data);
+      }
     }
 
     //cash in hand data
@@ -601,21 +596,15 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
     };
 
     //banks data
-    const banksDataRaw = await VirtalAccountModal.find({}).select(
-      "-Transaction_History"
-    );
+    const banksDataRaw = await VirtalAccountModal.findOne();
 
+    const plainData = banksDataRaw.toObject();
     let banksData = [];
-    if (banksDataRaw.length > 0) {
-      const account = banksDataRaw[0];
-      banksData = [
-        { name: "Meezan Bank", value: account.cashInMeezanBank },
-        { name: "JazzCash", value: account.cashInJazzCash },
-        { name: "EasyPaisa", value: account.cashInEasyPaisa },
-        { name: "A_Meezan", value: account.A_Meezan },
-        { name: "Bank_Al_Habib", value: account.Bank_Al_Habib },
-        { name: "H_Meezan", value: account.H_Meezan },
-      ];
+    for (const key in plainData) {
+      if (banksDataRaw.hasOwnProperty(key) && key !== "cashSale") {
+        const data = { name: key, value: banksDataRaw[key] };
+        banksData.push(data);
+      }
     }
 
     //cash in hand data
@@ -761,71 +750,79 @@ export const getVirtualAccounts = async (req, res, next) => {
 };
 
 export const makeTransactionInAccounts = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
-    const { date, transactionType, payment_Method, amount, note } = req.body;
-    const requiredFields = [
-      "date",
-      "transactionType",
-      "payment_Method",
-      "amount",
-      "note",
-    ];
-    const missingFields = [];
-    requiredFields.forEach((field) => {
-      if (!req.body[field]) {
-        missingFields.push(field);
+    await session.withTransaction(async () => {
+      const { date, transactionType, payment_Method, amount, note } = req.body;
+      const requiredFields = [
+        "date",
+        "transactionType",
+        "payment_Method",
+        "amount",
+        "note",
+      ];
+      const missingFields = [];
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          missingFields.push(field);
+        }
+      });
+      if (missingFields.length > 0) {
+        throw new Error(`Missing Fields : ${requiredFields}`);
       }
+      //TRANSACTION LOGIC
+      let historyData = {};
+      if (transactionType === "Deposit") {
+        const data = {
+          session,
+          payment_Method,
+          amount,
+          transactionType: "Deposit",
+          date,
+          note,
+        };
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+        historyData = {
+          date,
+          transactionType,
+          payment_Method,
+          new_balance,
+          amount,
+          note,
+        };
+      } else if (transactionType === "WithDraw") {
+        const data = {
+          session,
+          payment_Method,
+          amount,
+          transactionType: "WithDraw",
+          date,
+          note,
+        };
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+        historyData = {
+          date,
+          transactionType,
+          payment_Method,
+          new_balance,
+          amount,
+          note,
+        };
+      }
+
+      await sendEmail({
+        email: "offical@nailaarts.com",
+        TransactionData: historyData,
+        email_Type: "Transaction Notification",
+      });
+      return res
+        .status(200)
+        .json({ success: true, message: "Transaction Successfull" });
     });
-    if (missingFields.length > 0) {
-      throw new Error(`Missing Fields : ${requiredFields}`);
-    }
-    //TRANSACTION LOGIC
-    let virtualAccounts = await VirtalAccountModal.find({});
-    let updatedAccounts = {};
-    let historyData = {};
-    if (transactionType === "Deposit") {
-      updatedAccounts = {
-        ...virtualAccounts,
-        [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
-      };
-      const new_balance = updatedAccounts[0][payment_Method];
-      historyData = {
-        date,
-        transactionType,
-        payment_Method,
-        new_balance,
-        amount,
-        note,
-      };
-    } else if (transactionType === "WithDraw") {
-      updatedAccounts = {
-        ...virtualAccounts,
-        [payment_Method]: (virtualAccounts[0][payment_Method] -= amount),
-      };
-      const new_balance = updatedAccounts[0][payment_Method];
-      if (new_balance < 0) throw new Error("Not Enough Cash");
-      historyData = {
-        date,
-        transactionType,
-        payment_Method,
-        new_balance,
-        amount,
-        note,
-      };
-    }
-    virtualAccounts = updatedAccounts;
-    await virtualAccounts[0].save();
-    await VA_HistoryModal.create(historyData);
-    await sendEmail({
-      email: "offical@nailaarts.com",
-      TransactionData: historyData,
-      email_Type: "Transaction Notification",
-    });
-    return res
-      .status(200)
-      .json({ success: true, message: "Transaction Successfull" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -867,5 +864,3 @@ export const getTransactionsHistory = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
-
