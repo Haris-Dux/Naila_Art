@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginuserAsync } from "../features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import "./auth.css";
+import { getAllPaymentMetodsForTransactionAsync } from "../features/PaymentMethodsSlice";
+import { GetAllBranches } from "../features/InStockSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -12,8 +14,8 @@ const Login = () => {
   const { loading } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "dev.offical@nailaarts.com",
+    password: "Bilal_Haseeb@786",
   });
 
   // HANDLE SUBMIT
@@ -21,6 +23,8 @@ const Login = () => {
     e.preventDefault();
     dispatch(loginuserAsync(formData)).then((res) => {
       if (res?.payload?.login) {
+        dispatch(getAllPaymentMetodsForTransactionAsync())
+         dispatch(GetAllBranches())
         navigate("/dashboard");
         setFormData({
           email: "",

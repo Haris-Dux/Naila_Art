@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
-import { GetAllBranches } from "../../features/InStockSlice";
 import { getAllReturnsForBranch } from "../../features/ReturnSlice";
 
 const PhoneComponent = ({ phone }) => {
@@ -36,11 +35,6 @@ const ReturnBills = () => {
 
   const [selectedBranchId, setSelectedBranchId] = useState();
 
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   useEffect(() => {
     if (Branches?.length > 0) {

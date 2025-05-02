@@ -3,9 +3,15 @@ import { setMongoose } from "../utils/Mongoose.js";
 import corn from "node-cron";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/VirtalAccountsModal.js";
+import {
+  VA_HistoryModal,
+  VirtalAccountModal,
+} from "../models/DashboardData/VirtalAccountsModal.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../utils/nodemailer.js";
+import { PaymentMethodModel } from "../models/PaymentMethods/PaymentMethodModel.js";
+import { virtualAccountsService } from "../services/VirtualAccountsService.js";
+import { cashBookService } from "../services/CashbookService.js";
 
 export const getTodaysdailySaleforBranch = async (req, res, next) => {
   try {
@@ -90,35 +96,27 @@ export const cashOutForBranch = async (req, res, next) => {
       }
       await dailySaleForToday.save({ session });
 
+      const headOffice = await BranchModel.findOne({
+        branchName: "Head Office",
+      });
+
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
-        let virtualAccounts = await VirtalAccountModal.find({}).session(
-          session
-        );
-        let updatedAccount = {
-          ...virtualAccounts,
-          [payment_Method]: (virtualAccounts[0][payment_Method] += amount),
-        };
-        const new_balance = updatedAccount[0][payment_Method];
-        const historyData = {
-          date: today,
-          transactionType: "Deposit",
+        const data = {
+          session,
           payment_Method,
-          new_balance,
           amount,
+          transactionType: "Deposit",
+          date:today,
           note: `Recieved Amount From ${branch.branchName}`,
         };
-        virtualAccounts = updatedAccount;
-        await virtualAccounts[0].save({ session });
-        await VA_HistoryModal.create([historyData], { session });
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       } else if (payment_Method === "cashSale") {
         //UPDATING TOTAL CASH FOR HEAD OFFICE
-        const headOffice = await BranchModel.findOne({
-          branchName: "Head Office",
-        });
+
         if (!headOffice) throw new Error("Cannot find head office data ");
         const dailySaleForHeadOffice = await DailySaleModel.findOne({
-          branchId:headOffice._id,
+          branchId: headOffice._id,
           date: today,
         }).session(session);
         if (!dailySaleForHeadOffice)
@@ -126,6 +124,32 @@ export const cashOutForBranch = async (req, res, next) => {
         dailySaleForHeadOffice.saleData.totalCash += amount;
         await dailySaleForHeadOffice.save({ session });
       }
+
+      //PUSH DATA FOR CASH BOOK FOR HEAD OFFICE
+      const dataForCashBookHeadOffice = {
+        pastTransaction: false,
+        branchId: headOffice._id,
+        amount,
+        tranSactionType: "Deposit",
+        transactionFrom: "Branch Cash Out",
+        partyName: branch.branchName,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBookHeadOffice);
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId,
+        amount,
+        tranSactionType: "WithDraw",
+        transactionFrom: "Branch Cash Out",
+        partyName: headOffice.branchName,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //SEND EMAIL
       const branchCashOutData = {
@@ -150,7 +174,7 @@ export const cashOutForBranch = async (req, res, next) => {
 };
 
 corn.schedule(
-  "01 00 * * *",
+  "1 00 * * *",
   async () => {
     try {
       const branchData = await BranchModel.find({});
@@ -175,6 +199,13 @@ corn.schedule(
             branchId: branch._id,
             date: yesterday,
           });
+          const activeMethods = await PaymentMethodModel.find({
+            active: { $ne: false },
+          });
+          const dynamicMethods = activeMethods.reduce((acc, method) => {
+            acc[method.name] = 0;
+            return acc;
+          }, {});
           return await DailySaleModel.create({
             branchId: branch._id,
             date: today,
@@ -182,6 +213,7 @@ corn.schedule(
               totalCash: previousDaySale
                 ? previousDaySale.saleData.totalCash
                 : 0,
+              ...dynamicMethods,
             },
           });
         } catch (error) {

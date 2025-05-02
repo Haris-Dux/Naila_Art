@@ -10,11 +10,11 @@ import {
 } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
-import { PaymentData } from "../../Utils/AccountsData";
 import Select from "react-select";
 
 const GenerateBill = () => {
   const dispatch = useDispatch();
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
 
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
@@ -72,7 +72,7 @@ const GenerateBill = () => {
 
   useEffect(() => {
     if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id })).then((res) => {
+      dispatch(GetAllBranches()).then((res) => {
         if (user?.user?.role !== "superadmin") {
           setBranchStockData(res?.payload[0]?.stockData);
         }
@@ -277,6 +277,7 @@ const GenerateBill = () => {
         d_no: Number(suit.d_no),
         price: Number(suit.price),
       })),
+      pastBill:pastBill
     };
 
     // Check Branch ID
@@ -293,35 +294,34 @@ const GenerateBill = () => {
 
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
-        dispatch(generatePdfAsync(modifiedBillData)).then((res) => {
-          // if (res.payload.status === 200) {
-          //   setBillData({
-          //     branchId:
-          //       user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
-          //     serialNumber: "",
-          //     name: "",
-          //     city: "",
-          //     cargo: "",
-          //     phone: "",
-          //     date: today,
-          //     bill_by: "",
-          //     payment_Method: "",
-          //     total: "",
-          //     paid: "",
-          //     remaining: "",
-          //     discount: "",
-          //     packaging: {
-          //       name: "",
-          //       id: "",
-          //       quantity: "",
-          //     },
-          //     suits_data: [
-          //       { id: "", quantity: "", d_no: "", color: "", price: "" },
-          //     ],
-          //     other_Bill_Data: {},
-          //   });
-          // };
-        });
+      
+        //     setBillData({
+        //       branchId:
+        //         user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+        //       serialNumber: "",
+        //       name: "",
+        //       city: "",
+        //       cargo: "",
+        //       phone: "",
+        //       date: today,
+        //       bill_by: "",
+        //       payment_Method: "",
+        //       total: "",
+        //       paid: "",
+        //       remaining: "",
+        //       discount: "",
+        //       packaging: {
+        //         name: "",
+        //         id: "",
+        //         quantity: "",
+        //       },
+        //       suits_data: [
+        //         { id: "", quantity: "", d_no: "", color: "", price: "" },
+        //       ],
+        //       other_Bill_Data: {},
+        //     });
+        
+        // setPastBill(false);
       }
     });
   };

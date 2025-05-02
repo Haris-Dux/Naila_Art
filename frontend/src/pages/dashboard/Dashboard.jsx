@@ -5,14 +5,11 @@ import { IoLogOutOutline } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
 import {
-  generateReturnBillNoRecordAsync,
   showNotificationsForChecksAsync,
 } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
-import { GetAllBranches } from "../../features/InStockSlice";
-import { PaymentData } from "../../Utils/AccountsData";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
-import axios from "axios";
+import { FaBookOpen } from "react-icons/fa";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -27,12 +24,11 @@ const Dashboard = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [checkNotifications, setChecksNotifications] = useState(false);
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [isInStockDropdownOpen, setIsInStockDropdownOpen] = useState(false);
   const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
   const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
   const [isAccountsDropdownOpen, setIsAccountsDropdownOpen] = useState(false);
-  const [returnBillModal, setReturnBillModal] = useState(false);
   const [othersaleModal, setOtherSaleModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -90,7 +86,7 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
   const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
-  const { getBuyersChecksLoading, CheckNotifications, returnBillLoading } =
+  const { CheckNotifications, returnBillLoading } =
     useSelector((state) => state.Buyer);
   const { Branches } = useSelector((state) => state.InStock);
 
@@ -109,10 +105,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.addEventListener("click", closeMenu);
-    const id = user?.user?.id;
     if (user && user?.user?.role !== "user") {
       dispatch(showNotificationsForChecksAsync());
-      dispatch(GetAllBranches({ id }));
     }
     return () => {
       document.removeEventListener("click", closeMenu);
@@ -158,7 +152,6 @@ const Dashboard = () => {
   const closeModal = () => {
     document.body.style.overflow = "auto";
     setChecksNotifications(false);
-    setReturnBillModal(false);
     setOtherSaleModal(false);
     setFormData({
       cash: "",
@@ -178,35 +171,12 @@ const Dashboard = () => {
     });
   };
 
-  const openReturnBillModal = () => {
-    setReturnBillModal(true);
-    document.body.style.overflow = "hidden";
-  };
-
   const openOtherSaleModal = () => {
     setOtherSaleModal(true);
     document.body.style.overflow = "hidden";
   };
 
   const notificationValue = CheckNotifications?.data?.length || 0;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const data = {
-      ...formData,
-      date: today,
-      payment_Method: "cashSale",
-      branchId:
-        user?.user?.role === "superadmin"
-          ? formData.branchId
-          : user?.user?.branchId,
-    };
-    dispatch(generateReturnBillNoRecordAsync(data)).then((res) => {
-      if (res.payload.success) {
-        closeModal();
-      }
-    });
-  };
 
   const handleGenerateOtherSale = (e) => {
     e.preventDefault();
@@ -229,54 +199,7 @@ const Dashboard = () => {
     });
   };
 
-  const [manualData, setManualData] = useState({
-    serial_No: 0,
-    category: "",
-    Manual_No: "",
-  });
-
-  const handleManualChange = (e) => {
-    const { name, value } = e.target;
-    setManualData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const [manualModal, setManualModal] = useState(false);
-
-  const openManualModal = () => {
-    setManualModal(true);
-  };
-
-  const closeManualModal = () => {
-    setManualModal(false);
-  };
-
-  const addManualNumber = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        "/api/returns/temporaryendpoint",
-        manualData
-      );
-
-      if (response.status === 200) {
-        closeManualModal();
-      }
-    } catch (error) {
-      console.error("Error adding manual data:", error);
-    }
-  };
-
   const enviroment = import.meta.env.VITE_APP_ENV;
-  const VITE_API_URL = import.meta.env.VITE_API_URL;
-
-  console.log("Mode",enviroment)
-  
-  console.log("API_URL",VITE_API_URL)
-
-
 
 
   return (
@@ -333,12 +256,13 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
-              <button
-                onClick={openManualModal}
-                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+              <Link
+                to="/dashboard/cash-book"
+                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
-                TEMPORARY
-              </button>
+                Cash Book
+                <FaBookOpen size={24} />
+              </Link>
 
               <Link
                 to="/dashboard/generate-bill"
@@ -354,13 +278,6 @@ const Dashboard = () => {
                   Generate Other Sale
                 </button>
               )}
-              <button
-                onClick={openReturnBillModal}
-                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
-              >
-                Return Bill (No Record)
-              </button>
-
               {user && user?.user?.role !== "user" && (
                 <button className="relative mr-2">
                   <RiNotification2Line
@@ -918,6 +835,7 @@ const Dashboard = () => {
 
               {/* SHOP FOR SUPERADMIN */}
               {user?.user?.role === "superadmin" ? (
+                <>
                 <li>
                   <Link
                     to="/dashboard/Shop"
@@ -928,10 +846,23 @@ const Dashboard = () => {
                         : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
                     } group`}
                   >
-                    {/* <FaStore size={22} className="text-gray-500 dark:text-gray-400" /> */}
                     <span className="ml-3">Shop</span>
                   </Link>
                 </li>
+                <li>
+                <Link
+                  to="/dashboard/paymentMethods"
+                  onClick={handleMoveTop}
+                  className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
+                    location.pathname === "/dashboard/paymentMethods"
+                      ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                      : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                  } group`}
+                >
+                  <span className="ml-3">Payment Methods</span>
+                </Link>
+              </li>
+              </>
               ) : null}
             </ul>
           </div>
@@ -1060,206 +991,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* RETURN BILL MODAL */}
-      {returnBillModal && (
-        <div
-          aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
-        >
-          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Return Bill For Buyers (No record)
-              </h3>
-              <div className="flex items-center space-x-4">
-                {/* View All Button */}
-
-                <Link
-                  className="px-4 py-1.5 ml-1 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                  to={"/dashboard/return-Bills-No-Record"}
-                  onClick={closeModal}
-                >
-                  View All Bills
-                </Link>
-
-                {/* Close Button */}
-                <button
-                  onClick={closeModal}
-                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-4 md:p-5">
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Name */}
-                  <div>
-                    <input
-                      name="name"
-                      type="text"
-                      placeholder="Party Name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <input
-                      name="phone"
-                      type="text"
-                      placeholder="Phone Number"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <input
-                      name="category"
-                      type="text"
-                      placeholder="Category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Color */}
-                  <div>
-                    <input
-                      name="color"
-                      type="text"
-                      placeholder="Color"
-                      value={formData.color}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Quantity */}
-                  <div>
-                    <input
-                      name="quantity"
-                      type="number"
-                      placeholder="Quantity"
-                      value={formData.quantity}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Cash */}
-                  <div>
-                    <input
-                      name="cash"
-                      type="number"
-                      placeholder="Amount"
-                      value={formData.cash}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Date */}
-                  <div>
-                    <input
-                      name="date"
-                      type="date"
-                      value={today}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      readOnly
-                    />
-                  </div>
-
-                  {/* NOTE */}
-                  <div className="col-span-2">
-                    <input
-                      name="note"
-                      type="text"
-                      placeholder="Enter Note"
-                      value={formData.note}
-                      onChange={handleChange}
-                      className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {user?.user?.role === "superadmin" ? (
-                    <div className="col-span-3">
-                      <select
-                        id="branches"
-                        name="branchId"
-                        value={formData.branchId}
-                        onChange={handleChange}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      >
-                        <option value="">Select Branch</option>
-                        {Branches?.map((data) => (
-                          <option key={data.id} value={data.id}>
-                            {data.branchName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : null}
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-center mt-6">
-                  {returnBillLoading ? (
-                    <button
-                      disabled
-                      type="submit"
-                      className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
-                    >
-                      Submit
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
-                    >
-                      Submit
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* OTHER SALE MODAL */}
       {othersaleModal && (
@@ -1481,111 +1212,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* TEMP MODAL */}
-      {manualModal && (
-        <div
-          aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
-        >
-          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Add Manual Number
-              </h3>
-              <div className="flex items-center space-x-4">
-                {/* View All Button */}
-
-                {/* Close Button */}
-                <button
-                  onClick={closeManualModal}
-                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-4 md:p-5">
-              <form onSubmit={addManualNumber}>
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Name */}
-                  <div>
-                    <input
-                      name="serial_No"
-                      type="number"
-                      placeholder="enter serial number"
-                      value={manualData.serial_No}
-                      onChange={handleManualChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  {/* Amount */}
-                  <div>
-                    <input
-                      name="Manual_No"
-                      type="number"
-                      placeholder="Manual Modal"
-                      value={manualData.Manual_No}
-                      onChange={handleManualChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  <select
-                    name="category"
-                    value={manualData.category}
-                    onChange={handleManualChange}
-                    required
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                  >
-                    <option value="" disabled>
-                      Select Category
-                    </option>
-                    <option value="Embroidery">Embroidery</option>
-                    <option value="Calender">Calender</option>
-                    <option value="Cutting">Cutting</option>
-                    <option value="Stones">Stones</option>
-                    <option value="Stitching">Stitching</option>
-                  </select>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-center mt-6">
-                  <button
-                    type="submit"
-                    className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      )}  
     </>
   );
 };

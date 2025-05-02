@@ -37,32 +37,8 @@ export const VA_HistoryModal = mongoose.model(
   historySchema
 );
 
-const AccountsSchema = new mongoose.Schema({
-  cashInMeezanBank: {
-    type: Number,
-    default: 0,
-  },
-  cashInJazzCash: {
-    type: Number,
-    default: 0,
-  },
-  cashInEasyPaisa: {
-    type: Number,
-    default: 0,
-  },
-  H_Meezan: {
-    type: Number,
-    default: 0,
-  },
-  A_Meezan: {
-    type: Number,
-    default: 0,
-  },
-  Bank_Al_Habib: {
-    type: Number,
-    default: 0,
-  },
-});
+const AccountsSchema = new mongoose.Schema({ }, { strict: false });
+
 
 export const VirtalAccountModal = mongoose.model(
   "Virtual Accounts",

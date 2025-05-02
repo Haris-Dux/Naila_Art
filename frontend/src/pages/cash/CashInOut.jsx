@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBranches } from "../../features/InStockSlice";
 import {
   cashInAsync,
   cashOutAsync,
@@ -11,11 +10,11 @@ import {
 } from "../../features/CashInOutSlice";
 import moment from "moment-timezone";
 import toast from "react-hot-toast";
-import { accountTypeData, PaymentData } from "../../Utils/AccountsData";
+import { accountTypeData } from "../../Utils/AccountsData";
 
 const CashInOut = () => {
   const dispatch = useDispatch();
-
+  const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [isOpen, setIsOpen] = useState(false);
   const [validatePartyName, setvalidatePartyName] = useState();
   const [selectedParty, setSelectedParty] = useState("");
@@ -46,6 +45,7 @@ const CashInOut = () => {
     payment_Method: "",
     note: "",
     accountCategory: user?.user?.role === "user" ? "Buyers" : "",
+    pastTransaction: false,
   });
 
   const handleInputChange = (e) => {
@@ -203,10 +203,11 @@ const CashInOut = () => {
       cash: "",
       date: today,
       payment_Method: "",
-      note:"",
+      note: "",
       branchId:
         user && user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
       accountCategory: user && user?.user?.role === "user" ? "Buyers" : "",
+      pastTransaction: false,
     });
   };
 
@@ -215,12 +216,6 @@ const CashInOut = () => {
     setSelectedBranchId(selectedBranch);
     dispatch(getTodayCashInOutAsync({ branchId }));
   };
-
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id }));
-    }
-  }, [dispatch, user]);
 
   useEffect(() => {
     if (Branches?.length > 0) {
@@ -251,6 +246,17 @@ const CashInOut = () => {
         return "";
     }
   };
+
+  const handlePastTransaction = (e) => {
+    const value = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      pastTransaction: value,
+    }));
+  };
+
+  console.log("isReadOnly", formData.pastTransaction);
+  console.log("date", formData.date);
 
   return (
     <>
@@ -513,15 +519,31 @@ const CashInOut = () => {
                 </div>
 
                 {/* DATE */}
-                <div>
+                <div className=" grid grid-cols-2 ">
                   <input
                     type="date"
+                    name="date"
                     placeholder="date"
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.date}
+                    onChange={handleInputChange}
                     required
-                    readOnly
+                    disabled={!formData.pastTransaction}
+                    readOnly={!formData.pastTransaction}
                   />
+                   {user?.user?.role === "superadmin" && (
+                  <div className="flex col-span-1 items-center my-auto justify-center space-x-2">
+                    <label className="text-sm font-bold">
+                      Past Transaction
+                    </label>
+                    <input
+                      type="checkbox"
+                      id="BillType"
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      onChange={handlePastTransaction}
+                    />
+                  </div>
+                )}
                 </div>
                 {/* NOTE */}
                 <div>
@@ -533,7 +555,6 @@ const CashInOut = () => {
                     value={formData.note}
                     onChange={handleInputChange}
                     required
-                    
                   />
                 </div>
               </div>
