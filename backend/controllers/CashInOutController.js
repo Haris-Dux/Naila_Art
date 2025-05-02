@@ -10,13 +10,10 @@ import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
 import { UserModel } from "../models/User.Model.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
 import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import { getTodayDate } from "../utils/Common.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -148,6 +145,7 @@ export const cashIn = async (req, res) => {
         date,
         accountCategory,
         note,
+        pastTransaction,
       } = req.body;
       if (
         !cash ||
@@ -156,7 +154,8 @@ export const cashIn = async (req, res) => {
         !date ||
         !branchId ||
         !accountCategory ||
-        !note
+        !note ||
+        pastTransaction === undefined 
       )
         throw new Error("All Fields Required");
 
@@ -187,32 +186,107 @@ export const cashIn = async (req, res) => {
           throw new Error("Unknown Account Category");
       }
 
-      if (!userDataToUpdate)
-        throw new Error("No Data Found With This Party Id");
+      if (!userDataToUpdate) throw new Error("No Data Found For This Party");
 
-      //DAILY SLAE UPDATE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: { $eq: date },
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      //DAILY SLAE UPDATE FOR CURRENT DATE
+      if (!pastTransaction) {
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId,
+          date: { $eq: date },
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+
+        const updatedSaleData = {
+          ...dailySaleForToday.saleData,
+          [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
+            cash),
+          totalSale: (dailySaleForToday.saleData.totalSale += cash),
+          ...(accountCategory === "Buyers" && {
+            todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit +=
+              cash),
+          }),
+        };
+
+        if (payment_Method === "cashSale") {
+          updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+            cash;
+        }
+
+        dailySaleForToday.saleData = updatedSaleData;
+        await dailySaleForToday.save({ session });
+
+        //UPDATING CASH IN
+        const todayCashInOut = await CashInOutModel.findOne({
+          branchId,
+          date: { $eq: date },
+        }).session(session);
+        if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
+        todayCashInOut.todayCashIn += cash;
+        await todayCashInOut.save({ session });
       }
 
-      const updatedSaleData = {
-        ...dailySaleForToday.saleData,
-        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += cash),
-        totalSale: (dailySaleForToday.saleData.totalSale += cash),
-        todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += cash),
-      };
+      //DAILY SALE UPDATE FOR PAST DATE
+      if (pastTransaction) {
+        const dailySaleForPastDate = await DailySaleModel.findOne({
+          branchId,
+          date: { $eq: date },
+        }).session(session);
+        if (!dailySaleForPastDate) {
+          throw new Error(`Daily sale record not found for ${date}`);
+        }
 
-      if (payment_Method === "cashSale") {
-        updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          cash;
+        const updatedSaleData = {
+          ...dailySaleForPastDate.saleData,
+          [payment_Method]: (dailySaleForPastDate.saleData[payment_Method] +=
+            cash),
+          totalSale: (dailySaleForPastDate.saleData.totalSale += cash),
+          ...(accountCategory === "Buyers" && {
+            todayBuyerCredit: (dailySaleForPastDate.saleData.todayBuyerCredit +=
+              cash),
+          }),
+        };
+
+        dailySaleForPastDate.saleData = updatedSaleData;
+        await dailySaleForPastDate.save({ session });
+
+        //GET DATES TO UPDATE
+        const startDate = moment(date, "YYYY-MM-DD");
+        const endDate = getTodayDate();
+        let datesToUpdate = [];
+        const current = startDate.clone();
+        while (current.isSameOrBefore(endDate)) {
+          datesToUpdate.push(current.format("YYYY-MM-DD"));
+          current.add(1, "day");
+        }
+
+        //LOOP THROUGH ALL DATES TILL TODAY TO UPDATE TOTAL CASH
+        if (payment_Method === "cashSale") {
+          for (const date of datesToUpdate) {
+            const dailySale = await DailySaleModel.findOne({
+              branchId,
+              date: { $eq: date },
+            }).session(session);
+            if (!dailySale) {
+              throw new Error(`Daily sale record not found for ${date}`);
+            }
+            dailySale.saleData.totalCash += cash;
+            await dailySale.save({ session });
+          }
+        }
+
+        //UPDATING CASH IN
+        for (const date of datesToUpdate) {
+          const cashInOut = await CashInOutModel.findOne({
+            branchId,
+            date: { $eq: date },
+          }).session(session);
+          if (!cashInOut) throw new Error(`Cash In Out Not Found For ${date}`);
+          cashInOut.todayCashIn += cash;
+          await cashInOut.save({ session });
+        }
       }
-
-      dailySaleForToday.saleData = updatedSaleData;
-      await dailySaleForToday.save({ session });
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -225,22 +299,24 @@ export const cashIn = async (req, res) => {
           note: `Cash In Transaction For : ${
             userDataToUpdate.partyName || userDataToUpdate.name
           }`,
+          ...(pastTransaction && {pastDate:date})
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-      };
+      }
 
-        //PUSH DATA FOR CASH BOOK
-            const dataForCashBook = {
-              pastTransaction:false,
-              branchId,
-              amount: cash,
-              tranSactionType:"Deposit",
-              transactionFrom:"Cash In",
-              partyName:userDataToUpdate.partyName || userDataToUpdate.name,
-              payment_Method,
-              session
-            };
-            await cashBookService.createCashBookEntry(dataForCashBook)
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: pastTransaction,
+        branchId,
+        amount: cash,
+        tranSactionType: "Deposit",
+        transactionFrom: "Cash In",
+        partyName: userDataToUpdate.partyName || userDataToUpdate.name,
+        payment_Method,
+        session,
+        ...(pastTransaction && {pastDate:date})
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       if (accountCategory !== "Buyers") {
         //SELLERS , PROCESS , PICTURES CASE
@@ -251,6 +327,7 @@ export const cashIn = async (req, res) => {
           userDataToUpdate.virtual_account.total_balance + cash;
         let new_status = "";
 
+        //ASSIGN ACCOUNT STATUS
         switch (true) {
           case new_total_balance === 0:
             new_status = "Paid";
@@ -278,7 +355,6 @@ export const cashIn = async (req, res) => {
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
-
         const credit_debit_history_details = {
           date,
           particular: `${payment_Method}/${note}`,
@@ -287,7 +363,6 @@ export const cashIn = async (req, res) => {
         };
 
         //UPDATING USER DATA IN DB
-
         userDataToUpdate.virtual_account = virtualAccountData;
         userDataToUpdate.credit_debit_history.push(
           credit_debit_history_details
@@ -306,6 +381,7 @@ export const cashIn = async (req, res) => {
           userDataToUpdate.virtual_account.total_balance - cash;
         let new_status = "";
 
+        //ASSIGN ACCOUNT STATUS
         switch (true) {
           case new_total_balance === 0:
             new_status = "Paid";
@@ -333,7 +409,6 @@ export const cashIn = async (req, res) => {
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
-
         const credit_debit_history_details = {
           date,
           particular: `${payment_Method}/${note}`,
@@ -342,7 +417,6 @@ export const cashIn = async (req, res) => {
         };
 
         //UPDATING USER DATA IN DB
-
         userDataToUpdate.virtual_account = virtualAccountData;
         userDataToUpdate.credit_debit_history.push(
           credit_debit_history_details
@@ -350,15 +424,6 @@ export const cashIn = async (req, res) => {
 
         await userDataToUpdate.save({ session });
       }
-
-      //UPDATING CASH IN
-      const todayCashInOut = await CashInOutModel.findOne({
-        branchId,
-        date: { $eq: date },
-      }).session(session);
-      if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
-      todayCashInOut.todayCashIn += cash;
-      await todayCashInOut.save({ session });
 
       //Sending Email
       const branch = await BranchModel.findById(branchId)
@@ -404,6 +469,7 @@ export const cashOut = async (req, res, next) => {
         date,
         accountCategory,
         note,
+        pastTransaction
       } = req.body;
       if (
         !cash ||
@@ -412,7 +478,8 @@ export const cashOut = async (req, res, next) => {
         !date ||
         !branchId ||
         !accountCategory ||
-        !note
+        !note ||
+         pastTransaction === undefined 
       )
         throw new Error("All Fields Required");
       //GETTING ACCOUNT CATEGORY DATA
@@ -442,8 +509,7 @@ export const cashOut = async (req, res, next) => {
           throw new Error("Unknown Account Category");
       }
 
-      if (!userDataToUpdate)
-        throw new Error("No Data Found With This Party Id");
+      if (!userDataToUpdate) throw new Error("No Data Found Found This Party");
 
       //DAILY SLAE UPDATE
       const dailySaleForToday = await DailySaleModel.findOne({
@@ -464,7 +530,6 @@ export const cashOut = async (req, res, next) => {
 
       await dailySaleForToday.save({ session });
 
-     
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
         const data = {
@@ -478,22 +543,20 @@ export const cashOut = async (req, res, next) => {
           }`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      }
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId,
+        amount: cash,
+        tranSactionType: "WithDraw",
+        transactionFrom: "Cash Out",
+        partyName: userDataToUpdate.partyName || userDataToUpdate.name,
+        payment_Method,
+        session,
       };
-
-        //PUSH DATA FOR CASH BOOK
-        const dataForCashBook = {
-          pastTransaction:false,
-          branchId,
-          amount: cash,
-          tranSactionType:"WithDraw",
-          transactionFrom:"Cash Out",
-          partyName:userDataToUpdate.partyName || userDataToUpdate.name,
-          payment_Method,
-          session
-        };
-        await cashBookService.createCashBookEntry(dataForCashBook)
-
-     
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       if (accountCategory === "Buyers") {
         //DATA FOR VIRTUAL ACCOUNT

@@ -37,7 +37,7 @@ const cashBookServiceSchema = new mongoose.Schema(
     },
     currentDate:{
         type:String,
-        required:[true,"Current date for transaction is required"]
+        default:null
     },
     transactionTime:{
         type: String,
