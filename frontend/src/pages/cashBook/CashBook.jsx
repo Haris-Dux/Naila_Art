@@ -227,7 +227,7 @@ const CashBook = () => {
                           {data.transactionTime}
                         </td>
                         <td className="px-6 text-center py-4">
-                          {data.currentDate}<span className="text-red-500">{data?.pastDate ? `/${data.pastDate}` : null }</span>
+                          {data?.currentDate } {data?.pastDate}
                         </td>
                         <td className="px-6 text-center py-4">
                           {data?.branchId?.branchName}
