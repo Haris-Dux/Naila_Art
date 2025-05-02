@@ -155,7 +155,7 @@ export const cashIn = async (req, res) => {
         !branchId ||
         !accountCategory ||
         !note ||
-        pastTransaction === undefined 
+        pastTransaction === undefined
       )
         throw new Error("All Fields Required");
 
@@ -298,7 +298,8 @@ export const cashIn = async (req, res) => {
           date,
           note: `Cash In Transaction For : ${
             userDataToUpdate.partyName || userDataToUpdate.name
-          }`
+          }`,
+          ...(pastTransaction && { pastDate: date }),
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -313,7 +314,7 @@ export const cashIn = async (req, res) => {
         partyName: userDataToUpdate.partyName || userDataToUpdate.name,
         payment_Method,
         session,
-        ...(pastTransaction && {pastDate:date})
+        ...(pastTransaction && { pastDate: date }),
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
 
@@ -468,7 +469,7 @@ export const cashOut = async (req, res, next) => {
         date,
         accountCategory,
         note,
-        pastTransaction
+        pastTransaction,
       } = req.body;
       if (
         !cash ||
@@ -478,7 +479,7 @@ export const cashOut = async (req, res, next) => {
         !branchId ||
         !accountCategory ||
         !note ||
-         pastTransaction === undefined 
+        pastTransaction === undefined
       )
         throw new Error("All Fields Required");
       //GETTING ACCOUNT CATEGORY DATA
@@ -510,24 +511,82 @@ export const cashOut = async (req, res, next) => {
 
       if (!userDataToUpdate) throw new Error("No Data Found Found This Party");
 
-      //DAILY SLAE UPDATE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: { $eq: date },
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      //DAILY SLAE UPDATE FOR CURRENT DATE
+      if (!pastTransaction) {
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId,
+          date: { $eq: date },
+        }).session(session);
+
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+
+        if (payment_Method === "cashSale") {
+          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
+            cash;
+        }
+
+        if (dailySaleForToday.totalCash < 0)
+          throw new Error("Not Enough Total Cash");
+
+        await dailySaleForToday.save({ session });
+
+        //UPDATING CASH IN OUT
+        const todayCashInOut = await CashInOutModel.findOne({
+          branchId,
+          date: { $eq: date },
+        }).session(session);
+        if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
+        todayCashInOut.todayCashOut += cash;
+        await todayCashInOut.save({ session });
       }
 
-      if (payment_Method === "cashSale") {
-        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
-          cash;
+      //DAILY SALE UPDATE FOR PAST DATE
+      if (pastTransaction) {
+
+        //GET DATES TO UPDATE
+        const startDate = moment(date, "YYYY-MM-DD");
+        const endDate = getTodayDate();
+        let datesToUpdate = [];
+        const current = startDate.clone();
+        while (current.isSameOrBefore(endDate)) {
+          datesToUpdate.push(current.format("YYYY-MM-DD"));
+          current.add(1, "day");
+        }
+
+        //LOOP THROUGH ALL DATES TILL TODAY TO UPDATE TOTAL CASH
+        if (payment_Method === "cashSale") {
+          for (const date of datesToUpdate) {
+            const dailySale = await DailySaleModel.findOne({
+              branchId,
+              date: { $eq: date },
+            }).session(session);
+            if (!dailySale) {
+              throw new Error(`Daily sale record not found for ${date}`);
+            }
+            dailySale.saleData.totalCash -= cash;
+            if (dailySale.saleData.totalCash < 0)
+              throw new Error(`Not Enough Total Cash For ${date}`);
+            await dailySale.save({ session });
+          }
+        }
+
+        //UPDATING CASH IN
+        for (const date of datesToUpdate) {
+          //UPDATING CASH IN OUT
+          const todayCashInOut = await CashInOutModel.findOne({
+            branchId,
+            date: { $eq: date },
+          }).session(session);
+          if (!todayCashInOut)
+            throw new Error("Cash In Out Not Found For Today");
+          todayCashInOut.todayCashOut += cash;
+          await todayCashInOut.save({ session });
+        }
       }
 
-      if (dailySaleForToday.totalCash < 0)
-        throw new Error("Not Enough Total Cash");
 
-      await dailySaleForToday.save({ session });
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -546,7 +605,7 @@ export const cashOut = async (req, res, next) => {
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: false,
+        pastTransaction: pastTransaction,
         branchId,
         amount: cash,
         tranSactionType: "WithDraw",
@@ -554,6 +613,7 @@ export const cashOut = async (req, res, next) => {
         partyName: userDataToUpdate.partyName || userDataToUpdate.name,
         payment_Method,
         session,
+        ...(pastTransaction && { pastDate: date }),
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
 
@@ -663,15 +723,6 @@ export const cashOut = async (req, res, next) => {
 
         await userDataToUpdate.save({ session });
       }
-
-      //UPDATING CASH IN OUT
-      const todayCashInOut = await CashInOutModel.findOne({
-        branchId,
-        date: { $eq: date },
-      }).session(session);
-      if (!todayCashInOut) throw new Error("Cash In Out Not Found For Today");
-      todayCashInOut.todayCashOut += cash;
-      await todayCashInOut.save({ session });
 
       //SEND EMAIL
       const branch = await BranchModel.findById(branchId)
