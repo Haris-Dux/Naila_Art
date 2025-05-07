@@ -65,7 +65,7 @@ export const addExpense = async (req, res, next) => {
         tranSactionType: "WithDraw",
         transactionFrom: "Expense",
         partyName: name,
-        payment_Method,
+        payment_Method: payment_Method ? payment_Method : "cashSale",
         session,
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
