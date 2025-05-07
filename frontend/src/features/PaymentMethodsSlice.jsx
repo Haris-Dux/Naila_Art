@@ -8,7 +8,7 @@ const getAllPaymentMetodsUrl =
   "/api/paymentMethods/getAllPaymentMethodsForSuperAdmin";
 const getAllPaymentMetodsForTransactionUrl =
   "/api/paymentMethods/getAllPaymentMethodsForTransaction";
-const updatePaymentMethodUrl = "/api/paymentMethods/updatePaymentMethod/";
+const updatePaymentMethodUrl = "/api/paymentMethods/updatePaymentMethod";
 
 // CREATE PAYMENT METHOD
 export const createPaymentMethodAsync = createAsyncThunk(
