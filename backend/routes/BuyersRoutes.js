@@ -4,11 +4,9 @@ import {
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
   generatePdfFunction,
-  generateReturnBillWithoutRecord,
   getBuyerBillHistoryForBranch,
   getBuyerById,
   getBuyersForBranch,
-  getReturnBillWithoutRecord,
   validateAndGetOldBuyerData,
   validateD_NoAndGetSuitData,
 } from "../controllers/BuyersController.js";
@@ -49,16 +47,5 @@ buyerRouter.post(
   verifyUser,
   markAsPaidForBuyers
 );
-buyerRouter.post(
-  "/generateReturnBillWithoutRecord",
-  verifyUser,
-  generateReturnBillWithoutRecord
-);
-buyerRouter.post(
-  "/getReturnBillWithoutRecord",
-  verifyUser,
-  getReturnBillWithoutRecord
-);
-
 
 export default buyerRouter;

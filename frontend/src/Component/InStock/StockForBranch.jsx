@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import "./Stock.css";
 import {
   GetAllStockForBranch,
   approveOrRejectStock,
+  getPendingStockForBranchAsync,
 } from "../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
@@ -17,9 +18,13 @@ const StockForBranch = () => {
   const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { suitStocks, GetSuitloading, SuitLoading, stockLoading } = useSelector(
-    (state) => state.InStock
-  );
+  const {
+    suitStocks,
+    GetSuitloading,
+    SuitLoading,
+    stockLoading,
+    pendingStock,
+  } = useSelector((state) => state.InStock);
 
   const { user } = useSelector((state) => state.auth);
 
@@ -27,11 +32,11 @@ const StockForBranch = () => {
     dispatch(
       GetAllStockForBranch({
         category: userSelectedCategory,
-        id: user?.user?.branchId,
         search,
         page,
       })
     );
+    dispatch(getPendingStockForBranchAsync());
   }, [page, dispatch]);
 
   const openModal = () => {
@@ -89,15 +94,6 @@ const StockForBranch = () => {
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
               i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
-            onClick={() =>
-              dispatch(
-                GetAllStockForBranch({
-                  category: userSelectedCategory,
-                  id: user?.user?.branchId,
-                  page: i,
-                })
-              )
-            }
           >
             {i}
           </Link>
@@ -143,33 +139,25 @@ const StockForBranch = () => {
 
     // check
     if (category === "all") {
-      dispatch(
-        GetAllStockForBranch({ search, page: 1, id: user?.user?.branchId })
-      );
+      dispatch(GetAllStockForBranch({ search, page: 1 }));
     } else if (search) {
       dispatch(
         GetAllStockForBranch({
           category,
           search,
           page: 1,
-          id: user?.user?.branchId,
         })
       );
     } else {
-      dispatch(
-        GetAllStockForBranch({ category, page: 1, id: user?.user?.branchId })
-      );
+      dispatch(GetAllStockForBranch({ category, page: 1 }));
     }
   };
 
-  const handleAccept = (record) => {
-    const { _id, parentItem } = record;
-
+  const handleAccept = () => {
+    const stockId = record;
     const payload = {
-      _id,
-      Item_Id: parentItem?.Item_Id,
-      status: "Received",
-      branchId: user?.user?.branchId,
+      stockId,
+      status: "Approved",
     };
 
     dispatch(approveOrRejectStock(payload))
@@ -177,11 +165,11 @@ const StockForBranch = () => {
         if (res.payload.success === true) {
           closeModal();
           closeConfirmationModal();
+    dispatch(getPendingStockForBranchAsync());
 
           dispatch(
             GetAllStockForBranch({
               category: userSelectedCategory,
-              id: user?.user?.branchId,
               search,
               page,
             })
@@ -193,14 +181,11 @@ const StockForBranch = () => {
       });
   };
 
-  const handleReject = (record) => {
-    const { _id, parentItem } = record;
-
+  const handleReject = () => {
+    const stockId = record;
     const payload = {
-      _id,
-      Item_Id: parentItem?.Item_Id,
-      status: "Returned",
-      branchId: user?.user?.branchId,
+      stockId,
+      status: "Rejected",
     };
 
     dispatch(approveOrRejectStock(payload))
@@ -208,11 +193,11 @@ const StockForBranch = () => {
         if (res.payload.success === true) {
           closeModal();
           closeRejectModal();
+    dispatch(getPendingStockForBranchAsync());
 
           dispatch(
             GetAllStockForBranch({
               category: userSelectedCategory,
-              id: user?.user?.branchId,
               search,
               page,
             })
@@ -224,15 +209,20 @@ const StockForBranch = () => {
       });
   };
 
-  let notificationCount = 0;
+  const setStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "yellow-400 ";
+      case "Approved":
+        return "green-500";
+      case "Returned":
+        return "red-500 ";
+      default:
+        return "gray-400";
+    }
+  };
 
-  suitStocks?.data?.forEach((item) => {
-    item?.all_records.forEach((record) => {
-      if (record.stock_status === "Pending") {
-        notificationCount++;
-      }
-    });
-  });
+  let notificationCount = pendingStock?.length;
 
   return (
     <>
@@ -346,7 +336,10 @@ const StockForBranch = () => {
                     Colors
                   </th>
                   <th className="px-6 text-center py-3" scope="col">
-                    Quantity
+                    Total Quantity
+                  </th>
+                  <th className="px-6 text-center py-3" scope="col">
+                    Sold Quantity
                   </th>
                   <th className="px-6 text-center py-3" scope="col">
                     Cost Prices
@@ -355,7 +348,7 @@ const StockForBranch = () => {
                     Sales Prices
                   </th>
                   <th className="px-6 py-4 text-center text-md" scope="col">
-                    date
+                    Last Updated
                   </th>
                 </tr>
               </thead>
@@ -374,7 +367,13 @@ const StockForBranch = () => {
                       </th>
                       <td className="px-6 text-center py-4">{data.category}</td>
                       <td className="px-6 text-center py-4">{data.color}</td>
-                      <td className="px-6 text-center py-4">{data.quantity}</td>
+                      <td className="px-6 text-center py-4">
+                        {data.total_quantity}
+                      </td>
+                      <td className="px-6 text-center py-4">
+                        {data.sold_quantity}
+                      </td>
+
                       <td className="px-6 text-center py-4">
                         {data.cost_price}
                       </td>
@@ -382,7 +381,7 @@ const StockForBranch = () => {
                         {data.sale_price}
                       </td>
                       <td className="px-6 text-center py-4">
-                        {data.last_updated ? data.last_updated : "--"}
+                        {data.lastUpdated}
                       </td>
                     </tr>
                   ))
@@ -502,7 +501,7 @@ const StockForBranch = () => {
           </nav>
         </section>
       ) : null}
-      {/* ---------- ADD SUIT MODALS ------------ */}
+      {/* ---------- PENDING STOCK MODALS ------------ */}
       {isOpen && (
         <div
           aria-hidden="true"
@@ -560,69 +559,91 @@ const StockForBranch = () => {
                       <th className="px-6 text-center py-3">Cost Price</th>
                       <th className="px-6 text-center py-3">Sale Price</th>
                       <th className="px-6 text-center py-3">Date</th>
-                      <th className="px-6 text-center py-3">Stock Status</th>
-                      <th className="px-6 py-3 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {suitStocks?.data
-                      ?.flatMap((item) =>
-                        item?.all_records.map((record) => ({
-                          ...record,
-                          parentItem: item,
-                        }))
-                      )
-                      .filter((record) => record.stock_status === "Pending")
-                      .map((record) => (
-                        <tr
-                          key={record._id}
-                          className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                          <td className="px-6 text-center py-4">
-                            {record.parentItem.category}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.parentItem.color}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.quantity}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.cost_price}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.sale_price}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.date}
-                          </td>
-                          <td className="px-6 text-center py-4">
-                            {record.stock_status}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={() => openConfirmationModal(record)}
-                              className="text-green-500 hover:bg-green-100 rounded-lg p-2"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={() => openRejectModal(record)}
-                              className="text-red-500 hover:bg-red-100 rounded-lg p-2 ml-2"
-                            >
-                              Reject
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    {suitStocks?.data
-                      ?.flatMap((item) => item?.all_records)
-                      .filter((record) => record?.stock_status === "Pending")
-                      .length === 0 && (
-                      <tr>
-                        <td colSpan="8" className="text-center py-4">
-                          No Pending Records
-                        </td>
+                    {pendingStock?.length > 0 ? (
+                      pendingStock.map((dataGroup, i) => (
+                        <React.Fragment key={`group-${i}`}>
+                          <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
+                            <td colSpan={8} className="px-6 py-4">
+                              Issue Date: {dataGroup.issueDate} | Status:{" "}
+                              <span
+                                className={`text-${setStatusColor(
+                                  dataGroup.bundleStatus
+                                )}`}
+                              >
+                                {dataGroup.bundleStatus}
+                              </span>{" "}
+                              {`| Note: ${dataGroup.note}`}
+                              <span className="mx-10">
+                                   <button
+                                        onClick={() =>
+                                          openConfirmationModal(dataGroup.id)
+                                        }
+                                        className="text-green-500 hover:bg-green-100 rounded-lg p-2"
+                                      >
+                                        Accept
+                                      </button>
+                                      <button
+                                        onClick={() => openRejectModal(dataGroup.id)}
+                                        className="text-red-500 hover:bg-red-100 rounded-lg p-2 ml-2"
+                                      >
+                                        Reject
+                                      </button>
+                              </span>
+                            
+                            </td>
+                          
+                          </tr>
+
+                          {dataGroup.bundles?.map(
+                            (bundleArray, bundleIndex) => (
+                              <React.Fragment
+                                key={`bundle-${i}-${bundleIndex}`}
+                              >
+                                {/* Bundle Index Row */}
+                                <tr className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white font-semibold">
+                                  <td colSpan={8} className="px-6 py-3">
+                                    Bundle {bundleIndex + 1}
+                                  </td>
+                                </tr>
+
+                                {bundleArray.map((item, itemIndex) => (
+                                  <tr
+                                    key={`item-${i}-${bundleIndex}-${itemIndex}`}
+                                    className="bg-white border-b text-md font-medium dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+                                  >
+                                    <th
+                                      className="px-6 py-4 font-medium"
+                                      scope="row"
+                                    >
+                                      {item.d_no}
+                                    </th>
+                                    <td className="px-6 py-4">
+                                      {item.category}
+                                    </td>
+                                    <td className="px-6 py-4">{item.color}</td>
+                                    <td className="px-6 py-4">
+                                      {item.quantity}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      {item.cost_price}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      {item.sale_price}
+                                    </td>
+                                    
+                                  </tr>
+                                ))}
+                              </React.Fragment>
+                            )
+                          )}
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <tr className="w-full flex justify-center items-center">
+                        <td className="text-xl mt-3">No Data Available</td>
                       </tr>
                     )}
                   </tbody>
@@ -660,7 +681,7 @@ const StockForBranch = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => handleAccept(record)}
+                  onClick={handleAccept}
                   className="px-4 py-2.5 text-sm rounded bg-green-600 dark:bg-gray-200 text-white dark:text-gray-800"
                 >
                   Approve
@@ -723,7 +744,7 @@ const StockForBranch = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => handleReject(record)}
+                  onClick={handleReject}
                   className="px-4 py-2.5 text-sm rounded bg-red-500 dark:bg-gray-200 text-white dark:text-gray-800"
                 >
                   Reject

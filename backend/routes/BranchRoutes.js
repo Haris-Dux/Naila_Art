@@ -8,6 +8,7 @@ import {
   getAllBranches,
   getAllBranchStockHistory,
   getAllSuitsStockForBranch,
+  getPendingStockForBranch,
   updateBranch,
 } from "../controllers/Branch.Controller.js";
 
@@ -22,5 +23,7 @@ branchRouter.post("/assignStockToBranch", superAdminOnly, assignStockToBranch);
 branchRouter.post("/getAllBranchStockHistory", superAdminOnly, getAllBranchStockHistory);
 branchRouter.post("/getAllSuitsStockForBranch", verifyUser, getAllSuitsStockForBranch);
 branchRouter.post("/approveOrRejectStock", verifyUser, approveOrRejectStock);
+branchRouter.post("/getPendingStockForBranch", verifyUser, getPendingStockForBranch);
+
 
 export default branchRouter;
