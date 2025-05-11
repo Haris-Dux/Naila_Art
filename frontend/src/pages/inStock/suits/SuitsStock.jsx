@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-// import { IoAdd } from "react-icons/io5";
 import {
   AddSuit,
   GetAllCategoriesForSuits,
@@ -50,7 +49,7 @@ const SuitsStock = () => {
     if (selectedSuits.some((item) => item._id === suit._id)) {
       updatedSelection = selectedSuits.filter((item) => item._id !== suit._id);
     } else {
-      updatedSelection = [...selectedSuits, suit];
+      updatedSelection = [...selectedSuits,{ ...suit,assignQuantity:0,all_records:null}];
     }
     setSelectedSuits(updatedSelection);
     localStorage.setItem("selectedSuits", JSON.stringify(updatedSelection));

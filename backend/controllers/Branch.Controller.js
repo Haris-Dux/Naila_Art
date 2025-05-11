@@ -5,7 +5,9 @@ import { SuitsModel } from "../models/Stock/Suits.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
-import { sendEmail } from "../utils/nodemailer.js";
+import { branchStockHistoryModel } from "../models/BranchStock/BranchStockHistoryModel.js";
+import { getTodayDate } from "../utils/Common.js";
+import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
 
 export const createBranch = async (req, res) => {
   try {
@@ -78,8 +80,9 @@ export const deleteBranch = async (req, res) => {
 export const getAllBranches = async (req, res) => {
   try {
     const branchId = req.branch_id;
-     const role = req.user_role
-    if (role !== "superadmin" && !branchId) throw new Error("Branch Id Required");
+    const role = req.user_role;
+    if (role !== "superadmin" && !branchId)
+      throw new Error("Branch Id Required");
     if (!role) throw new Error("User Role Not Found");
     let response;
     if (role === "superadmin") {
@@ -100,9 +103,9 @@ export const assignStockToBranch = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { branchId, stock_Details } = req.body;
-      const requiredFields = ["branchId", "stock_Details"];
-      const stockFields = [
+      const { branchId, bundles,note} = req.body;
+      const requiredFields = ["branchId", "bundles","note"];
+      const bundleFields = [
         "category",
         "color",
         "quantity",
@@ -110,7 +113,6 @@ export const assignStockToBranch = async (req, res) => {
         "sale_price",
         "d_no",
         "Item_Id",
-        "date",
       ];
       const missingFields = [];
 
@@ -118,89 +120,72 @@ export const assignStockToBranch = async (req, res) => {
       requiredFields.forEach((field) => {
         if (!req.body[field]) {
           missingFields.push(`${field}`);
-        } else if (field === "stock_Details" && req.body[field].length === 0) {
+        } else if (field === "bundles" && req.body[field].length === 0) {
           missingFields.push(`${field} Cannot be empty)`);
         }
       });
 
-      //CHECKING FOR STOCK DETAILS FIELDS
-      if (stock_Details && stock_Details.length > 0) {
-        stock_Details.forEach((obj, index) => {
-          const missingStockFields = [];
-          stockFields.forEach((item) => {
-            if (!obj[item]) {
-              missingStockFields.push(item);
-            }
-          });
-          if (missingStockFields.length > 0) {
-            missingFields.push(`${missingStockFields} for Item ${index + 1}`);
+      //CHECKING FOR BUNDLE DETAILS FIELDS
+      const structuredArray = bundles.flat();
+
+      structuredArray.forEach((obj, index) => {
+        const missingStockFields = [];
+        bundleFields.forEach((item) => {
+          if (!obj[item]) {
+            missingStockFields.push(item);
           }
         });
-      }
+        if (missingStockFields.length > 0) {
+          missingFields.push(
+            `${missingStockFields} for suit item ${index + 1}`
+          );
+        }
+      });
+
       if (missingFields.length > 0) {
         throw new Error(`Missing Fields ${missingFields}`);
       }
 
-      //ADDING STOCK IN BRANCH
-      const branch = await BranchModel.findById(branchId).session(session);
-      if (!branch) throw new Error("Branch Not Found");
+      //DEDUCTING SUITS FROM MAIN STOCK
+      const result = await SuitsModel.bulkWrite(
+        structuredArray.map((item) => ({
+          updateOne: {
+            filter: {
+              _id: item.Item_Id,
+              quantity: { $gte: item.quantity },
+            },
+            update: {
+              $inc: { quantity: -item.quantity },
+            },
+          },
+        })),
+        { session }
+      );
 
-      stock_Details.forEach((stock) => {
-        const {
-          Item_Id,
-          quantity,
-          cost_price,
-          sale_price,
-          date,
-          category,
-          color,
-          d_no,
-        } = stock;
-        const existingStock = branch.stockData.find((item) =>
-          item.Item_Id.equals(Item_Id)
-        );
-        const record_data = { date, quantity, cost_price, sale_price };
+      if (result.modifiedCount !== structuredArray.length) {
+        throw new Error("One or more items have insufficient stock.");
+      }
 
-        if (existingStock) {
-          existingStock.all_records.push(record_data);
-        } else {
-          branch.stockData.push({
-            d_no,
-            category,
-            color,
-            Item_Id,
-            all_records: [record_data],
-          });
-        }
+      //WRITING TO BRANCH STOCK HISTORY
+      await branchStockHistoryModel.create(
+        [
+          {
+            branchId: branchId,
+            issueDate: getTodayDate(),
+            note,
+            bundles,
+          },
+        ],
+        { session }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Stock updated for branch successfully",
       });
-
-      //DEDUCTING SUITS FROM STOCK
-      const suitsIdsToDeduct = stock_Details.map((suit) => suit.Item_Id);
-      const suitsStock = await SuitsModel.find({
-        _id: { $in: suitsIdsToDeduct },
-      }).session(session);
-      const updatePromises = suitsStock.map(async (suit) => {
-        const suitToUpdate = stock_Details.find(
-          (item) => item.Item_Id == suit._id
-        );
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
-        if (updatedSuitQuantity < 0)
-          throw new Error(
-            `Not enough stock For Design No: ${suit.d_no} Category: ${suit.category}`
-          );
-        suit.quantity = updatedSuitQuantity;
-        return suit.save({ session });
-      });
-
-      await Promise.all(updatePromises);
-      await branch.save({ session });
-
-      return res
-        .status(200)
-        .json({ success: true, message: "Stock Sent Successfully" });
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   } finally {
     session.endSession();
   }
@@ -208,56 +193,21 @@ export const assignStockToBranch = async (req, res) => {
 
 export const getAllBranchStockHistory = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required");
-    const branch = await BranchModel.findById(id);
-    if (!branch) throw new Error("Branch Not Found");
-
+    const branchId = req.query.branchId;
     const page = parseInt(req.query.page) || 1;
-    const limit = 30;
-    let search = parseInt(req.query.search) || "";
+    const limit = 50;
 
     let query = {};
-    if (search) {
-      query = { ...query, "stockData.d_no": search };
-    }
+    if (branchId) {
+      query.branchId = branchId;
+    };
 
-    const branchId = new mongoose.Types.ObjectId(id);
+    const data = await branchStockHistoryModel.find(query)
+    .skip((page - 1) * limit)
+    .sort({createdAt : -1})
+    .limit(limit)
 
-    const data = await BranchModel.aggregate([
-      { $match: { _id: branchId } },
-      { $unwind: "$stockData" },
-      { $unwind: "$stockData.all_records" },
-      { $match: query },
-      { $sort: { "stockData.all_records.date": -1 } },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-      {
-        $project: {
-          category: "$stockData.category",
-          color: "$stockData.color",
-          quantity: "$stockData.all_records.quantity",
-          cost_price: "$stockData.all_records.cost_price",
-          sale_price: "$stockData.all_records.sale_price",
-          date: "$stockData.all_records.date",
-          d_no: "$stockData.d_no",
-          stock_status: "$stockData.all_records.stock_status",
-        },
-      },
-    ]);
-    let total = 0;
-    if (search) {
-      branch?.stockData?.forEach((item) => {
-        if (item.d_no === search) {
-          total += item.all_records.length;
-        }
-      });
-    } else {
-      total = branch?.stockData?.reduce(
-        (inc, item) => inc + item.all_records.length,
-        0
-      );
-    }
+    const total = await branchStockHistoryModel.countDocuments(query);
 
     setMongoose();
 
@@ -275,104 +225,37 @@ export const getAllBranchStockHistory = async (req, res) => {
 
 export const getAllSuitsStockForBranch = async (req, res, next) => {
   try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required");
-    const branch = await BranchModel.findById(id);
-    if (!branch) throw new Error("Branch Not Found");
-
+    
+    const branchId = req.branch_id;
+    if (!branchId) throw new Error("Branch Id Required");
     const page = parseInt(req.query.page) || 1;
-    const limit = 30;
-    let search = parseInt(req.query.search) || "";
+    let d_no = parseInt(req.query.search) || "";
     let category = req.query.category || "";
+    const limit = 50;
 
     let query = {};
-    if (search) {
-      query = { ...query, "stockData.d_no": search };
-    }
+    if (d_no) {
+      query = { ...query, d_no };
+    };
 
     if (category) {
-      query = { ...query, "stockData.category": category };
-    }
-
-    const branchId = new mongoose.Types.ObjectId(id);
-
-    //CALCULATE TOTAL QUANTITY FOR DESIGN NO
-    const totalQuantity = await BranchModel.aggregate([
-      {
-        $match: { _id: branchId },
-      },
-      {
-        $unwind: "$stockData",
-      },
-      {
-        $group: {
-          _id: "$stockData.d_no",
-          totalQuantity: { $sum: "$stockData.quantity" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          d_no: "$_id",
-          totalQuantity: 1,
-        },
-      },
-    ]);
-
-    //GETTING CATEGORY NAMES
-    const categoryNames = Array.from(
-      new Set(branch?.stockData.map((item) => item.category))
-    );
-
-    const result = await BranchModel.aggregate([
-      { $match: { _id: branchId } },
-      { $unwind: "$stockData" },
-      { $match: query },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-      { $sort: { "stockData.createdAt": -1 } },
-      {
-        $project: {
-          _id: 0,
-          id: "$stockData._id",
-          category: "$stockData.category",
-          color: "$stockData.color",
-          quantity: "$stockData.quantity",
-          cost_price: "$stockData.cost_price",
-          sale_price: "$stockData.sale_price",
-          d_no: "$stockData.d_no",
-          Item_Id: "$stockData.Item_Id",
-          last_updated: "$stockData.last_updated",
-          stock_status: "$stockData.stock_status",
-          all_records: "$stockData.all_records",
-        },
-      },
-    ]);
-
-    
-    let total = 0;
-    if (search) {
-      total = result.length;
-    } else {
-      total = branch.stockData.length;
+      query = { ...query, category };
     };
+
+    const total = await branchStockModel.countDocuments(query);
+    const data = await branchStockModel.find(query)
+    .skip((page - 1) * limit)
+    .sort({createdAt : -1})
+    .limit(limit)
+
+    const categoryNames = await branchStockModel.distinct('category')
     
-    // Merge total quantity into the result
-    const data = result.map((suit) => {
-      const requiredObj = totalQuantity.find((item) => item.d_no === suit.d_no);
-      return {
-        ...suit,
-        TotalQuantity: requiredObj ? requiredObj.totalQuantity : 0,
-      };
-    });
-
     setMongoose();
-
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
-      categoryNames,
       data,
+      categoryNames
     };
 
     return res.status(200).json(response);
@@ -383,60 +266,80 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
 
 export const approveOrRejectStock = async (req, res) => {
   try {
-    const { _id, Item_Id, status, branchId } = req.body;
-    if (!_id || !Item_Id || !status || !branchId)
-      throw new Error("All Fields Required");
-    const branch = await BranchModel.findById(branchId);
-    if (!branch) throw new Error("Branch Not Found");
+    const { stockId, status } = req.body;
+    if (
+      !stockId ||
+      (!status && (status !== "Approved" || status !== "Rejected"))
+    )
+      throw new Error("Invalid Fields");
 
-    const stockItem = branch.stockData.find((item) =>
-      item.all_records.some((record) => record._id.equals(_id))
-    );
-    if (!stockItem) throw new Error("stockItem To Update Not Found");
-    const stockToUpdate = stockItem.all_records.find((record) =>
-      record._id.equals(_id)
-    );
-    if (!stockToUpdate) throw new Error("stockToUpdate Not Found");
-
-    //UPDATING STATUS AND STOCK
-    stockToUpdate.stock_status = status;
-    let MainStock = {};
-    if (status === "Received") {
-      MainStock = branch.stockData.find((item) => item.Item_Id.equals(Item_Id));
-      if (!MainStock) throw new Error("MainStock To Update Not Found");
-      MainStock.quantity += stockToUpdate.quantity;
-      MainStock.cost_price = stockToUpdate.cost_price;
-      MainStock.sale_price = stockToUpdate.sale_price;
-      MainStock.last_updated = stockToUpdate.date;
-    } else if (status === "Returned") {
-      MainStock = branch.stockData.find((item) => item.Item_Id.equals(Item_Id));
-      const suitToUpdate = await SuitsModel.findById(Item_Id);
-      if (suitToUpdate) {
-        suitToUpdate.quantity += stockToUpdate.quantity;
-        await suitToUpdate.save();
-      } else throw new Error("Suit Stock Not Found");
+    const pendingtockData = await branchStockHistoryModel.findById(stockId);
+    if (!pendingtockData) throw new Error("No pending stock found");
+    if (pendingtockData.bundleStatus !== "Pending")
+      throw new Error("Error updating stock.Stock is not pending");
+    const bundles = pendingtockData.bundles;
+    const structuredArray = bundles.flat();
+    if (status === "Approved") {
+      structuredArray.forEach(async (suit) => {
+        const branchsuitStock = await branchStockModel.findOne({
+          main_stock_Id: suit.Item_Id,
+          branchId: pendingtockData.branchId,
+        });
+        if (branchsuitStock) {
+          branchsuitStock.total_quantity += suit.quantity;
+          branchsuitStock.lastUpdated = getTodayDate();
+          branchsuitStock.cost_price = suit.cost_price;
+          branchsuitStock.sale_price = suit.sale_price;
+          await branchsuitStock.save();
+        } else if (!branchsuitStock) {
+          await branchStockModel.create({
+            branchId: pendingtockData.branchId,
+            lastUpdated: getTodayDate(),
+            category: suit.category,
+            color: suit.color,
+            total_quantity: suit.quantity,
+            cost_price: suit.cost_price,
+            sale_price: suit.sale_price,
+            d_no: suit.d_no,
+            main_stock_Id: suit.Item_Id,
+          });
+        }
+      });
+      pendingtockData.bundleStatus = "Approved";
+      await pendingtockData.save();
+    } else if (status === "Rejected") {
+      await SuitsModel.bulkWrite(
+        structuredArray.map((item) => ({
+          updateOne: {
+            filter: {
+              _id: item.Item_Id,
+            },
+            update: {
+              $inc: { quantity: item.quantity },
+            },
+          },
+        }))
+      );
+      pendingtockData.bundleStatus = "Rejected";
+      pendingtockData.updatedOn = getTodayDate();
+      await pendingtockData.save();
     }
-    await branch.save();
-    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-    const StockEmailData = {
-      send_date: stockToUpdate.date,
-      recieveDate: today,
-      d_no: MainStock.d_no,
-      category: MainStock.category,
-      color: MainStock.color,
-      quantity: stockToUpdate.quantity,
-      branchName: branch.branchName,
-      stockStatus: status,
-    };
-    await sendEmail({
-      email: "offical@nailaarts.com",
-      email_Type: "Stock Update",
-      StockEmailData,
-    });
+
     return res
       .status(200)
       .json({ success: true, message: "Stock Updated Successfully" });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
+
+export const getPendingStockForBranch = async (req,res) => {
+  try {
+    const branchId = req.branch_id;
+    const data = await branchStockHistoryModel.find({branchId:branchId,bundleStatus:"Pending"});
+    return res.status(200).json(data);
+  } catch (error) {
+        return res.status(400).json({ error: error.message });
+
+  }
+}

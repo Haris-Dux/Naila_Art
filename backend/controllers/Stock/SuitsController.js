@@ -55,9 +55,10 @@ export const addSuitsInStock = async (req, res, next) => {
 export const getAllSuits = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 30;
+    const limit = 50;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
+    let sorting = req.query.sorting ;
 
     let query = {};
     if (search) {
@@ -88,7 +89,7 @@ export const getAllSuits = async (req, res, next) => {
     const result = await SuitsModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ quantity: -1, createdAt: -1});
 
     const total = await SuitsModel.countDocuments(query);
 

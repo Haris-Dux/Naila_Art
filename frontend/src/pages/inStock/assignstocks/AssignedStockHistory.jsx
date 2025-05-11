@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -10,32 +10,28 @@ const AssignedStockHistory = () => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   const { StockHistoryLoading, StockHistory, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches({ id: user?.user?.id })).then((response) => {
-        if (response?.payload?.length > 0) {
-          const initialBranchId = response.payload[0]?.id;
-          setSelectedBranch(initialBranchId);
-        }
-      });
-    }
-  }, [user, dispatch]);
+    dispatch(GetAllBranches()).then((response) => {
+      if (response?.payload?.length > 0) {
+        const initialBranchId = response.payload[0]?.id;
+        setSelectedBranch(initialBranchId);
+      }
+    });
+  }, [dispatch]);
 
   useEffect(() => {
     if (Branches.length > 0 && selectedBranch) {
       dispatch(
-        AllBranchStockHistoryAsync({ id: selectedBranch, search, page })
+        AllBranchStockHistoryAsync({ branchId: selectedBranch, page })
       );
     }
-  }, [page, dispatch, Branches, selectedBranch]);
+  }, [page,dispatch, Branches]);
 
   const renderPaginationLinks = () => {
     const totalPages = StockHistory?.totalPages;
@@ -48,7 +44,6 @@ const AssignedStockHistory = () => {
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
               i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
-            onClick={() => dispatch(AllBranchStockHistoryAsync({ page: i }))}
           >
             {i}
           </Link>
@@ -65,37 +60,16 @@ const AssignedStockHistory = () => {
     });
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-
-    const payload = {
-      id: selectedBranch,
-      page: 1,
-      search: value ,
-    };
-
-    dispatch(AllBranchStockHistoryAsync(payload));
-  };
-
   const handleBranchClick = (branch) => {
     setSelectedBranch(branch);
-
-    // check
-    if (branch) {
-      dispatch(AllBranchStockHistoryAsync({ id: branch, search, page: 1 }));
-    } else if (search) {
-      dispatch(AllBranchStockHistoryAsync({ id: branch, search, page: 1 }));
-    } else {
-      dispatch(AllBranchStockHistoryAsync({ id: branch, page: 1 }));
-    }
+      dispatch(AllBranchStockHistoryAsync({ branchId: branch, page: 1 }));
   };
 
   const setStatusColor = (status) => {
     switch (status) {
       case "Pending":
         return "yellow-400 ";
-      case "Received":
+      case "Approved":
         return "green-500";
       case "Returned":
         return "red-500 ";
@@ -112,69 +86,41 @@ const AssignedStockHistory = () => {
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Branch Stock History
           </h1>
-
-          {/* <!-- search bar --> */}
-          <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by Design No"
-                value={search}
-                onChange={handleSearch}
-              />
-            </div>
-          </div>
         </div>
         <p className="w-full bg-gray-300 h-px mt-5"></p>
         {/* -------------- TABS -------------- */}
-        {StockHistoryLoading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
+
+        <>
+          <div className="tabs my-5">
+            <div className="tabs_button flex justify-start items-center flex-wrap gap-4">
+              {Branches?.map((branch) => (
+                <Link
+                  key={branch.id}
+                  className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 text-sm rounded-md ${
+                    selectedBranch === branch.id
+                      ? "bg-[#252525] text-white dark:bg-white dark:text-black"
+                      : ""
+                  }`}
+                  onClick={() => handleBranchClick(branch.id)}
+                  to={`/dashboard/AssignedStockHistory?page=${1}`}
+                >
+                  {branch.branchName}
+                </Link>
+              ))}
             </div>
           </div>
-        ) : (
-          <>
-            <div className="tabs my-5">
-              <div className="tabs_button flex justify-start items-center flex-wrap gap-4">
-                {Branches?.map((branch) => (
-                  <Link
-                    key={branch.id}
-                    className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 text-sm rounded-md ${
-                      selectedBranch === branch.id
-                        ? "bg-[#252525] text-white dark:bg-white dark:text-black"
-                        : ""
-                    }`}
-                    onClick={() => handleBranchClick(branch.id)}
-                    to={`/dashboard/AssignedStockHistory?page=${1}`}
-                  >
-                    {branch.branchName}
-                  </Link>
-                ))}
+
+          {StockHistoryLoading ? (
+            <div className="pt-16 flex justify-center mt-12 items-center">
+              <div
+                className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                role="status"
+                aria-label="loading"
+              >
+                <span className="sr-only">Loading...</span>
               </div>
             </div>
-
+          ) : (
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -197,38 +143,57 @@ const AssignedStockHistory = () => {
                     <th className="px-6 py-3" scope="col">
                       Sales Price
                     </th>
-                    <th className="px-6 py-3" scope="col">
-                      Date
-                    </th>
-                    <th className="px-6 py-3" scope="col">
-                      Status
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {StockHistory && StockHistory?.data?.length > 0 ? (
-                    StockHistory?.data?.map((data, index) => (
-                      <tr
-                        key={index}
-                        className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                      >
-                        <th className="px-6 py-4  font-medium" scope="row">
-                          {data.d_no}
-                        </th>
-                        <td className="px-6 py-4">{data.category}</td>
-                        <td className="px-6 py-4">{data.color}</td>
-                        <td className="px-6 py-4">{data.quantity}</td>
-                        <td className="px-6 py-4">{data.cost_price}</td>
-                        <td className="px-6 py-4">{data.sale_price}</td>
-                        <td className="px-6 py-4">{data.date}</td>
-                        <td
-                          className={`px-6 py-4 text-${setStatusColor(
-                            data.stock_status
-                          )}`}
-                        >
-                          {data.stock_status}
-                        </td>
-                      </tr>
+                  {StockHistory?.data?.length > 0 ? (
+                    StockHistory.data.map((dataGroup, i) => (
+                      <React.Fragment key={`group-${i}`}>
+                        <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
+                          <td colSpan={8} className="px-6 py-4">
+                            Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
+                            {dataGroup.updatedOn} | Status:{" "}
+                            <span
+                              className={`text-${setStatusColor(
+                                dataGroup.bundleStatus
+                              )}`}
+                            >
+                              {dataGroup.bundleStatus}
+                            </span>{" "}
+                            {`| Note: ${dataGroup.note}`}
+                          </td>
+                        </tr>
+
+                        {dataGroup.bundles?.map((bundleArray, bundleIndex) => (
+                          <React.Fragment key={`bundle-${i}-${bundleIndex}`}>
+                            {/* Bundle Index Row */}
+                            <tr className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white font-semibold">
+                              <td colSpan={8} className="px-6 py-3">
+                                Bundle {bundleIndex + 1}
+                              </td>
+                            </tr>
+
+                            {bundleArray.map((item, itemIndex) => (
+                              <tr
+                                key={`item-${i}-${bundleIndex}-${itemIndex}`}
+                                className="bg-white border-b text-md font-medium dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+                              >
+                                <th
+                                  className="px-6 py-4 font-medium"
+                                  scope="row"
+                                >
+                                  {item.d_no}
+                                </th>
+                                <td className="px-6 py-4">{item.category}</td>
+                                <td className="px-6 py-4">{item.color}</td>
+                                <td className="px-6 py-4">{item.quantity}</td>
+                                <td className="px-6 py-4">{item.cost_price}</td>
+                                <td className="px-6 py-4">{item.sale_price}</td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
                     ))
                   ) : (
                     <tr className="w-full flex justify-center items-center">
@@ -238,9 +203,8 @@ const AssignedStockHistory = () => {
                 </tbody>
               </table>
             </div>
-          </>
-        )}
-        
+          )}
+        </>
       </section>
 
       {/* -------- PAGINATION -------- */}

@@ -4,8 +4,7 @@ import { BagsAndBoxModel } from "../models/Stock/BagsAndBoxModel.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import {
   BuyersBillsModel,
-  BuyersModel,
-  W_R_R_BillModel,
+  BuyersModel
 } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
@@ -961,135 +960,6 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     };
     const totalDocuments = await BuyersBillsModel.countDocuments(query);
     const data = await BuyersBillsModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const response = {
-      data,
-      page,
-      totalPages: Math.ceil(totalDocuments / limit),
-    };
-    setMongoose();
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const generateReturnBillWithoutRecord = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      const {
-        cash,
-        name,
-        phone,
-        category,
-        color,
-        quantity,
-        branchId,
-        payment_Method,
-        date,
-        note,
-      } = req.body;
-      if (
-        !cash ||
-        !payment_Method ||
-        !date ||
-        !branchId ||
-        !name ||
-        !color ||
-        !quantity ||
-        !phone ||
-        !category ||
-        !note
-      )
-        throw new Error("All Fields Required");
-
-      //DAILY SLAE UPDATE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: date,
-      }).session(session);
-
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
-      }
-
-      // DEDUCTING CASH
-      dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
-        cash;
-
-      if (dailySaleForToday.totalCash < 0)
-        throw new Error("Not Enough Total Cash");
-
-      await dailySaleForToday.save({ session });
-
-      //SAVE BILL
-      await W_R_R_BillModel.create(
-        [
-          {
-            cash,
-            name,
-            phone,
-            date,
-            payment_Method,
-            category,
-            color,
-            quantity,
-            branchId,
-            note,
-          },
-        ],
-        { session }
-      );
-
-      //SEND EMAIL
-      const branch = await BranchModel.findById(branchId)
-        .select("branchName")
-        .session(session);
-      const W_R_R_Bill = {
-        branchName: branch.branchName,
-        name: name,
-        phone: phone,
-        amount: cash,
-        date: date,
-        payment_Method: "Cash",
-        category,
-        color,
-        quantity,
-      };
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        email_Type: "Without Record Return Bill",
-        W_R_R_Bill,
-      });
-
-      return res
-        .status(200)
-        .json({ success: true, message: "Return Bill Generated Successfully" });
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  } finally {
-    session.endSession();
-  }
-};
-
-export const getReturnBillWithoutRecord = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required");
-    const name = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 30;
-
-    let query = {
-      branchId: id,
-      name: { $regex: name, $options: "i" },
-    };
-    const totalDocuments = await W_R_R_BillModel.countDocuments(query);
-    const data = await W_R_R_BillModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
