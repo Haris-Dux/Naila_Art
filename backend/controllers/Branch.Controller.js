@@ -245,7 +245,7 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
     const total = await branchStockModel.countDocuments(query);
     const data = await branchStockModel.find(query)
     .skip((page - 1) * limit)
-    .sort({total_quantity:-1, createdAt : -1})
+    .sort({total_quantity: -1})
     .limit(limit)
 
     const categoryNames = await branchStockModel.distinct('category')
