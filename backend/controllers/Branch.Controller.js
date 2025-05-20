@@ -278,19 +278,66 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
     }
 
     const total = await branchStockModel.countDocuments(query);
-    const data = await branchStockModel.find(query)
-    .skip((page - 1) * limit)
-    .sort({total_quantity: -1})
-    .limit(limit)
+    const result = await branchStockModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .sort({ total_quantity: -1 })
+      .limit(limit);
 
-    const categoryNames = await branchStockModel.distinct('category')
-    
+    const aggregatedData = await branchStockModel.aggregate([
+      {
+        $match: {
+          branchId: branchId,
+        },
+      },
+      {
+        $facet: {
+          d_no_quantity: [
+            {
+              $group: {
+                _id: "$d_no",
+                quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+          category_data: [
+            {
+              $group: {
+                _id: "$category",
+                quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+          total_stock: [
+            {
+              $group: {
+                _id: null,
+                total_quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const mergedDataWithD_No = result.map((suit) => {
+      const plainObject = suit.toObject();
+      const data = aggregatedData[0].d_no_quantity.find(
+        (item) => item._id === plainObject.d_no
+      );
+      return {
+        ...plainObject,
+        total_dno_quantity: data?.quantity,
+      };
+    });
+
     setMongoose();
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
-      data,
-      categoryNames
+      data: mergedDataWithD_No,
+      category_data: aggregatedData[0].category_data,
+      total_stock: aggregatedData[0].total_stock[0].total_quantity,
     };
 
     return res.status(200).json(response);
