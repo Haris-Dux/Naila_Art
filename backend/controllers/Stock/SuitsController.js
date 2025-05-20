@@ -58,7 +58,6 @@ export const getAllSuits = async (req, res, next) => {
     const limit = 50;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
-    let sorting = req.query.sorting ;
 
     let query = {};
     if (search) {
