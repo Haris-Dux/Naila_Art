@@ -13,6 +13,7 @@ import { sendEmail } from "../utils/nodemailer.js";
 import moment from "moment-timezone";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -103,21 +104,25 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = branch.stockData.filter((mainStock) =>
-        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
-      );
+      const suitsStock = await branchStockModel.find({_id:suitsIdsToDeduct});
       if (!suitsStock.length) throw new Error("No suitsStock found");
-      suitsStock.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
+       const bulkOps = suitsStock.map((suit) => {
+        const suitToUpdate = suits_data.find((item) => item.id == suit._id);
+        const updatedSuitQuantity = suit.total_quantity - suitToUpdate.quantity;
+        const updatedSoldQuantity = suit.sold_quantity + suitToUpdate.quantity;
         if (updatedSuitQuantity < 0)
           throw new Error(
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
-        suit.quantity = updatedSuitQuantity;
-        return suit;
+        return {
+          updateOne : {
+            filter: {_id:suit._id},
+            update : { $set : {total_quantity : updatedSuitQuantity,sold_quantity:updatedSoldQuantity}}
+          }
+        }
       });
-      await branch.save({ session });
+
+      await branchStockModel.bulkWrite(bulkOps, {session})
 
       //CHECK FUTURE DATE
       const isFutureDate = moment
@@ -220,7 +225,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       let TotalProfit = 0;
       let profitDataForHistory = [];
       suits_data.forEach((suit) => {
-        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
+        const suitInStock = suitsStock.find((item) => item._id == suit.id);
         const profitOnSale = suit.price - suitInStock.cost_price;
         profitDataForHistory.push({
           d_no: suit.d_no,
@@ -384,6 +389,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             paid,
             remaining,
             TotalProfit,
+            payment_Method,
+            city,
             profitDataForHistory,
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
@@ -512,20 +519,25 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = branch.stockData.filter((mainStock) =>
-        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
-      );
-      suitsStock.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
+      const suitsStock = await branchStockModel.find({_id:suitsIdsToDeduct});
+      if (!suitsStock.length) throw new Error("No suitsStock found");
+       const bulkOps = suitsStock.map((suit) => {
+        const suitToUpdate = suits_data.find((item) => item.id == suit._id);
+        const updatedSuitQuantity = suit.total_quantity - suitToUpdate.quantity;
+        const updatedSoldQuantity = suit.sold_quantity + suitToUpdate.quantity;
         if (updatedSuitQuantity < 0)
           throw new Error(
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
-        suit.quantity = updatedSuitQuantity;
-        return suit;
+        return {
+          updateOne : {
+            filter: {_id:suit._id},
+            update : { $set : {total_quantity : updatedSuitQuantity,sold_quantity:updatedSoldQuantity} }
+          }
+        }
       });
-      await branch.save({ session });
+
+      await branchStockModel.bulkWrite(bulkOps, {session})
 
       //CHECK FUTURE DATE
       const isFutureDate = moment
@@ -627,7 +639,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       let TotalProfit = 0;
       let profitDataForHistory = [];
       suits_data.forEach((suit) => {
-        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
+        const suitInStock = suitsStock.find((item) => item._id == suit.id);
         const profitOnSale = suit.price - suitInStock.cost_price;
         profitDataForHistory.push({
           d_no: suit.d_no,
@@ -793,6 +805,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             paid,
             remaining,
             TotalProfit,
+            payment_Method,
+            city,
             profitDataForHistory,
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
@@ -948,16 +962,17 @@ export const generatePdfFunction = async (req, res, next) => {
 
 export const getBuyerBillHistoryForBranch = async (req, res, next) => {
   try {
-    const { id } = req.body;
+    const id  = req.query.id;
     if (!id) throw new Error("Branch Id Required");
     const name = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 50;
 
     let query = {
       branchId: id,
       name: { $regex: name, $options: "i" },
     };
+
     const totalDocuments = await BuyersBillsModel.countDocuments(query);
     const data = await BuyersBillsModel.find(query)
       .skip((page - 1) * limit)

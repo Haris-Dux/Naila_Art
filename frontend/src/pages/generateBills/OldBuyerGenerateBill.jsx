@@ -13,6 +13,8 @@ import PreviewBill from "./PreviewBill";
 import { getBuyerByIdAsync } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
 import Select from "react-select";
+import { getSuitsStockToGenerateBillAsync } from "../../features/BuyerSlice";
+
 
 const OldBuyerGenerateBill = () => {
   const dispatch = useDispatch();
@@ -27,7 +29,7 @@ const OldBuyerGenerateBill = () => {
   const { BuyerById } = useSelector((state) => state.Buyer);
   const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-
+  const { StockToGenerateBill } = useSelector((state) => state?.Buyer);
   const [otherBillData, setOtherBillData] = useState({
     o_b_quantity: "",
     o_b_amount: "",
@@ -81,15 +83,15 @@ const OldBuyerGenerateBill = () => {
     }
   }, [dispatch, id]);
 
-  useEffect(() => {
-    if (user?.user?.id) {
-      dispatch(GetAllBranches()).then((res) => {
-        if (user?.user?.role !== "superadmin") {
-          setBranchStockData(res?.payload[0]?.stockData);
-        }
-      });
+ useEffect(() => {
+    dispatch(getSuitsStockToGenerateBillAsync()).then((res) => {
+    if(user?.user?.role !== "superadmin") {
+      setBranchStockData(res?.payload)
     }
-  }, [dispatch, user]);
+    })
+    dispatch(GetAllBags());
+
+  }, [user]);
 
   console.log("branchStockData", branchStockData);
 
@@ -195,11 +197,18 @@ const OldBuyerGenerateBill = () => {
     setBillData((prevState) => ({
       ...prevState,
       branchId: value,
+      suits_data: [{ id: "", quantity: "", d_no: "", color: "", price: "" }],
+      other_Bill_Data: {},
     }));
-    const data =
-      Branches.find((branch) => {
-        return branch.id === value;
-      }).stockData || [];
+    setOtherBillData({
+    o_b_quantity: "",
+    o_b_amount: "",
+    o_b_note: "",
+    show: false,
+  })
+    const data = StockToGenerateBill.filter((branch) => {
+      return branch.branchId === value;
+    });
     setBranchStockData(data);
   };
 
@@ -255,7 +264,7 @@ const OldBuyerGenerateBill = () => {
     );
     // Extract colors from the filtered items
     const colors = DataFromDesignNumber.map(
-      (item) => `${item.color} (${item.quantity})`
+      (item) => `${item.color} (${item.total_quantity})`
     );
 
     // Update color options for this specific row
@@ -267,8 +276,6 @@ const OldBuyerGenerateBill = () => {
 
     setBillData({ ...billData, suits_data: newSuitsData });
   };
-
-  console.log("billData.suits_data", billData.suits_data);
 
   const handleColorChange = (index, e) => {
     const selectedColor = e.target.value;
@@ -282,7 +289,7 @@ const OldBuyerGenerateBill = () => {
     setBillData((prevState) => {
       const updatedSuitsData = [...prevState.suits_data];
       updatedSuitsData[index].color = selectedColor;
-      updatedSuitsData[index].id = selectedDesign?.Item_Id;
+      updatedSuitsData[index].id = selectedDesign?.id;
 
       return {
         ...prevState,

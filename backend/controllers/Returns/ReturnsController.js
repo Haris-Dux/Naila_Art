@@ -4,6 +4,8 @@ import { BuyersBillsModel, BuyersModel } from "../../models/BuyersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ReturnSuitModel } from "../../models/Returns/ReturnModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel.js";
+import { cashBookService } from "../../services/CashbookService.js";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -25,6 +27,7 @@ export const createReturn = async (req, res, next) => {
         suits_data,
         method,
       } = req.body;
+
       const requiredFields = [
         "branchId",
         "buyerId",
@@ -77,22 +80,28 @@ export const createReturn = async (req, res, next) => {
       }
 
       if (Amount_Payable > 0 && method === "default-account") {
-        throw new Error("Please Select a Valid Method");
+        throw new Error("Please Select a Valid Method for amount");
       }
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
-      const branch = await BranchModel.findById(branchId).session(session);
-      const suitsIds = suits_data.map((suit) => suit.id);
-      const suitsStockToUpdate = branch.stockData.filter((mainStock) =>
-        suitsIds.some((id) => mainStock.Item_Id.equals(id))
+      const updateBranchStock = await branchStockModel.bulkWrite(
+        suits_data.map((suit) => ({
+          updateOne: {
+            filter: { _id: suit.id },
+            update: {
+              $inc: {
+                total_quantity: suit.quantity,
+                sold_quantity: -suit.quantity,
+              },
+            },
+          },
+        })),
+        { session }
       );
-      suitsStockToUpdate.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity + suitToUpdate.quantity;
-        suit.quantity = updatedSuitQuantity;
-        return suit;
-      });
-      await branch.save({ session });
+
+      if (updateBranchStock.modifiedCount === 0) {
+        throw new Error("Failed to update stock");
+      }
 
       //GETTING DAILY SALE FOR CURRENT DAY
       const dailySaleForToday = await DailySaleModel.findOne({
@@ -116,11 +125,13 @@ export const createReturn = async (req, res, next) => {
         session
       );
       let profitToDeduct = 0;
+      let amounttodeductFromBillSale = 0;
       suits_data.forEach((suit) => {
         buyerBill.profitDataForHistory.forEach((record) => {
           if (record.suitId === suit.id) {
             const amount = record.profit * suit.quantity;
             profitToDeduct += amount;
+            amounttodeductFromBillSale += record.suitSalePrice;
             record.quantity_for_return -= suit.quantity;
             if (record.quantity_for_return < 0) {
               throw new Error(
@@ -131,7 +142,7 @@ export const createReturn = async (req, res, next) => {
         });
       });
       dailySaleForSaleDay.saleData.totalProfit -= profitToDeduct;
-      dailySaleForSaleDay.saleData.totalSale -= T_Return_Amount;
+      dailySaleForSaleDay.saleData.totalSale -= amounttodeductFromBillSale;
       if (dailySaleForSaleDay.saleData.totalSale < 0) {
         throw new Error(
           `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
@@ -142,6 +153,8 @@ export const createReturn = async (req, res, next) => {
 
       //GET BUYER DETAILS
       const buyer = await BuyersModel.findById(buyerId).session(session);
+
+      //682a00921db0202da1892da5
 
       //UPDATE BUYERS ACCOUNT
       if (Amount_Payable <= 0 && method === "default-account") {
@@ -182,7 +195,7 @@ export const createReturn = async (req, res, next) => {
         //DATA FOR CREDIT DEBIT HISTORY
         const credit_debit_history_details = {
           date: date,
-          particular: "Return Payment",
+          particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_From_Balance,
           balance: buyer.virtual_account.total_balance - Amount_From_Balance,
         };
@@ -214,7 +227,7 @@ export const createReturn = async (req, res, next) => {
 
         const credit_debit_history_details = {
           date,
-          particular: `Return Payment`,
+          particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_Payable,
           balance: buyer.virtual_account.total_balance - Amount_Payable,
         };
@@ -230,6 +243,49 @@ export const createReturn = async (req, res, next) => {
         if (dailySaleForToday.saleData.totalCash < 0) {
           throw new Error("Not Enough Total Cash");
         }
+        if (Amount_From_Balance > 0) {
+          const new_total_debit =
+            buyer.virtual_account.total_debit - Amount_From_Balance;
+          const new_total_credit =
+            buyer.virtual_account.total_credit + Amount_From_Balance;
+          const new_total_balance =
+            buyer.virtual_account.total_balance - Amount_From_Balance;
+          let new_status = "Paid";
+
+          const virtualAccountData = {
+            total_debit: new_total_debit,
+            total_credit: new_total_credit,
+            total_balance: new_total_balance,
+            status: new_status,
+          };
+
+          //DATA FOR CREDIT DEBIT HISTORY
+          const credit_debit_history_details = {
+            date: date,
+            particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
+            credit: Amount_From_Balance,
+            balance: buyer.virtual_account.total_balance - Amount_From_Balance,
+          };
+
+          //UPDATING Buyer DATA IN DB
+          buyer.virtual_account = virtualAccountData;
+          buyer.credit_debit_history.push(credit_debit_history_details);
+          await buyer.save({ session });
+        }
+
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction: false,
+          branchId,
+          amount: Amount_Payable,
+          tranSactionType: "WithDraw",
+          transactionFrom: "Return bills",
+          partyName: buyerBill.name,
+          payment_Method: "cashSale",
+          session,
+        };
+
+        await cashBookService.createCashBookEntry(dataForCashBook);
         await dailySaleForToday.save({ session });
       }
 
@@ -296,4 +352,3 @@ export const getAllReturnsForBranch = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-

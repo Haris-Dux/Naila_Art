@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getBuyerForBranch = "/api/buyers/getBuyersForBranch";
@@ -15,9 +16,8 @@ const getAllChecksForPartyUrl = "/api/buyers/checks/getAllChecksForParty";
 const deleteCheckUrl = "/api/buyers/checks/deleteCheck";
 const showNotificationsForChecksUrl =
   "/api/buyers/checks/showNotificationsForChecks";
-const generateReturnBillWithoutRecordUrl =
-  "/api/buyers/generateReturnBillWithoutRecord";
-const getReturnBillWithoutRecordUrl = "/api/buyers/getReturnBillWithoutRecord";
+const getSuitsStockToGenerateBillUrl =
+  "/api/branches/getSuitsStockToGenerateBill";
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -64,14 +64,15 @@ export const getBuyerByIdAsync = createAsyncThunk(
 export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
   "buyers/BuyerBillsHistory",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const query = buildQueryParams({
+      search: data.search,
+      buyerId: data.buyerId,
+      id: data.id,
+      page: data.page,
+    });
     try {
       const response = await axios.post(
-        `${getBuyerBillHistoryForBranchUrl}?&page=${data.page}${searchQuery}`,
-        { id: data.id }
+        `${getBuyerBillHistoryForBranchUrl}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -175,7 +176,18 @@ export const showNotificationsForChecksAsync = createAsyncThunk(
   }
 );
 
-
+//GET ALL STOCK TO GENERATE BILL
+export const getSuitsStockToGenerateBillAsync = createAsyncThunk(
+  "BuyerBills/getASuitsStocToGenerateBill",
+  async () => {
+    try {
+      const response = await axios.post(getSuitsStockToGenerateBillUrl);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data);
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
@@ -191,6 +203,8 @@ const initialState = {
   CheckNotifications: [],
   returnBillLoading: false,
   getReturnBillLoading: false,
+  StockToGenerateBill: [],
+  stockLoading:false
 };
 
 const BuyerSlice = createSlice({
@@ -198,6 +212,19 @@ const BuyerSlice = createSlice({
   initialState,
   extraReducers: (builder) => {
     builder
+
+      //GET ALL STOCK TO GENERATE BILL
+      .addCase(getSuitsStockToGenerateBillAsync.pending, (state, action) => {
+        state.stockLoading = true
+      })
+      .addCase(getSuitsStockToGenerateBillAsync.fulfilled, (state, action) => {
+         state.stockLoading = false
+        state.StockToGenerateBill = action.payload;
+      })
+      .addCase(getSuitsStockToGenerateBillAsync.rejected, (state, action) => {
+        state.stockLoading = false
+        state.StockToGenerateBill = [];
+      })
 
       //SHOW NOTIFICATIONS DATA
       .addCase(showNotificationsForChecksAsync.pending, (state, action) => {
@@ -219,7 +246,6 @@ const BuyerSlice = createSlice({
       .addCase(addCheckAsync.fulfilled, (state, action) => {
         state.checkLoading = false;
       })
-
 
       //UPDATECHECK WITH NEW CHECK
       .addCase(updateBuyerCheckWithNewAsync.pending, (state, action) => {
