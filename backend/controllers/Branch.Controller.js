@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { branchStockHistoryModel } from "../models/BranchStock/BranchStockHistoryModel.js";
 import { getTodayDate } from "../utils/Common.js";
 import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
+import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
 
 export const createBranch = async (req, res) => {
   try {
@@ -103,8 +104,8 @@ export const assignStockToBranch = async (req, res) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { branchId, bundles,note} = req.body;
-      const requiredFields = ["branchId", "bundles","note"];
+      const { branchId, bundles, note } = req.body;
+      const requiredFields = ["branchId", "bundles", "note"];
       const bundleFields = [
         "category",
         "color",
@@ -181,7 +182,7 @@ export const assignStockToBranch = async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: "Stock updated for branch successfully",
+        message: "Stock updated successfully",
       });
     });
   } catch (error) {
@@ -190,6 +191,34 @@ export const assignStockToBranch = async (req, res) => {
     session.endSession();
   }
 };
+
+export const getBranchCashoutHistory = async(req, res) => {
+  try {
+    const branchId = req.branch_id;
+    if (!branchId) throw new Error("Branch id required");
+    const page = Number(req.query.page) || 1;
+    const limit = 50;
+
+    let query = {
+      branchId: branchId
+    };
+    const totalDocuments = await BranchCashOutHistoryModel.countDocuments(query);
+    const data = await BranchCashOutHistoryModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    const response = {
+      data,
+      page,
+      totalPages: Math.ceil(totalDocuments / limit),
+    };
+    setMongoose();
+    return res.status(200).json(response);
+    
+  } catch (error) {
+        return res.status(404).json({ error: error.message });
+  }
+}
 
 export const getAllBranchStockHistory = async (req, res) => {
   try {
@@ -200,12 +229,13 @@ export const getAllBranchStockHistory = async (req, res) => {
     let query = {};
     if (branchId) {
       query.branchId = branchId;
-    };
+    }
 
-    const data = await branchStockHistoryModel.find(query)
-    .skip((page - 1) * limit)
-    .sort({createdAt : -1})
-    .limit(limit)
+    const data = await branchStockHistoryModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 })
+      .limit(limit);
 
     const total = await branchStockHistoryModel.countDocuments(query);
 
@@ -225,37 +255,89 @@ export const getAllBranchStockHistory = async (req, res) => {
 
 export const getAllSuitsStockForBranch = async (req, res, next) => {
   try {
-    
     const branchId = req.branch_id;
-    if (!branchId) throw new Error("Branch Id Required");
     const page = parseInt(req.query.page) || 1;
     let d_no = parseInt(req.query.search) || "";
     let category = req.query.category || "";
     const limit = 50;
 
     let query = {};
+
+    if (!branchId) {
+      throw new Error("Branch Id Required");
+    }
+
+    query.branchId = branchId;
+
     if (d_no) {
       query = { ...query, d_no };
-    };
+    }
 
     if (category) {
       query = { ...query, category };
-    };
+    }
 
     const total = await branchStockModel.countDocuments(query);
-    const data = await branchStockModel.find(query)
-    .skip((page - 1) * limit)
-    .sort({total_quantity: -1})
-    .limit(limit)
+    const result = await branchStockModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .sort({ total_quantity: -1 })
+      .limit(limit);
 
-    const categoryNames = await branchStockModel.distinct('category')
-    
+    const aggregatedData = await branchStockModel.aggregate([
+      {
+        $match: {
+          branchId: branchId,
+        },
+      },
+      {
+        $facet: {
+          d_no_quantity: [
+            {
+              $group: {
+                _id: "$d_no",
+                quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+          category_data: [
+            {
+              $group: {
+                _id: "$category",
+                quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+          total_stock: [
+            {
+              $group: {
+                _id: null,
+                total_quantity: { $sum: "$total_quantity" },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const mergedDataWithD_No = result.map((suit) => {
+      const plainObject = suit.toObject();
+      const data = aggregatedData[0].d_no_quantity.find(
+        (item) => item._id === plainObject.d_no
+      );
+      return {
+        ...plainObject,
+        total_dno_quantity: data?.quantity,
+      };
+    });
+
     setMongoose();
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
-      data,
-      categoryNames
+      data: mergedDataWithD_No,
+      category_data: aggregatedData[0].category_data,
+      total_stock: aggregatedData[0].total_stock[0].total_quantity,
     };
 
     return res.status(200).json(response);
@@ -333,21 +415,37 @@ export const approveOrRejectStock = async (req, res) => {
   }
 };
 
-export const getPendingStockForBranch = async (req,res) => {
+export const getPendingStockForBranch = async (req, res) => {
   try {
     const branchId = req.branch_id;
-    const data = await branchStockHistoryModel.find({branchId:branchId,bundleStatus:"Pending"});
+    const data = await branchStockHistoryModel.find({
+      branchId: branchId,
+      bundleStatus: "Pending",
+    });
     return res.status(200).json(data);
   } catch (error) {
-        return res.status(400).json({ error: error.message });
-
+    return res.status(400).json({ error: error.message });
   }
-}
+};
 
-// export const getAllBranchesStockForSuperadmin = async (req,res) => {
-//   try {
-    
-//   } catch (error) {
-//     re
-//   }
-// }
+export const getSuitsStockToGenerateBill = async (req, res, next) => {
+  try {
+    const branchId = req.branch_id;
+    const role = req.user_role;
+
+    let query = {};
+
+    if (role !== "superadmin") {
+      if (!branchId) throw new Error("Branch ID required");
+      query.branchId = branchId;
+    }
+
+    const data = await branchStockModel.find(query);
+
+    setMongoose();
+
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

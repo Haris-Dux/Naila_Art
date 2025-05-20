@@ -212,6 +212,14 @@ const historySchema = new mongoose.Schema(
       type: Number,
       required: [true, "Total Profit Number is required"],
     },
+     city: {
+      type: String,
+      required: [true, "City value is required"],
+    },
+     payment_Method: {
+      type: String,
+      required: [true, "Payment meyhod vaalue is required"],
+    },
     profitDataForHistory: [historyData],
     other_Bill_Data:{
       o_b_quantity: {

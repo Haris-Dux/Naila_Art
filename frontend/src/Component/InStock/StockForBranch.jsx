@@ -224,6 +224,38 @@ const StockForBranch = () => {
 
   let notificationCount = pendingStock?.length;
 
+    const getALLBundlesQuantity = (data) => {
+    const rawData = data?.bundles || []
+    const allBundlesQuantitySum = rawData?.reduce((acc,record) => {
+      let totalSum = 0
+      const flatData = record.flat();
+      flatData.forEach((item) => {
+        totalSum += item.quantity
+      })
+      acc.allBundlesQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      allBundlesQuantitySum:0
+    });
+    return allBundlesQuantitySum
+  };
+
+
+  const getSingleBundlesQuantity = (data) => {
+    const singleBundleQuantitySum = data?.reduce((acc,record) => {
+      let totalSum = 0
+        totalSum += record.quantity
+      acc.singleBundleQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      singleBundleQuantitySum:0
+    });
+    return singleBundleQuantitySum
+  };
+
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
@@ -291,20 +323,20 @@ const StockForBranch = () => {
               }`}
               onClick={() => handleCategoryClick("all")}
             >
-              All
+              All ({suitStocks.total_stock})
             </Link>
-            {suitStocks?.categoryNames?.map((category) => (
+            {suitStocks && suitStocks?.category_data?.map((data) => (
               <Link
-                key={category}
+                key={data._id}
                 className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 text-sm rounded-md ${
-                  userSelectedCategory === category
+                  userSelectedCategory === data._id
                     ? "bg-[#252525] text-white dark:bg-white dark:text-black"
                     : ""
                 }`}
-                onClick={() => handleCategoryClick(category)}
+                onClick={() => handleCategoryClick(data._id)}
                 to={`/dashboard/suits?page=${1}`}
               >
-                {category}
+                {data._id} ({data.quantity})
               </Link>
             ))}
           </div>
@@ -368,7 +400,7 @@ const StockForBranch = () => {
                       <td className="px-6 text-center py-4">{data.category}</td>
                       <td className="px-6 text-center py-4">{data.color}</td>
                       <td className="px-6 text-center py-4">
-                        {data.total_quantity}
+                        {data.total_quantity}/T-{data?.total_dno_quantity}
                       </td>
                       <td className="px-6 text-center py-4">
                         {data.sold_quantity}
@@ -567,7 +599,7 @@ const StockForBranch = () => {
                         <React.Fragment key={`group-${i}`}>
                           <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
                             <td colSpan={8} className="px-6 py-4">
-                              Issue Date: {dataGroup.issueDate} | Status:{" "}
+                              Total Quantity: {getALLBundlesQuantity(dataGroup)?.allBundlesQuantitySum}  | Issue Date: {dataGroup.issueDate} | Status:{" "}
                               <span
                                 className={`text-${setStatusColor(
                                   dataGroup.bundleStatus
@@ -605,7 +637,7 @@ const StockForBranch = () => {
                                 {/* Bundle Index Row */}
                                 <tr className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white font-semibold">
                                   <td colSpan={8} className="px-6 py-3">
-                                    Bundle {bundleIndex + 1}
+                                    Bundle {bundleIndex + 1} | Quantity : ({getSingleBundlesQuantity(bundleArray)?.singleBundleQuantitySum})
                                   </td>
                                 </tr>
 

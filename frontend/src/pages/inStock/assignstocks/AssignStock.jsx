@@ -99,6 +99,34 @@ const AssignStock = () => {
     }));
   };
 
+    const getSingleBundlesQuantity = (data) => {
+    const singleBundleQuantitySum = data?.reduce((acc,record) => {
+      let totalSum = 0
+        totalSum += record.quantity
+      acc.singleBundleQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      singleBundleQuantitySum:0
+    });
+    return singleBundleQuantitySum
+  };
+
+   const getALLBundlesQuantity = (data) => {
+    const allBundlesQuantitySum = data?.reduce((acc,record) => {
+      let totalSum = 0
+      record.forEach((item) => {
+        totalSum += item.quantity
+      })
+      acc.allBundlesQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      allBundlesQuantitySum:0
+    });
+    return allBundlesQuantitySum
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -286,7 +314,7 @@ const AssignStock = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-4xl max-h-[80%] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Created Bundles</h2>
+              <h2 className="text-xl font-bold">Created Bundles | Total Quantity: {getALLBundlesQuantity(formData?.bundles)?.allBundlesQuantitySum}</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-500 hover:text-red-600 text-lg font-bold"
@@ -298,7 +326,7 @@ const AssignStock = () => {
               <div key={index} className="mb-6 border-t pt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                    Bundle {index + 1}
+                    Bundle {index + 1} | Quantity : {getSingleBundlesQuantity(bundle).singleBundleQuantitySum}
                   </h3>
                   <button
                     onClick={() => handleRemoveBundle(index)}

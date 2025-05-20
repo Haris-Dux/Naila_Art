@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  AllBranchStockHistoryAsync,
-  GetAllBranches,
+  AllBranchStockHistoryAsync
 } from "../../../features/InStockSlice";
 
 const AssignedStockHistory = () => {
@@ -17,13 +16,12 @@ const AssignedStockHistory = () => {
   );
 
   useEffect(() => {
-    dispatch(GetAllBranches()).then((response) => {
-      if (response?.payload?.length > 0) {
-        const initialBranchId = response.payload[0]?.id;
+        const initialBranchId = Branches[0]?.id;
         setSelectedBranch(initialBranchId);
-      }
-    });
-  }, [dispatch]);
+        dispatch(
+        AllBranchStockHistoryAsync({ branchId: initialBranchId, page })
+      );
+  }, [Branches]);
 
   useEffect(() => {
     if (Branches.length > 0 && selectedBranch) {
@@ -77,6 +75,38 @@ const AssignedStockHistory = () => {
         return "gray-400";
     }
   };
+
+  const getALLBundlesQuantity = (data) => {
+    const rawData = data?.bundles || []
+    const allBundlesQuantitySum = rawData?.reduce((acc,record) => {
+      let totalSum = 0
+      const flatData = record.flat();
+      flatData.forEach((item) => {
+        totalSum += item.quantity
+      })
+      acc.allBundlesQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      allBundlesQuantitySum:0
+    });
+    return allBundlesQuantitySum
+  };
+
+
+  const getSingleBundlesQuantity = (data) => {
+    const singleBundleQuantitySum = data?.reduce((acc,record) => {
+      let totalSum = 0
+        totalSum += record.quantity
+      acc.singleBundleQuantitySum += totalSum;
+    return acc;
+
+    },{   
+      singleBundleQuantitySum:0
+    });
+    return singleBundleQuantitySum
+  };
+
 
   return (
     <>
@@ -151,7 +181,7 @@ const AssignedStockHistory = () => {
                       <React.Fragment key={`group-${i}`}>
                         <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
                           <td colSpan={8} className="px-6 py-4">
-                            Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
+                             Total Quantity: {getALLBundlesQuantity(dataGroup)?.allBundlesQuantitySum}  | Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
                             {dataGroup.updatedOn} | Status:{" "}
                             <span
                               className={`text-${setStatusColor(
@@ -169,7 +199,7 @@ const AssignedStockHistory = () => {
                             {/* Bundle Index Row */}
                             <tr className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white font-semibold">
                               <td colSpan={8} className="px-6 py-3">
-                                Bundle {bundleIndex + 1}
+                                Bundle {bundleIndex + 1} | Quantity : ({getSingleBundlesQuantity(bundleArray)?.singleBundleQuantitySum})
                               </td>
                             </tr>
 
@@ -186,7 +216,7 @@ const AssignedStockHistory = () => {
                                 </th>
                                 <td className="px-6 py-4">{item.category}</td>
                                 <td className="px-6 py-4">{item.color}</td>
-                                <td className="px-6 py-4">{item.quantity}</td>
+                                <td className="px-6 py-4">{item?.quantity}</td>
                                 <td className="px-6 py-4">{item.cost_price}</td>
                                 <td className="px-6 py-4">{item.sale_price}</td>
                               </tr>

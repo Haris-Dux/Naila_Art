@@ -1,13 +1,14 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const createShop = "/api/branches/createBranch";
 const DeletShop = "/api/branches/deleteBranch";
 const UpdateShop = "/api/branches/updateBranch";
 const GetShop = "/api/branches/getAllBranches";
-
+const getBranchCashoutHistoryUrl = "/api/branches/getBranchCashoutHistory";
 
 //CREATE ASYNC THUNK
 export const createShopAsync = createAsyncThunk(
@@ -17,7 +18,7 @@ export const createShopAsync = createAsyncThunk(
       const response = await axios.post(createShop, formData);
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.error)
+      toast.error(error.response.data.error);
     }
   }
 );
@@ -36,42 +37,51 @@ export const UpdateShopAsync = createAsyncThunk(
   }
 );
 
-
 // FORGET ASYNC THUNK
-export const DeleteShop = createAsyncThunk(
-  "Shop/Delete",
-  async (formData) => {
-    try {
-      const response = await axios.post(DeletShop, formData);
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
+export const DeleteShop = createAsyncThunk("Shop/Delete", async (formData) => {
+  try {
+    const response = await axios.post(DeletShop, formData);
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    toast.error(error.response.data.error);
   }
-);
-
+});
 
 // VERIFY ASYNC THUNK
-export const GetAllShop = createAsyncThunk(
-  "Shop/Get",
-  async () => {
+export const GetAllShop = createAsyncThunk("Shop/Get", async () => {
+  try {
+    const response = await axios.post(GetShop);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.error);
+  }
+});
+
+//GET BRANCH CASH OUT HISTORY
+export const getBranchCashoutHistoryAsync = createAsyncThunk(
+  "Branch/BranchCashOut",
+  async ({ page }) => {
+    const query = buildQueryParams({
+      page: page,
+    });
     try {
-      const response = await axios.post(GetShop);
+      const response = await axios.post(
+        `${getBranchCashoutHistoryUrl}?${query}`
+      );
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.error)
+      throw new Error(error);
     }
   }
 );
-
-
 
 // INITIAL STATE
 const initialState = {
-  
   Shop: [],
   loading: false,
+  historyLoading:false,
+  BranchcashOutHistory: [],
 };
 
 const authSlice = createSlice({
@@ -89,7 +99,6 @@ const authSlice = createSlice({
       })
       .addCase(createShopAsync.fulfilled, (state, action) => {
         state.loading = false;
-    
       })
 
       // LOGIN ADD CASE
@@ -101,7 +110,7 @@ const authSlice = createSlice({
         state.Shop = action.payload;
       })
 
-      // FORGET PASSWORD ADD CASE
+      // UPDATE SHOP CASE
       .addCase(UpdateShopAsync.pending, (state, action) => {
         state.loading = true;
       })
@@ -109,14 +118,27 @@ const authSlice = createSlice({
         state.loading = false;
       })
 
-      
+      //DELETE SHOP CASE
       .addCase(DeleteShop.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(DeleteShop.fulfilled, (state, action) => {
         state.loading = false;
       })
-   
+
+      //BRANCH CASH OUT HISTORY ASYNC
+      .addCase(getBranchCashoutHistoryAsync.pending, (state, action) => {
+        state.historyLoading = true;
+      })
+      .addCase(getBranchCashoutHistoryAsync.fulfilled, (state, action) => {
+        state.historyLoading = false;
+        state.BranchcashOutHistory = action.payload;
+      })
+        .addCase(getBranchCashoutHistoryAsync.rejected, (state, action) => {
+        state.historyLoading = false;
+        state.BranchcashOutHistory = [];
+
+      })
   },
 });
 
