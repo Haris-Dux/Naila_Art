@@ -93,8 +93,6 @@ const OldBuyerGenerateBill = () => {
 
   }, [user]);
 
-  console.log("branchStockData", branchStockData);
-
   useEffect(() => {
     dispatch(GetAllBags());
   }, [dispatch]);
