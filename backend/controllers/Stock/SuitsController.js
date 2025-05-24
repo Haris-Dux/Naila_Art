@@ -11,16 +11,21 @@ export const addSuitsInStock = async (req, res, next) => {
 
     const existingSuitWithDNo = await SuitsModel.findOne({ d_no });
 
-    if (existingSuitWithDNo && existingSuitWithDNo.category.toLowerCase() !== category.toLowerCase()) {
-      throw new Error(`The Design No ${d_no} is already assigned to the category '${existingSuitWithDNo.category}'`);
+    if (
+      existingSuitWithDNo &&
+      existingSuitWithDNo.category.toLowerCase() !== category.toLowerCase()
+    ) {
+      throw new Error(
+        `The Design No ${d_no} is already assigned to the category '${existingSuitWithDNo.category}'`
+      );
     }
-    
+
     const checkExistingSuitStock = await SuitsModel.findOne({
       d_no,
       category: { $regex: new RegExp(`^${category}$`, "i") },
-      color: {$regex : new RegExp(`^${color}$`,"i")}
+      color: { $regex: new RegExp(`^${color}$`, "i") },
     });
-  
+
     const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
     let recordData = { date: today, quantity, cost_price, sale_price };
     if (
@@ -55,7 +60,7 @@ export const addSuitsInStock = async (req, res, next) => {
 export const getAllSuits = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 30;
+    const limit = 50;
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
 
@@ -69,18 +74,33 @@ export const getAllSuits = async (req, res, next) => {
     }
 
     //CALCULATE TOTAL QUANTITY FOR DESIGN NO
-    const totalQuantity = await SuitsModel.aggregate([
+    const aggregatedData = await SuitsModel.aggregate([
       {
-        $group: {
-          _id: "$d_no",
-          totalQuantity: { $sum: "$quantity" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          d_no: "$_id",
-          totalQuantity: 1,
+        $facet: {
+          d_no_quantity: [
+            {
+              $group: {
+                _id: "$d_no",
+                quantity: { $sum: "$quantity" },
+              },
+            },
+          ],
+          category_data: [
+            {
+              $group: {
+                _id: "$category",
+                quantity: { $sum: "$quantity" },
+              },
+            },
+          ],
+          total_stock: [
+            {
+              $group: {
+                _id: null,
+                total_quantity: { $sum: "$quantity" },
+              },
+            },
+          ],
         },
       },
     ]);
@@ -88,16 +108,21 @@ export const getAllSuits = async (req, res, next) => {
     const result = await SuitsModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ quantity: -1, createdAt: -1 });
 
     const total = await SuitsModel.countDocuments(query);
 
     //MERGING TOTAL QUANTITY
+
     const data = result.map((suit) => {
       const palinSuit = suit.toObject();
-      const requiredObj = totalQuantity.find((item) => item.d_no === palinSuit.d_no);
-      return { ...palinSuit, TotalQuantity: requiredObj.totalQuantity };
-    
+      const requiredObj = aggregatedData[0].d_no_quantity.find(
+        (item) => item._id === palinSuit.d_no
+      );
+      return {
+        ...palinSuit,
+        TotalQuantity: requiredObj?.quantity,
+      };
     });
 
     setMongoose();
@@ -107,6 +132,8 @@ export const getAllSuits = async (req, res, next) => {
       page,
       Suits: total,
       data,
+      category_data: aggregatedData[0].category_data,
+      total_stock: aggregatedData[0].total_stock[0].total_quantity,
     };
 
     return res.status(200).json(response);

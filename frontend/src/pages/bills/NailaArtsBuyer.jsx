@@ -9,18 +9,6 @@ import {
 import Return from "./Modals/Return";
 import { IoDocumentTextOutline } from "react-icons/io5";
 
-const PhoneComponent = ({ phone }) => {
-  const maskPhoneNumber = (phone) => {
-    if (phone.length > 3) {
-      return phone.slice(0, 3) + "*******".slice(0, phone.length - 3);
-    } else {
-      return phone;
-    }
-  };
-
-  return <p>{maskPhoneNumber(phone)}</p>;
-};
-
 const NailaArtsBuyer = () => {
   const dispatch = useDispatch();
 
@@ -301,6 +289,12 @@ const NailaArtsBuyer = () => {
                       Party Name
                     </th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">
+                      City
+                    </th>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
+                     Method
+                    </th>
+                    <th className="px-6 py-4 text-md font-medium" scope="col">
                       Total
                     </th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">
@@ -342,8 +336,14 @@ const NailaArtsBuyer = () => {
                           scope="row"
                         >
                           <p>{data.name}</p>
-                          <PhoneComponent phone={data.phone} />
+                          {data.phone} 
                         </th>
+                          <td className="px-6 py-4 font-medium">
+                          {data.city ?? "--"} 
+                        </td>
+                          <td className="px-6 py-4 font-medium">
+                          {data.payment_Method ?? "--"} 
+                        </td>
                         <td className="px-6 py-4 font-medium">
                           {data.total} Rs
                         </td>

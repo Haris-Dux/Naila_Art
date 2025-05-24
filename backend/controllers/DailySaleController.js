@@ -3,15 +3,12 @@ import { setMongoose } from "../utils/Mongoose.js";
 import corn from "node-cron";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../models/DashboardData/VirtalAccountsModal.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../utils/nodemailer.js";
 import { PaymentMethodModel } from "../models/PaymentMethods/PaymentMethodModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
 
 export const getTodaysdailySaleforBranch = async (req, res, next) => {
   try {
@@ -150,6 +147,15 @@ export const cashOutForBranch = async (req, res, next) => {
         session,
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
+
+      //BRANCH CASH OUT HISTORY
+      await BranchCashOutHistoryModel.create({
+        branchId,
+        amount,
+        payment_Method,
+        date:today,
+        cash_after_transaction: dailySaleForToday.saleData.totalCash -= amount
+      })
 
       //SEND EMAIL
       const branchCashOutData = {
