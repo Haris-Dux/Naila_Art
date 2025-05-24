@@ -1,8 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
-// import { IoAdd } from "react-icons/io5";
+import { useState, useEffect } from "react";
 import {
   AddSuit,
-  GetAllCategoriesForSuits,
   GetAllSuit,
 } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,10 +21,6 @@ const SuitsStock = () => {
   const { Suit, GetSuitloading, addSuitLoading } = useSelector(
     (state) => state.InStock
   );
-
-  console.log('Suit',Suit);
-
-  const { SuitCategories } = useSelector((state) => state.InStock);
   const { user } = useSelector((state) => state.auth);
 
   // State variables to hold form data
@@ -50,7 +44,7 @@ const SuitsStock = () => {
     if (selectedSuits.some((item) => item._id === suit._id)) {
       updatedSelection = selectedSuits.filter((item) => item._id !== suit._id);
     } else {
-      updatedSelection = [...selectedSuits, suit];
+      updatedSelection = [...selectedSuits,{ ...suit,assignQuantity:0,all_records:null}];
     }
     setSelectedSuits(updatedSelection);
     localStorage.setItem("selectedSuits", JSON.stringify(updatedSelection));
@@ -59,7 +53,6 @@ const SuitsStock = () => {
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
       dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
-      dispatch(GetAllCategoriesForSuits());
     }
   }, [page, dispatch, user]);
 
@@ -84,7 +77,6 @@ const SuitsStock = () => {
           dispatch(
             GetAllSuit({ category: userSelectedCategory, search, page })
           );
-          dispatch(GetAllCategoriesForSuits());
           setFormData({
             category: "",
             color: "",
@@ -273,20 +265,20 @@ const SuitsStock = () => {
               }`}
               onClick={() => handleCategoryClick("all")}
             >
-              All
+              All ({Suit?.total_stock})
             </Link>
-            {SuitCategories?.map((category) => (
+            {Suit?.category_data?.map((category) => (
               <Link
-                key={category}
+                key={category._id}
                 className={`border border-gray-500 dark:bg-gray-700 text-black dark:text-gray-100 px-5 py-2 text-sm rounded-md ${
-                  userSelectedCategory === category
+                  userSelectedCategory === category._id
                     ? "bg-[#252525] text-white dark:bg-white dark:text-black"
                     : ""
                 }`}
-                onClick={() => handleCategoryClick(category)}
+                onClick={() => handleCategoryClick(category._id)}
                 to={`/dashboard/suits?page=${1}`}
               >
-                {category}
+                {category._id} ({category.quantity})
               </Link>
             ))}
           </div>

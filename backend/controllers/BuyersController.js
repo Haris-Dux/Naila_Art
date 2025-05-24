@@ -4,8 +4,7 @@ import { BagsAndBoxModel } from "../models/Stock/BagsAndBoxModel.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import {
   BuyersBillsModel,
-  BuyersModel,
-  W_R_R_BillModel,
+  BuyersModel
 } from "../models/BuyersModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
@@ -14,6 +13,7 @@ import { sendEmail } from "../utils/nodemailer.js";
 import moment from "moment-timezone";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -104,21 +104,25 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = branch.stockData.filter((mainStock) =>
-        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
-      );
+      const suitsStock = await branchStockModel.find({_id:suitsIdsToDeduct});
       if (!suitsStock.length) throw new Error("No suitsStock found");
-      suitsStock.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
+       const bulkOps = suitsStock.map((suit) => {
+        const suitToUpdate = suits_data.find((item) => item.id == suit._id);
+        const updatedSuitQuantity = suit.total_quantity - suitToUpdate.quantity;
+        const updatedSoldQuantity = suit.sold_quantity + suitToUpdate.quantity;
         if (updatedSuitQuantity < 0)
           throw new Error(
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
-        suit.quantity = updatedSuitQuantity;
-        return suit;
+        return {
+          updateOne : {
+            filter: {_id:suit._id},
+            update : { $set : {total_quantity : updatedSuitQuantity,sold_quantity:updatedSoldQuantity}}
+          }
+        }
       });
-      await branch.save({ session });
+
+      await branchStockModel.bulkWrite(bulkOps, {session})
 
       //CHECK FUTURE DATE
       const isFutureDate = moment
@@ -221,7 +225,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       let TotalProfit = 0;
       let profitDataForHistory = [];
       suits_data.forEach((suit) => {
-        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
+        const suitInStock = suitsStock.find((item) => item._id == suit.id);
         const profitOnSale = suit.price - suitInStock.cost_price;
         profitDataForHistory.push({
           d_no: suit.d_no,
@@ -385,6 +389,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             paid,
             remaining,
             TotalProfit,
+            payment_Method,
+            city,
             profitDataForHistory,
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
@@ -513,20 +519,25 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = branch.stockData.filter((mainStock) =>
-        suitsIdsToDeduct.some((id) => mainStock.Item_Id.equals(id))
-      );
-      suitsStock.forEach((suit) => {
-        const suitToUpdate = suits_data.find((item) => item.id == suit.Item_Id);
-        const updatedSuitQuantity = suit.quantity - suitToUpdate.quantity;
+      const suitsStock = await branchStockModel.find({_id:suitsIdsToDeduct});
+      if (!suitsStock.length) throw new Error("No suitsStock found");
+       const bulkOps = suitsStock.map((suit) => {
+        const suitToUpdate = suits_data.find((item) => item.id == suit._id);
+        const updatedSuitQuantity = suit.total_quantity - suitToUpdate.quantity;
+        const updatedSoldQuantity = suit.sold_quantity + suitToUpdate.quantity;
         if (updatedSuitQuantity < 0)
           throw new Error(
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
-        suit.quantity = updatedSuitQuantity;
-        return suit;
+        return {
+          updateOne : {
+            filter: {_id:suit._id},
+            update : { $set : {total_quantity : updatedSuitQuantity,sold_quantity:updatedSoldQuantity} }
+          }
+        }
       });
-      await branch.save({ session });
+
+      await branchStockModel.bulkWrite(bulkOps, {session})
 
       //CHECK FUTURE DATE
       const isFutureDate = moment
@@ -628,7 +639,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       let TotalProfit = 0;
       let profitDataForHistory = [];
       suits_data.forEach((suit) => {
-        const suitInStock = suitsStock.find((item) => item.Item_Id == suit.id);
+        const suitInStock = suitsStock.find((item) => item._id == suit.id);
         const profitOnSale = suit.price - suitInStock.cost_price;
         profitDataForHistory.push({
           d_no: suit.d_no,
@@ -794,6 +805,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             paid,
             remaining,
             TotalProfit,
+            payment_Method,
+            city,
             profitDataForHistory,
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
@@ -949,147 +962,19 @@ export const generatePdfFunction = async (req, res, next) => {
 
 export const getBuyerBillHistoryForBranch = async (req, res, next) => {
   try {
-    const { id } = req.body;
+    const id  = req.query.id;
     if (!id) throw new Error("Branch Id Required");
     const name = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 50;
 
     let query = {
       branchId: id,
       name: { $regex: name, $options: "i" },
     };
+
     const totalDocuments = await BuyersBillsModel.countDocuments(query);
     const data = await BuyersBillsModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const response = {
-      data,
-      page,
-      totalPages: Math.ceil(totalDocuments / limit),
-    };
-    setMongoose();
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const generateReturnBillWithoutRecord = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  try {
-    await session.withTransaction(async () => {
-      const {
-        cash,
-        name,
-        phone,
-        category,
-        color,
-        quantity,
-        branchId,
-        payment_Method,
-        date,
-        note,
-      } = req.body;
-      if (
-        !cash ||
-        !payment_Method ||
-        !date ||
-        !branchId ||
-        !name ||
-        !color ||
-        !quantity ||
-        !phone ||
-        !category ||
-        !note
-      )
-        throw new Error("All Fields Required");
-
-      //DAILY SLAE UPDATE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: date,
-      }).session(session);
-
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
-      }
-
-      // DEDUCTING CASH
-      dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
-        cash;
-
-      if (dailySaleForToday.totalCash < 0)
-        throw new Error("Not Enough Total Cash");
-
-      await dailySaleForToday.save({ session });
-
-      //SAVE BILL
-      await W_R_R_BillModel.create(
-        [
-          {
-            cash,
-            name,
-            phone,
-            date,
-            payment_Method,
-            category,
-            color,
-            quantity,
-            branchId,
-            note,
-          },
-        ],
-        { session }
-      );
-
-      //SEND EMAIL
-      const branch = await BranchModel.findById(branchId)
-        .select("branchName")
-        .session(session);
-      const W_R_R_Bill = {
-        branchName: branch.branchName,
-        name: name,
-        phone: phone,
-        amount: cash,
-        date: date,
-        payment_Method: "Cash",
-        category,
-        color,
-        quantity,
-      };
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        email_Type: "Without Record Return Bill",
-        W_R_R_Bill,
-      });
-
-      return res
-        .status(200)
-        .json({ success: true, message: "Return Bill Generated Successfully" });
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  } finally {
-    session.endSession();
-  }
-};
-
-export const getReturnBillWithoutRecord = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required");
-    const name = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 30;
-
-    let query = {
-      branchId: id,
-      name: { $regex: name, $options: "i" },
-    };
-    const totalDocuments = await W_R_R_BillModel.countDocuments(query);
-    const data = await W_R_R_BillModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });

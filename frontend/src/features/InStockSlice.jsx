@@ -21,6 +21,8 @@ const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
 const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
 const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock"
 const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
+const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
+
 // GET ALL BRANCHES API
 const getAllBranches = "/api/branches/getAllBranches";
 
@@ -53,13 +55,8 @@ export const AllBranchStockHistoryAsync = createAsyncThunk(
   "StocktoBranch/AllBranchStockHistory",
   async (data) => {
     try {
-      const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-      const response = await axios.post( `${AllSuitsStockHistoryUrl}?&page=${data.page}${searchQuery}`,{
-        id: data.id, 
-      });
+
+      const response = await axios.post( `${AllSuitsStockHistoryUrl}?page=${data.page}&branchId=${data.branchId}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error)
@@ -320,6 +317,19 @@ export const DeleteBaseStockAsync = createAsyncThunk(
   }
 );
 
+export const getPendingStockForBranchAsync = createAsyncThunk(
+  "Branches/getAllPendingStock",
+  async () => {
+    try {
+      const response = await axios.post(getPendingStockForBranchUrl);
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   SuitLoading: false,
@@ -343,7 +353,8 @@ const initialState = {
   StockHistoryLoading:false,
   stockLoading:false,
   addSuitLoading:false,
-  deleteLodaing:false
+  deleteLodaing:false,
+  pendingStock:[]
 };
 
 const InStockSlic = createSlice({
@@ -354,6 +365,19 @@ const InStockSlic = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+    //PENDING STOCK FOR BRANCH
+     .addCase(getPendingStockForBranchAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(getPendingStockForBranchAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pendingStock = action.payload;
+      })
+       .addCase(getPendingStockForBranchAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.pendingStock = [];
+      })
 
       .addCase(GetAllaccessories.pending, (state, action) => {
         state.loading = true;
