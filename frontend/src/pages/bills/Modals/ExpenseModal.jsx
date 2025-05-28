@@ -54,15 +54,15 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory 
         dispatch(
           GetAllExpense({ branchId: modifiedFormData.branchId, categoryId:selectedCategory, page: 1 })
         );
-        setFormData({
-          branchId: "",
-          categoryId: "",
-          rate: "",
-          Date: today,
-          reason: "",
-          payment_Method: "",
-        });
-        closeModal();
+        // setFormData({
+        //   branchId: "",
+        //   categoryId: "",
+        //   rate: "",
+        //   Date: today,
+        //   reason: "",
+        //   payment_Method: "",
+        // });
+        // closeModal();
       }
     });
   };

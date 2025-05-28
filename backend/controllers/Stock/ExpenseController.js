@@ -26,15 +26,15 @@ export const addExpense = async (req, res, next) => {
       if (!branch) throw new Error("Branch Not Found");
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
-      if (payment_Method) {
-        const futureDate = moment(Date);
-        const now = moment();
-        const isFutureDate = futureDate.isAfter(now);
-        const isPastDate = futureDate.isBefore(now);
-        if (isFutureDate) {
-          throw new Error("Date cannot be in the future");
-        }
+      const futureDate = moment.tz(Date, "Asia/Karachi");
+      const now = moment.tz("Asia/Karachi");
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Date cannot be in the future");
+      }
 
+      if (payment_Method) {
         //SUPERADMIN CASE
         if (payment_Method === "cashSale") {
           if (!isPastDate) {
@@ -49,8 +49,8 @@ export const addExpense = async (req, res, next) => {
               throw new Error("Not enogh cash for expense");
             await dailySalebyDate.save({ session });
           } else if (isPastDate) {
-            const targetDate = moment(Date).startOf("day");
-            const today = moment().startOf("day");
+            const targetDate = moment.tz(Date, "Asia/Karachi").startOf("day");
+            const today = moment.tz("Asia/Karachi").startOf("day");
 
             const dateList = [];
             const current = moment(targetDate);
@@ -58,6 +58,8 @@ export const addExpense = async (req, res, next) => {
               dateList.push(current.format("YYYY-MM-DD"));
               current.add(1, "day");
             }
+
+            console.log(dateList);
 
             const dailySales = await DailySaleModel.find({
               branchId,
@@ -135,7 +137,7 @@ export const addExpense = async (req, res, next) => {
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: false,
+        pastTransaction: isPastDate,
         branchId,
         amount: rate,
         tranSactionType: "WithDraw",
@@ -143,6 +145,7 @@ export const addExpense = async (req, res, next) => {
         partyName: categoryId,
         payment_Method: payment_Method ? payment_Method : "cashSale",
         session,
+        ...(isPastDate && {pastDate: Date})
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
 
