@@ -6,9 +6,9 @@ const expenseSchema = new mongoose.Schema(
       type: String,
       required: [true, "branchId required"],
     },
-    name: {
-      type: String,
-      required: [true, "name required"],
+    categoryId: {
+      type:mongoose.Types.ObjectId,
+      ref: "Expense Categories",
     },
     reason: {
       type: String,
@@ -35,3 +35,17 @@ const expenseSchema = new mongoose.Schema(
 );
 
 export const ExpenseModel = mongoose.model("Expense", expenseSchema);
+
+
+const expenseCategorySchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "category name required"],
+    }
+  },
+  { timestamps: true }
+);
+
+export const ExpenseCategoriesModel = mongoose.model("Expense Categories", expenseCategorySchema);
+

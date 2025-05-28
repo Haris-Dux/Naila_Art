@@ -2,18 +2,23 @@ import moment from "moment-timezone";
 import { BranchModel } from "../../models/Branch.Model.js";
 import mongoose from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
-import { ExpenseModel } from "../../models/Stock/ExpenseModel.js";
+import {
+  ExpenseCategoriesModel,
+  ExpenseModel,
+} from "../../models/Stock/ExpenseModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import { cashBookService } from "../../services/CashbookService.js";
-
+import CustomError from "../../config/errors/CustomError.js";
+import { verifyrequiredparams } from "../../middleware/Common.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { name, reason, Date, rate, branchId, payment_Method } = req.body;
-      if (!name || !reason || !Date || !rate || !branchId)
+      const { categoryId, reason, Date, rate, branchId, payment_Method } =
+        req.body;
+      if (!categoryId || !reason || !Date || !rate || !branchId)
         throw new Error("Missing Fields");
       const branch = await BranchModel.findOne({ _id: branchId }).session(
         session
@@ -21,22 +26,86 @@ export const addExpense = async (req, res, next) => {
       if (!branch) throw new Error("Branch Not Found");
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
-      let existingDailySaleData = await DailySaleModel.findOne({
-        branchId,
-        date: { $eq: today },
-      });
-      if (!existingDailySaleData) throw new Error("Daily Sale Not Found Error");
-
-      //UPDATING DAILY SALE
       if (payment_Method) {
-        existingDailySaleData.saleData.totalExpense += rate;
+        const futureDate = moment(Date);
+        const now = moment();
+        const isFutureDate = futureDate.isAfter(now);
+        const isPastDate = futureDate.isBefore(now);
+        if (isFutureDate) {
+          throw new Error("Date cannot be in the future");
+        }
+
+        //SUPERADMIN CASE
         if (payment_Method === "cashSale") {
-          existingDailySaleData.saleData.totalCash -= rate;
-          //HADLE LOW CASH
-          if (existingDailySaleData.saleData.totalCash < 0)
-            throw new Error("Not Enough Cash");
-          await existingDailySaleData.save({ session });
+          if (!isPastDate) {
+            let dailySalebyDate = await DailySaleModel.findOne({
+              branchId,
+              date: { $eq: Date },
+            });
+            if (!dailySalebyDate) throw new Error("Daily Sale Not Found Error");
+            dailySalebyDate.saleData.totalExpense += rate;
+            dailySalebyDate.saleData.totalCash -= rate;
+            if (dailySalebyDate.saleData.totalCash < 0)
+              throw new Error("Not enogh cash for expense");
+            await dailySalebyDate.save({ session });
+          } else if (isPastDate) {
+            const targetDate = moment(Date).startOf("day");
+            const today = moment().startOf("day");
+
+            const dateList = [];
+            const current = moment(targetDate);
+            while (current.isSameOrBefore(today)) {
+              dateList.push(current.format("YYYY-MM-DD"));
+              current.add(1, "day");
+            }
+
+            const dailySales = await DailySaleModel.find({
+              branchId,
+              date: { $in: dateList },
+            }).session(session);
+
+            if (dailySales.length !== dateList.length) {
+              const foundDates = dailySales.map((d) => d.date);
+              const missing = dateList.filter((d) => !foundDates.includes(d));
+              throw new Error(
+                `Missing Daily Sale records for: ${missing.join(", ")}`
+              );
+            }
+
+            // Prepare bulk operations
+            const bulkOps = dailySales.map((saleDoc) => {
+              const isOriginalDate =
+                saleDoc.date === targetDate.format("YYYY-MM-DD");
+
+              const update = {
+                $inc: {
+                  "saleData.totalCash": -rate,
+                  ...(isOriginalDate && { "saleData.totalExpense": rate }),
+                },
+              };
+
+              const futureCash = saleDoc.saleData.totalCash - rate;
+              if (futureCash < 0) {
+                throw new Error(`Not enough cash on ${saleDoc.date}`);
+              }
+
+              return {
+                updateOne: {
+                  filter: { _id: saleDoc._id },
+                  update,
+                },
+              };
+            });
+
+            await DailySaleModel.bulkWrite(bulkOps, { session });
+          }
         } else {
+          let dailySalebyDate = await DailySaleModel.findOne({
+            branchId,
+            date: { $eq: Date },
+          });
+          if (!dailySalebyDate) throw new Error("Daily Sale Not Found Error");
+          dailySalebyDate.saleData.totalExpense += rate;
           const data = {
             session,
             payment_Method,
@@ -45,12 +114,19 @@ export const addExpense = async (req, res, next) => {
             date: Date,
             note: `Expense Entry/${reason}`,
           };
+          await dailySalebyDate.save({ session });
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
       } else {
+        //ADMIN AND USER CASE
+        let existingDailySaleData = await DailySaleModel.findOne({
+          branchId,
+          date: { $eq: today },
+        });
+        if (!existingDailySaleData)
+          throw new Error("Daily Sale Not Found Error");
         existingDailySaleData.saleData.totalExpense += rate;
         existingDailySaleData.saleData.totalCash -= rate;
-        //HADLE LOW CASH
         if (existingDailySaleData.saleData.totalCash < 0) {
           throw new Error("Not Enough Cash");
         }
@@ -64,7 +140,7 @@ export const addExpense = async (req, res, next) => {
         amount: rate,
         tranSactionType: "WithDraw",
         transactionFrom: "Expense",
-        partyName: name,
+        partyName: categoryId,
         payment_Method: payment_Method ? payment_Method : "cashSale",
         session,
       };
@@ -81,7 +157,7 @@ export const addExpense = async (req, res, next) => {
         [
           {
             branchId,
-            name,
+            categoryId,
             reason,
             Date,
             rate,
@@ -105,14 +181,15 @@ export const getAllExpenses = async (req, res, next) => {
   try {
     const id = req.query.branchId;
     if (!id) throw new Error("Missing Branch Id");
-    const name = req.query.search || "";
+    const categoryId = req.query.category || "";
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
     let query = {
       branchId: id,
-      name: { $regex: name, $options: "i" },
+      categoryId: categoryId,
     };
+
     const totalDocuments = await ExpenseModel.countDocuments(query);
     const data = await ExpenseModel.find(query)
       .skip((page - 1) * limit)
@@ -180,19 +257,18 @@ export const deleteExpense = async (req, res, next) => {
       //DELETE EXPENSE
       await ExpenseModel.findByIdAndDelete(id).session(session);
 
-       //PUSH DATA FOR CASH BOOK
-            const dataForCashBook = {
-              pastTransaction:false,
-              branchId:ExpenseData.branchId,
-              amount:rate,
-              tranSactionType:"Deposit",
-              transactionFrom:"Expense",
-              partyName:ExpenseData.name,
-              payment_Method,
-              session
-            };
-            await cashBookService.createCashBookEntry(dataForCashBook);
-      
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: false,
+        branchId: ExpenseData.branchId,
+        amount: rate,
+        tranSactionType: "Deposit",
+        transactionFrom: "Expense",
+        partyName: ExpenseData.name,
+        payment_Method,
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res
         .status(200)
@@ -205,15 +281,153 @@ export const deleteExpense = async (req, res, next) => {
   }
 };
 
-export const getExpensesForBranch = async (req, res, next) => {
+export const createExpenseCategory = async (req, res, next) => {
   try {
-    const { branchId } = req.body;
-    if (!branchId) throw new Error("Branch Id required");
-    const data = await ExpenseModel.find({ branchId: branchId }).sort({
+    const { name } = req.body;
+    if (!name) throw CustomError("Category name required", 404);
+    const checkExistingCategory = await ExpenseCategoriesModel.findOne({
+      name,
+    });
+    if (checkExistingCategory)
+      throw new CustomError("Category already exists", 404);
+    await ExpenseCategoriesModel.create({ name });
+    return res
+      .status(200)
+      .json({ success: true, message: "Category created successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateExpenseCategory = async (req, res, next) => {
+  try {
+    const { id, name } = req.body;
+    await verifyrequiredparams(req.body, ["id", "name"]);
+    const checkExistingCategory = await ExpenseCategoriesModel.findOne({
+      name,
+    });
+    if (checkExistingCategory)
+      throw new CustomError("Category already exists", 404);
+    await ExpenseCategoriesModel.findByIdAndUpdate(id, { name: name });
+    return res
+      .status(200)
+      .json({ success: true, message: "Category updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllExpenseCategories = async (req, res, next) => {
+  try {
+    const data = await ExpenseCategoriesModel.find().sort({
       createdAt: -1,
     });
     setMongoose();
     return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getExpenseStats = async (req, res, next) => {
+  try {
+    let branchId = req.query.branchId;
+    const currentYear = req.query.year;
+    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+
+    const data = await ExpenseModel.aggregate([
+      {
+        $match: {
+          branchId: branchId,
+          createdAt: {
+            $gte: startOfYear,
+            $lte: endOfYear,
+          },
+        },
+      },
+      {
+        $facet: {
+          total_year_expense: [
+            {
+              $group: {
+                _id: null,
+                total_expense: { $sum: "$rate" },
+              },
+            },
+          ],
+          total_monthly_expense: [
+            {
+              $group: {
+                _id: { $month: "$createdAt" },
+                total_expense: { $sum: "$rate" },
+              },
+            },
+            {
+              $sort: { _id: 1 },
+            },
+          ],
+          category_expense: [
+            {
+              $group: {
+                _id: "$categoryId",
+                total_expense: { $sum: "$rate" },
+              },
+            },
+            {
+              $lookup: {
+                from: "expense categories",
+                localField: "_id",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            {
+              $unwind: "$category",
+            },
+            {
+              $project: {
+                _id: 0,
+                categoryId: "$_id",
+                categoryName: "$category.name",
+                total_expense: 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const { total_year_expense, total_monthly_expense, category_expense } =
+      data[0];
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const yearly_expense = total_year_expense[0]?.total_expense || 0;
+
+    const monthly_expense = total_monthly_expense.map((item) => ({
+      month: months[item._id - 1],
+      total_expense: item.total_expense,
+    }));
+    const response = {
+      yearly_expense,
+      monthly_expense,
+      category_expense,
+    };
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
