@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
 
-const ExpenseModal = ({ isOpen, closeModal }) => {
+const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
@@ -15,7 +15,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
   // State variables to hold form data
   const [formData, setFormData] = useState({
     branchId: user?.user?.branchId || "",
-    name: "",
+    categoryId: "",
     rate: "",
     Date: today,
     reason: "",
@@ -51,10 +51,12 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
 
     dispatch(CeateExpenseAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllExpense({branchId:modifiedFormData.branchId, page: 1 }));
+        dispatch(
+          GetAllExpense({ branchId: modifiedFormData.branchId, categoryId:selectedCategory, page: 1 })
+        );
         setFormData({
           branchId: "",
-          name: "",
+          categoryId: "",
           rate: "",
           Date: today,
           reason: "",
@@ -64,6 +66,7 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
       }
     });
   };
+  
 
   return (
     <>
@@ -108,15 +111,19 @@ const ExpenseModal = ({ isOpen, closeModal }) => {
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
                   {/* NAME */}
                   <div>
-                    <input
-                      name="name"
-                      type="text"
-                      placeholder="Name"
-                      value={formData.name}
+                    <select
+                      name="categoryId"
+                      value={formData.categoryId}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
+                    >
+                      <option disabled value="">
+                        Select a category
+                      </option>
+                      {ExpenseCategories.map((category) => (
+                        <option value={category.id}>{category.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* RATE */}

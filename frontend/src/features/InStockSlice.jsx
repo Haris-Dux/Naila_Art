@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getaccessories = "/api/stock/accessories/getAllAccesoriesInStock";
@@ -14,12 +15,16 @@ const GetLaceForEmroidery = "/api/stock/lace/getAllLaceForEmbroidery";
 const getSuits = "/api/stock/suits/getAllSuits";
 const getAllCategoryForSuitsUrl = "/api/stock/suits/getAllCategoriesForSuits";
 const getExpense = "/api/stock/expense/getAllExpenses";
+const createExpenseCategoryUrl = "/api/stock/expense/createExpenseCategory";
+const updateExpenseCategoryUrl = "/api/stock/expense/updateExpenseCategory";
+const getExpensesCategoriesUrl = "/api/stock/expense/getExpensesCategories";
+const getExpenseStatsUrl = "/api/stock/expense/getExpenseStats";
 const deleteEXpenseUrl = "/api/stock/expense/deleteExpense";
 const AddSuits = "/api/stock/suits/addBaseInStock";
 const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
 const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
-const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock"
+const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock";
 const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
 const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
 
@@ -55,15 +60,15 @@ export const AllBranchStockHistoryAsync = createAsyncThunk(
   "StocktoBranch/AllBranchStockHistory",
   async (data) => {
     try {
-
-      const response = await axios.post( `${AllSuitsStockHistoryUrl}?page=${data.page}&branchId=${data.branchId}`);
+      const response = await axios.post(
+        `${AllSuitsStockHistoryUrl}?page=${data.page}&branchId=${data.branchId}`
+      );
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.error)
+      throw new Error(error.response.data.error);
     }
   }
 );
-
 
 export const approveOrRejectStock = createAsyncThunk(
   "approveOrRejectStock/Create",
@@ -78,7 +83,6 @@ export const approveOrRejectStock = createAsyncThunk(
     }
   }
 );
-
 
 export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
   const searchQuery =
@@ -109,17 +113,17 @@ export const GetAllStockForBranch = createAsyncThunk(
         ? `&search=${data?.search}`
         : "";
 
-        const category =
-        data?.category !== undefined && data?.category !== null
-          ? `&category=${data?.category}`
-          : "";
+    const category =
+      data?.category !== undefined && data?.category !== null
+        ? `&category=${data?.category}`
+        : "";
 
     try {
       // Make POST request with id and search query in body
       const response = await axios.post(
         `${getAllSuitsStockForBranch}?&page=${data.page}${category}${searchQuery}`,
         {
-          id: data.id, 
+          id: data.id,
         }
       );
       return response.data;
@@ -257,9 +261,9 @@ export const UpdateUsedAccessories = createAsyncThunk(
 );
 
 export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
+  const category =
+    data?.categoryId !== undefined && data?.categoryId !== null
+      ? `&category=${data?.categoryId}`
       : "";
   const branchId =
     data?.branchId !== undefined && data?.branchId !== null
@@ -267,7 +271,7 @@ export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
       : "";
   try {
     const response = await axios.post(
-      `${getExpense}?&page=${data.page}${branchId}${searchQuery}`
+      `${getExpense}?&page=${data.page}${branchId}${category}`
     );
 
     return response.data;
@@ -276,18 +280,15 @@ export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
   }
 });
 
-export const GetAllBranches = createAsyncThunk(
-  "Branches/GetAll",
-  async () => {
-    try {
-      const response = await axios.post(getAllBranches);
+export const GetAllBranches = createAsyncThunk("Branches/GetAll", async () => {
+  try {
+    const response = await axios.post(getAllBranches);
 
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response.data.error);
-    }
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.error);
   }
-);
+});
 
 // DELETE EXPENSE
 export const DeleteExpenseAsync = createAsyncThunk(
@@ -303,7 +304,66 @@ export const DeleteExpenseAsync = createAsyncThunk(
   }
 );
 
-// DELETE EXPENSE
+// CREATE EXPENSE CATEGORY
+export const createExpenseCategoryAsync = createAsyncThunk(
+  "Expense/CreateCategory",
+  async (data) => {
+    try {
+      const response = await axios.post(createExpenseCategoryUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+// UPDATE EXPENSE CATEGORY
+export const updateExpenseCategoryAsync = createAsyncThunk(
+  "Expense/updateExpense",
+  async (data) => {
+    try {
+      const response = await axios.post(updateExpenseCategoryUrl, data);
+      toast.success(response.data.message);
+
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+// GET EXPENSE CATEGORY
+export const getExpenseCategoriesAsync = createAsyncThunk(
+  "Expense/expenseCategories",
+  async () => {
+    try {
+      const response = await axios.post(getExpensesCategoriesUrl);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+//GET EXPENSE STATS
+export const getExpenseStatsAsync = createAsyncThunk(
+  "Expense/ExpenseStats",
+  async (data) => {
+    const query = buildQueryParams({
+      branchId: data.branchId,
+      year: data.year,
+    });
+    try {
+      const response = await axios.get(`${getExpenseStatsUrl}?${query}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
+// DELETE BASE STOCK
 export const DeleteBaseStockAsync = createAsyncThunk(
   "Base/DeleteBaseStock",
   async (data) => {
@@ -344,17 +404,22 @@ const initialState = {
   Bags: [],
   accessories: [],
   Expense: [],
-  ExpenseLoading:false,
+  ExpenseLoading: false,
   loading: false,
   GetSuitloading: false,
   Branches: [],
-  suitStocks:[],
-  StockHistory:[],
-  StockHistoryLoading:false,
-  stockLoading:false,
-  addSuitLoading:false,
-  deleteLodaing:false,
-  pendingStock:[]
+  suitStocks: [],
+  StockHistory: [],
+  StockHistoryLoading: false,
+  stockLoading: false,
+  addSuitLoading: false,
+  deleteLodaing: false,
+  pendingStock: [],
+  ExpenseCategories: [],
+  ExpenseStats: [],
+  ExpenseCategoryLoading: false,
+  ExpenseUpdateLoading: false,
+  ExpenseStatsLoading: false,
 };
 
 const InStockSlic = createSlice({
@@ -366,15 +431,15 @@ const InStockSlic = createSlice({
   extraReducers: (builder) => {
     builder
 
-    //PENDING STOCK FOR BRANCH
-     .addCase(getPendingStockForBranchAsync.pending, (state, action) => {
+      //PENDING STOCK FOR BRANCH
+      .addCase(getPendingStockForBranchAsync.pending, (state, action) => {
         state.loading = true;
       })
       .addCase(getPendingStockForBranchAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.pendingStock = action.payload;
       })
-       .addCase(getPendingStockForBranchAsync.rejected, (state, action) => {
+      .addCase(getPendingStockForBranchAsync.rejected, (state, action) => {
         state.loading = false;
         state.pendingStock = [];
       })
@@ -396,6 +461,54 @@ const InStockSlic = createSlice({
       })
       .addCase(DeleteExpenseAsync.rejected, (state, action) => {
         state.deleteLodaing = false;
+      })
+
+      //ADD EXPENSE CATEGORY
+      .addCase(createExpenseCategoryAsync.pending, (state, action) => {
+        state.ExpenseUpdateLoading = true;
+      })
+      .addCase(createExpenseCategoryAsync.fulfilled, (state, action) => {
+        state.ExpenseUpdateLoading = false;
+      })
+      .addCase(createExpenseCategoryAsync.rejected, (state, action) => {
+        state.ExpenseUpdateLoading = false;
+      })
+
+      //UPDATE EXPENSE CATEGORY
+      .addCase(updateExpenseCategoryAsync.pending, (state, action) => {
+        state.ExpenseUpdateLoading = true;
+      })
+      .addCase(updateExpenseCategoryAsync.fulfilled, (state, action) => {
+        state.ExpenseUpdateLoading = false;
+      })
+      .addCase(updateExpenseCategoryAsync.rejected, (state, action) => {
+        state.ExpenseUpdateLoading = false;
+      })
+
+      //GET EXPENSE CATEGORIES
+      .addCase(getExpenseCategoriesAsync.pending, (state, action) => {
+        state.ExpenseCategoryLoading = true;
+      })
+      .addCase(getExpenseCategoriesAsync.fulfilled, (state, action) => {
+        state.ExpenseCategoryLoading = false;
+        state.ExpenseCategories = action.payload;
+      })
+      .addCase(getExpenseCategoriesAsync.rejected, (state, action) => {
+        state.ExpenseCategoryLoading = false;
+        state.ExpenseCategories = [];
+      })
+
+      //GET EXPENSE STATS
+      .addCase(getExpenseStatsAsync.pending, (state, action) => {
+        state.ExpenseStatsLoading = true;
+      })
+      .addCase(getExpenseStatsAsync.fulfilled, (state, action) => {
+        state.ExpenseStatsLoading = false;
+        state.ExpenseStats = action.payload;
+      })
+      .addCase(getExpenseStatsAsync.rejected, (state, action) => {
+        state.ExpenseStatsLoading = false;
+        state.ExpenseStats = [];
       })
 
       //DELETE BASE STOCK
@@ -472,7 +585,6 @@ const InStockSlic = createSlice({
         state.Suit = action.payload;
       })
 
-
       .addCase(GetAllStockForBranch.pending, (state, action) => {
         state.GetSuitloading = true;
       })
@@ -501,7 +613,6 @@ const InStockSlic = createSlice({
         state.ExpenseLoading = false;
       })
 
-
       .addCase(AddSuit.pending, (state) => {
         state.addSuitLoading = true;
       })
@@ -515,7 +626,6 @@ const InStockSlic = createSlice({
       .addCase(approveOrRejectStock.fulfilled, (state, action) => {
         state.stockLoading = false;
       })
-
 
       .addCase(AssginStocktoBranch.pending, (state) => {
         state.stockLoading = true;
