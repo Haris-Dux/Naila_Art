@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { BranchModel } from "../../models/Branch.Model.js";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import {
   ExpenseCategoriesModel,
@@ -145,7 +145,7 @@ export const addExpense = async (req, res, next) => {
         partyName: categoryId,
         payment_Method: payment_Method ? payment_Method : "cashSale",
         session,
-        ...(isPastDate && {pastDate: Date})
+        ...(isPastDate && { pastDate: Date }),
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
 
@@ -184,9 +184,9 @@ export const getAllExpenses = async (req, res, next) => {
   try {
     const id = req.query.branchId;
     if (!id) throw new Error("Missing Branch Id");
-    const categoryId = req.query.category || "";
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
+    const categoryId = req.query.category || "";
 
     let query = {
       branchId: id,
@@ -286,14 +286,16 @@ export const deleteExpense = async (req, res, next) => {
 
 export const createExpenseCategory = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    if (!name) throw CustomError("Category name required", 404);
+    const { name, branches } = req.body;
+    if (!name) throw new CustomError("Category name required", 404);
+    if (!branches || !branches.length)
+      throw new CustomError("Please select at least 1 branch", 404);
     const checkExistingCategory = await ExpenseCategoriesModel.findOne({
       name,
     });
     if (checkExistingCategory)
       throw new CustomError("Category already exists", 404);
-    await ExpenseCategoriesModel.create({ name });
+    await ExpenseCategoriesModel.create({ name, branches });
     return res
       .status(200)
       .json({ success: true, message: "Category created successfully" });
@@ -304,14 +306,18 @@ export const createExpenseCategory = async (req, res, next) => {
 
 export const updateExpenseCategory = async (req, res, next) => {
   try {
-    const { id, name } = req.body;
+    const { id, name, branches } = req.body;
     await verifyrequiredparams(req.body, ["id", "name"]);
     const checkExistingCategory = await ExpenseCategoriesModel.findOne({
       name,
+      branches: branches,
     });
     if (checkExistingCategory)
       throw new CustomError("Category already exists", 404);
-    await ExpenseCategoriesModel.findByIdAndUpdate(id, { name: name });
+    await ExpenseCategoriesModel.findByIdAndUpdate(id, {
+      name: name,
+      branches: branches,
+    });
     return res
       .status(200)
       .json({ success: true, message: "Category updated successfully" });
@@ -374,6 +380,7 @@ export const getExpenseStats = async (req, res, next) => {
             {
               $group: {
                 _id: "$categoryId",
+
                 total_expense: { $sum: "$rate" },
               },
             },
@@ -387,6 +394,12 @@ export const getExpenseStats = async (req, res, next) => {
             },
             {
               $unwind: "$category",
+            },
+            {
+              $match: {
+                "category.branches":
+                  Types.ObjectId.createFromHexString(branchId),
+              },
             },
             {
               $project: {
