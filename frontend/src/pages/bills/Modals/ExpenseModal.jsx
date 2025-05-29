@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { CeateExpenseAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
 
-const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory }) => {
+const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory, branchId}) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
-  const { Branches } = useSelector((state) => state.InStock);
   const { expenseLoading } = useSelector((state) => state.PurchaseBills);
   const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
   // State variables to hold form data
   const [formData, setFormData] = useState({
-    branchId: user?.user?.branchId || "",
+    branchId: branchId,
     categoryId: "",
     rate: "",
     Date: today,
@@ -28,14 +27,6 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory 
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
-    }));
-  };
-
-  // Function to handle branch selection
-  const handleBranchChange = (e) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      branchId: e.target.value,
     }));
   };
 
@@ -66,7 +57,7 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory 
       }
     });
   };
-  
+
 
   return (
     <>
@@ -205,24 +196,7 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory 
                       </select>
                     </div>
                   ) : null}
-
-                  {user?.user?.role === "superadmin" ? (
-                    <div className="col-span-2">
-                      <select
-                        id="branches"
-                        value={formData.branchId}
-                        onChange={handleBranchChange}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      >
-                        <option value="">Select Branch</option>
-                        {Branches?.map((data) => (
-                          <option key={data.id} value={data.id}>
-                            {data.branchName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : null}
+               
                 </div>
 
                 <div className="flex justify-center mt-6">

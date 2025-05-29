@@ -15,15 +15,14 @@ import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
+import Select from "react-select";
 
 const Expense = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const { Branches, deleteLodaing } = useSelector(
-    (state) => state.InStock
-  );
+  const { Branches, deleteLodaing } = useSelector((state) => state.InStock);
   const {
     ExpenseLoading,
     Expense,
@@ -40,6 +39,7 @@ const Expense = () => {
   const [expenseCategoryData, setExpenseCategoryData] = useState({
     name: "",
     id: "",
+    branches: [],
   });
 
   const handleTabClick = () => {
@@ -53,7 +53,7 @@ const Expense = () => {
       setSelectedBranchId(user?.user?.branchId);
     }
     dispatch(getExpenseCategoriesAsync()).then((res) => {
-      setSelectedCategory(res.payload[0].id);
+      setSelectedCategory(res?.payload[0]?.id);
     });
   }, [Branches, user]);
 
@@ -95,8 +95,16 @@ const Expense = () => {
     });
   };
 
+  const filterdCategories = ExpenseCategories.filter((item) =>
+    item?.branches?.includes(selectedBranchId)
+  );
+
   const handleBranchClick = (branchId) => {
     setSelectedBranchId(branchId);
+    const id = ExpenseCategories.filter((item) =>
+      item?.branches?.includes(branchId)
+    )[0]?.id;
+    setSelectedCategory(id);
   };
 
   const closeConfirmationModal = () => {
@@ -124,6 +132,7 @@ const Expense = () => {
         ...prev,
         name: data.category.name,
         id: data.category.id,
+        branches: data.category.branches,
       }));
     }
   };
@@ -141,6 +150,7 @@ const Expense = () => {
     if (categoriesModal === "AddExpenseCategory") {
       const payload = {
         name: expenseCategoryData.name,
+        branches: expenseCategoryData.branches,
       };
       dispatch(createExpenseCategoryAsync(payload)).then((res) => {
         if (res.payload.success) {
@@ -151,14 +161,25 @@ const Expense = () => {
       const payload = {
         name: expenseCategoryData.name,
         id: expenseCategoryData.id,
+        branches: expenseCategoryData.branches,
       };
       dispatch(updateExpenseCategoryAsync(payload)).then((res) => {
         if (res.payload.success) {
           closeCategoryModal();
+          setExpenseCategoryData({
+            name: "",
+            id: "",
+            branches: [],
+          });
         }
       });
     }
   };
+
+  const branchOptions = Branches.map((branch) => ({
+    label: branch.branchName,
+    value: branch.id,
+  }));
 
   return (
     <>
@@ -210,13 +231,15 @@ const Expense = () => {
             >
               <IoStatsChart size={22} className="text-white" />
             </Link>
-            <button
-              type="button"
-              onClick={() => openCategoryModal({ type: "ViewCategories" })}
-              className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
-            >
-              <TbCategory size={22} className="text-white" />
-            </button>
+            {user?.user?.role === "superadmin" && (
+              <button
+                type="button"
+                onClick={() => openCategoryModal({ type: "ViewCategories" })}
+                className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+              >
+                <TbCategory size={22} className="text-white" />
+              </button>
+            )}
 
             <button
               type="button"
@@ -233,7 +256,7 @@ const Expense = () => {
         <>
           <div className="tabs flex justify-between items-center my-5">
             <div className="tabs_button">
-              {ExpenseCategories?.map((category) => (
+              {filterdCategories?.map((category) => (
                 <Link
                   to={`/dashboard/expense?page=${1}`}
                   key={category?.id}
@@ -437,8 +460,9 @@ const Expense = () => {
         <ExpenseModal
           isOpen={expenseModal}
           closeModal={() => setexpenseModal(false)}
-          ExpenseCategories={ExpenseCategories}
+          ExpenseCategories={filterdCategories}
           selectedCategory={selectedCategory}
+          branchId={selectedBranchId}
         />
       )}
 
@@ -459,22 +483,24 @@ const Expense = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex gap-3 items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Expense Categories
               </h3>
-              {user?.user?.role === "superadmin" && <button
-                type="button"
-                onClick={() =>
-                  openCategoryModal({ type: "AddExpenseCategory" })
-                }
-                className="flex items-center text-sm justify-center gap-1 text-white rounded border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
-              >
-                <IoAdd size={18} className="text-white" />
-                New Category
-              </button>}
+              {user?.user?.role === "superadmin" && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openCategoryModal({ type: "AddExpenseCategory" })
+                  }
+                  className="flex items-center text-sm justify-center gap-1 text-white rounded border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+                >
+                  <IoAdd size={18} className="text-white" />
+                  New Category
+                </button>
+              )}
               <button
                 onClick={closeCategoryModal}
                 className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -509,6 +535,9 @@ const Expense = () => {
                     </th>
                     <th className=" px-2 py-3 text-center" scope="col">
                       Name
+                    </th>
+                    <th className=" px-2 py-3 text-center" scope="col">
+                      Branches
                     </th>
 
                     <th className=" px-2 py-3 text-center" scope="col">
@@ -547,6 +576,26 @@ const Expense = () => {
                           </td>
                           <td className=" px-6 py-3 text-center">
                             {data?.name}
+                          </td>
+
+                          <td className=" px-6 py-3 text-center">
+                            <select
+                              defaultValue=""
+                              className="bg-gray-50 border border-gray-300 w-40 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            >
+                              <option value="" disabled>
+                                View Branches
+                              </option>
+                              {data?.branches?.map((branchId, i) => (
+                                <option disabled key={i}>
+                                  {
+                                    Branches?.find(
+                                      (option) => option.id === branchId
+                                    ).branchName
+                                  }
+                                </option>
+                              ))}
+                            </select>
                           </td>
 
                           <td className="px-6 py-3 text-center">
@@ -599,6 +648,35 @@ const Expense = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
               placeholder="Enter category name"
             />
+            <div className="mt-2 custom-reactSelect">
+              <Select
+                isMulti
+                options={branchOptions}
+                styles={{
+                  control: (baseStyles, state) => ({
+                    ...baseStyles,
+                    borderRadius: 4,
+                    borderColor: "#D1D5DB",
+                    boxShadow: state.isFocused ? "none" : "none",
+                    "&:hover": {
+                      borderColor: "#D1D5DB",
+                    },
+                    padding: "2px",
+                  }),
+                }}
+                placeholder="Select branch for category"
+                className="bg-gray-50   text-gray-900 rounded-md"
+                onChange={(selectedOptions) => {
+                  setExpenseCategoryData((prev) => ({
+                    ...prev,
+                    branches: selectedOptions.map((option) => option.value),
+                  }));
+                }}
+                value={branchOptions.filter((option) =>
+                  expenseCategoryData?.branches?.includes(option.value)
+                )}
+              />
+            </div>
             <div className="flex justify-end mt-4 gap-2">
               <button
                 onClick={closeCategoryModal}
