@@ -47,13 +47,18 @@ const Expense = () => {
   };
 
   useEffect(() => {
+    let branchId = "";
     if (user?.user?.role === "superadmin" && Branches.length > 0) {
-      setSelectedBranchId(Branches[0]?.id);
+      branchId = Branches[0]?.id;
     } else {
-      setSelectedBranchId(user?.user?.branchId);
+      branchId = user?.user?.branchId;
     }
+    setSelectedBranchId(branchId);
     dispatch(getExpenseCategoriesAsync()).then((res) => {
-      setSelectedCategory(res?.payload[0]?.id);
+      const id = res?.payload?.filter((item) =>
+        item?.branches?.includes(branchId)
+      )[0]?.id;
+      setSelectedCategory(id);
     });
   }, [Branches, user]);
 
@@ -94,10 +99,6 @@ const Expense = () => {
       behavior: "smooth",
     });
   };
-
-  const filterdCategories = ExpenseCategories.filter((item) =>
-    item?.branches?.includes(selectedBranchId)
-  );
 
   const handleBranchClick = (branchId) => {
     setSelectedBranchId(branchId);
@@ -155,6 +156,7 @@ const Expense = () => {
       dispatch(createExpenseCategoryAsync(payload)).then((res) => {
         if (res.payload.success) {
           closeCategoryModal();
+           dispatch(getExpenseCategoriesAsync())
         }
       });
     } else {
@@ -166,6 +168,7 @@ const Expense = () => {
       dispatch(updateExpenseCategoryAsync(payload)).then((res) => {
         if (res.payload.success) {
           closeCategoryModal();
+          dispatch(getExpenseCategoriesAsync())
           setExpenseCategoryData({
             name: "",
             id: "",
@@ -180,6 +183,10 @@ const Expense = () => {
     label: branch.branchName,
     value: branch.id,
   }));
+
+  const filterdCategories = ExpenseCategories.filter((item) =>
+    item?.branches?.includes(selectedBranchId)
+  );
 
   return (
     <>
