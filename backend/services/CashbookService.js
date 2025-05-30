@@ -5,9 +5,12 @@ import { getTodayDate } from "../utils/Common.js";
 import { setMongoose } from "../utils/Mongoose.js";
 
 class cashBookHistoryService {
-  constructor() {
-    this.transactionTime = moment.tz("Asia/Karachi").format("HH:mm");
-    this.today = getTodayDate();
+   getCurrentTime() {
+    return moment.tz("Asia/Karachi").format("HH:mm");
+  }
+
+  getTodayDate() {
+    return moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   }
 
   async createCashBookEntry(data) {
@@ -47,8 +50,8 @@ class cashBookHistoryService {
             transactionFrom,
             partyName,
             payment_Method,
-            transactionTime: this.transactionTime,
-            ...(!pastTransaction && {currentDate: this.today}),
+            transactionTime: this.getCurrentTime(),
+            ...(!pastTransaction && {currentDate: this.getTodayDate()}),
             ...(pastTransaction && { pastDate: pastDate }),
           },
         ],
