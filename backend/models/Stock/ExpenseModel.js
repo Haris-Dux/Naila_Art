@@ -6,9 +6,9 @@ const expenseSchema = new mongoose.Schema(
       type: String,
       required: [true, "branchId required"],
     },
-    name: {
-      type: String,
-      required: [true, "name required"],
+    categoryId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Expense Categories",
     },
     reason: {
       type: String,
@@ -26,12 +26,34 @@ const expenseSchema = new mongoose.Schema(
       type: Number,
       required: [true, "serial_no required"],
     },
-    payment_Method:{
+    payment_Method: {
       type: String,
-      default:"cashSale"
-    }
+      default: "cashSale",
+    },
   },
   { timestamps: true }
 );
 
 export const ExpenseModel = mongoose.model("Expense", expenseSchema);
+
+const expenseCategorySchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "category name required"],
+      unique:true
+    },
+    branches: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Branches",
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+export const ExpenseCategoriesModel = mongoose.model(
+  "Expense Categories",
+  expenseCategorySchema
+);

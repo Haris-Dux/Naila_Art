@@ -57,6 +57,7 @@ import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
 import { getAllPaymentMetodsForTransactionAsync } from "./features/PaymentMethodsSlice";
 import CashBook from "./pages/cashBook/CashBook";
 import { GetAllBranches } from "./features/InStockSlice";
+import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
 
 function App() {
   const dispatch = useDispatch();
@@ -103,6 +104,7 @@ useEffect(() => {
             <Route path="bag" element={<Bag />} />
             <Route path="accessories" element={<Accessories />} />
             <Route path="expense" element={<Expense />} />
+            <Route path="expense-stats" element={<ExpenseStats />} />
             <Route path="assignstocks" element={<AssignStock />} />
             <Route path="AssignedStockHistory" element={<AssignedStockHistory />} />
 
