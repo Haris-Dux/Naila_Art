@@ -332,8 +332,8 @@ const NailaArtsBuyer = () => {
                           -<span className="text-green-600">{data.autoSN}</span>
                         </td>
                         <th
-                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                          scope="row"
+                          className="px-6 py-4 font-medium text-gray-900"
+                         
                         >
                           <p>{data.name}</p>
                           {data.phone} 
