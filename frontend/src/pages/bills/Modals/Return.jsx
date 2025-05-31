@@ -9,14 +9,15 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
   const [T_Return_Amount, setT_Return_Amount] = useState(0);
   const [Amount_From_Balance, setAmount_From_Balance] = useState(0);
   const buyerBalance = Buyerdata?.virtual_account?.total_balance;
-
   const [Amount_Payable, setAmount_From_TotalCash] = useState(0);
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [methodValue, setMethodValue] = useState("default-account");
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.Buyer);
+  const { user } = useSelector((state) => state.auth);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const { Returnloading } = useSelector((state) => state.Return);
+  const [selectedDate, setSelectedDate] = useState(today);
 
   // Initialize suits data when Buyerdata is available
   useEffect(() => {
@@ -57,7 +58,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
       const AFTC = validateValue(buyerBalance - totalReturnAmount);
       setAmount_From_TotalCash(Math.abs(AFTC));
       setAmount_From_Balance(validateValue(totalReturnAmount - Math.abs(AFTC)));
-    } else if (totalReturnAmount > 0 && buyerBalance <= 0){
+    } else if (totalReturnAmount > 0 && buyerBalance <= 0) {
       setAmount_From_TotalCash(totalReturnAmount);
       setAmount_From_Balance(0);
     }
@@ -89,7 +90,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
       partyName: Buyerdata?.name,
       serialNumber: Buyerdata?.serialNumber,
       phone: Buyerdata?.phone,
-      date: today,
+      date: methodValue === "cash" ? selectedDate : today,
       bill_Date: selected?.date,
       T_Return_Amount,
       Amount_From_Balance,
@@ -346,8 +347,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
           <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
-            <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
-            </div>
+            <div className="flex items-center justify-center p-4 border-b dark:border-gray-600"></div>
             <div className="p-2">
               <p className="text-gray-700 text-center dark:text-gray-300">
                 {methodValue === "default-account" && Amount_Payable <= 0
@@ -357,7 +357,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
             </div>
 
             {Amount_Payable > 0 ? (
-              <div className="flex items-center justify-center my-2 gap-2">
+              <div className="flex items-center justify-center my-2 gap-3">
                 <div className="flex items-center">
                   <input
                     type="radio"
@@ -390,6 +390,19 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                     Cash
                   </label>
                 </div>
+
+                {methodValue === "cash" &&
+                  user?.user?.role === "superadmin" && (
+                    <input
+                      name="Date"
+                      type="Date"
+                      placeholder="Date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300  dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  )}
               </div>
             ) : null}
 
@@ -416,8 +429,6 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                 </button>
               )}
             </div>
-
-          
           </div>
         </div>
       )}

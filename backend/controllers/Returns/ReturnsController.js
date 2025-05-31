@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { BranchModel } from "../../models/Branch.Model.js";
 import { BuyersBillsModel, BuyersModel } from "../../models/BuyersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { ReturnSuitModel } from "../../models/Returns/ReturnModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel.js";
 import { cashBookService } from "../../services/CashbookService.js";
+import moment from "moment-timezone";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -80,7 +80,7 @@ export const createReturn = async (req, res, next) => {
       }
 
       if (Amount_Payable > 0 && method === "default-account") {
-        throw new Error("Please Select a Valid Method for amount");
+        throw new Error("Please Select a Valid Method");
       }
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
@@ -101,15 +101,6 @@ export const createReturn = async (req, res, next) => {
 
       if (updateBranchStock.modifiedCount === 0) {
         throw new Error("Failed to update stock");
-      }
-
-      //GETTING DAILY SALE FOR CURRENT DAY
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: date,
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for Today");
       }
 
       //DEDUCTING TOTAL PROFIT FROM SALE DAY
@@ -154,7 +145,13 @@ export const createReturn = async (req, res, next) => {
       //GET BUYER DETAILS
       const buyer = await BuyersModel.findById(buyerId).session(session);
 
-      //682a00921db0202da1892da5
+      const futureDate = moment.tz(date, "Asia/Karachi");
+      const now = moment.tz("Asia/Karachi");
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Invalid Future Date");
+      }
 
       //UPDATE BUYERS ACCOUNT
       if (Amount_Payable <= 0 && method === "default-account") {
@@ -239,10 +236,70 @@ export const createReturn = async (req, res, next) => {
 
         await buyer.save({ session });
       } else if (Amount_Payable > 0 && method === "cash") {
-        dailySaleForToday.saleData.totalCash -= Amount_Payable;
-        if (dailySaleForToday.saleData.totalCash < 0) {
-          throw new Error("Not Enough Total Cash");
+        //CURRENT DAY CASH DEDUCTION
+        if (!isPastDate && !isFutureDate) {
+          const dailySaleForToday = await DailySaleModel.findOne({
+            branchId,
+            date: date,
+          }).session(session);
+          if (!dailySaleForToday) {
+            throw new Error("Daily sale record not found for Today");
+          }
+          dailySaleForToday.saleData.totalCash -= Amount_Payable;
+          if (dailySaleForToday.saleData.totalCash < 0) {
+            throw new Error("Not Enough Total Cash");
+          }
+          await dailySaleForToday.save({ session });
         }
+        //PAST DATE CASH DEDUCTION
+        else if (isPastDate) {
+          const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+          const today = moment.tz("Asia/Karachi").startOf("day");
+
+          const dateList = [];
+          const current = moment(targetDate);
+          while (current.isSameOrBefore(today)) {
+            dateList.push(current.format("YYYY-MM-DD"));
+            current.add(1, "day");
+          }
+
+          const dailySales = await DailySaleModel.find({
+            branchId,
+            date: { $in: dateList },
+          }).session(session);
+
+          if (dailySales.length !== dateList.length) {
+            const foundDates = dailySales.map((d) => d.date);
+            const missing = dateList.filter((d) => !foundDates.includes(d));
+            throw new Error(
+              `Missing Daily Sale records for: ${missing.join(", ")}`
+            );
+          }
+
+          // Prepare bulk operations
+          const bulkOps = dailySales.map((saleDoc) => {
+            const update = {
+              $inc: {
+                "saleData.totalCash": -Amount_Payable,
+              },
+            };
+
+            const futureCash = saleDoc.saleData.totalCash - Amount_Payable;
+            if (futureCash < 0) {
+              throw new Error(`Not enough cash on ${saleDoc.date}`);
+            }
+
+            return {
+              updateOne: {
+                filter: { _id: saleDoc._id },
+                update,
+              },
+            };
+          });
+
+          await DailySaleModel.bulkWrite(bulkOps, { session });
+        }
+
         if (Amount_From_Balance > 0) {
           const new_total_debit =
             buyer.virtual_account.total_debit - Amount_From_Balance;
@@ -275,7 +332,7 @@ export const createReturn = async (req, res, next) => {
 
         //PUSH DATA FOR CASH BOOK
         const dataForCashBook = {
-          pastTransaction: false,
+          pastTransaction: isPastDate,
           branchId,
           amount: Amount_Payable,
           tranSactionType: "WithDraw",
@@ -283,10 +340,10 @@ export const createReturn = async (req, res, next) => {
           partyName: buyerBill.name,
           payment_Method: "cashSale",
           session,
+          ...(isPastDate && { pastDate: date }),
         };
 
         await cashBookService.createCashBookEntry(dataForCashBook);
-        await dailySaleForToday.save({ session });
       }
 
       //CREATING RETURN SUIT  BILL
