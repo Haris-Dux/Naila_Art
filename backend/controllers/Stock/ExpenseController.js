@@ -59,8 +59,6 @@ export const addExpense = async (req, res, next) => {
               current.add(1, "day");
             }
 
-            console.log(dateList);
-
             const dailySales = await DailySaleModel.find({
               branchId,
               date: { $in: dateList },
@@ -135,6 +133,10 @@ export const addExpense = async (req, res, next) => {
         await existingDailySaleData.save({ session });
       }
 
+      const categoryName = await ExpenseCategoriesModel.findById(
+        categoryId
+      ).select("name");
+
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
         pastTransaction: isPastDate,
@@ -142,7 +144,7 @@ export const addExpense = async (req, res, next) => {
         amount: rate,
         tranSactionType: "WithDraw",
         transactionFrom: "Expense",
-        partyName: categoryId,
+        partyName: categoryName.name,
         payment_Method: payment_Method ? payment_Method : "cashSale",
         session,
         ...(isPastDate && { pastDate: Date }),
