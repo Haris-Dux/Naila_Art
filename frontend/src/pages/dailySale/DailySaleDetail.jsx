@@ -14,6 +14,7 @@ const DailySaleDetail = () => {
   const dispatch = useDispatch();
   const [cashOutModal, setCashOutModal] = useState("");
   const { user } = useSelector((state) => state.auth);
+  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const { loading, DailySaleById, cashOutLoading } = useSelector(
     (state) => state.DailySale
   );
@@ -25,6 +26,7 @@ const DailySaleDetail = () => {
   const [formData, setFormData] = useState({
     amount: "",
     payment_Method: "",
+    date:today
   });
 
   const handleChange = (e) => {
@@ -72,6 +74,7 @@ const DailySaleDetail = () => {
       amount: formData.amount,
       payment_Method: formData.payment_Method,
       branchId: user?.user?.branchId,
+      date:formData.date
     };
 
     dispatch(BranchCashOutAsync(data)).then((res) => {
@@ -81,6 +84,7 @@ const DailySaleDetail = () => {
         setFormData({
           amount: DailySaleById?.saleData?.totalCash,
           payment_Method: "",
+          date:today
         });
       }
     });
@@ -330,7 +334,17 @@ const DailySaleDetail = () => {
 
             <div className="p-4 md:p-5">
               <form className="space-y-4" onSubmit={handleSubmit}>
-                <div>
+
+                 <input
+                    type="date"
+                    name="date"
+                    id="date"
+                    onChange={handleChange}
+                    required
+                    value={formData.date}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  />
+              
                   <input
                     type="number"
                     placeholder="Amount"
@@ -341,12 +355,12 @@ const DailySaleDetail = () => {
                     value={formData.amount}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   />
-                </div>
+                
 
                 <select
                   id="payment-method"
                   name="payment_Method"
-                  className="bg-gray-50 border w-full border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
+                  className="bg-gray-50 border w-full border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                   value={formData?.payment_Method}
                   onChange={(e) =>
                     setFormData({
