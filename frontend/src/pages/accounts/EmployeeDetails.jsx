@@ -39,7 +39,6 @@ const EmployeeDetails = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [overTimeModal, setOverTimeModal] = useState(false);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  const currentMonth = moment.tz("Asia/Karachi").month() + 1;
 
   const [formData, setFormData] = useState({
     date: today,
@@ -94,7 +93,7 @@ const EmployeeDetails = () => {
     e.preventDefault();
     const data = {
       id,
-      date: today,
+      date: formData.date,
       particular: formData.particular,
       payment_Method: formData.payment_Method,
       branchId: formData.branchId,
@@ -133,6 +132,7 @@ const EmployeeDetails = () => {
       leaves: currentMonthLeaves?.length,
       branchId: formData.branchId,
       month: formData.salaryMonth,
+      date: formData.date,
     };
     dispatch(CreditSalary(data)).then((res) => {
       if (res.payload.success === true) {
@@ -731,13 +731,13 @@ const EmployeeDetails = () => {
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
                     <input
-                      type="text"
+                      type="date"
                       name="date"
                       id="date"
-                      value={today}
+                      value={formData.date}
+                      onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      readOnly
                     />
                   </div>
                   <div>
@@ -767,7 +767,7 @@ const EmployeeDetails = () => {
                   <select
                     id="payment-method"
                     name="payment_Method"
-                    className="bg-gray-50 border w-full border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
+                    className="bg-gray-50 border w-full text-gray-900 text-sm rounded-md focus:ring-0 border-gray-300 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.payment_Method}
                     onChange={(e) =>
                       setFormData({
@@ -880,10 +880,11 @@ const EmployeeDetails = () => {
                         : "Select Month"}
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 p-3 gap-2 gap-x-4">
+
+                  <div className="grid grid-cols-3 p-3 gap-2 gap-x-4">
                     <div className="col-span-1 items-center grid grid-cols-2">
                       <h3 className="text-sm font-bold col-span-1">
-                        T.Salary :
+                        Total Salary :
                       </h3>
                       <input
                         id="salary"
@@ -891,14 +892,14 @@ const EmployeeDetails = () => {
                         type="number"
                         value={formData.salary || calculatePayableSlary()}
                         onChange={handleChange}
-                        className="bg-gray-50 border col-span-1 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50 border w-full border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block  dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       />
                     </div>
                     <div className="col-span-1">
                       <select
                         id="branches"
                         name="branchId"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50 border  border-gray-300 w-full text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData?.branchId || ""}
                         onChange={handleChange}
                       >
@@ -916,7 +917,7 @@ const EmployeeDetails = () => {
                       <select
                         id="payment-method"
                         name="payment_Method"
-                        className="bg-gray-50 border border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50 border border-gray-300 w-full text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData?.payment_Method}
                         onChange={(e) =>
                           setFormData({
@@ -939,7 +940,7 @@ const EmployeeDetails = () => {
                       <select
                         id="salary-month"
                         name="salaryMonth"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        className="bg-gray-50 w-full border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData?.salaryMonth || ""}
                         onChange={(e) =>
                           setFormData({
@@ -958,8 +959,21 @@ const EmployeeDetails = () => {
                         ))}
                       </select>
                     </div>
+                   
+                    <div>
+                      <input
+                        type="date"
+                        name="date"
+                        id="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
+
                 <div className="flex justify-center pt-4 gap-3">
                   <button
                     disabled={employeEditLoading}

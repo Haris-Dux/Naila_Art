@@ -7,6 +7,7 @@ import { OtherSaleBillModel } from "../models/OtherSaleModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import moment from "moment-timezone";
 
 export const generateOtherSaleBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -45,46 +46,112 @@ export const generateOtherSaleBill = async (req, res, next) => {
       if (!headOffice)
         throw new CustomError("Cannot find head office data", 404);
 
-      //GET DAILY SALE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId: headOffice._id,
-        date: date,
-      }).session(session);
-      if (!dailySaleForToday) throw new CustomError("No DAILY SALE Found", 404);
-
-      //UPDATE DAILY SALE
-      let updatedSaleData = {
-        ...dailySaleForToday.saleData,
-        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += amount),
-        totalSale: (dailySaleForToday.saleData.totalSale += amount),
-      };
-
-      if (payment_Method === "cashSale") {
-        updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          amount;
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+      const now = moment.tz("Asia/Karachi").startOf("day");
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Date cannot be in the future");
       }
 
-      dailySaleForToday.saleData = updatedSaleData;
-      await dailySaleForToday.save({ session });
+      //UPDATE DAILY SALE
+      if (isPastDate) {
+        const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+        const dateList = [];
+
+        const current = moment(targetDate);
+        while (current.isSameOrBefore(today)) {
+          dateList.push(current.format("YYYY-MM-DD"));
+          current.add(1, "day");
+        }
+
+        const dailySales = await DailySaleModel.find({
+          branchId:headOffice._id,
+          date: { $in: dateList },
+        }).session(session);
+
+        if (dailySales.length !== dateList.length) {
+          const foundDates = dailySales.map((d) => d.date);
+          const missing = dateList.filter((d) => !foundDates.includes(d));
+          throw new Error(
+            `Missing Daily Sale records for: ${missing.join(", ")}`
+          );
+        }
+
+        // Prepare bulk operations
+        const bulkOps = dailySales.map((saleDoc) => {
+          const isOriginalDate =
+            saleDoc.date === targetDate.format("YYYY-MM-DD");
+          const update = {
+            $inc: {
+              ...(isOriginalDate && {
+                "saleData.totalSale": amount,
+                [`saleData.${payment_Method}`]: amount,
+              }),
+              ...(payment_Method === "cashSale" && {
+                "saleData.totalCash": amount,
+              }),
+            },
+          };
+
+          return {
+            updateOne: {
+              filter: { _id: saleDoc._id },
+              update,
+            },
+          };
+        });
+
+        await DailySaleModel.bulkWrite(bulkOps, { session });
+      } else {
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId: headOffice._id,
+          date: today,
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+
+        let updatedSaleData = {
+          ...dailySaleForToday.saleData,
+          [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
+            amount),
+          totalSale: (dailySaleForToday.saleData.totalSale += amount),
+        };
+        if (payment_Method === "cashSale") {
+          updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
+            amount;
+        }
+
+        dailySaleForToday.saleData = updatedSaleData;
+        await dailySaleForToday.save({ session });
+      }
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
         const data = {
-          session,payment_Method,amount,transactionType:"Deposit",date,note:`Other Sale Bill Generated For : ${name}`
+          session,
+          payment_Method,
+          amount,
+          transactionType: "Deposit",
+          date,
+          note: `Other Sale Bill Generated For : ${name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction:false,
-        branchId:headOffice._id,
+        pastTransaction: isPastDate,
+        branchId: headOffice._id,
         amount,
-        tranSactionType:"Deposit",
-        transactionFrom:"Other Sale",
-        partyName:name,
+        tranSactionType: "Deposit",
+        transactionFrom: "Other Sale",
+        partyName: name,
         payment_Method,
-        session
+        ...(isPastDate && { pastDate: date }),
+        session,
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
 
@@ -148,13 +215,6 @@ export const getAllOtherSaleBills = async (req, res, next) => {
     };
     setMongoose();
     return res.status(200).json(response);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const deleteOtherSaleBill = async (req, res, next) => {
-  try {
   } catch (error) {
     next(error);
   }
