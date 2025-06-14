@@ -81,6 +81,15 @@ export const creditDebitBalance = async (req, res, next) => {
       let newBalance = lastNonSalaryTransaction
         ? lastNonSalaryTransaction.balance
         : 0;
+
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf('day');
+      const now = moment.tz("Asia/Karachi").startOf('day');
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Date cannot be in the future");
+      }
+
       //CREDIT LOGIC
       if (credit >= 0) {
         newBalance += credit;
@@ -91,19 +100,6 @@ export const creditDebitBalance = async (req, res, next) => {
           particular: particular,
           date: date,
         });
-        //DEDUCTION FROM DAILY SALE
-        const dailySaleForToday = await DailySaleModel.findOne({
-          branchId,
-          date: today,
-        }).session(session);
-        if (!dailySaleForToday) {
-          throw new Error("Daily sale record not found for This Date");
-        }
-        if (payment_Method === "cashSale") {
-          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash +=
-            credit;
-        }
-        await dailySaleForToday.save({ session });
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -117,15 +113,16 @@ export const creditDebitBalance = async (req, res, next) => {
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
-         //PUSH DATA FOR CASH BOOK
-         const dataForCashBook = {
-          pastTransaction: false,
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction: isPastDate,
           branchId,
           amount: credit,
           tranSactionType: "Deposit",
           transactionFrom: "Employe",
           partyName: employe.name,
           payment_Method,
+          ...(isPastDate && { pastDate: date }),
           session,
         };
         await cashBookService.createCashBookEntry(dataForCashBook);
@@ -134,6 +131,7 @@ export const creditDebitBalance = async (req, res, next) => {
       //DEBIT LOGIC
       if (debit >= 0) {
         newBalance -= debit;
+
         //HISTORY DATA
         employe.financeData.push({
           date: date,
@@ -142,23 +140,6 @@ export const creditDebitBalance = async (req, res, next) => {
           debit: debit,
           credit: 0,
         });
-
-        //DEDUCTION FROM DAILY SALE
-        const dailySaleForToday = await DailySaleModel.findOne({
-          branchId,
-          date: today,
-        }).session(session);
-        if (!dailySaleForToday) {
-          throw new Error("Daily sale record not found for This Date");
-        }
-        if (payment_Method === "cashSale") {
-          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
-            debit;
-        }
-        if (dailySaleForToday.totalCash < 0) {
-          throw new Error("Not Enough Total Cash");
-        }
-        await dailySaleForToday.save({ session });
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -172,20 +153,87 @@ export const creditDebitBalance = async (req, res, next) => {
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
-         //PUSH DATA FOR CASH BOOK
-         const dataForCashBook = {
-          pastTransaction: false,
+        //PUSH DATA FOR CASH BOOK
+        const dataForCashBook = {
+          pastTransaction: isPastDate,
           branchId,
           amount: debit,
           tranSactionType: "WithDraw",
           transactionFrom: "Employe",
           partyName: employe.name,
           payment_Method,
+          ...(isPastDate && { pastDate: date }),
           session,
         };
         await cashBookService.createCashBookEntry(dataForCashBook);
       }
 
+      //UPDATE DAILY SALE
+      if (payment_Method === "cashSale") {
+        const amountForDailySale =
+          credit >= 0 ? credit : debit >= 0 ? -debit : 0;
+        if (isPastDate) {
+          const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+          const dateList = [];
+
+          const current = moment(targetDate);
+          while (current.isSameOrBefore(today)) {
+            dateList.push(current.format("YYYY-MM-DD"));
+            current.add(1, "day");
+          }
+
+          const dailySales = await DailySaleModel.find({
+            branchId,
+            date: { $in: dateList },
+          }).session(session);
+
+          if (dailySales.length !== dateList.length) {
+            const foundDates = dailySales.map((d) => d.date);
+            const missing = dateList.filter((d) => !foundDates.includes(d));
+            throw new Error(
+              `Missing Daily Sale records for: ${missing.join(", ")}`
+            );
+          }
+
+          // Prepare bulk operations
+          const bulkOps = dailySales.map((saleDoc) => {
+            const update = {
+              $inc: {
+                "saleData.totalCash": amountForDailySale,
+              },
+            };
+
+            if (debit >= 0) {
+              const futureCash = saleDoc.saleData.totalCash - debit;
+              if (futureCash < 0) {
+                throw new Error(`Not enough cash on ${saleDoc.date}`);
+              }
+            }
+
+            return {
+              updateOne: {
+                filter: { _id: saleDoc._id },
+                update,
+              },
+            };
+          });
+
+          await DailySaleModel.bulkWrite(bulkOps, { session });
+        } else {
+          const dailySaleForToday = await DailySaleModel.findOne({
+            branchId,
+            date: today,
+          }).session(session);
+          if (!dailySaleForToday) {
+            throw new Error("Daily sale record not found for This Date");
+          }
+          if (payment_Method === "cashSale") {
+            dailySaleForToday.totalCash =
+              dailySaleForToday.saleData.totalCash += amountForDailySale;
+          }
+          await dailySaleForToday.save({ session });
+        }
+      }
 
       await employe.save({ session });
       return res
@@ -203,10 +251,18 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, salary, payment_Method, over_time, branchId, leaves, month } =
-        req.body;
-      if (!id || !salary || !payment_Method || !branchId || !month)
-        throw new Error("Missing Fields");
+      const {
+        id,
+        salary,
+        payment_Method,
+        over_time,
+        branchId,
+        leaves,
+        month,
+        date,
+      } = req.body;
+      if (!id || !salary || !payment_Method || !branchId || !month || !date)
+        throw new Error("Please fill all fields");
       if (month < 1 || month > 12) {
         throw new Error("Invalid month");
       }
@@ -238,23 +294,82 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
       employe.overtime_Data.hours = 0;
       await employe.save({ session });
 
-      //DEDUCT FROM PAYMENT METHID
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: today,
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
-      }
-      if (payment_Method === "cashSale") {
-        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
-          salary;
-      }
-      if (dailySaleForToday.totalCash < 0) {
-        throw new Error("Not Enough Total Cash");
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const now = moment.tz("Asia/Karachi").startOf("day");
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Date cannot be in the future");
       }
 
-      await dailySaleForToday.save({ session });
+      //UPDATE DAILY SALE
+      if (payment_Method === "cashSale") {
+        if (isPastDate) {
+          console.log("executing");
+
+          const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+          const dateList = [];
+
+          const current = moment(targetDate);
+          while (current.isSameOrBefore(today)) {
+            dateList.push(current.format("YYYY-MM-DD"));
+            current.add(1, "day");
+          }
+
+          const dailySales = await DailySaleModel.find({
+            branchId,
+            date: { $in: dateList },
+          }).session(session);
+
+          if (dailySales.length !== dateList.length) {
+            const foundDates = dailySales.map((d) => d.date);
+            const missing = dateList.filter((d) => !foundDates.includes(d));
+            throw new Error(
+              `Missing Daily Sale records for: ${missing.join(", ")}`
+            );
+          }
+
+          // Prepare bulk operations
+          const bulkOps = dailySales.map((saleDoc) => {
+            const update = {
+              $inc: {
+                "saleData.totalCash": -salary,
+              },
+            };
+
+            const futureCash = saleDoc.saleData.totalCash - salary;
+            if (futureCash < 0) {
+              throw new Error(`Not enough cash on ${saleDoc.date}`);
+            }
+
+            return {
+              updateOne: {
+                filter: { _id: saleDoc._id },
+                update,
+              },
+            };
+          });
+
+          await DailySaleModel.bulkWrite(bulkOps, { session });
+        } else {
+          const dailySaleForToday = await DailySaleModel.findOne({
+            branchId,
+            date: today,
+          }).session(session);
+          if (!dailySaleForToday) {
+            throw new Error("Daily sale record not found for This Date");
+          }
+
+          dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
+            salary;
+
+          if (dailySaleForToday.totalCash < 0) {
+            throw new Error("Not Enough Total Cash");
+          }
+
+          await dailySaleForToday.save({ session });
+        }
+      }
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -269,20 +384,22 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
-        //PUSH DATA FOR CASH BOOK
-        const dataForCashBook = {
-          pastTransaction: false,
-          branchId,
-          amount: salary,
-          tranSactionType: "WithDraw",
-          transactionFrom: "Employe",
-          partyName: employe.name,
-          payment_Method,
-          session,
-        };
-        await cashBookService.createCashBookEntry(dataForCashBook);
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        pastTransaction: isPastDate,
+        branchId,
+        amount: salary,
+        tranSactionType: "WithDraw",
+        transactionFrom: "Employe",
+        partyName: employe.name,
+        payment_Method,
+        ...(isPastDate && { pastDate: date }),
 
-      return res.status(200).json({ success: true, message: "Success" });
+        session,
+      };
+      await cashBookService.createCashBookEntry(dataForCashBook);
+
+      return res.status(200).json({ success: true, message: "Salary Transaction Successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -517,8 +634,8 @@ export const reverseSalary = async (req, res, next) => {
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
-       //PUSH DATA FOR CASH BOOK
-       const dataForCashBook = {
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
         pastTransaction: false,
         branchId,
         amount,
