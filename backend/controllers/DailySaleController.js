@@ -74,11 +74,12 @@ export const cashOutForBranch = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { branchId, amount, payment_Method } = req.body;
-      if (!branchId || !amount || !payment_Method)
+      const { branchId, amount, payment_Method, date } = req.body;
+      if (!branchId || !amount || !payment_Method || !date)
         throw new Error("Missing Required Fields");
       const branch = await BranchModel.findById(branchId).session(session);
       const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
       //DEDUCTING AMOUNT FROM DAILY SALE
       const dailySaleForToday = await DailySaleModel.findOne({
         branchId,
@@ -97,6 +98,14 @@ export const cashOutForBranch = async (req, res, next) => {
         branchName: "Head Office",
       });
 
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const now = moment.tz("Asia/Karachi").startOf("day");
+      const isFutureDate = futureDate.isAfter(now);
+      const isPastDate = futureDate.isBefore(now);
+      if (isFutureDate) {
+        throw new Error("Date cannot be in the future");
+      }
+
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
         const data = {
@@ -104,46 +113,93 @@ export const cashOutForBranch = async (req, res, next) => {
           payment_Method,
           amount,
           transactionType: "Deposit",
-          date:today,
+          date: today,
           note: `Recieved Amount From ${branch.branchName}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-      } else if (payment_Method === "cashSale") {
-        //UPDATING TOTAL CASH FOR HEAD OFFICE
+      }
 
+      //UPDATING TOTAL CASH FOR HEAD OFFICE
+      else if (payment_Method === "cashSale") {
         if (!headOffice) throw new Error("Cannot find head office data ");
-        const dailySaleForHeadOffice = await DailySaleModel.findOne({
-          branchId: headOffice._id,
-          date: today,
-        }).session(session);
-        if (!dailySaleForHeadOffice)
-          throw new Error("Cannot find daily sales for head office");
-        dailySaleForHeadOffice.saleData.totalCash += amount;
-        await dailySaleForHeadOffice.save({ session });
+        if (isPastDate) {
+          const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+          const today = moment.tz("Asia/Karachi").startOf("day");
+
+          const dateList = [];
+          const current = moment(targetDate);
+          while (current.isSameOrBefore(today)) {
+            dateList.push(current.format("YYYY-MM-DD"));
+            current.add(1, "day");
+          }
+
+          const dailySales = await DailySaleModel.find({
+            branchId: headOffice._id,
+            date: { $in: dateList },
+          }).session(session);
+
+          if (dailySales.length !== dateList.length) {
+            const foundDates = dailySales.map((d) => d.date);
+            const missing = dateList.filter((d) => !foundDates.includes(d));
+            throw new Error(
+              `Missing Daily Sale records for: ${missing.join(", ")}`
+            );
+          }
+
+          // Prepare bulk operations
+          const bulkOps = dailySales.map((saleDoc) => {
+            const update = {
+              $inc: {
+                "saleData.totalCash": amount,
+              },
+            };
+
+            return {
+              updateOne: {
+                filter: { _id: saleDoc._id },
+                update,
+              },
+            };
+          });
+
+          await DailySaleModel.bulkWrite(bulkOps, { session });
+        } else {
+          const dailySaleForHeadOffice = await DailySaleModel.findOne({
+            branchId: headOffice._id,
+            date: today,
+          }).session(session);
+          if (!dailySaleForHeadOffice)
+            throw new Error("Cannot find daily sales for head office");
+          dailySaleForHeadOffice.saleData.totalCash += amount;
+          await dailySaleForHeadOffice.save({ session });
+        }
       }
 
       //PUSH DATA FOR CASH BOOK FOR HEAD OFFICE
       const dataForCashBookHeadOffice = {
-        pastTransaction: false,
+        pastTransaction: isPastDate,
         branchId: headOffice._id,
         amount,
         tranSactionType: "Deposit",
         transactionFrom: "Branch Cash Out",
         partyName: branch.branchName,
         payment_Method,
+        ...(isPastDate && { pastDate: date }),
+
         session,
       };
       await cashBookService.createCashBookEntry(dataForCashBookHeadOffice);
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: false,
+        pastTransaction: isPastDate,
         branchId,
         amount,
         tranSactionType: "WithDraw",
         transactionFrom: "Branch Cash Out",
         partyName: headOffice.branchName,
         payment_Method,
+        ...(isPastDate && { pastDate: date }),
         session,
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
@@ -153,9 +209,10 @@ export const cashOutForBranch = async (req, res, next) => {
         branchId,
         amount,
         payment_Method,
-        date:today,
-        cash_after_transaction: dailySaleForToday.saleData.totalCash -= amount
-      })
+        date: today,
+        cash_after_transaction: (dailySaleForToday.saleData.totalCash -=
+          amount),
+      });
 
       //SEND EMAIL
       const branchCashOutData = {
@@ -170,7 +227,7 @@ export const cashOutForBranch = async (req, res, next) => {
         branchCashOutData,
       });
 
-      return res.status(200).json({ success: true, message: "Success" });
+      return res.status(200).json({ success: true, message: "Cash Out Transaction Successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
