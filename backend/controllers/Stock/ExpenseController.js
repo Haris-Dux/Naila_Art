@@ -26,8 +26,8 @@ export const addExpense = async (req, res, next) => {
       if (!branch) throw new Error("Branch Not Found");
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
-      const futureDate = moment.tz(Date, "Asia/Karachi");
-      const now = moment.tz("Asia/Karachi");
+      const futureDate = moment.tz(Date, "Asia/Karachi").startOf("day");
+      const now = moment.tz("Asia/Karachi").startOf("day");
       const isFutureDate = futureDate.isAfter(now);
       const isPastDate = futureDate.isBefore(now);
       if (isFutureDate) {

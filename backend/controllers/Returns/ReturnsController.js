@@ -145,8 +145,8 @@ export const createReturn = async (req, res, next) => {
       //GET BUYER DETAILS
       const buyer = await BuyersModel.findById(buyerId).session(session);
 
-      const futureDate = moment.tz(date, "Asia/Karachi");
-      const now = moment.tz("Asia/Karachi");
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const now = moment.tz("Asia/Karachi").startOf("day");
       const isFutureDate = futureDate.isAfter(now);
       const isPastDate = futureDate.isBefore(now);
       if (isFutureDate) {

@@ -43,7 +43,7 @@ const Dashboard = () => {
     quantity: "",
     branchId: "",
     payment_Method: "",
-    date: "",
+    date: today,
     note: "",
     bill_by: "",
   });
@@ -86,9 +86,8 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
   const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
-  const { CheckNotifications, returnBillLoading } =
+  const { CheckNotifications } =
     useSelector((state) => state.Buyer);
-  const { Branches } = useSelector((state) => state.InStock);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -165,7 +164,7 @@ const Dashboard = () => {
       quantity: "",
       branchId: "",
       payment_Method: "",
-      date: "",
+      date: today,
       note: "",
       bill_by: "",
     });
@@ -186,7 +185,7 @@ const Dashboard = () => {
       amount: Number(formData.amount),
       city: formData.city,
       cargo: formData.cargo,
-      date: today,
+      date: formData.date,
       bill_by: formData.bill_by,
       payment_Method: formData.payment_Method,
       quantity: formData.quantity,
@@ -1114,12 +1113,12 @@ const Dashboard = () => {
                   <div>
                     <input
                       name="date"
-                      type="text"
-                      value={today}
+                      type="date"
+                      value={formData.date}
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      readOnly
+                      
                     />
                   </div>
 
