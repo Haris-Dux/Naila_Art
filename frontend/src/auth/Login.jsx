@@ -24,7 +24,7 @@ const Login = () => {
     dispatch(loginuserAsync(formData)).then((res) => {
       if (res?.payload?.login) {
         dispatch(getAllPaymentMetodsForTransactionAsync())
-         dispatch(GetAllBranches())
+        dispatch(GetAllBranches())
         navigate("/dashboard");
         setFormData({
           email: "",

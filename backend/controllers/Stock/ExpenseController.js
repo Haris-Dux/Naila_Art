@@ -11,6 +11,7 @@ import { virtualAccountsService } from "../../services/VirtualAccountsService.js
 import { cashBookService } from "../../services/CashbookService.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
+import { getTodayDate } from "../../utils/Common.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -221,7 +222,7 @@ export const deleteExpense = async (req, res, next) => {
       if (!id) throw new Error("Missing Expense Id");
       const ExpenseData = await ExpenseModel.findById(id).session(session);
       if (!ExpenseData) throw new Error("Expense Data Not Found");
-      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      const today = getTodayDate();
 
       let dailySaleForToday = await DailySaleModel.findOne({
         branchId: ExpenseData.branchId,
@@ -262,6 +263,8 @@ export const deleteExpense = async (req, res, next) => {
       //DELETE EXPENSE
       await ExpenseModel.findByIdAndDelete(id).session(session);
 
+      const categoryName = await ExpenseCategoriesModel.findById(ExpenseData.categoryId).select("name");
+            
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
         pastTransaction: false,
@@ -269,15 +272,16 @@ export const deleteExpense = async (req, res, next) => {
         amount: rate,
         tranSactionType: "Deposit",
         transactionFrom: "Expense",
-        partyName: ExpenseData.name,
+        partyName: categoryName.name,
         payment_Method,
         session,
       };
+      
       await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res
         .status(200)
-        .json({ success: true, message: "Deleted Successfully" });
+        .json({ success: true, message: "Expense Deleted Successfully" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
