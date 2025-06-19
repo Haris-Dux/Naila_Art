@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { getStorage, setStorage } from "../../hooks/use-local-storage";
 
 //API URL
 const createPaymentMethodUrl = "/api/paymentMethods/createPaymentMethod";
@@ -18,7 +19,7 @@ export const createPaymentMethodAsync = createAsyncThunk(
       const response = await axios.post(createPaymentMethodUrl, data);
       return response.data;
     } catch (error) {
-       toast.error(error.response.data)
+      toast.error(error.response.data);
     }
   }
 );
@@ -42,6 +43,7 @@ export const getAllPaymentMetodsForTransactionAsync = createAsyncThunk(
   async (data) => {
     try {
       const response = await axios.get(getAllPaymentMetodsForTransactionUrl);
+
       return response.data;
     } catch (error) {
       console.log(error);
@@ -60,18 +62,18 @@ export const updatePaymentMethodAsync = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      toast.error(error.response.data)
+      toast.error(error.response.data);
     }
   }
 );
 
 // INITIAL STATE
+const sessionStorageKey = "payment-methods";
 const initialState = {
   AllPaymentMethods: [],
-  PaymentData: [],
+  PaymentData: getStorage(sessionStorageKey) || [],
   loading: false,
   updateLoading: false,
-
 };
 
 const PaymentMethodsSlice = createSlice({
@@ -80,27 +82,27 @@ const PaymentMethodsSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-    // CRETAE PAYMENT METOD
-    .addCase(createPaymentMethodAsync.pending, (state) => {
-      state.updateLoading = true;
-    })
-    .addCase(createPaymentMethodAsync.fulfilled, (state, action) => {
-      state.updateLoading = false;
-    })
-    .addCase(createPaymentMethodAsync.rejected, (state, action) => {
-      state.updateLoading = false;
-    })
+      // CRETAE PAYMENT METOD
+      .addCase(createPaymentMethodAsync.pending, (state) => {
+        state.updateLoading = true;
+      })
+      .addCase(createPaymentMethodAsync.fulfilled, (state, action) => {
+        state.updateLoading = false;
+      })
+      .addCase(createPaymentMethodAsync.rejected, (state, action) => {
+        state.updateLoading = false;
+      })
 
-     // UPDATE PAYMENT METOD
-     .addCase(updatePaymentMethodAsync.pending, (state) => {
-      state.updateLoading = true;
-    })
-    .addCase(updatePaymentMethodAsync.fulfilled, (state, action) => {
-      state.updateLoading = false;
-    })
-    .addCase(updatePaymentMethodAsync.rejected, (state, action) => {
-      state.updateLoading = false;
-    })
+      // UPDATE PAYMENT METOD
+      .addCase(updatePaymentMethodAsync.pending, (state) => {
+        state.updateLoading = true;
+      })
+      .addCase(updatePaymentMethodAsync.fulfilled, (state, action) => {
+        state.updateLoading = false;
+      })
+      .addCase(updatePaymentMethodAsync.rejected, (state, action) => {
+        state.updateLoading = false;
+      })
 
       // GET ALL PAYMENT METHODS
       .addCase(getAllPaymentMetodsAsync.pending, (state) => {
@@ -123,6 +125,7 @@ const PaymentMethodsSlice = createSlice({
         (state, action) => {
           state.loading = false;
           state.PaymentData = action.payload;
+          setStorage(sessionStorageKey,action.payload)
         }
       )
       .addCase(

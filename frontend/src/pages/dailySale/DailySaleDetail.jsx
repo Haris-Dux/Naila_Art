@@ -8,7 +8,7 @@ import {
 import { PiHandDeposit } from "react-icons/pi";
 import { MdHistory } from "react-icons/md";
 import { getBranchCashoutHistoryAsync } from "../../features/ShopSlice";
-import moment from 'moment-timezone';
+import moment from 'moment-timezone'
 
 const DailySaleDetail = () => {
   const { id } = useParams();
@@ -27,7 +27,7 @@ const DailySaleDetail = () => {
   const [formData, setFormData] = useState({
     amount: "",
     payment_Method: "",
-    date:today
+    date:""
   });
 
   const handleChange = (e) => {
@@ -49,6 +49,7 @@ const DailySaleDetail = () => {
     setFormData({
       amount: DailySaleById?.saleData?.totalCash,
       payment_Method: "",
+      date:today
     });
     document.body.style.overflow = "hidden";
     if ((type === "Cash Out History")) {

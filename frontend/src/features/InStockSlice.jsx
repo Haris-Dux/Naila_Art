@@ -2,6 +2,7 @@ import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 import { buildQueryParams } from "../Utils/Common";
+import { getStorage, setStorage } from "../../hooks/use-local-storage";
 
 //API URL
 const getaccessories = "/api/stock/accessories/getAllAccesoriesInStock";
@@ -391,6 +392,7 @@ export const getPendingStockForBranchAsync = createAsyncThunk(
 );
 
 // INITIAL STATE
+const sessionStorageKey = "branches"
 const initialState = {
   SuitLoading: false,
   UsedAccessoriesLoading: false,
@@ -407,7 +409,7 @@ const initialState = {
   ExpenseLoading: false,
   loading: false,
   GetSuitloading: false,
-  Branches: [],
+  Branches: getStorage(sessionStorageKey) || [],
   suitStocks: [],
   StockHistory: [],
   StockHistoryLoading: false,
@@ -639,6 +641,7 @@ const InStockSlic = createSlice({
       .addCase(GetAllBranches.fulfilled, (state, action) => {
         state.loading = false;
         state.Branches = action.payload;
+        setStorage(sessionStorageKey,action.payload)
       })
 
       .addCase(GetAllLaceForEmroidery.pending, (state, action) => {

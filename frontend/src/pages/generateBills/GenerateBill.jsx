@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { IoAdd } from "react-icons/io5";
 import { IoTrashOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBags, GetAllBranches } from "../../features/InStockSlice";
+import { GetAllBags } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
 import {
   generateBuyerBillAsync,
