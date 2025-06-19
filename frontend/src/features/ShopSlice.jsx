@@ -29,7 +29,6 @@ export const UpdateShopAsync = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(UpdateShop, formData);
-      toast.success(response.data.message);
       return response.data;
     } catch (error) {
       toast.error(error.response.data.error);
@@ -41,7 +40,6 @@ export const UpdateShopAsync = createAsyncThunk(
 export const DeleteShop = createAsyncThunk("Shop/Delete", async (formData) => {
   try {
     const response = await axios.post(DeletShop, formData);
-    toast.success(response.data.message);
     return response.data;
   } catch (error) {
     toast.error(error.response.data.error);

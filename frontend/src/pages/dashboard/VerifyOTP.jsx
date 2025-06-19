@@ -80,13 +80,7 @@ const VerifyOTP = () => {
         const endTime = new Date().getTime() + 10 * 60 * 1000;
         localStorage.setItem("dashboardAccessTime", endTime);
         localStorage.removeItem("dashboardTimer");
-        if (user?.user?.role === "superadmin") {
-          dispatch(getDataForSuperAdminAsync());
-          navigate("/dashboard");
-        } else {
-          dispatch(getDataForOtherBranchAsync());
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     });
   };

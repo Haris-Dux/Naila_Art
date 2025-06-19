@@ -41,19 +41,11 @@ export const loginuserAsync = createAsyncThunk(
   }
 );
 
-export const userSessionAsync = createAsyncThunk("user/session", async () => {
-  try {
-    const response = await axios.get(userSessionUrl);
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response.data.error);
-  }
-});
-
 // Logout Function
 export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
   try {
     const response = await axios.delete(logoutUrl);
+    window.sessionStorage.clear();
     return response.data;
   } catch (error) {
     toast.error(error.response.data.error);
@@ -208,14 +200,6 @@ const authSlice = createSlice({
         state.loading = false;
       })
 
-      // Session ADD CASE
-      .addCase(userSessionAsync.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(userSessionAsync.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
 
       // FORGET PASSWORD ADD CASE
       .addCase(forgetuserAsync.pending, (state) => {

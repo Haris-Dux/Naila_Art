@@ -19,6 +19,7 @@ import {
 import { setMongoose } from "../../utils/Mongoose.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import mongoose from "mongoose";
+import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel.js";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -639,12 +640,29 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
       },
     ]);
 
-    //TOTAL SUITS DATA
-    const projection = "category quantity color";
-    const totalSuitsData = await SuitsModel.find({}, projection).sort({
-      createdAt: -1,
-    });
-
+    //TOTAL SOLD SUITS DATA
+    const projection = "category d_no color sold_quantity";
+    const totalSuitsData = await branchStockModel.aggregate([
+      {
+        $group: {
+          _id: {
+            category: "$category",
+            color: "$color",
+            d_no: "$d_no"
+          },
+          totalSale: { $sum: "$sold_quantity" },
+        },
+      },
+      {
+        $project: {
+          category: "$_id.category",
+          color: "$_id.color",
+          d_no:"$_id.d_no",
+          totalSale: 1,
+          _id: 0,
+        },
+      },
+    ]);
     let dashBoardData = {
       salesBylocation: saleLocationData,
       bankAccountsData: banksData,

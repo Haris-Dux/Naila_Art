@@ -14,7 +14,7 @@ const SendOTP = () => {
     dispatch(sendDashBoardAccessOTPAsync()).then(() => {
         const endTime = new Date().getTime() + 1 * 60 * 1000; 
         localStorage.setItem('dashboardTimer',endTime)
-      navigate("/dashboard/verifyOtp");
+         navigate("/dashboard/verifyOtp");
     });
   };
 

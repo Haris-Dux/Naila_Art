@@ -130,7 +130,7 @@ const DashboardStats = () => {
     ],
     datasets: [
       {
-        label: "Sale",
+        label: "Monthly Sale",
         data: getMonthlySalesData(DashboardData?.monthlyGraphData || []),
         backgroundColor: "#CCCCCC",
         borderColor: "#434343",
@@ -139,6 +139,7 @@ const DashboardStats = () => {
       },
     ],
   };
+
 
   const handleShowSuits = () => {
     navigate(`/dashboard/suits`);
@@ -199,9 +200,9 @@ const DashboardStats = () => {
   };
 
   const closeHistoryModal = () => {
+    document.body.style.overflow = "auto";
     setHistoryModal(false);
     setDate("");
-    document.body.style.overflow = "auto";
   };
 
   const handleTransaction = (e) => {
@@ -289,8 +290,6 @@ const DashboardStats = () => {
   if (hasError) {
     return <SendOTP />;
   }
-
- 
 
   return (
     <>
@@ -503,7 +502,7 @@ const DashboardStats = () => {
               <div className="h-[22rem] rounded-lg text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 w-full p-4">
                 <Bar
                   data={barChartData}
-                  options={{ responsive: true, maintainAspectRatio: false }}
+                  options={{ responsive: true, maintainAspectRatio: false}}
                 />
               </div>
 

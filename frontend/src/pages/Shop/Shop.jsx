@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { IoAdd, IoPencilOutline, IoTrash } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -7,12 +7,17 @@ import {
   UpdateShopAsync,
   createShopAsync,
 } from "../../features/ShopSlice";
-import { GetUserBYBranch, UpdateUser } from "../../features/authSlice";
-import { Link } from "react-router-dom";
+import {
+  GetUserBYBranch,
+  logoutUserAsync,
+  UpdateUser,
+} from "../../features/authSlice";
+import { Link, useNavigate } from "react-router-dom";
 
 const Shop = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading, Shop } = useSelector((state) => state.Shop);
   const { getUsersForBranch, loading: pendingloading } = useSelector(
     (state) => state.auth
@@ -24,8 +29,7 @@ const Shop = () => {
   });
   const [selectedShopId, setSelectedShopId] = useState(null);
   const [DeleteModal, setDeleteModal] = useState(false);
-  const { user } = useSelector((state) => state.auth);
-  const [editedUsers, setEditedUsers] = useState([]); // State to store edited users
+  const [editedUsers, setEditedUsers] = useState([]);
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     type: "",
@@ -52,8 +56,8 @@ const Shop = () => {
       const data = { branchId: deleteId };
       dispatch(DeleteShop(data)).then((res) => {
         if (res.payload.success === true) {
-          dispatch(GetAllShop());
           setDeleteModal(false);
+          logOut();
         }
       });
     }
@@ -66,18 +70,13 @@ const Shop = () => {
       data.branchId = editShop.id;
       dispatch(UpdateShopAsync(data)).then((res) => {
         if (res.payload.success === true) {
-          setFormData({ branchName: "" });
-          setEditShop(null);
-          closeModal();
-          dispatch(GetAllShop());
+          logOut();
         }
       });
     } else {
       dispatch(createShopAsync(data)).then((res) => {
         if (res.payload.success === true) {
-          setFormData({ branchName: "" });
-          closeModal();
-          dispatch(GetAllShop());
+          logOut();
         }
       });
     }
@@ -102,7 +101,7 @@ const Shop = () => {
     const updatedUsers = [...editedUsers];
     updatedUsers[index] = {
       ...getUsersForBranch[index],
-      role: e.target.value, // Capture the selected value
+      role: e.target.value,
     };
     setEditedUsers(updatedUsers);
 
@@ -113,7 +112,7 @@ const Shop = () => {
     const updatedUsers = [...editedUsers];
     updatedUsers[index] = {
       ...getUsersForBranch[index],
-      authenticated: e.target.value === "true", // Capture the selected value and convert to boolean
+      authenticated: e.target.value === "true",
     };
     setEditedUsers(updatedUsers);
 
@@ -124,7 +123,7 @@ const Shop = () => {
     const updatedUsers = [...editedUsers];
     updatedUsers[index] = {
       ...getUsersForBranch[index],
-      branchId: e.target.value, // Capture the selected value
+      branchId: e.target.value,
     };
     setEditedUsers(updatedUsers);
 
@@ -175,6 +174,14 @@ const Shop = () => {
 
   const closeConfirmationModal = () => {
     setConfirmationModal({ isOpen: false, type: "", index: null });
+  };
+
+  const logOut = () => {
+    dispatch(logoutUserAsync()).then((res) => {
+      if (res.payload.success) {
+        navigate("/");
+      }
+    });
   };
 
   return (
@@ -364,6 +371,11 @@ const Shop = () => {
             <p className="dark:text-white">
               Are you sure you want to delete this shop?
             </p>
+            <div className="my-2 flex items-center text-yellow-600 text-sm">
+                <span>
+                  <strong>Warning:</strong> You will be logged out.
+                </span>
+              </div>
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setDeleteModal(false)}
@@ -408,6 +420,7 @@ const Shop = () => {
         </div>
       )}
 
+      {/* Create or Update Branch Modal */}
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
@@ -426,6 +439,7 @@ const Shop = () => {
                 <input
                   type="text"
                   name="branchName"
+                  placeholder="Enter branch name"
                   value={formData.branchName}
                   onChange={(e) =>
                     setFormData({ ...formData, branchName: e.target.value })
@@ -433,6 +447,12 @@ const Shop = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   required
                 />
+              </div>
+     
+              <div className="my-2 flex items-center text-yellow-600 text-sm">
+                <span>
+                  <strong>Warning:</strong> You will be logged out.
+                </span>
               </div>
               <div className="flex justify-end">
                 <button
@@ -444,7 +464,7 @@ const Shop = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                  className="px-4 py-2 bg-gray-600  text-white rounded-md"
                 >
                   {editShop ? "Update" : "Create"}
                 </button>
