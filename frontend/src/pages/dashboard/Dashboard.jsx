@@ -4,9 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { IoLogOutOutline } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
-import {
-  showNotificationsForChecksAsync,
-} from "../../features/BuyerSlice";
+import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
 import { FaBookOpen } from "react-icons/fa";
@@ -86,8 +84,7 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
   const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
-  const { CheckNotifications } =
-    useSelector((state) => state.Buyer);
+  const { CheckNotifications } = useSelector((state) => state.Buyer);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -200,7 +197,6 @@ const Dashboard = () => {
 
   const enviroment = import.meta.env.VITE_APP_ENV;
 
-
   return (
     <>
       <div className="antialiased bg-gray-50 dark:bg-gray-900">
@@ -248,7 +244,10 @@ const Dashboard = () => {
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS {enviroment === 'dev' ? <span>( DEV ENVIROMENT )</span> : null}
+                  NAILA ARTS{" "}
+                  {enviroment === "dev" ? (
+                    <span>( DEV ENVIROMENT )</span>
+                  ) : null}
                 </span>
               </Link>
             </div>
@@ -774,7 +773,9 @@ const Dashboard = () => {
                   to="/dashboard/expense"
                   onClick={handleMoveTop}
                   className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
-                     location.pathname.includes("/dashboard/expense" || "/dashboard/expense-stats")
+                    location.pathname.includes(
+                      "/dashboard/expense" || "/dashboard/expense-stats"
+                    )
                       ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
                       : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
                   } group`}
@@ -835,33 +836,33 @@ const Dashboard = () => {
               {/* SHOP FOR SUPERADMIN */}
               {user?.user?.role === "superadmin" ? (
                 <>
-                <li>
-                  <Link
-                    to="/dashboard/Shop"
-                    onClick={handleMoveTop}
-                    className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
-                      location.pathname === "/dashboard/Shop"
-                        ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                        : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                    } group`}
-                  >
-                    <span className="ml-3">Shop</span>
-                  </Link>
-                </li>
-                <li>
-                <Link
-                  to="/dashboard/paymentMethods"
-                  onClick={handleMoveTop}
-                  className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
-                    location.pathname === "/dashboard/paymentMethods"
-                      ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                      : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                  } group`}
-                >
-                  <span className="ml-3">Payment Methods</span>
-                </Link>
-              </li>
-              </>
+                  <li>
+                    <Link
+                      to="/dashboard/Shop"
+                      onClick={handleMoveTop}
+                      className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
+                        location.pathname === "/dashboard/Shop"
+                          ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                          : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                      } group`}
+                    >
+                      <span className="ml-3">Shop</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/dashboard/paymentMethods"
+                      onClick={handleMoveTop}
+                      className={`h-14 pl-4 border-t flex items-center p-2 text-base font-medium ${
+                        location.pathname === "/dashboard/paymentMethods"
+                          ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                          : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                      } group`}
+                    >
+                      <span className="ml-3">Payment Methods</span>
+                    </Link>
+                  </li>
+                </>
               ) : null}
             </ul>
           </div>
@@ -990,7 +991,6 @@ const Dashboard = () => {
         </div>
       )}
 
-
       {/* OTHER SALE MODAL */}
       {othersaleModal && (
         <div
@@ -1118,7 +1118,6 @@ const Dashboard = () => {
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
-                      
                     />
                   </div>
 
@@ -1211,7 +1210,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      )}  
+      )}
     </>
   );
 };

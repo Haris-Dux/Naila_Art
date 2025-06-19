@@ -118,7 +118,7 @@ const Expense = () => {
     const confirmDeletion = () => {
       dispatch(DeleteExpenseAsync({ id })).then((res) => {
         if (res.payload.success) {
-          dispatch(GetAllExpense({ branchId: selectedBranchId, page }));
+          dispatch(GetAllExpense({ branchId: selectedBranchId, page, categoryId: selectedCategory, }));
           closeConfirmationModal();
         }
       });

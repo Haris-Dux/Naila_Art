@@ -26,7 +26,7 @@ import OtpChecker from "./auth/OtpChecker";
 import Shop from "./pages/Shop/Shop";
 import PendingRequest from "./pages/Shop/PendingRequest";
 import { useDispatch } from "react-redux";
-import { authUserAsync } from "./features/authSlice";
+import { authUserAsync, logoutUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
 import './App.css'
 import CalendarDetails from "./pages/process/calendar/CalendarDetails";
@@ -54,9 +54,7 @@ import PackingDetails from "./pages/process/Packing/PackingDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
 import OtherSaleBills from "./pages/bills/OtherSaleBills";
 import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
-import { getAllPaymentMetodsForTransactionAsync } from "./features/PaymentMethodsSlice";
 import CashBook from "./pages/cashBook/CashBook";
-import { GetAllBranches } from "./features/InStockSlice";
 import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
 
 function App() {
@@ -66,9 +64,7 @@ function App() {
     dispatch(authUserAsync()).then((res) => {
       if(res.payload === undefined){
         navigate("/");
-      } else {
-        dispatch(getAllPaymentMetodsForTransactionAsync())
-        dispatch(GetAllBranches())
+        dispatch(logoutUserAsync())
       }
     });
   }, [dispatch]);
