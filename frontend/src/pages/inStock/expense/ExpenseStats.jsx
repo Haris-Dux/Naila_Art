@@ -92,7 +92,6 @@ const ExpenseStats = () => {
 
   const years = getYears();
 
-  console.log("years", years);
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
