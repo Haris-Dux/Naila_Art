@@ -1,8 +1,13 @@
 import express from "express";
-import { superAdminOnly, verifyOtp, verifyUser } from "../../middleware/Auth.js";
+import {
+  superAdminOnly,
+  verifyOtp,
+  verifyUser,
+} from "../../middleware/Auth.js";
 import {
   getDashBoardDataForBranch,
   getDashBoardDataForSuperAdmin,
+  getSalesData,
   getTransactionsHistory,
   makeTransactionInAccounts,
   sendDashBoardAccessOTP,
@@ -20,7 +25,8 @@ dashboardRouter.post(
 
 dashboardRouter.get(
   "/getDashBoardDataForSuperAdmin",
-  verifyUser,verifyOtp,
+  verifyUser,
+  verifyOtp,
   getDashBoardDataForSuperAdmin
 );
 
@@ -47,6 +53,8 @@ dashboardRouter.post(
   superAdminOnly,
   getTransactionsHistory
 );
+
+dashboardRouter.get("/getSalesData", verifyUser, getSalesData);
 
 
 export default dashboardRouter;
