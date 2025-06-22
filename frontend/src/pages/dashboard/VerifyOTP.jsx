@@ -77,7 +77,7 @@ const VerifyOTP = () => {
     e.preventDefault();
     dispatch(verifyOtpForDasboardDataAsync(formData)).then((res) => {
       if (res?.payload?.OtpVerified === true) {
-        const endTime = new Date().getTime() + 10 * 60 * 1000;
+        const endTime = new Date().getTime() + 60 * 60 * 1000;
         localStorage.setItem("dashboardAccessTime", endTime);
         localStorage.removeItem("dashboardTimer");
         navigate("/dashboard");

@@ -3,16 +3,13 @@ import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import { CheckModel } from "../../models/Checks/CheckModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../../models/DashboardData/VirtalAccountsModal.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { sendEmail } from "../../utils/nodemailer.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import { cashBookService } from "../../services/CashbookService.js";
+import { getTodayDate } from "../../utils/Common.js";
 
 export const addBuyerCheck = async (req, res, next) => {
   try {
@@ -404,7 +401,6 @@ export const getAllChecksForParty = async (req, res, next) => {
   try {
     const { buyerId } = req.body;
     await verifyrequiredparams(req.body, ["buyerId"]);
-    //GET CHECK DATA
     const checkData = await CheckModel.findOne({ buyerId: buyerId });
     if (!checkData) {
       throw new CustomError("Check Data Not Found", 404);
@@ -421,7 +417,6 @@ export const deleteCheck = async (req, res, next) => {
     const { id, checkId } = req.body;
     await verifyrequiredparams(req.body, ["checkId", "id"]);
 
-    // GET CHECK DATA
     const checkData = await CheckModel.findById(id);
     if (!checkData) {
       throw new CustomError("Check Data Not Found", 404);
@@ -458,7 +453,7 @@ export const deleteCheck = async (req, res, next) => {
 
 export const showNotificationsForChecks = async (req, res, next) => {
   try {
-    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+    const today = getTodayDate();
     const threeDaysAhead = moment
       .tz("Asia/Karachi")
       .add(3, "days")

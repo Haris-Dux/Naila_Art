@@ -1,5 +1,5 @@
 import { BranchModel } from "../../models/Branch.Model.js";
-import { BuyersModel } from "../../models/BuyersModel.js";
+import { BuyersBillsModel, BuyersModel } from "../../models/BuyersModel.js";
 import { SellersModel } from "../../models/sellers/SellersModel.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import { SuitsModel } from "../../models/Stock/Suits.Model.js";
@@ -19,7 +19,7 @@ import {
 import { setMongoose } from "../../utils/Mongoose.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import mongoose from "mongoose";
-import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel.js";
+import CustomError from "../../config/errors/CustomError.js";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -640,29 +640,12 @@ export const getDashBoardDataForSuperAdmin = async (req, res, next) => {
       },
     ]);
 
-    //TOTAL SOLD SUITS DATA
-    const projection = "category d_no color sold_quantity";
-    const totalSuitsData = await branchStockModel.aggregate([
-      {
-        $group: {
-          _id: {
-            category: "$category",
-            color: "$color",
-            d_no: "$d_no"
-          },
-          totalSale: { $sum: "$sold_quantity" },
-        },
-      },
-      {
-        $project: {
-          category: "$_id.category",
-          color: "$_id.color",
-          d_no:"$_id.d_no",
-          totalSale: 1,
-          _id: 0,
-        },
-      },
-    ]);
+    //TOTAL SUITS DATA
+    const projection = "category quantity color";
+    const totalSuitsData = await SuitsModel.find({}, projection).sort({
+      createdAt: -1,
+    });
+
     let dashBoardData = {
       salesBylocation: saleLocationData,
       bankAccountsData: banksData,
@@ -880,5 +863,53 @@ export const getTransactionsHistory = async (req, res, next) => {
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getSalesData = async (req, res, next) => {
+  try {
+    const date = req.query.date;
+    if (!date) {
+      throw new CustomError("Please select a valid filter", 404);
+    }
+    const matchQuery = {
+      date: { $regex: `^${date}` },
+    };
+
+    if (req.user_role !== "superadmin") {
+      matchQuery.branchId = req.branch_id.toString();
+    }
+
+    const result = await BuyersBillsModel.aggregate([
+      {
+        $match: matchQuery,
+      },
+      {
+        $unwind: "$profitDataForHistory",
+      },
+      {
+        $group: {
+          _id: {
+            category: "$profitDataForHistory.category",
+            color: "$profitDataForHistory.color",
+            d_no: "$profitDataForHistory.d_no",
+          },
+          totalSale: { $sum: "$profitDataForHistory.quantity_for_return" },
+        },
+      },
+      {
+        $project: {
+          category: "$_id.category",
+          color: "$_id.color",
+          d_no: "$_id.d_no",
+          totalSale: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
   }
 };

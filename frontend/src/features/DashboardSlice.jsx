@@ -14,6 +14,8 @@ const verifyOtpForDasboardDataPUrl =
   "/api/dashboardRouter/verifyOtpForDasboardData";
 const createTransactionUrl = "/api/dashboardRouter/makeTransactionInAccounts";
 const transactionHistoryUrl = `/api/dashboardRouter/getTransactionsHistory`;
+const getSalesDataUrl = `/api/dashboardRouter/getSalesData`;
+
 
 // GET DATA FOR SUPER ADMIN THUNK
 export const getDataForSuperAdminAsync = createAsyncThunk(
@@ -103,10 +105,28 @@ export const getTransactionHIstoryAsync = createAsyncThunk(
   }
 );
 
+//GET SUIT SALES HISTORY
+export const getSuitSalesHistoryAsync = createAsyncThunk(
+  "DashboardHistory/SuitSalesHistory",
+  async (filters) => {
+    const query = buildQueryParams({
+      date: filters.date
+    });
+    try {
+      const response = await axios.get(`${getSalesDataUrl}?${query}`);
+      return response.data.data;
+    } catch (error) {
+      toast.error(error.response.data)
+      throw new Error(error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   DashboardData: [],
   TransactionsHistory: [],
+  SuitsSalesData:[],
   loading: false,
   otpLoading: false,
   transactionLoading: false,
@@ -153,6 +173,14 @@ const DashboardSlice = createSlice({
       })
       .addCase(getTransactionHIstoryAsync.rejected, (state, action) => {
         state.transactionLoading = false;
+      })
+
+        // GET TRANSACTION HISTORY
+      .addCase(getSuitSalesHistoryAsync.fulfilled, (state, action) => { 
+        state.SuitsSalesData = action.payload;
+      })
+      .addCase(getSuitSalesHistoryAsync.rejected, (state, action) => {
+        state.SuitsSalesData = [];
       })
 
       // GET DATA FOR OTHER
