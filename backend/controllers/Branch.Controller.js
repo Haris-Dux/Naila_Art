@@ -192,7 +192,7 @@ export const assignStockToBranch = async (req, res) => {
   }
 };
 
-export const getBranchCashoutHistory = async(req, res) => {
+export const getBranchCashoutHistory = async (req, res) => {
   try {
     const branchId = req.branch_id;
     if (!branchId) throw new Error("Branch id required");
@@ -200,9 +200,11 @@ export const getBranchCashoutHistory = async(req, res) => {
     const limit = 50;
 
     let query = {
-      branchId: branchId
+      branchId: branchId,
     };
-    const totalDocuments = await BranchCashOutHistoryModel.countDocuments(query);
+    const totalDocuments = await BranchCashOutHistoryModel.countDocuments(
+      query
+    );
     const data = await BranchCashOutHistoryModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -214,11 +216,10 @@ export const getBranchCashoutHistory = async(req, res) => {
     };
     setMongoose();
     return res.status(200).json(response);
-    
   } catch (error) {
-        return res.status(404).json({ error: error.message });
+    return res.status(404).json({ error: error.message });
   }
-}
+};
 
 export const getAllBranchStockHistory = async (req, res) => {
   try {
@@ -362,7 +363,7 @@ export const approveOrRejectStock = async (req, res) => {
     const bundles = pendingtockData.bundles;
     const structuredArray = bundles.flat();
     if (status === "Approved") {
-      structuredArray.forEach(async (suit) => {
+      for (const suit of structuredArray) {
         const branchsuitStock = await branchStockModel.findOne({
           main_stock_Id: suit.Item_Id,
           branchId: pendingtockData.branchId,
@@ -386,8 +387,9 @@ export const approveOrRejectStock = async (req, res) => {
             main_stock_Id: suit.Item_Id,
           });
         }
-      });
+      };
       pendingtockData.bundleStatus = "Approved";
+      pendingtockData.updatedOn = getTodayDate();
       await pendingtockData.save();
     } else if (status === "Rejected") {
       await SuitsModel.bulkWrite(
