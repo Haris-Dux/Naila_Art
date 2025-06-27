@@ -11,7 +11,8 @@ import { virtualAccountsService } from "../../services/VirtualAccountsService.js
 import { cashBookService } from "../../services/CashbookService.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
-import { getTodayDate } from "../../utils/Common.js";
+import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
+import { updateTotalCashForDateRange } from "../../services/DailySaleService.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -233,6 +234,8 @@ export const deleteExpense = async (req, res, next) => {
       //UPDATING DAILY SALE AND VIRTUAL ACCOUNTS
       const payment_Method = ExpenseData.payment_Method;
       const rate = ExpenseData.rate;
+  
+      const isPastDate = verifyPastDate(ExpenseData.Date);
       if (payment_Method !== "cashSale") {
         const data = {
           session,
@@ -244,11 +247,18 @@ export const deleteExpense = async (req, res, next) => {
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       } else {
-        dailySaleForToday.saleData.totalCash += rate;
-        if (dailySaleForToday.saleData.totalCash < 0) {
-          throw new Error("Not Enough Cash");
+        if (!isPastDate) {
+          dailySaleForToday.saleData.totalCash += rate;
+          await dailySaleForToday.save({ session });
+        } else if (isPastDate) {
+          const data = {
+            date: ExpenseData.Date,
+            branchId: ExpenseData.branchId,
+            amount: rate,
+            session,
+          };
+          await updateTotalCashForDateRange(data);
         }
-        await dailySaleForToday.save({ session });
       }
 
       //DEDUCTING EXPENSE FROM THE ACTUAL EXPENSE DATE
@@ -263,20 +273,23 @@ export const deleteExpense = async (req, res, next) => {
       //DELETE EXPENSE
       await ExpenseModel.findByIdAndDelete(id).session(session);
 
-      const categoryName = await ExpenseCategoriesModel.findById(ExpenseData.categoryId).select("name");
-            
+      const categoryName = await ExpenseCategoriesModel.findById(
+        ExpenseData.categoryId
+      ).select("name");
+
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: false,
+        pastTransaction: isPastDate,
         branchId: ExpenseData.branchId,
         amount: rate,
         tranSactionType: "Deposit",
         transactionFrom: "Expense",
         partyName: categoryName.name,
         payment_Method,
+        ...(isPastDate && { pastDate: ExpenseData.Date }),
         session,
       };
-      
+
       await cashBookService.createCashBookEntry(dataForCashBook);
 
       return res
