@@ -69,7 +69,7 @@ const AssignedStockHistory = () => {
         return "yellow-400 ";
       case "Approved":
         return "green-500";
-      case "Returned":
+      case "Rejected":
         return "red-500 ";
       default:
         return "gray-400";

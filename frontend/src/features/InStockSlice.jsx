@@ -594,6 +594,10 @@ const InStockSlic = createSlice({
         state.GetSuitloading = false;
         state.suitStocks = action.payload;
       })
+        .addCase(GetAllStockForBranch.rejected, (state, action) => {
+        state.GetSuitloading = false;
+        state.suitStocks = [];
+      })
 
       .addCase(AllBranchStockHistoryAsync.pending, (state, action) => {
         state.StockHistoryLoading = true;
