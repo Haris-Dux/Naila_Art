@@ -9,6 +9,9 @@ import { PaymentMethodModel } from "../models/PaymentMethods/PaymentMethodModel.
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
+import { getTodayDate, verifyPastDate } from "../utils/Common.js";
+import { updateTotalCashForDateRange } from "../services/DailySaleService.js";
+
 
 export const getTodaysdailySaleforBranch = async (req, res, next) => {
   try {
@@ -78,33 +81,37 @@ export const cashOutForBranch = async (req, res, next) => {
       if (!branchId || !amount || !payment_Method || !date)
         throw new Error("Missing Required Fields");
       const branch = await BranchModel.findById(branchId).session(session);
-      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+      const today = getTodayDate();
+      const isPastDate = verifyPastDate(date);
 
       //DEDUCTING AMOUNT FROM DAILY SALE
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: today,
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      if (isPastDate) {
+        const data = {
+          date,
+          branchId,
+          amount,
+          type: "subtract",
+          session,
+        };
+         await updateTotalCashForDateRange(data);
+      } else if (!isPastDate) {
+        const dailySaleForToday = await DailySaleModel.findOne({
+          branchId,
+          date: today,
+        }).session(session);
+        if (!dailySaleForToday) {
+          throw new Error("Daily sale record not found for This Date");
+        }
+        dailySaleForToday.saleData.totalCash -= amount;
+        if (dailySaleForToday.saleData.totalCash < 0) {
+          throw new Error("Insufficient Cash");
+        }
+        await dailySaleForToday.save({ session });
       }
-      dailySaleForToday.saleData.totalCash -= amount;
-      if (dailySaleForToday.saleData.totalCash < 0) {
-        throw new Error("Insufficient Cash");
-      }
-      await dailySaleForToday.save({ session });
 
       const headOffice = await BranchModel.findOne({
         branchName: "Head Office",
       });
-
-      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
-      const now = moment.tz("Asia/Karachi").startOf("day");
-      const isFutureDate = futureDate.isAfter(now);
-      const isPastDate = futureDate.isBefore(now);
-      if (isFutureDate) {
-        throw new Error("Date cannot be in the future");
-      }
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -209,9 +216,7 @@ export const cashOutForBranch = async (req, res, next) => {
         branchId,
         amount,
         payment_Method,
-        date: today,
-        cash_after_transaction: (dailySaleForToday.saleData.totalCash -=
-          amount),
+        date: today
       });
 
       //SEND EMAIL
@@ -227,7 +232,9 @@ export const cashOutForBranch = async (req, res, next) => {
         branchCashOutData,
       });
 
-      return res.status(200).json({ success: true, message: "Cash Out Transaction Successfull" });
+      return res
+        .status(200)
+        .json({ success: true, message: "Cash Out Transaction Successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
