@@ -255,6 +255,7 @@ export const deleteExpense = async (req, res, next) => {
             date: ExpenseData.Date,
             branchId: ExpenseData.branchId,
             amount: rate,
+            type:'add',
             session,
           };
           await updateTotalCashForDateRange(data);

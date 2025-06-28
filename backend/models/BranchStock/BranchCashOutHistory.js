@@ -19,10 +19,6 @@ const branchCashOutSchema = new mongoose.Schema(
     date: {
         type:String,
         required : [true,"Date is required"],
-    },
-    cash_after_transaction : {
-        type : Number,
-        required : [true,"Cash after transaction is required"],
     }
   },
   { timestamps: true }
