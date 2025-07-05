@@ -5,43 +5,23 @@ import { Link, useSearchParams } from "react-router-dom";
 import { deleteStoneAsync, GetAllStone } from "../../../features/stoneslice";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
-import { GrDocumentVerified } from "react-icons/gr";
+import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 
 const Stones = () => {
   const dispatch = useDispatch();
   const { loading, Stone, deleteloadings } = useSelector(
     (state) => state.stone
   );
-  const [searchText, setSearchText] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-
-  const [search, setSearch] = useState("");
-
-  const [searchParams] = useSearchParams();
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const page = Stone?.page || "1";
+  const [filters, setFilters] = useState(null);
 
   useEffect(() => {
-    dispatch(GetAllStone({ search, page }));
-  }, [page, dispatch]);
+    dispatch(GetAllStone({ filters, page }));
+  }, [dispatch]);
 
-  const totalPages = Stone?.totalPages || 1;
-
-  const filteredData =
-    Stone?.data?.filter((data) =>
-      data.partyName.toLowerCase().includes(searchText.toLowerCase())
-    ) || [];
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-
-    if (value === "") {
-      dispatch(GetAllStone({ page }));
-    } else {
-      dispatch(GetAllStone({ search: value, page: 1 }));
-    }
-  };
+  const filteredData = Stone?.data;
 
   const renderPaginationLinks = () => {
     const totalPages = Stone?.totalPages;
@@ -50,11 +30,12 @@ const Stones = () => {
       paginationLinks.push(
         <li key={i} onClick={ToDown}>
           <Link
-            to={`/dashboard/stones?page=${i}`}
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === Number(page)
+                ? "bg-[#252525] text-white"
+                : "hover:bg-gray-100"
             }`}
-            onClick={() => dispatch(GetAllStone({ page: i }))}
+            onClick={() => dispatch(GetAllStone({ filters, page: i }))}
           >
             {i}
           </Link>
@@ -64,7 +45,12 @@ const Stones = () => {
     return paginationLinks;
   };
 
-  const ToDown = () => {
+  const ToDown = (value) => {
+    if (value === "+") {
+      dispatch(GetAllStone({ filters, page: parseInt(page) + 1 }));
+    } else if (value === "-") {
+      dispatch(GetAllStone({ filters, page: parseInt(page) - 1 }));
+    }
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -94,10 +80,14 @@ const Stones = () => {
   const handleDelete = () => {
     dispatch(deleteStoneAsync({ id: selectedId })).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllStone({ page: page }));
+        dispatch(GetAllStone({ filters, page: page }));
         closedeleteModal();
       }
     });
+  };
+
+    const liftUpFiltersData = (data) => {
+    setFilters(data);
   };
 
   return (
@@ -109,34 +99,10 @@ const Stones = () => {
             Stones
           </h1>
 
-          {/* <!-- search bar --> */}
-          <div className="flex items-center gap-2 mr-2">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by party name"
-                value={search}
-                onChange={handleSearch}
-              />
-            </div>
-          </div>
+          {/* SEARCH FILTERS */}
+          <ProcessFilters
+            handlers={{ dispatchFunction: GetAllStone, liftUpFiltersData }}
+          />
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
@@ -159,8 +125,8 @@ const Stones = () => {
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-medium" scope="col">
-                    <span className="text-red-500">S.N</span>/
-                    <span className="text-green-600">M.N</span>
+                      <span className="text-red-500">S.N</span>/
+                      <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -196,7 +162,11 @@ const Stones = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                          <span className="text-red-500"> {data?.serial_No}</span>/
+                          <span className="text-red-500">
+                            {" "}
+                            {data?.serial_No}
+                          </span>
+                          /
                           <span className="text-green-600">
                             {data.Manual_No ?? "--"}
                           </span>
@@ -253,8 +223,7 @@ const Stones = () => {
             <li>
               {Stone?.page > 1 ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/stones?page=${page - 1}`}
+                   onClick={() => ToDown("-")}
                   className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Previous</span>
@@ -300,10 +269,9 @@ const Stones = () => {
             </li>
             {renderPaginationLinks()}
             <li>
-              {Stone?.totalPages !== page ? (
+              {Stone?.totalPages !== Number(page) ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/stones?page=${page + 1}`}
+                  onClick={() => ToDown("+")}
                   className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Next</span>

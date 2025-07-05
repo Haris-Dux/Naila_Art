@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { IoAdd } from "react-icons/io5";
 import { FaEye } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Box from "../../../Component/Embodiary/Box";
 import { MdOutlineDelete } from "react-icons/md";
 import {
@@ -17,15 +16,14 @@ import Select from "react-select";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
-import { GrPowerReset } from "react-icons/gr";
 import { LuPackageCheck } from "react-icons/lu";
-import { CiSearch } from "react-icons/ci";
+import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
+import { IoAdd } from "react-icons/io5";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-  const [searchText, setSearchText] = useState("");
   const [partyValue, setPartyValue] = useState("newParty");
   const {
     loading,
@@ -63,9 +61,10 @@ const Embroidery = () => {
     project_status: "Pending",
   });
   const [total, setTotal] = useState(0);
+  const [filters, setFilters] = useState(null)
 
   useEffect(() => {
-    dispatch(GETEmbroidery({ page }));
+    dispatch(GETEmbroidery({ filters,page }));
   }, [dispatch]);
 
   // Convert your design numbers into options for Select
@@ -73,13 +72,6 @@ const Embroidery = () => {
     value: num,
     label: num,
   }));
-
-  const [filters, setFilters] = useState({
-    Manual_No: "",
-    partyName: "",
-    project_status: ""
-  });
-
 
   const calculateTotal = (formData1) => {
     const rate = parseFloat(formData.rATE_per_stitching) || 0;
@@ -120,7 +112,6 @@ const Embroidery = () => {
 
     return roundedTotal;
   };
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -227,11 +218,7 @@ const Embroidery = () => {
     });
   };
 
-  const filteredData = searchText
-    ? embroidery?.data?.filter((item) =>
-        item.partyName.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : embroidery?.data;
+  const filteredData = embroidery?.data;
 
   const renderPaginationLinks = () => {
     const totalPages = embroidery?.totalPages;
@@ -241,9 +228,12 @@ const Embroidery = () => {
         <li key={i} onClick={ToDown}>
           <Link
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === parseInt(page) ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === parseInt(page)
+                ? "bg-[#252525] text-white"
+                : "hover:bg-gray-100"
             }`}
-            onClick={() => dispatch(GETEmbroidery({filters, page: i }))}
+            
+             onClick={() => dispatch(GETEmbroidery({filters, page: i }))}
           >
             {i}
           </Link>
@@ -254,11 +244,10 @@ const Embroidery = () => {
   };
 
   const ToDown = (value) => {
-    if(value === "+"){
-      console.log('calling');
-      dispatch(GETEmbroidery({filters, page: parseInt(page) + 1 }))
-    } else if(value === "-"){
-      dispatch(GETEmbroidery({ filters ,page: parseInt(page) - 1 }))
+    if (value === "+") {
+      dispatch(GETEmbroidery({ filters, page: parseInt(page) + 1 }));
+    } else if (value === "-") {
+      dispatch(GETEmbroidery({ filters, page: parseInt(page) - 1 }));
     }
     window.scrollTo({
       top: 0,
@@ -340,107 +329,38 @@ const Embroidery = () => {
   const handleDelete = () => {
     dispatch(deleteEmbroideryAsync({ id: selectedId })).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GETEmbroidery({ page: page }));
+        dispatch(GETEmbroidery({...filters, page: page }));
         closedeleteModal();
       }
     });
   };
 
- 
-  const handleChangeFilters = (e) => {
-    const { name, value } = e.target;
-    setFilters((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const liftUpFiltersData = (data) => {
+    setFilters(data);
   };
-
-  const handleFiltersSearch = () => {
-    dispatch(GETEmbroidery({ filters, page: 1 }));
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      Manual_No: "",
-      partyName: "",
-      project_status: ""
-    });
-    dispatch(GETEmbroidery({ page: 1 }));
-  };
-
-  
 
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
+        <div className="header flex justify-between items-center pt-6">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Embroidery
           </h1>
 
-          {/* SEARCH FILTERS */}
-          <div className="flex items-center gap-3 justify-center">
-            {/* TRANSACTION TYPE */}
-            <select
-              id="project_status"
-              name="project_status"
-              className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-              value={filters.project_status}
-              onChange={handleChangeFilters}
-            >
-              <option value="" disabled>
-                Choose Status
-              </option>
-              <option value="Completed">Completed</option>
-              <option value="Pending">Pending</option>
-            </select>
-
-            {/* Party Name */}
-            <input
-              name="partyName"
-              type="text"
-              className="bg-gray-50 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-              placeholder="Party Name"
-              value={filters.partyName}
-              onChange={handleChangeFilters}
-            />
-
-            {/* Manual Number */}
-            <input
-              name="Manual_No"
-              type="text"
-              className="bg-gray-50 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-              placeholder="Manual Number"
-              value={filters.Manual_No}
-              onChange={handleChangeFilters}
-            />
-
-            {/* SEARCH BUTTON */}
-            <button
-              onClick={handleFiltersSearch}
-              type="button"
-              className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-            >
-              <CiSearch size={20} className="cursor-pointer" />
-              Search
-            </button>
-            {/* RESET BUTTON */}
-            <button
-              onClick={handleResetFilters}
-              className="flex items-center gap-2  bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-            >
-              <GrPowerReset size={20} className="cursor-pointer" />
-              Reset
-            </button>
-            {/* <!-- ADD BUTTON--> */}
-            <button
-              onClick={openModal}
-              className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
-            >
-              <IoAdd size={22} className="text-white" />
-            </button>
+          <div className="flex items-center justify-center gap-3">
+            {/* SEARCH FILTERS */}
+          <ProcessFilters  handlers={{dispatchFunction:GETEmbroidery, liftUpFiltersData}}  />
+          {/* <!-- ADD BUTTON--> */}
+          <button
+            onClick={openModal}
+            className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+          >
+            <IoAdd size={22} className="text-white" />
+          </button>
           </div>
+
+          
         </div>
 
         {/* -------------- TABLE -------------- */}
@@ -616,7 +536,7 @@ const Embroidery = () => {
             <li>
               {embroidery?.totalPages !== parseInt(page) ? (
                 <Link
-                onClick={() => ToDown("+")}
+                  onClick={() => ToDown("+")}
                   className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Next</span>
