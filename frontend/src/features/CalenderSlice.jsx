@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const addCalender = "/api/process/calender/addCalender";
@@ -43,13 +44,16 @@ export const UpdateCalenderAsync = createAsyncThunk(
 
 // GET ALL CALENDER THUNK
 export const GetAllCalender = createAsyncThunk("Calender/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
+      const filters = data?.filters ?? {};
+      const query = buildQueryParams({
+        Manual_No: filters.Manual_No,
+        partyName: filters.partyName,
+        project_status: filters.project_status,
+        page: data.page,
+      });
   try {
     const response = await axios.post(
-      `${getAllCalender}?&page=${data.page}${searchQuery}`
+      `${getAllCalender}?${query}`
     );
     return response.data;
   } catch (error) {
