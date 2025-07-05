@@ -112,11 +112,20 @@ export const updateCalender = async (req, res, next) => {
 export const getAllCalender = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
-    const search = req.query.search || "";
-    const limit = 20;
-    let query = {
-      partyName: { $regex: search, $options: "i" },
-    };
+    const Manual_No = req.query.Manual_No || "";
+    const project_status = req.query.project_status || "";
+    const design_no = req.query.design_no || "";
+    const partyName = req.query.partyName || "";
+    const limit = 40;
+    let query = {};
+
+    if (Manual_No) query.Manual_No = Manual_No;
+    if (project_status) query.project_status = project_status;
+    if (design_no) query.design_no = design_no;
+    if (partyName) {
+      query.partyName = { $regex: partyName, $options: "i" };
+    }
+
     const data = await CalenderModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)

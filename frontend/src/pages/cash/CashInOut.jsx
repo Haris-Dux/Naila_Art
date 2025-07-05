@@ -612,7 +612,7 @@ const CashInOut = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
+          <div className="relative py-8 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
               <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
@@ -658,8 +658,9 @@ const CashInOut = () => {
                                   onClick={() => handleSelectParty(data)}
                                   className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
                                 >
-                                  <span>{data?.name}</span>
-                                  <span>{data?.phone}</span>
+                                  <p className="w-1/3 truncate">{data?.name}</p>
+                                   <p className="w-1/3 truncate">{data?.city}</p>
+                                   <p className="w-1/3 truncate">{setAccountStatusColor(data?.virtual_account?.status)}</p>                              
                                 </button>
                               </li>
                             ))}
@@ -699,13 +700,9 @@ const CashInOut = () => {
                                   onClick={() => handleSelectParty(data)}
                                   className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
                                 >
-                                  <span>{data?.name || data?.partyName}</span>
-                                  <span>
-                                    {" "}
-                                    {data?.phone
-                                      ? data.phone
-                                      : "Sr # " + data?.serial_No}
-                                  </span>
+                                  <p className="w-1/3 truncate">{data?.name || data?.partyName}</p>
+                                   <p className="w-1/3 truncate">{data?.city}</p>
+                                   <p className="w-1/3 truncate">{setAccountStatusColor(data?.virtual_account?.status)}</p>                                                               
                                 </button>
                               </li>
                             ))}

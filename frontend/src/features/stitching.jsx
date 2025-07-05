@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const addStitching = "/api/process/Stitching/addStitching";
@@ -49,14 +50,16 @@ export const UpdateStitchingAsync = createAsyncThunk(
 export const GetAllStitching = createAsyncThunk(
   "Stitching/Get",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const filters = data?.filters ?? {};
+         const query = buildQueryParams({
+           Manual_No: filters.Manual_No,
+           partyName: filters.partyName,
+           project_status: filters.project_status,
+           page: data.page,
+         });
     try {
-      // const response = await axios.post(getAllStitching, formData);
       const response = await axios.post(
-        `${getAllStitching}?&page=${data.page}${searchQuery}`
+        `${getAllStitching}?${query}`
       );
       return response.data;
     } catch (error) {

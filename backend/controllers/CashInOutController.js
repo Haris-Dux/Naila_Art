@@ -19,7 +19,7 @@ export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
     const { name, accountCategory } = req.body;
     if (!name || !accountCategory) throw new Error("Search Fields Required");
-    const projection = "name phone _id virtual_account";
+    const projection = "name city phone _id virtual_account";
     const projectionForProcess = "partyName _id serial_No virtual_account";
     let Data = {};
 
@@ -70,7 +70,7 @@ export const validatePartyNameForAdminBranch = async (req, res, next) => {
     }
     const user = await UserModel.findById({ _id: id });
     if (user.role !== "admin") throw new Error("User UnAuthorized");
-    const projection = "name phone _id virtual_account";
+    const projection = "name city phone _id virtual_account";
     const projectionForProcess = "partyName _id serial_No virtual_account";
     let Data = {};
 
@@ -120,7 +120,7 @@ export const validatePartyNameForOtherBranches = async (req, res, next) => {
       throw new Error("Please Login Again");
     }
     const user = await UserModel.findById({ _id: id });
-    const projection = "name phone _id virtual_account";
+    const projection = "name city phone _id virtual_account";
     const Data = await BuyersModel.find(
       { branchId: user.branchId, name: { $regex: name, $options: "i" } },
       projection

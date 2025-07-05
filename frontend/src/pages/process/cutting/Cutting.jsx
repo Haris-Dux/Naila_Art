@@ -1,46 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
-import { Link, useSearchParams } from "react-router-dom";
-import { deleteCuttingAsync, GetAllCutting } from "../../../features/CuttingSlice";
-import DeleteModal from '../../../Component/Modal/DeleteModal';
-import { MdOutlineDelete } from 'react-icons/md';
+import { Link } from "react-router-dom";
+import {
+  deleteCuttingAsync,
+  GetAllCutting,
+} from "../../../features/CuttingSlice";
+import DeleteModal from "../../../Component/Modal/DeleteModal";
+import { MdOutlineDelete } from "react-icons/md";
+import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 const Cutting = () => {
   const dispatch = useDispatch();
-  const [searchText, setSearchText] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-  const [filteredData, setFilteredData] = useState([]);
-  const { loading, Cutting,deleteloadings } = useSelector((state) => state.Cutting);
-
-  const [search, setSearch] = useState("");
-
-  const [searchParams] = useSearchParams();
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const { loading, Cutting, deleteloadings } = useSelector(
+    (state) => state.Cutting
+  );
+  const [filters, setFilters] = useState(null);
+  const page = Cutting?.page || "1";
 
   useEffect(() => {
-    dispatch(GetAllCutting({ search, page }));
-  }, [page, dispatch]);
-
-  useEffect(() => {
-    if (Cutting?.data) {
-      const filtered = Cutting.data.filter((data) =>
-        data.partyName.toLowerCase().includes(searchText.toLowerCase())
-      );
-      setFilteredData(filtered);
-    }
-  }, [Cutting, searchText]);
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-
-    if (value === "") {
-      dispatch(GetAllCutting({ page }));
-    } else {
-      dispatch(GetAllCutting({ search: value, page: 1 }));
-    }
-  };
+    dispatch(GetAllCutting({ filters, page }));
+  }, [dispatch]);
 
   const renderPaginationLinks = () => {
     const totalPages = Cutting?.totalPages;
@@ -49,11 +30,10 @@ const Cutting = () => {
       paginationLinks.push(
         <li key={i} onClick={ToDown}>
           <Link
-            to={`/dashboard/cutting?page=${i}`}
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === parseInt(page) ? "bg-[#252525] text-white" : "hover:bg-gray-100"
             }`}
-            onClick={() => dispatch(GetAllCutting({ page: i }))}
+            onClick={() => dispatch(GetAllCutting({ filters, page: i }))}
           >
             {i}
           </Link>
@@ -63,7 +43,12 @@ const Cutting = () => {
     return paginationLinks;
   };
 
-  const ToDown = () => {
+  const ToDown = (value) => {
+    if (value === "+") {
+      dispatch(GetAllCutting({ filters, page: parseInt(page) + 1 }));
+    } else if (value === "-") {
+      dispatch(GetAllCutting({ filters, page: parseInt(page) - 1 }));
+    }
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -93,10 +78,14 @@ const Cutting = () => {
   const handleDelete = () => {
     dispatch(deleteCuttingAsync({ id: selectedId })).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllCutting({ page: page }));
+        dispatch(GetAllCutting({ filters, page: page }));
         closedeleteModal();
       }
     });
+  };
+
+  const liftUpFiltersData = (data) => {
+    setFilters(data);
   };
 
   return (
@@ -108,34 +97,10 @@ const Cutting = () => {
             Cutting
           </h1>
 
-          {/* <!-- search bar --> */}
-          <div className="flex items-center gap-2 mr-2">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by party name"
-                value={search}
-                onChange={handleSearch}
-              />
-            </div>
-          </div>
+          {/* <!-- FILTERS --> */}
+          <ProcessFilters
+            handlers={{ dispatchFunction: GetAllCutting, liftUpFiltersData }}
+          />
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
@@ -158,8 +123,8 @@ const Cutting = () => {
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-medium" scope="col">
-                    <span className="text-red-500">S.N</span>/
-                    <span className="text-green-600">M.N</span>
+                      <span className="text-red-500">S.N</span>/
+                      <span className="text-green-600">M.N</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Party Name
@@ -179,14 +144,17 @@ const Cutting = () => {
                     <th className="px-6 py-3 font-medium" scope="col">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-center font-medium" scope="col">
+                    <th
+                      className="px-6 py-3 text-center font-medium"
+                      scope="col"
+                    >
                       Action
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData && filteredData?.length > 0 ? (
-                    filteredData?.map((data, index) => (
+                  {Cutting && Cutting?.data?.length > 0 ? (
+                    Cutting?.data?.map((data, index) => (
                       <tr
                         key={index}
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -195,13 +163,14 @@ const Cutting = () => {
                           className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
-                       
-                         <span className="text-red-500">
+                          <span className="text-red-500">
                             {" "}
                             {data.serial_No}
                           </span>
-                          /<span className="text-green-600">{data.Manual_No ?? '--'}</span>                          
-                         
+                          /
+                          <span className="text-green-600">
+                            {data.Manual_No ?? "--"}
+                          </span>
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
@@ -249,8 +218,7 @@ const Cutting = () => {
             <li>
               {Cutting?.page > 1 ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/cutting?page=${page - 1}`}
+                  onClick={() => ToDown("-")}
                   className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Previous</span>
@@ -296,10 +264,9 @@ const Cutting = () => {
             </li>
             {renderPaginationLinks()}
             <li>
-              {Cutting?.totalPages !== page ? (
+              {Cutting?.totalPages !== Number(page) ? (
                 <Link
-                  onClick={ToDown}
-                  to={`/dashboard/cutting?page=${page + 1}`}
+                  onClick={() => ToDown("+")}
                   className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   <span className="sr-only">Next</span>
