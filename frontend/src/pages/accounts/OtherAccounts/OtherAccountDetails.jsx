@@ -5,7 +5,6 @@ import "react-calendar/dist/Calendar.css";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
-import { getTodayDate } from "../../../../../backend/utils/Common";
 import {
   creditDebitOtherAccountAsync,
   delteOtherAccountTransactionAsync,
@@ -23,7 +22,7 @@ const OtherAccountsDetails = () => {
   const [afterConfirmation, setAfterConfirmation] = useState(null);
 
   const [formData, setFormData] = useState({
-    date: getTodayDate(),
+    date: "",
     particular: "",
     amount: "",
     type: "credit",
@@ -66,7 +65,7 @@ const OtherAccountsDetails = () => {
           type: "credit",
           payment_Method: "",
           branchId: "",
-          date: getTodayDate(),
+          date: "",
         });
       }
     });
