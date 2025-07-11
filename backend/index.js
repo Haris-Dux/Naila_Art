@@ -34,6 +34,7 @@ import otherSaleRouter from "./routes/OtherSaleRoutes.js";
 import moment from "moment-timezone";
 import paymentMethodRouter from "./routes/PaymentMethods/PaymentMethodRoutes.js";
 import cashBookRouter from "./routes/CashBook/CashBookRoutes.js";
+import otherAccountsRouter from "./routes/OtherAccounts/OtherAccountsRoutes.js";
 
 const app = express();
 app.use(cookieParser());
@@ -90,8 +91,7 @@ app.use(session({
   app.use("/api/otherSale",otherSaleRouter);
   app.use("/api/paymentMethods",paymentMethodRouter);
   app.use("/api/cashBook",cashBookRouter);
-
-
+  app.use("/api/otheraccounts",otherAccountsRouter)
 
   app.use(AppErrorHandler);
  
@@ -99,8 +99,6 @@ mongoose
 .connect(process.env.MONGODB_URI)
 .then(()=>{
     console.log("Database Connected");
-    const timeStamp = moment.tz("Asia/Karachi");
-    console.log('timeStamp',timeStamp);
     app.listen(process.env.PORT,console.log(`Server is running on http://localhost:${process.env.PORT}`))
 })
 .catch((error)=>{
