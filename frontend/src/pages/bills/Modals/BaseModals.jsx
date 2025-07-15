@@ -16,14 +16,13 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  const initialRow = { roleQuantity: "", measurement: "" };
+  const initialRow = { roleQuantity: "", measurement: "", colour: "" };
   const [measurementData, setMeasurementData] = useState({
     rowData: [initialRow],
   });
 
   const { addSellerLoading } = useSelector((state) => state.Seller);
 
-  // State variables to hold form data
   const [formData, setFormData] = useState({
     bill_no: "",
     date: today,
@@ -37,6 +36,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     discountType: "RS",
     discount: "",
     seller_stock_category: "Base",
+    toAddinStock: false,
   });
 
   useEffect(() => {
@@ -54,8 +54,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       }));
     }
   }, [sellerDetails]);
-
-  // Function to handle changes in form inputs
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,6 +73,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
       seller_stock_category: "Base",
+      measurementData: measurementData.rowData,
+      toAddinStock: formData.toAddinStock,
     };
 
     if (sellerDetails && sellerDetails?.id) {
@@ -88,12 +88,13 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     ) {
       return toast.error("Please Fill all required fields");
     }
+    console.log("modifiedFormData", modifiedFormData);
     if (sellerDetails) {
       dispatch(AddOldSellerDetailsFromAsync(modifiedFormData)).then((res) => {
         if (res.payload.success === true) {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
-          setMeasurementData({ rowData: [initialRow]})
+          setMeasurementData({ rowData: [initialRow] });
           closeModal();
         }
       });
@@ -102,7 +103,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         if (res.payload.success === true) {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
-          setMeasurementData({ rowData: [initialRow]})
+          setMeasurementData({ rowData: [initialRow] });
           closeModal();
         }
       });
@@ -152,12 +153,17 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     formData.discountType,
   ]);
 
-
   const handleMeasurementChange = (e, index) => {
     const { name, value } = e.target;
     setMeasurementData((prev) => {
       const updatedRows = [...prev.rowData];
-      updatedRows[index] = { ...updatedRows[index], [name]: Number(value) };
+      updatedRows[index] = {
+        ...updatedRows[index],
+        [name]:
+          name === "roleQuantity" || name === "measurement"
+            ? Number(value)
+            : value,
+      };
       calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
@@ -185,7 +191,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         total + validateValue(row.roleQuantity) * validateValue(row.measurement)
       );
     }, 0);
-    console.log("totalQuantity", totalQuantity);
     setFormData((prev) => ({
       ...prev,
       quantity: totalQuantity,
@@ -242,35 +247,37 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                 </svg>
                 <span className="sr-only">Close modal</span>
               </button>
-            </div>  
+            </div>
 
-             {/* ACCOUNT DATA */}
-                <>
-                  {sellerDetails && sellerDetails?.virtual_account && (
-                    <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
-                      <div className="box text-center">
-                        <h3 className="pb-1 font-normal">Total Debit</h3>
-                        <h3>{sellerDetails?.virtual_account?.total_debit || 0}</h3>
-                      </div>
-                      <div className="box text-center">
-                        <h3 className="pb-1 font-normal">Total Credit</h3>
-                        <h3>{sellerDetails?.virtual_account?.total_credit || 0}</h3>
-                      </div>
-                      <div className="box text-center">
-                        <h3 className="pb-1 font-normal ">Total Balance</h3>
-                        <h3>{sellerDetails?.virtual_account?.total_balance || 0}</h3>
-                      </div>
-                      <div className="box text-center">
-                        <h3 className="pb-1 font-normal ">Status</h3>
-                        <h3>
-                          {setAccountStatusColor(sellerDetails?.virtual_account?.status) ||
-                            "No Status"}
-                        </h3>
-                      </div>
-                    </div>
-                  )}
-                </>
-            
+            {/* ACCOUNT DATA */}
+            <>
+              {sellerDetails && sellerDetails?.virtual_account && (
+                <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                  <div className="box text-center">
+                    <h3 className="pb-1 font-normal">Total Debit</h3>
+                    <h3>{sellerDetails?.virtual_account?.total_debit || 0}</h3>
+                  </div>
+                  <div className="box text-center">
+                    <h3 className="pb-1 font-normal">Total Credit</h3>
+                    <h3>{sellerDetails?.virtual_account?.total_credit || 0}</h3>
+                  </div>
+                  <div className="box text-center">
+                    <h3 className="pb-1 font-normal ">Total Balance</h3>
+                    <h3>
+                      {sellerDetails?.virtual_account?.total_balance || 0}
+                    </h3>
+                  </div>
+                  <div className="box text-center">
+                    <h3 className="pb-1 font-normal ">Status</h3>
+                    <h3>
+                      {setAccountStatusColor(
+                        sellerDetails?.virtual_account?.status
+                      ) || "No Status"}
+                    </h3>
+                  </div>
+                </div>
+              )}
+            </>
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
@@ -351,13 +358,28 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                   <button
                     type="button"
                     className="absolute -top-7 right-2 text-black"
-                    onClick={addRow} // Optional: Add a function for the button
+                    onClick={addRow}
                   >
                     <FaPlus size={18} />
                   </button>
 
+                  <label htmlFor="checkbox" className="absolute -top-7 left-2 ">
+                    Add In Stock
+                    <input
+                      type="checkbox"
+                      aria-describedby="remember"
+                      className="ml-2 w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-0 dark:bg-gray-700 dark:border-gray-600"
+                      onClick={(e) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          toAddinStock:e.target.checked
+                        }))
+                      }}
+                    />
+                  </label>
+
                   {measurementData.rowData.map((data, index) => (
-                    <div key={index} className="grid  py-2 grid-cols-2 gap-4">
+                    <div key={index} className="grid  py-2 grid-cols-3 gap-4">
                       <input
                         name="roleQuantity"
                         type="number"
@@ -367,22 +389,36 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
                       />
+                      <input
+                        name="measurement"
+                        type="number"
+                        placeholder="Measurement"
+                        value={data.measurement}
+                        onChange={(e) => handleMeasurementChange(e, index)}
+                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
                       <div className="flex items-center justify-center gap-4">
                         <input
-                          name="measurement"
-                          type="number"
-                          placeholder="Measurement"
-                          value={data.measurement}
+                          name="colour"
+                          type="text"
+                          placeholder="Colour"
+                          value={data.colour}
                           onChange={(e) => handleMeasurementChange(e, index)}
-                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                        <button  type="button" onClick={() => deleteRow(index)}>
-                          <RxCross2
-                            size={24}
-                            className="text-red-500 flex-shrink-0"
-                          />
-                        </button>
+                        {measurementData?.rowData?.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => deleteRow(index)}
+                          >
+                            <RxCross2
+                              size={24}
+                              className="text-red-500 flex-shrink-0"
+                            />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
