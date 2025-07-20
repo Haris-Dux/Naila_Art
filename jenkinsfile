@@ -73,7 +73,7 @@ stage('Deploy to VPS') {
     steps {
         script {
 
-            def certId = (ENVIRONMENT === 'dev') ? 'NAILA_ENV_DEV_FILE' : 'NAILA_ENV_PROD_FILE'
+            def certId = (ENVIRONMENT == 'dev') ? 'NAILA_ENV_DEV_FILE' : 'NAILA_ENV_PROD_FILE'
             withCredentials([credentialsId:certId, variable:'ENVFILE']) {
                  sh """
 
