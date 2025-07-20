@@ -78,7 +78,7 @@ stage('Deploy to VPS') {
                  sh """
 
                         echo "Stopping old containers"
-                        docker compose -f /root/Naila-Arts/docker-compose.yml down || true
+                        docker compose -f ./docker-compose.yml down || true
 
                         echo "Running new containers"
                         export ENVIRONMENT=${ENVIRONMENT}
@@ -90,7 +90,7 @@ stage('Deploy to VPS') {
 
                         cp "$ENVFILE" .env.runtime
 
-                        docker compose --env-file .env.runtime -f /root/Naila-Arts/docker-compose.yml up -d --force-recreate 
+                        docker compose --env-file .env.runtime -f ./docker-compose.yml up -d --force-recreate 
 
                         echo "Restarting Nginx"
                         sudo systemctl restart nginx
