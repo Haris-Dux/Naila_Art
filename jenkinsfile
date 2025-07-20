@@ -72,7 +72,10 @@ pipeline {
 stage('Deploy to VPS') {
     steps {
         script {
-                sh """
+
+            def certId = (ENVIRONMENT === 'dev') ? 'NAILA_ENV_DEV_FILE' : 'NAILA_ENV_PROD_FILE'
+            withCredentials([credentialsId:certId, variable:'ENVFILE']) {
+                 sh """
 
                         echo "Stopping old containers"
                         docker compose -f /root/Naila-Arts/docker-compose.yml down || true
@@ -85,12 +88,15 @@ stage('Deploy to VPS') {
                         export DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}
                         export DOCKER_IMAGE_BACKEND=${DOCKER_IMAGE_BACKEND}
 
-                        docker compose -f /root/Naila-Arts/docker-compose.yml up -d --force-recreate 
+                        cp "$ENVFILE" .env.runtime
+
+                        docker compose --env-file .env.runtime -f /root/Naila-Arts/docker-compose.yml up -d --force-recreate 
 
                         echo "Restarting Nginx"
                         sudo systemctl restart nginx
                     
                 """
+            }              
             }
         }
 }
@@ -101,13 +107,13 @@ stage('Deploy to VPS') {
     
     post {
         always {
-            // Clean workspace
             cleanWs()
         }
         success {
             script {
                 sh """
-                    echo "Deployment successful!"                 
+                    echo "Deployment successful!"
+                    rm -f .env.runtime                 
                 """
             }
         }
@@ -115,6 +121,7 @@ stage('Deploy to VPS') {
             script {
                 sh """
                     echo "Deployment failed!"
+                    rm -f .env.runtime
                 """
             }
         }
