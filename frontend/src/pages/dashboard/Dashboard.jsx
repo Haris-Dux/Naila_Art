@@ -196,6 +196,7 @@ const Dashboard = () => {
   };
 
   const enviroment = import.meta.env.VITE_APP_ENV;
+  console.log('enviroment', enviroment)
 
   return (
     <>
