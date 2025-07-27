@@ -196,6 +196,7 @@ const Dashboard = () => {
   };
 
   const enviroment = import.meta.env.VITE_APP_ENV;
+  console.log('enviroment', enviroment)
 
   return (
     <>
@@ -672,6 +673,17 @@ const Dashboard = () => {
                           } group`}
                         >
                           Employee
+                        </Link>
+                          <Link
+                          to="/dashboard/other-accounts"
+                          onClick={handleMoveTop}
+                          className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                            location.pathname === "/dashboard/other-accounts"
+                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                          } group`}
+                        >
+                          Other Accounts
                         </Link>
                       </li>
                     )}
