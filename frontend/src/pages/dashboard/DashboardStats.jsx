@@ -262,7 +262,18 @@ const DashboardStats = () => {
   const renderPaginationLinks = () => {
     const totalPages = TransactionsHistory?.totalPages;
     const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
+    const visiblePages = 5;
+    const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + visiblePages - 1);
+
+    if (startPage > 1) {
+      paginationLinks.push(
+        <li key="start-ellipsis" className="text-black my-auto">
+          .....
+        </li>
+      );
+    }
+    for (let i = startPage; i <= endPage; i++) {
       paginationLinks.push(
         <li key={i}>
           <Link
@@ -275,7 +286,16 @@ const DashboardStats = () => {
           </Link>
         </li>
       );
+    };
+
+        if (endPage < totalPages) {
+      paginationLinks.push(
+        <li key="end-ellipsis" className="text-black my-auto">
+          .....
+        </li>
+      );
     }
+
     return paginationLinks;
   };
 
@@ -289,8 +309,9 @@ const DashboardStats = () => {
 
   if (hasError) {
     return <SendOTP />;
-  }
+  };
 
+  const filterdPaymentAccounts = PaymentData.filter((item) => item.label !== 'cashSale');
 
   return (
     <>
@@ -757,7 +778,7 @@ const DashboardStats = () => {
                       <option value="" disabled>
                         Payment Method
                       </option>
-                      {PaymentData?.slice(0, -1)?.map((item) => (
+                      {filterdPaymentAccounts?.map((item) => (
                         <option value={item.value} key={item.value}>
                           {item.label}
                         </option>
@@ -969,7 +990,7 @@ const DashboardStats = () => {
                   <option value="" disabled>
                     Select Account
                   </option>
-                  {PaymentData?.map((item) => (
+                  {filterdPaymentAccounts?.map((item) => (
                     <option value={item.value} key={item.value}>
                       {item.label}
                     </option>

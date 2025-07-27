@@ -26,7 +26,6 @@ const EmployeeDetails = () => {
   );
   const { Branches } = useSelector((state) => state.InStock);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
-  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);

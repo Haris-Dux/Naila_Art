@@ -366,7 +366,7 @@ const BaseTable = () => {
           onClose={closeModal}
           onConfirm={onConfitmation}
           message={
-            "Are you sure you want to Delete this bill? Note: The stock associated with this bill will not be deleted."
+            "Are you sure you want to Delete this bill ?"
           }
           title={"Delete Base Bill"}
           updateStitchingLoading={deleteLoading}

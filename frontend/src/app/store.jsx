@@ -21,6 +21,7 @@ import ReturnSlice from "../features/ReturnSlice";
 import OtherSale from "../features/OtherSale";
 import PaymentMethodsSlice from "../features/PaymentMethodsSlice";
 import CashBookSlice from "../features/CashBookSlice";
+import OtherAccountsSlice from '../features/OtherAccountsSlice'
 
 
 
@@ -48,6 +49,7 @@ export const store = configureStore({
     OtherBills:OtherSale,
     PaymentMethods:PaymentMethodsSlice,
     CashBook:CashBookSlice,
-
+    OtherAccounts:OtherAccountsSlice
+  
   },
 });

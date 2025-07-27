@@ -56,6 +56,8 @@ import OtherSaleBills from "./pages/bills/OtherSaleBills";
 import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
 import CashBook from "./pages/cashBook/CashBook";
 import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
+import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
+import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
 
 function App() {
   const dispatch = useDispatch();
@@ -81,7 +83,6 @@ useEffect(() => {
 
   return (
     <>
- 
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
@@ -117,8 +118,6 @@ useEffect(() => {
             <Route path="other-sale" element={<OtherSaleBills />} />
             <Route path="naila-arts-return-bills" element={<ReturnBills />} />
 
-        
-
             {/* ACCOUNTS ROUTES */}
             <Route path="buyers" element={<Buyers />} />
             <Route path="buyers-checks/:id" element={<BuyersChecks/>} />
@@ -127,6 +126,8 @@ useEffect(() => {
             <Route path="sellers-details/:id" element={<SellersDetails />} />
             <Route path="employee" element={<Employee />} />
             <Route path="employee-details/:id" element={<EmployeeDetails />} />
+            <Route path="other-accounts" element={< OtherAccounts/>} />
+            <Route path="other-accounts/:id" element={< OtherAccountsDetails/>} />
 
             {/* CASH IN/OUT */}
             <Route path="cash" element={<CashInOut />} />

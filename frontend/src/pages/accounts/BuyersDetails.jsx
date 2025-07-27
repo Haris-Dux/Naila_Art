@@ -67,6 +67,22 @@ const BuyersDetails = () => {
             <h3 className="pb-1 font-medium">Total Balance</h3>
             <h3>{BuyerById?.virtual_account?.total_balance}</h3>
           </div>
+          {BuyerById?.virtual_account?.status !== "Paid" && (
+            <>
+              <button
+                onClick={openConfirmationModaL}
+                className="bg-red-500 mt-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+              >
+                Mark As Paid
+              </button>
+            </>
+          )}
+          <button
+            className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+            onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
+          >
+            Checks
+          </button>
         </div>
 
         {/* -------------- TABLE -------------- */}
@@ -150,23 +166,6 @@ const BuyersDetails = () => {
                   )}
                 </tbody>
               </table>
-              {BuyerById?.virtual_account?.status !== "Paid" && (
-                <>
-                  <button
-                    onClick={openConfirmationModaL}
-                    className="bg-red-500 mt-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-                  >
-                    Mark As Paid
-                  </button>
-                </>
-              )}
-              <button
-                className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-                onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
-               
-              >
-                Checks
-              </button>
             </div>
           </>
         )}

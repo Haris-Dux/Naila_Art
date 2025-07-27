@@ -8,10 +8,14 @@ import {
   addAccesoriesInStock,
   removeAccesoriesFromStock,
 } from "../Stock/AccessoriesController.js";
-import { addBagsAndBoxInStock, removeBagsAndBoxFromStock } from "../Stock/BagsAndBoxController.js";
+import {
+  addBagsAndBoxInStock,
+  removeBagsAndBoxFromStock,
+} from "../Stock/BagsAndBoxController.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { purchasing_History_model } from "../../models/sellers/PurchasingHistoryModel.js";
 import moment from "moment-timezone";
+import { BaseModel } from "../../models/Stock/Base.Model.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -30,6 +34,8 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
         rate,
         total,
         seller_stock_category,
+        measurementData,
+        toAddinStock,
       } = req.body;
 
       //VALIDATING FIELDS
@@ -85,6 +91,62 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
 
       //ADDING BASE DATA IN  SEELER
       if (seller_stock_category === "Base") {
+        let stockData = [];
+        if (toAddinStock === true) {
+          measurementData.forEach((item) => {
+            let { colour, measurement, roleQuantity } = item;
+            if (!colour || !measurement || !roleQuantity)
+              throw new Error("Missing data for stock");
+            const totalQuantity = item.roleQuantity * item.measurement;
+            const formattedCategory =
+              category.charAt(0).toUpperCase() +
+              category.slice(1).toLowerCase();
+            const formattedColour =
+              colour.charAt(0).toUpperCase() + colour.slice(1).toLowerCase();
+            const duplicate = stockData.find((stockItem) => (
+              stockItem.formattedColour === formattedColour
+            ));
+            if (!duplicate) {
+              stockData.push({
+                formattedColour,
+                totalQuantity,
+                formattedCategory,
+              });
+            } else {
+              duplicate.totalQuantity += totalQuantity;
+            }
+          });
+
+          for (const stock of stockData) {
+            const checkExistingStock = await BaseModel.findOne({
+              category: stock.formattedCategory,
+              colors: stock.formattedColour,
+            }).session(session);
+            let recordData = {
+              category: stock.formattedCategory,
+              colors: stock.formattedColour,
+              Date:date,
+              quantity: stock.totalQuantity,
+            };
+            if (checkExistingStock) {
+              const updatedTYm = checkExistingStock.TYm + stock.totalQuantity;
+              (checkExistingStock.recently = stock.totalQuantity),
+                (checkExistingStock.r_Date = date),
+                (checkExistingStock.TYm = updatedTYm),
+                checkExistingStock.all_Records.push(recordData);
+              await checkExistingStock.save({session});
+            } else {
+              await BaseModel.create([{
+                category: stock.formattedCategory,
+                colors: stock.formattedColour,
+                recently: stock.totalQuantity,
+                r_Date: date,
+                TYm: stock.totalQuantity,
+                all_Records: [recordData],
+              }],{session});
+            }
+          }
+        };
         await Promise.all([
           SellersModel.create(
             [
@@ -118,7 +180,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
               },
             ],
             { session }
-          ),
+          )
         ]);
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
@@ -199,7 +261,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
         ]);
       }
     });
-    return res.status(200).json({ success: true, message: "Success" });
+    return res.status(200).json({ success: true, message: "Bill generated successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -295,6 +357,8 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         rate,
         total,
         seller_stock_category,
+        measurementData,
+        toAddinStock,
       } = req.body;
 
       //VALIDATING FIELDS
@@ -370,6 +434,61 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         seller_stock_category === "Base" &&
         oldSellerData.seller_stock_category === "Base"
       ) {
+        let stockData = [];
+        if (toAddinStock === true) {
+          measurementData.forEach((item) => {
+            let { colour, measurement, roleQuantity } = item;
+            if (!colour || !measurement || !roleQuantity)
+              throw new Error("Missing data for stock");
+            const totalQuantity = item.roleQuantity * item.measurement;
+            const formattedCategory =
+              category.charAt(0).toUpperCase() +
+              category.slice(1).toLowerCase();
+            const formattedColour =
+              colour.charAt(0).toUpperCase() + colour.slice(1).toLowerCase();
+            const duplicate = stockData.find((stockItem) => (
+              stockItem.formattedColour === formattedColour
+            ));
+            if (!duplicate) {
+              stockData.push({
+                formattedColour,
+                totalQuantity,
+                formattedCategory,
+              });
+            } else {
+              duplicate.totalQuantity += totalQuantity;
+            }
+          });
+          for (const stock of stockData) {
+            const checkExistingStock = await BaseModel.findOne({
+              category: stock.formattedCategory,
+              colors: stock.formattedColour,
+            }).session(session);
+            let recordData = {
+              category: stock.formattedCategory,
+              colors: stock.formattedColour,
+              Date:date,
+              quantity: stock.totalQuantity,
+            };
+            if (checkExistingStock) {
+              const updatedTYm = checkExistingStock.TYm + stock.totalQuantity;
+              (checkExistingStock.recently = stock.totalQuantity),
+                (checkExistingStock.r_Date = date),
+                (checkExistingStock.TYm = updatedTYm),
+                checkExistingStock.all_Records.push(recordData);
+              await checkExistingStock.save({session});
+            } else {
+              await BaseModel.create([{
+                category: stock.formattedCategory,
+                colors: stock.formattedColour,
+                recently: stock.totalQuantity,
+                r_Date: date,
+                TYm: stock.totalQuantity,
+                all_Records: [recordData],
+              }],{session});
+            }
+          }
+        };
         await Promise.all([
           SellersModel.findByIdAndUpdate(
             sellerId,
@@ -488,7 +607,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         ]);
       }
     });
-    return res.status(200).json({ success: true, message: "Success" });
+    return res.status(200).json({ success: true, message: "Bill generated successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -557,9 +676,9 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
       if (!billData) throw new Error("Bill Not Found");
 
       //GETTING OLD SELLER DATA
-      const oldSellerData = await SellersModel.findOne({name:billData.name});
+      const oldSellerData = await SellersModel.findOne({ name: billData.name });
       if (!oldSellerData) throw new Error("Seller Not Found");
-      
+
       const sellerId = oldSellerData._id;
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit =
@@ -597,13 +716,12 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
       //DATA FOR CREDIT DEBIT HISTORY
       const credit_debit_history_details = [
         {
-          date:today,
+          date: today,
           particular: `Bill Deleted/B.N${billData.bill_no}/B.Q/${billData.quantity}`,
           debit: billData.total,
           balance: new_total_balance,
         },
       ];
-
 
       //ADDING BASE DATA IN  SEELER
       if (billData.seller_stock_category === "Base") {
@@ -618,7 +736,7 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
             },
             { session }
           ),
-          
+
           purchasing_History_model.findByIdAndDelete(billId).session(session),
         ]);
       } else if (

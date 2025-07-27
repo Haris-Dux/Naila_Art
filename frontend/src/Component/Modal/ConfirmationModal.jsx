@@ -1,5 +1,3 @@
-import React from 'react';
-import { FaExclamation } from "react-icons/fa";
 
 const ConfirmationModal = ({ onClose, onConfirm, message, title,updateStitchingLoading ,UpdatEmbroideryloading,bagsValue}) => {
   return (

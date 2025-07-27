@@ -186,7 +186,7 @@ const Expense = () => {
 
   const filterdCategories = ExpenseCategories.filter((item) =>
     item?.branches?.includes(selectedBranchId)
-  );
+  ).sort((a,b) => a.name.localeCompare(b.name));
 
   return (
     <>
@@ -261,13 +261,13 @@ const Expense = () => {
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
         <>
-          <div className="tabs flex justify-between items-center my-5">
-            <div className="tabs_button">
+          <div className="flex flex-wrap items-center pt-3 gap-2 rounded-md">
+           
               {filterdCategories?.map((category) => (
                 <Link
                   to={`/dashboard/expense?page=${1}`}
                   key={category?.id}
-                  className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
+                  className={`border border-gray-500 px-5 py-2 my-1 text-sm rounded-md ${
                     selectedCategory === category?.id
                       ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
                       : ""
@@ -277,7 +277,7 @@ const Expense = () => {
                   {category?.name}
                 </Link>
               ))}
-            </div>
+          
           </div>
 
           {/* -------------- TABLE -------------- */}
