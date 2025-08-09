@@ -7,6 +7,7 @@ import {
   getEmbroideryById,
   getHeadDataByDesignNo,
   getPreviousDataBypartyName,
+  replaceEmroideryData,
   updateEmbroidery,
 } from "../../controllers/Process/EmbroideryController.js";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
@@ -28,6 +29,11 @@ embrioderyRouter.post(
   "/updateEmbroidery",
   superAdminAndAdminOnly,
   updateEmbroidery
+);
+embrioderyRouter.post(
+  "/replaceEmroideryData",
+  superAdminAndAdminOnly,
+  replaceEmroideryData
 );
 embrioderyRouter.post(
   "/getPreviousDataBypartyName",
