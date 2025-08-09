@@ -58,6 +58,7 @@ import CashBook from "./pages/cashBook/CashBook";
 import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
 import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
 import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
+import UpdateEmbroidery from "./pages/process/embroidery/UpdateEmbroidery/index";
 
 function App() {
   const dispatch = useDispatch();
@@ -137,6 +138,7 @@ useEffect(() => {
             {/* PROCESS ROUTES */}
             <Route path="embroidery" element={<Embroidery />} />
             <Route path="embroidery-details/:id" element={<EmbroideryDetails />} />
+            <Route path="embroidery-update/:id" element={<UpdateEmbroidery />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="calendar-details/:id" element={<CalendarDetails />} />
             <Route path="cutting" element={<Cutting />} />
