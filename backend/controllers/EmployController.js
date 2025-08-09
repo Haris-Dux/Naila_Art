@@ -99,6 +99,7 @@ export const creditDebitBalance = async (req, res, next) => {
           balance: newBalance,
           particular: particular,
           date: date,
+          payment_Method,
         });
 
         //UPDATING VIRTUAL ACCOUNTS
@@ -139,6 +140,7 @@ export const creditDebitBalance = async (req, res, next) => {
           balance: newBalance,
           debit: debit,
           credit: 0,
+          payment_Method,
         });
 
         //UPDATING VIRTUAL ACCOUNTS
@@ -238,7 +240,7 @@ export const creditDebitBalance = async (req, res, next) => {
       await employe.save({ session });
       return res
         .status(200)
-        .json({ success: true, message: "Updated Successfully" });
+        .json({ success: true, message: "Transaction successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -305,8 +307,6 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
       //UPDATE DAILY SALE
       if (payment_Method === "cashSale") {
         if (isPastDate) {
-          console.log("executing");
-
           const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
           const dateList = [];
 
