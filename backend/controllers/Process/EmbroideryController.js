@@ -36,6 +36,7 @@ export const addEmbriodery = async (req, res, next) => {
         D_Patch_Stitch,
         F_Patch_Stitch,
         tissue,
+        rate_per_stitching
       } = req.body;
 
       const requiredFields = [
@@ -48,6 +49,7 @@ export const addEmbriodery = async (req, res, next) => {
         "design_no",
         "T_Quantity_In_m",
         "T_Quantity",
+        "rate_per_stitching"
       ];
 
       const optionalFields1 = [
@@ -154,7 +156,7 @@ export const addEmbriodery = async (req, res, next) => {
           partyName: { $regex: partyName, $options: "i" },
         }).session(session);
         if (checkExistingEmbroidery) {
-          throw new CustomError("Party Name Already In Use", 400);
+          throw new CustomError("Party name already in use", 400);
         }
       }
 
@@ -210,6 +212,7 @@ export const addEmbriodery = async (req, res, next) => {
             Manual_No,
             date,
             per_suit,
+            rate_per_stitching,
             project_status,
             design_no,
             shirt,
@@ -230,6 +233,7 @@ export const addEmbriodery = async (req, res, next) => {
             D_Patch_Stitch,
             F_Patch_Stitch,
             tissue: totalQuantityInMForTissue,
+            tissueData:tissue ?? [],
             serial_No: lastSerialNo + 1,
           },
         ],
@@ -239,7 +243,7 @@ export const addEmbriodery = async (req, res, next) => {
 
     return res
       .status(200)
-      .json({ success: true, message: "Added Successfully" });
+      .json({ success: true, message: "Embroidery created Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {
@@ -491,7 +495,7 @@ export const deleteEmbroidery = async (req, res, next) => {
       }
 
       if (embroideryData.bill_generated === true)
-        throw new Error("Cannot Delete Embroidery");
+        throw new Error("Cannot delete embroidery");
 
       const addInStock = async (items) => {
         if (items && items.length > 0) {
@@ -537,6 +541,300 @@ export const deleteEmbroidery = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  } finally {
+    session.endSession();
+  }
+};
+
+export const replaceEmroideryData = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const {
+        partyName,
+        partytype,
+        Manual_No,
+        date,
+        per_suit,
+        project_status,
+        design_no,
+        discountType,
+        discount,
+        shirt,
+        duppata,
+        trouser,
+        recieved_suit,
+        T_Quantity_In_m,
+        T_Quantity,
+        T_Suit,
+        Front_Stitch,
+        Bazo_Stitch,
+        Gala_Stitch,
+        Back_Stitch,
+        Pallu_Stitch,
+        Trouser_Stitch,
+        D_Patch_Stitch,
+        F_Patch_Stitch,
+        tissue,
+        rate_per_stitching,
+        id
+      } = req.body;
+
+      const requiredFields = [
+        "partyName",
+        "Manual_No",
+        "partytype",
+        "date",
+        "per_suit",
+        "project_status",
+        "design_no",
+        "T_Quantity_In_m",
+        "T_Quantity",
+        "rate_per_stitching",
+        "id"
+      ];
+
+      const optionalFields1 = [
+        "Front_Stitch",
+        "Bazo_Stitch",
+        "Gala_Stitch",
+        "Back_Stitch",
+        "Pallu_Stitch",
+        "Trouser_Stitch",
+        "D_Patch_Stitch",
+        "F_Patch_Stitch",
+      ];
+
+      const optionalFields2 = ["shirt", "duppata", "trouser"];
+      const valuesForoptionalFields2 = [
+        "category",
+        "color",
+        "quantity_in_m",
+        "quantity_in_no",
+      ];
+      const tissueFields = ["category", "color", "quantity_in_m"];
+
+      const findmissingFields = (data, requiredSubFields) => {
+        return data
+          .map((item) => {
+            const missingData = requiredSubFields.filter(
+              (field) => !item[field]
+            );
+            if (missingData.length > 0) {
+              return missingData;
+            }
+            return null;
+          })
+          .filter(Boolean);
+      };
+      const missingFields = [];
+
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          missingFields.push(field);
+        }
+      });
+
+      optionalFields1.forEach((field) => {
+        if (req.body[field]) {
+          const { head, value } = req.body[field];
+          if (value === null && head === null) {
+            return;
+          }
+          if (!value || !head) {
+            missingFields.push(`${field} must have head and value`);
+          }
+        }
+      });
+
+      optionalFields2.forEach((field) => {
+        if (req.body[field]) {
+          const { category, color, quantity_in_m, quantity_in_no } =
+            req.body[field];
+          if (
+            category === null &&
+            color === null &&
+            quantity_in_m === null &&
+            quantity_in_no === null
+          ) {
+            return;
+          }
+          const missing = findmissingFields(
+            req.body[field],
+            valuesForoptionalFields2
+          );
+          if (missing.length > 0) {
+            missingFields.push(`${field} Data is missing ${missing}`);
+          }
+        }
+      });
+
+      //VALIDATING TISSUE DATA
+      if (req.body.tissue) {
+        req.body.tissue.forEach((item, index) => {
+          const { category, color, quantity_in_m } = item;
+          if (category === null && color === null && quantity_in_m === null) {
+            return;
+          }
+          const missing = findmissingFields([item], tissueFields);
+          if (missing.length > 0) {
+            missingFields.push(
+              `Tissue Number ${index + 1} is missing: ${missing}`
+            );
+          }
+        });
+      };
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing fields : ${missingFields}`);
+      };
+
+      if (!per_suit || isNaN(per_suit) || parseFloat(per_suit) <= 0) {
+        throw new Error("Invalid Per Suit value");
+      };
+
+      if (partytype === "newParty") {
+        const checkExistingEmbroidery = await EmbroideryModel.findOne({
+          partyName: { $regex: partyName, $options: "i" },
+        }).session(session);
+        if (checkExistingEmbroidery) {
+          throw new CustomError("Party name already in use", 400);
+        }
+      };
+
+      const oldEmbroideryData = await EmbroideryModel.findById(id).session(session);
+      const checkEditableEmroidery = () => {
+      const { project_status, bill_generated, updated, next_steps } = oldEmbroideryData;
+      const isNextStepsTrue = Object.entries(next_steps).some(item => item[1] === true)
+      if (project_status === "Pending" && !bill_generated && !updated && !isNextStepsTrue)
+       return true;
+        return false;
+       };
+       if(checkEditableEmroidery()){
+        throw new Error("Failed to update embroidery")
+       };
+
+      // ADD BASE STOCK BACK INTO INVENTORY
+
+       const addInStock = async (items) => {
+        if (items && items.length > 0) {
+          await Promise.all(
+            items?.map(async (item) => {
+              const matchedRecord = await BaseModel.findOne({
+                category: item.category,
+                colors: item.color,
+              }).session(session);
+              if (matchedRecord) {
+                matchedRecord.TYm += item.quantity_in_m;
+                await matchedRecord.save({ session });
+              } else {
+                throw new Error(
+                  `No Stock Found For category ${item.category} and color ${item.color}`
+                );
+              }
+            })
+          );
+        }
+      };
+
+      const processStockUpdate = async (oderData) => {
+        const stockItmes = [
+          { key: "shirt", items: oldEmbroideryData.shirt },
+          { key: "trouser", items: oldEmbroideryData.trouser },
+          { key: "duppata", items: oldEmbroideryData.duppata },
+          { key: "tissueData", items: oldEmbroideryData.tissueData },
+        ];
+        for (const { key, items } of stockItmes) {
+          if (oderData[key]) {
+            await addInStock(items);
+          }
+        }
+      };
+
+      await processStockUpdate(oldEmbroideryData);
+
+
+      // INVENTORY BASE STOCK DEDUCTION WITH UPDATED EMBROIDERY DATA
+
+      const handleInventory = async (items) => {
+        if (items && items.length > 0) {
+          await Promise.all(
+            items?.map(async (item) => {
+              const matchedRecord = await BaseModel.findOne({
+                category: item.category,
+                colors: item.color,
+              }).session(session);
+              if (matchedRecord) {
+                matchedRecord.TYm -= item.quantity_in_m;
+                if (matchedRecord.TYm < 0)
+                  throw new Error(
+                    `Not Enough Stock for category ${item.category} and color ${item.color}`
+                  );
+                await matchedRecord.save({ session });
+              } else {
+                throw new Error(
+                  `No Stock Found For category ${item.category} and color ${item.color}`
+                );
+              }
+            })
+          );
+        }
+      };
+
+      await handleInventory(shirt);
+      await handleInventory(duppata);
+      await handleInventory(trouser);
+      await handleInventory(tissue);
+
+      let totalQuantityInMForTissue = 0;
+      if (req.body.tissue) {
+        totalQuantityInMForTissue = tissue.reduce(
+          (sum, item) => sum + item.quantity_in_m,
+          0
+        );
+      };
+
+      await EmbroideryModel.findOneAndReplace(
+        {_id:id},
+          {
+            partyName,
+            Manual_No,
+            date,
+            per_suit,
+            rate_per_stitching,
+            project_status,
+            design_no,
+            shirt,
+            duppata,
+            trouser,
+            discountType,
+            discount,
+            recieved_suit,
+            T_Quantity_In_m,
+            T_Quantity,
+            T_Suit,
+            Front_Stitch,
+            Bazo_Stitch,
+            Gala_Stitch,
+            Back_Stitch,
+            Pallu_Stitch,
+            Trouser_Stitch,
+            D_Patch_Stitch,
+            F_Patch_Stitch,
+            tissue: totalQuantityInMForTissue,
+            tissueData:tissue ?? [],
+            serial_No: oldEmbroideryData.serial_No,
+          },
+        { new: true, session }
+      );
+
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Embroidery updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
   }

@@ -1,27 +1,30 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
-import {
-  CreateEmbroidery,
-  GETEmbroidery,
-} from "../../features/EmbroiderySlice";
 import { FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import {
+  GETEmbroiderySIngle,
+  replaceEmbroideryDataAsync,
+} from "../../../../../features/EmbroiderySlice";
 
-const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue,D_NO }) => {
-  const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
-  const {createEmbroideryLoading} = useSelector((state) => state.Embroidery);
-
+const BaseCategorySection = ({
+  designNumberSectionData,
+  DNO_ategory,
+  D_NO,
+}) => {
   const dispatch = useDispatch();
+  const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
+  const { UpdatEmbroideryloading } = useSelector((state) => state.Embroidery);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [colorOptions, setColorOptions] = useState([]);
   const [colorOptions2, setColorOptions2] = useState([]);
   const [colorOptions3, setColorOptions3] = useState([]);
   const [colorOptions4, setColorOptions4] = useState([]);
+  const total = designNumberSectionData?.total;
 
   useEffect(() => {
     if (!loading && BaseforEmroidery) {
-      // Extract unique categories
       const categories = [
         ...new Set(BaseforEmroidery?.map((item) => item.category)),
       ];
@@ -59,6 +62,57 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     tissue: [initialTissueRow],
   });
 
+  useEffect(() => {
+    setFormData(() => ({
+      shirt: designNumberSectionData?.shirt,
+      duppata: designNumberSectionData?.duppata,
+      trouser: designNumberSectionData?.trouser,
+      tissue: designNumberSectionData?.tissueData,
+    }));
+
+    //SET SHIRT COLORS
+    const selectedCategory = BaseforEmroidery.filter(
+      (item) => item.category.toLowerCase() === DNO_ategory.toLowerCase()
+    );
+    const selectedCategoryColors = selectedCategory?.map((item) => ({
+      value: item.colors,
+      label: item.colors,
+    }));
+    setColorOptions(selectedCategoryColors);
+
+    //SET DUPATTA COLORS
+    const selectedCategoryForDupatta = BaseforEmroidery.filter(
+      (item) => item.category.toLowerCase() === designNumberSectionData?.duppata[0]?.category.toLowerCase()
+    );
+    const selectedCategoryColorsForDupatta = selectedCategoryForDupatta?.map((item) => ({
+      value: item.colors,
+      label: item.colors,
+    }));
+    setColorOptions2(selectedCategoryColorsForDupatta);
+
+    //SET TROUSER COLORS
+    const selectedCategoryForTrouser = BaseforEmroidery.filter(
+      (item) => item.category.toLowerCase() === designNumberSectionData?.trouser[0]?.category.toLowerCase()
+    );
+    const selectedCategoryColorsForTrouser = selectedCategoryForTrouser?.map((item) => ({
+      value: item.colors,
+      label: item.colors,
+    }));
+    setColorOptions3(selectedCategoryColorsForTrouser);
+
+    //SET TISSUE COLORS
+    const selectedcategoryForTissue = BaseforEmroidery.filter(
+      (item) => item.category.toLowerCase() === designNumberSectionData?.tissueData[0]?.category.toLowerCase()
+    );
+    const selectedCategoryColorsForTissue = selectedcategoryForTissue?.map((item) => ({
+      value: item.colors,
+      label: item.colors,
+    }));
+    setColorOptions4(selectedCategoryColorsForTissue);
+    
+  }, [designNumberSectionData,BaseforEmroidery]);
+
+ 
   const addNewRow = (field) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -98,7 +152,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     setFormData((prevState) => ({
       ...prevState,
       shirt: prevState.shirt?.map((item, idx) =>
-        idx === index ? { ...item, category: newValue.value } : item
+        idx === index ? { ...item, category: newValue.value, color: "" } : item
       ),
     }));
 
@@ -128,7 +182,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     setFormData((prevState) => ({
       ...prevState,
       duppata: prevState.duppata?.map((item, idx) =>
-        idx === index ? { ...item, category: newValue.value } : item
+        idx === index ? { ...item, category: newValue.value, color: "" } : item
       ),
     }));
     const selectedCategory = BaseforEmroidery?.filter(
@@ -156,7 +210,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     setFormData((prevState) => ({
       ...prevState,
       trouser: prevState.trouser?.map((item, idx) =>
-        idx === index ? { ...item, category: newValue.value } : item
+        idx === index ? { ...item, category: newValue.value, color: "" } : item
       ),
     }));
     const selectedCategory = BaseforEmroidery?.filter(
@@ -184,7 +238,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
     setFormData((prevState) => ({
       ...prevState,
       tissue: prevState.tissue?.map((item, idx) =>
-        idx === index ? { ...item, category: newValue.value } : item
+        idx === index ? { ...item, category: newValue.value, color: "" } : item
       ),
     }));
     const selectedCategory = BaseforEmroidery?.filter(
@@ -260,7 +314,9 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
 
   const validateShirtCategories = (meregdata) => {
     if (meregdata.shirt && meregdata.shirt.length > 0) {
-      const invalidCategory = meregdata.shirt.some(item => item.category !== DNO_ategory);
+      const invalidCategory = meregdata.shirt.some(
+        (item) => item.category !== DNO_ategory
+      );
       if (invalidCategory) {
         return false;
       }
@@ -271,14 +327,9 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    setFormData1((prevState) => ({
-      ...prevState,
-      per_suit: total,
-    }));
-
     //REMOVING FIELDS FROM TABLE WITH ZERO VALUES
 
-    let updateFormData = { ...formData1 };
+    let updateFormData = { ...designNumberSectionData };
     updateFormData = validateEightFields(updateFormData);
     const { per_suit, ...restFormData1 } = updateFormData;
 
@@ -288,10 +339,12 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         : Number(value);
     };
 
+    
+
     const meregdata = {
       ...restFormData1,
       ...formData,
-      partytype:partyValue,
+      partytype: designNumberSectionData.partytype,
       per_suit: Math.floor(total),
       T_Suit: formData.shirt.reduce(
         (total, item) => total + toValidNumber(item.quantity_in_no),
@@ -349,14 +402,17 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         "Please Enter data for suit,duppata or trouser and one head and it's value"
       );
     } else {
-      if(meregdata.design_no === D_NO){
+      if (meregdata.design_no === D_NO) {
         const result = validateShirtCategories(meregdata);
-        if(!result) return toast.error("Invalid Shirt Category For Selected Design Number");
-      };
-      dispatch(CreateEmbroidery(meregdata)).then((res) => {
-        if (res.payload.success === true) {
-          dispatch(GETEmbroidery({ page: 1 }));
-          closeModal();
+        if (!result)
+          return toast.error(
+            "Invalid Shirt Category For Selected Design Number"
+          );
+      }
+
+      dispatch(replaceEmbroideryDataAsync(meregdata)).then((res) => {
+        if (res.payload?.success === true) {
+          dispatch(GETEmbroiderySIngle({ id:designNumberSectionData.id }));
         }
       });
     }
@@ -368,7 +424,9 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         <div className="header flex justify-between items-center">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Shirt Colors And Quantity:{" "}
-           {formData1.design_no === D_NO && <span className="text-red-500">{DNO_ategory}</span>}
+            {designNumberSectionData?.design_no === D_NO && (
+              <span className="text-red-500">{DNO_ategory}</span>
+            )}
           </p>
           <p onClick={() => addNewRow("shirt")}>
             <FiPlus size={24} className=" cursor-pointer dark:text-white" />
@@ -391,6 +449,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             </div>
             <div>
               <Select
+                key={`${shirt.category}-${index}`}
                 options={colorOptions}
                 onChange={(newValue) => handleshirtColor(newValue, index)}
                 value={colorOptions.find((item) => item.value === shirt.color)}
@@ -418,7 +477,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={shirt.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "shirt")}
               />
-              {formData.shirt.length > 1 && (
+            
                 <button
                   onClick={() => deleteRow("shirt", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -441,7 +500,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                   </svg>
                   <span className="sr-only">Close modal</span>
                 </button>
-              )}
+            
             </div>
           </div>
         ))}
@@ -469,6 +528,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             </div>
             <div>
               <Select
+                key={`${duppata.category}-${index}`}
                 options={colorOptions2}
                 onChange={(newValue) => handleduppataColor(newValue, index)}
                 value={colorOptions2.find(
@@ -498,7 +558,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={duppata.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
-              {formData?.duppata?.length > 1 && (
+           
                 <button
                   onClick={() => deleteRow("duppata", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -521,7 +581,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                   </svg>
                   <span className="sr-only">Close modal</span>
                 </button>
-              )}
+              
             </div>
           </div>
         ))}
@@ -550,6 +610,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             </div>
             <div>
               <Select
+                key={`${trouser.category}-${index}`}
                 options={colorOptions3}
                 onChange={(newValue) => handleTrouserColor(newValue, index)}
                 value={colorOptions3.find(
@@ -580,7 +641,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
 
-              {formData?.trouser?.length > 1 && (
+             
                 <button
                   onClick={() => deleteRow("trouser", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -603,7 +664,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                   </svg>
                   <span className="sr-only">Close modal</span>
                 </button>
-              )}
+              
             </div>
           </div>
         ))}
@@ -636,6 +697,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             </div>
             <div>
               <Select
+                key={`${tissue.category}-${index}`}
                 options={colorOptions4}
                 onChange={(newValue) => handletissueColor(newValue, index)}
                 value={colorOptions4.find(
@@ -655,7 +717,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={tissue.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "tissue")}
               />
-              {formData?.tissue?.length > 1 && (
+            
                 <button
                   onClick={() => deleteRow("tissue", index)}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -678,26 +740,26 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                   </svg>
                   <span className="sr-only">Close modal</span>
                 </button>
-              )}
+              
             </div>
           </div>
         ))}
       </div>
 
       <div className="flex justify-center pt-6">
-        {createEmbroideryLoading ? (
+        {UpdatEmbroideryloading ? (
           <button
             disabled
             className="inline-block cursor-progress rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indgrayigo-500"
           >
-            Submiting...
+            updating...
           </button>
         ) : (
           <button
             onClick={handleSubmit}
             className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
           >
-            Submit
+            update
           </button>
         )}
       </div>
@@ -705,4 +767,4 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
   );
 };
 
-export default Box;
+export default BaseCategorySection;

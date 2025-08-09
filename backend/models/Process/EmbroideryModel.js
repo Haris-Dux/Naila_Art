@@ -83,6 +83,10 @@ const embroiderySchema = new mongoose.Schema(
       type: Date,
       required: [true, "date required"],
     },
+    rate_per_stitching: {
+      type: Number,
+      required: [true, "Rate per stitching value required"],
+    },
     per_suit: {
       type: Number,
       required: [true, "Per suit value required"],
@@ -153,6 +157,19 @@ const embroiderySchema = new mongoose.Schema(
       type: Number,
       required: [true, "Tissue value required"],
     },
+    tissueData: [
+      {
+        category: {
+          type: String,
+        },
+        color: {
+          type: String,
+        },
+        quantity_in_m: {
+          type: Number,
+        },
+      }
+    ],
     bill_generated: {
       type: Boolean,
       default: false,
@@ -165,11 +182,11 @@ const embroiderySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    discountType:{
+    discountType: {
       type: String,
       default: "RS",
     },
-    discount : {
+    discount: {
       type: Number,
       default: 0,
     },

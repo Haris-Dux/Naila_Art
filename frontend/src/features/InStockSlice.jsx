@@ -570,6 +570,10 @@ const InStockSlic = createSlice({
         state.loading = false;
         state.BaseforEmroidery = action.payload;
       })
+         .addCase(GetAllBaseforEmroidery.rejected, (state, action) => {
+        state.loading = false;
+        state.BaseforEmroidery = []
+      })
 
       .addCase(GetAllLace.pending, (state, action) => {
         state.loading = true;

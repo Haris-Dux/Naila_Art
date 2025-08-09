@@ -183,11 +183,7 @@ const OtherAccountsDetails = () => {
                   <th className="px-6 py-4 text-md font-medium" scope="col">
                     Balance
                   </th>
-                  <th
-                    className="px-6 py-4 text-md font-medium"
-                    scope="col"
-                  ></th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-6 py-4 text-md font-medium">
                     Delete
                   </th>
                 </tr>

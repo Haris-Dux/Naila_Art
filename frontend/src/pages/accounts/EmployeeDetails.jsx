@@ -424,6 +424,9 @@ const EmployeeDetails = () => {
                   <th className="px-6 py-4 text-md font-medium" scope="col">
                     Particular
                   </th>
+                   <th className="px-6 py-4 text-md font-medium" scope="col">
+                    Payment Method
+                  </th>
                   <th className="px-6 py-4 text-md font-medium" scope="col">
                     Credit
                   </th>
@@ -457,6 +460,9 @@ const EmployeeDetails = () => {
                         </th>
                         <td className="px-6 py-4 font-medium">
                           {data.particular}
+                        </td>
+                        <td className="px-6 py-4 font-medium">
+                          {data.payment_Method || "-"}
                         </td>
                         <td className="px-6 py-4 font-medium">
                           {data.credit === 0 ? "-" : data.credit}
