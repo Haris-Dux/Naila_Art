@@ -117,13 +117,13 @@ const UpdateEmbroidery = () => {
 
               {/* ------------- BASE CATEGORY SECTION------------- */}
 
-              {designNumberSectionData?.duppata?.length > 0 && (
+            
                 <BaseCategorySection
                   designNumberSectionData={designNumberSectionData}
                   DNO_ategory={headStitchData[0]?.shirt}
                   D_NO={headStitchData[0]?.design_no}
                 />
-              )}
+            
             </div>
           </div>
         </div>
