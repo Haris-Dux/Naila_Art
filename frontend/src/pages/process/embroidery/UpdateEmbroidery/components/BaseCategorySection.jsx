@@ -80,35 +80,42 @@ const BaseCategorySection = ({
     }));
     setColorOptions(selectedCategoryColors);
 
+    
     //SET DUPATTA COLORS
+     if (designNumberSectionData?.duppata?.length > 0) {
     const selectedCategoryForDupatta = BaseforEmroidery.filter(
-      (item) => item.category.toLowerCase() === designNumberSectionData?.duppata[0]?.category.toLowerCase()
+      (item) => item.category.toLowerCase() === designNumberSectionData?.duppata[0]?.category?.toLowerCase()
     );
     const selectedCategoryColorsForDupatta = selectedCategoryForDupatta?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
     setColorOptions2(selectedCategoryColorsForDupatta);
+      }
 
     //SET TROUSER COLORS
+     if (designNumberSectionData?.trouser?.length > 0) {
     const selectedCategoryForTrouser = BaseforEmroidery.filter(
-      (item) => item.category.toLowerCase() === designNumberSectionData?.trouser[0]?.category.toLowerCase()
+      (item) => item.category.toLowerCase() === designNumberSectionData?.trouser[0]?.category?.toLowerCase()
     );
     const selectedCategoryColorsForTrouser = selectedCategoryForTrouser?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
     setColorOptions3(selectedCategoryColorsForTrouser);
+      }
 
     //SET TISSUE COLORS
+     if (designNumberSectionData?.tissueData?.length > 0) {
     const selectedcategoryForTissue = BaseforEmroidery.filter(
-      (item) => item.category.toLowerCase() === designNumberSectionData?.tissueData[0]?.category.toLowerCase()
+      (item) => item.category.toLowerCase() === designNumberSectionData?.tissueData[0]?.category?.toLowerCase()
     );
     const selectedCategoryColorsForTissue = selectedcategoryForTissue?.map((item) => ({
       value: item.colors,
       label: item.colors,
     }));
     setColorOptions4(selectedCategoryColorsForTissue);
+      }
     
   }, [designNumberSectionData,BaseforEmroidery]);
 
