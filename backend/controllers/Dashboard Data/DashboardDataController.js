@@ -772,7 +772,6 @@ export const makeTransactionInAccounts = async (req, res, next) => {
         throw new Error(`Missing Fields : ${requiredFields}`);
       }
       //TRANSACTION LOGIC
-      let historyData = {};
       if (transactionType === "Deposit") {
         const data = {
           session,
@@ -783,14 +782,6 @@ export const makeTransactionInAccounts = async (req, res, next) => {
           note,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-        historyData = {
-          date,
-          transactionType,
-          payment_Method,
-          new_balance,
-          amount,
-          note,
-        };
       } else if (transactionType === "WithDraw") {
         const data = {
           session,
@@ -801,21 +792,8 @@ export const makeTransactionInAccounts = async (req, res, next) => {
           note,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-        historyData = {
-          date,
-          transactionType,
-          payment_Method,
-          new_balance,
-          amount,
-          note,
-        };
       }
 
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        TransactionData: historyData,
-        email_Type: "Transaction Notification",
-      });
       return res
         .status(200)
         .json({ success: true, message: "Transaction Successfull" });
