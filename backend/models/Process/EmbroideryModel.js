@@ -84,8 +84,7 @@ const embroiderySchema = new mongoose.Schema(
       required: [true, "date required"],
     },
     rate_per_stitching: {
-      type: Number,
-      required: [true, "Rate per stitching value required"],
+      type: Number
     },
     per_suit: {
       type: Number,

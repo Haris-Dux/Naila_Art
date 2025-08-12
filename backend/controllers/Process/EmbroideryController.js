@@ -703,14 +703,20 @@ export const replaceEmroideryData = async (req, res, next) => {
       };
 
       const oldEmbroideryData = await EmbroideryModel.findById(id).session(session);
-      const checkEditableEmroidery = () => {
+      const isEmbroideryEditable = () => {
       const { project_status, bill_generated, updated, next_steps } = oldEmbroideryData;
-      const isNextStepsTrue = Object.entries(next_steps).some(item => item[1] === true)
-      if (project_status === "Pending" && !bill_generated && !updated && !isNextStepsTrue)
-       return true;
+      const isNextStepsTrue = Object.entries(next_steps).some(item => item[1] === true);
+      console.log('isNextStepsTrue', isNextStepsTrue)
+      console.log('project_status', project_status)
+      console.log('bill_generated', bill_generated)
+      console.log('updated', updated)
+      if (project_status === "Pending" && !bill_generated && !updated && !isNextStepsTrue){
+       return true
+      };
         return false;
        };
-       if(checkEditableEmroidery()){
+       console.log('isEmbroideryEditable', isEmbroideryEditable())
+       if(!isEmbroideryEditable()){
         throw new Error("Failed to update embroidery")
        };
 
