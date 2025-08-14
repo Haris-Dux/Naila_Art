@@ -73,12 +73,11 @@ const GenerateBill = () => {
 
   useEffect(() => {
     dispatch(getSuitsStockToGenerateBillAsync()).then((res) => {
-    if(user?.user?.role !== "superadmin") {
-      setBranchStockData(res?.payload)
-    }
-    })
+      if (user?.user?.role !== "superadmin") {
+        setBranchStockData(res?.payload);
+      }
+    });
     dispatch(GetAllBags());
-
   }, [user]);
 
   const handleInputChange = (e) => {
@@ -106,7 +105,9 @@ const GenerateBill = () => {
       name === "discountType" ||
       name === "subTotal"
     ) {
-      updatedBillData.remaining = calculateSubTotal() - paid - discount();
+      const otherBillAmount = parseInt(otherBillData.o_b_amount) || 0;
+      updatedBillData.remaining =
+        calculateSubTotal() - paid - discount() + otherBillAmount;
       updatedBillData.total = updatedBillData.remaining + paid;
     }
 
@@ -156,11 +157,11 @@ const GenerateBill = () => {
       other_Bill_Data: {},
     }));
     setOtherBillData({
-    o_b_quantity: "",
-    o_b_amount: "",
-    o_b_note: "",
-    show: false,
-  })
+      o_b_quantity: "",
+      o_b_amount: "",
+      o_b_note: "",
+      show: false,
+    });
     const data = StockToGenerateBill.filter((branch) => {
       return branch.branchId === value;
     });
@@ -300,31 +301,37 @@ const GenerateBill = () => {
 
     dispatch(generateBuyerBillAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
-            setBillData({
-              branchId:
-                user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
-              serialNumber: "",
-              name: "",
-              city: "",
-              cargo: "",
-              phone: "",
-              date: today,
-              bill_by: "",
-              payment_Method: "",
-              total: "",
-              paid: "",
-              remaining: "",
-              discount: "",
-              packaging: {
-                name: "",
-                id: "",
-                quantity: "",
-              },
-              suits_data: [
-                { id: "", quantity: "", d_no: "", color: "", price: "" },
-              ],
-              other_Bill_Data: {},
-            });
+        setBillData({
+          branchId:
+            user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+          serialNumber: "",
+          name: "",
+          city: "",
+          cargo: "",
+          phone: "",
+          date: today,
+          bill_by: "",
+          payment_Method: "",
+          total: "",
+          paid: "",
+          remaining: "",
+          discount: "",
+          packaging: {
+            name: "",
+            id: "",
+            quantity: "",
+          },
+          suits_data: [
+            { id: "", quantity: "", d_no: "", color: "", price: "" },
+          ],
+          other_Bill_Data: {},
+        });
+        setOtherBillData({
+          o_b_quantity: "",
+          o_b_amount: "",
+          o_b_note: "",
+          show: false,
+        });
         setPastBill(false);
       }
     });
@@ -344,14 +351,32 @@ const GenerateBill = () => {
   };
 
   const handleOtherBillCahange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === "o_b_amount" || name === "o_b_quantity") {
+      value = value === "" ? "" : parseInt(value) || 0;
+    }
     setOtherBillData((prevState) => ({
       ...prevState,
-      [name]:
-        name === "o_b_amount" || name === "o_b_quantity"
-          ? parseInt(value)
-          : value,
+      [name]: value,
     }));
+
+    if (name === "o_b_amount") {
+      setBillData((prevState) => {
+        const oldAmount = otherBillData.o_b_amount || 0;
+        const newTotal = prevState.total - oldAmount + value;
+        const discount = () => {
+          return prevState.discountType === "%"
+            ? (parseInt(calculateSubTotal()) * parseInt(prevState.discount)) /
+                100 || 0
+            : parseInt(prevState.discount) || 0;
+        };
+        return {
+          ...prevState,
+          total: newTotal,
+          remaining: calculateSubTotal() - prevState.paid - discount() + value,
+        };
+      });
+    }
   };
 
   const handleBillType = (e) => {
@@ -363,6 +388,21 @@ const GenerateBill = () => {
         date: today,
       }));
     }
+  };
+
+  const handleOtherBillCheckbox = (value) => {
+    setOtherBillData((prev) => ({
+      ...prev,
+      show: value,
+      o_b_amount: "",
+      o_b_quantity: "",
+      o_b_note: "",
+    }));
+    setBillData((prevState) => ({
+      ...prevState,
+      total: prevState.total - otherBillData.o_b_amount,
+      remaining: prevState.remaining - otherBillData.o_b_amount,
+    }));
   };
 
   return (
@@ -593,12 +633,7 @@ const GenerateBill = () => {
                     type="checkbox"
                     id="otherBillData"
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    onChange={(e) => {
-                      setOtherBillData((prev) => ({
-                        ...prev,
-                        show: e.target.checked,
-                      }));
-                    }}
+                    onChange={(e) => handleOtherBillCheckbox(e.target.checked)}
                   />
                 </div>
               </div>
@@ -643,7 +678,7 @@ const GenerateBill = () => {
                       required={otherBillData.show}
                     />
                   </div>
-                  <div className="flex items-center my-auto justify-between  px-5 border border-red-600 p-2 rounded-md">
+                  {/* <div className="flex items-center my-auto justify-between  px-5 border border-red-600 p-2 rounded-md">
                     <label
                       htmlFor="otherBillData"
                       className="text-md font-bold"
@@ -653,7 +688,7 @@ const GenerateBill = () => {
                     <span className={`text-sm font-medium text-black`}>
                       {otherBillData.o_b_amount + Number(billData.paid) || 0}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               )}
 
@@ -714,7 +749,7 @@ const GenerateBill = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold">Total</label>
+                  <label className="text-sm font-semibold">Bill Total</label>
                   <input
                     name="total"
                     type="number"
