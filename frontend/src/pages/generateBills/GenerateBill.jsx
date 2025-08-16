@@ -933,7 +933,7 @@ const GenerateBill = () => {
                   type="submit"
                   className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
                 >
-                  Generate Bill
+                  Generating Bill...
                 </button>
               ) : (
                 <button
