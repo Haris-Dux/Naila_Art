@@ -112,7 +112,7 @@ stage('Docker compose') {
         success {
             script {
                 sh """
-                    echo "Deployment successful!"
+                    echo "Deployment successful"
                     rm -f .env.runtime                 
                 """
             }
