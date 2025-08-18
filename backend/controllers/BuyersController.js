@@ -176,7 +176,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
                 console.log(`Updated existing sale for ${formattedDate}`);
                 // Example update
                 dailySale.saleData.totalCash +=
-                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                  paid
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -205,7 +205,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
                 // Update existing sales
                 console.log(`Updated existing sale for ${formattedDate}`);
                 dailySale.saleData.totalCash +=
-                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                  paid 
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -243,7 +243,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       let updatedSaleData = {
         ...dailySaleForToday.saleData,
         [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
-          paid + (other_Bill_Data?.o_b_amount ?? 0)),
+          paid),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
@@ -253,14 +253,14 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          paid + (other_Bill_Data?.o_b_amount ?? 0);
+          paid
       }
 
       dailySaleForToday.saleData = updatedSaleData;
       await dailySaleForToday.save({ session });
 
       //TOTAL AMOUNT PAID + OTHER BILL
-      const totalAmount = paid + (other_Bill_Data?.o_b_amount ?? 0);
+      const totalAmount = paid 
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -398,26 +398,6 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
         { session }
       );
 
-      //SEND EMAIL
-      const BillEmailData = {
-        serialNumber,
-        branchName: branch.branchName,
-        name,
-        phone,
-        date,
-        bill_by,
-        payment_Method,
-        debit: virtualAccountData.total_debit,
-        credit: virtualAccountData.total_credit,
-        balance: virtualAccountData.total_balance,
-        status: virtualAccountData.status,
-      };
-
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        email_Type: "Buyer Bill",
-        BillEmailData,
-      });
 
       return res
         .status(200)
@@ -590,7 +570,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
                 console.log(`Updated existing sale for ${formattedDate}`);
                 // Example update
                 dailySale.saleData.totalCash +=
-                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                  paid 
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -619,7 +599,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
                 // Update existing sales
                 console.log(`Updated existing sale for ${formattedDate}`);
                 dailySale.saleData.totalCash +=
-                  paid + (other_Bill_Data?.o_b_amount ?? 0);
+                  paid 
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -655,7 +635,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
 
       //TOTAL AMOUNT PAID + OTHER BILL
-      const totalAmount = paid + (other_Bill_Data?.o_b_amount ?? 0);
+      const totalAmount = paid ;
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -690,7 +670,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
         [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
-          paid + (other_Bill_Data?.o_b_amount ?? 0)),
+          paid ),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
@@ -700,7 +680,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          paid + (other_Bill_Data?.o_b_amount ?? 0);
+          paid 
       }
 
       dailySaleForToday.saleData = updatedSaleData;
@@ -813,27 +793,6 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         ],
         { session }
       );
-
-      //SEND EMAIL
-      const BillEmailData = {
-        serialNumber,
-        branchName: branch.branchName,
-        name,
-        phone,
-        date,
-        bill_by,
-        payment_Method,
-        debit: virtualAccountData.total_debit,
-        credit: virtualAccountData.total_credit,
-        balance: virtualAccountData.total_balance,
-        status: virtualAccountData.status,
-      };
-
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        email_Type: "Buyer Bill",
-        BillEmailData,
-      });
 
       return res
         .status(200)
