@@ -4,7 +4,7 @@ import { IoTrashOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllBags } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   generateBillForOlderBuyerAsync,
   generatePdfAsync,
@@ -15,9 +15,9 @@ import moment from "moment-timezone";
 import Select from "react-select";
 import { getSuitsStockToGenerateBillAsync } from "../../features/BuyerSlice";
 
-
 const OldBuyerGenerateBill = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { id } = useParams();
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { user } = useSelector((state) => state.auth);
@@ -83,14 +83,13 @@ const OldBuyerGenerateBill = () => {
     }
   }, [dispatch, id]);
 
- useEffect(() => {
+  useEffect(() => {
     dispatch(getSuitsStockToGenerateBillAsync()).then((res) => {
-    if(user?.user?.role !== "superadmin") {
-      setBranchStockData(res?.payload)
-    }
-    })
+      if (user?.user?.role !== "superadmin") {
+        setBranchStockData(res?.payload);
+      }
+    });
     dispatch(GetAllBags());
-
   }, [user]);
 
   useEffect(() => {
@@ -149,7 +148,9 @@ const OldBuyerGenerateBill = () => {
       name === "discountType" ||
       name === "subTotal"
     ) {
-      updatedBillData.remaining = calculateSubTotal() - paid - discount();
+      const otherBillAmount = parseInt(otherBillData.o_b_amount) || 0;
+      updatedBillData.remaining =
+        calculateSubTotal() - paid - discount() + otherBillAmount;
       updatedBillData.total = updatedBillData.remaining + paid;
     }
 
@@ -199,11 +200,11 @@ const OldBuyerGenerateBill = () => {
       other_Bill_Data: {},
     }));
     setOtherBillData({
-    o_b_quantity: "",
-    o_b_amount: "",
-    o_b_note: "",
-    show: false,
-  })
+      o_b_quantity: "",
+      o_b_amount: "",
+      o_b_note: "",
+      show: false,
+    });
     const data = StockToGenerateBill.filter((branch) => {
       return branch.branchId === value;
     });
@@ -327,8 +328,7 @@ const OldBuyerGenerateBill = () => {
         d_no: Number(suit.d_no),
         price: Number(suit.price),
       })),
-      pastBill:pastBill
-
+      pastBill: pastBill,
     };
 
     // Check Branch ID
@@ -343,36 +343,42 @@ const OldBuyerGenerateBill = () => {
 
     const payloadData = validatePackaging(modifiedBillData);
 
-    // Uncomment and use this once ready to dispatch the action
     dispatch(generateBillForOlderBuyerAsync(payloadData)).then((res) => {
       if (res.payload.succes === true) {
-            setBillData({
-              buyerId: id,
-              branchId:
-                user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
-              serialNumber: "",
-              name: BuyerById?.name || "",
-              city: BuyerById?.city || "",
-              cargo: "",
-              phone: BuyerById?.phone || "",
-              date: today,
-              bill_by: "",
-              payment_Method: "",
-              total: "",
-              paid: "",
-              remaining: "",
-              discount: "",
-              packaging: {
-                name: "",
-                id: "",
-                quantity: "",
-              },
-              suits_data: [
-                { id: "", quantity: "", d_no: "", color: "", price: "" },
-              ],
-              other_Bill_Data: {},
-            });
-            setPastBill(false)
+        setBillData({
+          buyerId: id,
+          branchId:
+            user?.user?.role === "superadmin" ? "" : user?.user?.branchId,
+          serialNumber: "",
+          name: BuyerById?.name || "",
+          city: BuyerById?.city || "",
+          cargo: "",
+          phone: BuyerById?.phone || "",
+          date: today,
+          bill_by: "",
+          payment_Method: "",
+          total: "",
+          paid: "",
+          remaining: "",
+          discount: "",
+          packaging: {
+            name: "",
+            id: "",
+            quantity: "",
+          },
+          suits_data: [
+            { id: "", quantity: "", d_no: "", color: "", price: "" },
+          ],
+          other_Bill_Data: {},
+        });
+        setOtherBillData({
+          o_b_quantity: "",
+          o_b_amount: "",
+          o_b_note: "",
+          show: false,
+        });
+        setPastBill(false);
+        navigate('/dashboard/buyers')
       }
     });
   };
@@ -391,14 +397,32 @@ const OldBuyerGenerateBill = () => {
   };
 
   const handleOtherBillCahange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === "o_b_amount" || name === "o_b_quantity") {
+      value = value === "" ? "" : parseInt(value) || 0;
+    }
     setOtherBillData((prevState) => ({
       ...prevState,
-      [name]:
-        name === "o_b_amount" || name === "o_b_quantity"
-          ? parseInt(value)
-          : value,
+      [name]: value,
     }));
+
+    if (name === "o_b_amount") {
+      setBillData((prevState) => {
+        const oldAmount = otherBillData.o_b_amount || 0;
+        const newTotal = prevState.total - oldAmount + value;
+        const discount = () => {
+          return prevState.discountType === "%"
+            ? (parseInt(calculateSubTotal()) * parseInt(prevState.discount)) /
+                100 || 0
+            : parseInt(prevState.discount) || 0;
+        };
+        return {
+          ...prevState,
+          total: newTotal,
+          remaining: calculateSubTotal() - prevState.paid - discount() + value,
+        };
+      });
+    }
   };
 
   const handleBillType = (e) => {
@@ -410,6 +434,21 @@ const OldBuyerGenerateBill = () => {
         date: today,
       }));
     }
+  };
+
+  const handleOtherBillCheckbox = (value) => {
+    setOtherBillData((prev) => ({
+      ...prev,
+      show: value,
+      o_b_amount: "",
+      o_b_quantity: "",
+      o_b_note: "",
+    }));
+    setBillData((prevState) => ({
+      ...prevState,
+      total: prevState.total - otherBillData.o_b_amount,
+      remaining: prevState.remaining - otherBillData.o_b_amount,
+    }));
   };
 
   return (
@@ -685,12 +724,9 @@ const OldBuyerGenerateBill = () => {
                         type="checkbox"
                         id="otherBillData"
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        onChange={(e) => {
-                          setOtherBillData((prev) => ({
-                            ...prev,
-                            show: e.target.checked,
-                          }));
-                        }}
+                        onChange={(e) =>
+                          handleOtherBillCheckbox(e.target.checked)
+                        }
                       />
                     </div>
                   </div>
@@ -797,7 +833,9 @@ const OldBuyerGenerateBill = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm font-semibold">Total</label>
+                      <label className="text-sm font-semibold">
+                        Bill Total
+                      </label>
                       <input
                         name="total"
                         type="number"
@@ -977,7 +1015,7 @@ const OldBuyerGenerateBill = () => {
                       type="submit"
                       className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
                     >
-                      Generate Bill
+                      Generating Bill...
                     </button>
                   ) : (
                     <button
