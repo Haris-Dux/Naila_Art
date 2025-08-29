@@ -109,7 +109,7 @@ export const creditDebitBalance = async (req, res, next) => {
             payment_Method,
             amount: credit,
             transactionType: "Deposit",
-            date: today,
+            date,
             note: `Credit Transaction for ${employe.name}`,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
@@ -150,7 +150,7 @@ export const creditDebitBalance = async (req, res, next) => {
             payment_Method,
             amount: debit,
             transactionType: "WithDraw",
-            date: today,
+            date,
             note: `Debit Transaction for ${employe.name}`,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
@@ -378,7 +378,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           payment_Method,
           amount: salary,
           transactionType: "WithDraw",
-          date: today,
+          date,
           note: `Salary credit for ${employe.name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
