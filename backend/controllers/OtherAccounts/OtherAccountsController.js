@@ -195,7 +195,7 @@ export const creditDebitOtherAccount = async (req, res, next) => {
           payment_Method,
           amount,
           transactionType: transactionType === "credit" ? "Deposit" : "WithDraw",
-          date: getTodayDate(),
+          date,
           note: `${transactionType} transaction for other account ${account.name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
@@ -289,7 +289,7 @@ export const deleteOtherAccontsTransaction = async (req, res, next) => {
           date: getTodayDate(),
           note: `${transactionType} transaction deleted for other account ${account.name}`,
         };
-        await virtualAccountsService  .makeTransactionInVirtualAccounts(data);
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
       const dataForCashBook = {
