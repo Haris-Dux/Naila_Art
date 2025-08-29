@@ -113,7 +113,7 @@ export const addExpense = async (req, res, next) => {
             payment_Method,
             amount: rate,
             transactionType: "WithDraw",
-            date: Date,
+            date:Date,
             note: `Expense Entry/${reason}`,
           };
           await dailySalebyDate.save({ session });
