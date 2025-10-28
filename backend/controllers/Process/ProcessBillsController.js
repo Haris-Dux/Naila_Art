@@ -9,7 +9,6 @@ import { StoneModel } from "../../models/Process/StoneModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
-import { BaseModel } from "../../models/Stock/Base.Model.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 
@@ -64,7 +63,7 @@ export const generateProcessBill = async (req, res, next) => {
         amount = Math.round(rate * r_quantity);
       }
 
-      if (amount === 0 || amount < 0) throw new Error("Invalid Balance Amount");
+      if (amount <= 0) throw new Error("Invalid Balance Amount");
 
       //CHECK IF THE ACCOUNT DATA EXISTS
       const oldAccountData = await processBillsModel
@@ -73,6 +72,86 @@ export const generateProcessBill = async (req, res, next) => {
           partyName: partyName,
         })
         .session(session);
+
+      const updateProcessCategory = async (category) => {
+        switch (true) {
+          case category === "Embroidery":
+            const embData = await EmbroideryModel.findById(
+              Embroidery_id
+            ).session(session);
+            if (embData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              embData.bill_generated = true;
+              if (additionalExpenditure > 0) {
+                embData.embAdditionalExpenditure = parseInt(
+                  additionalExpenditure
+                );
+              }
+              await embData.save({ session });
+            }
+            break;
+          case category === "Calender":
+            const calenderData = await CalenderModel.findById(
+              Calender_id
+            ).session(session);
+            if (calenderData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              calenderData.bill_generated = true;
+              if (additionalExpenditure > 0) {
+                calenderData.additionalExpenditure = additionalExpenditure;
+              }
+              await calenderData.save({ session });
+            }
+            break;
+          case category === "Cutting":
+            const cuttingData = await CuttingModel.findById(Cutting_id).session(
+              session
+            );
+            if (cuttingData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              cuttingData.bill_generated = true;
+              if (additionalExpenditure > 0) {
+                cuttingData.additionalExpenditure = additionalExpenditure;
+              }
+              await cuttingData.save({ session });
+            }
+            break;
+          case category === "Stone":
+            const stoneData = await StoneModel.findById(Stone_id).session(
+              session
+            );
+            if (stoneData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              stoneData.bill_generated = true;
+              if (additionalExpenditure > 0) {
+                stoneData.additionalExpenditure = additionalExpenditure;
+              }
+              await stoneData.save({ session });
+            }
+            break;
+          case category === "Stitching":
+            const stitchingData = await StitchingModel.findById(
+              Stitching_id
+            ).session(session);
+            if (stitchingData.bill_generated === true) {
+              throw new Error("Bill has already been generated");
+            } else {
+              stitchingData.bill_generated = true;
+              if (additionalExpenditure > 0) {
+                stitchingData.additionalExpenditure = additionalExpenditure;
+              }
+              await stitchingData.save({ session });
+            }
+            break;
+          default:
+            throw new Error("Invalid process category");
+            break;
+        }
+      };
 
       // IF ACCOUNT DOES NOT EXIST, CREATE A NEW ONE
       if (!oldAccountData) {
@@ -128,66 +207,7 @@ export const generateProcessBill = async (req, res, next) => {
         );
 
         //UPATING BILL GENERATED VALUE
-        switch (true) {
-          case process_Category === "Embroidery":
-            const embData = await EmbroideryModel.findById(
-              Embroidery_id
-            ).session(session);
-            if (embData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              embData.bill_generated = true;
-              await embData.save({ session });
-            }
-            break;
-          case process_Category === "Calender":
-            const calenderData = await CalenderModel.findById(
-              Calender_id
-            ).session(session);
-            if (calenderData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              calenderData.bill_generated = true;
-              await calenderData.save({ session });
-            }
-            break;
-          case process_Category === "Cutting":
-            const cuttingData = await CuttingModel.findById(Cutting_id).session(
-              session
-            );
-            if (cuttingData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              cuttingData.bill_generated = true;
-              await cuttingData.save({ session });
-            }
-            break;
-          case process_Category === "Stone":
-            const stoneData = await StoneModel.findById(Stone_id).session(
-              session
-            );
-            if (stoneData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              stoneData.bill_generated = true;
-              await stoneData.save({ session });
-            }
-            break;
-          case process_Category === "Stitching":
-            const stitchingData = await StitchingModel.findById(
-              Stitching_id
-            ).session(session);
-            if (stitchingData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              stitchingData.bill_generated = true;
-              await stitchingData.save({ session });
-            }
-            break;
-          default:
-            "";
-            break;
-        }
+        await updateProcessCategory(process_Category);
       }
       //UPDATE THE VIRUAL ACCOUNT AND PUSH CREDIT DEBIT + ORDER HISTORY
       else {
@@ -261,66 +281,7 @@ export const generateProcessBill = async (req, res, next) => {
 
         //UPATING BILL GENERATED VALUE
 
-        switch (true) {
-          case process_Category === "Embroidery":
-            const embData = await EmbroideryModel.findById(
-              Embroidery_id
-            ).session(session);
-            if (embData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              embData.bill_generated = true;
-              await embData.save({ session });
-            }
-            break;
-          case process_Category === "Calender":
-            const calenderData = await CalenderModel.findById(
-              Calender_id
-            ).session(session);
-            if (calenderData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              calenderData.bill_generated = true;
-              await calenderData.save({ session });
-            }
-            break;
-          case process_Category === "Cutting":
-            const cuttingData = await CuttingModel.findById(Cutting_id).session(
-              session
-            );
-            if (cuttingData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              cuttingData.bill_generated = true;
-              await cuttingData.save({ session });
-            }
-            break;
-          case process_Category === "Stone":
-            const stoneData = await StoneModel.findById(Stone_id).session(
-              session
-            );
-            if (stoneData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              stoneData.bill_generated = true;
-              await stoneData.save({ session });
-            }
-            break;
-          case process_Category === "Stitching":
-            const stitchingData = await StitchingModel.findById(
-              Stitching_id
-            ).session(session);
-            if (stitchingData.bill_generated === true) {
-              throw new Error("Bill has already been generated");
-            } else {
-              stitchingData.bill_generated = true;
-              await stitchingData.save({ session });
-            }
-            break;
-          default:
-            "";
-            break;
-        }
+        await updateProcessCategory(process_Category);
       }
 
       //UPDATE MAIN EMBROIDERY AdditionalExpenditure
@@ -394,6 +355,7 @@ export const getAllProcessBills = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
 export const generateGatePassPdfFunction = async (req, res, next) => {
   try {
     const { data, category } = req.body;
@@ -537,8 +499,13 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
       const { id, process_Category } = req.body;
       await verifyrequiredparams(req.body, ["id", "process_Category"]);
 
+      const calculateAmountToDeduct = (rate, suit) => {
+        return Math.round(rate * suit);
+      };
+
       //GETTING ORDER DATA AND ADD STOCK BACK USED
       let orderData;
+      let amountToDeduct = 0;
       switch (true) {
         case process_Category === "Embroidery":
           const embData = await EmbroideryModel.findById(id).session(session);
@@ -554,6 +521,16 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
               );
             }
             orderData = embData;
+            orderData.bill_generated = false;
+            if (orderData.embAdditionalExpenditure > 0) {
+              orderData.additionalExpenditure -=
+                orderData.embAdditionalExpenditure;
+              orderData.embAdditionalExpenditure = 0;
+            }
+            amountToDeduct = calculateAmountToDeduct(
+              orderData.per_suit,
+              orderData.T_Recieved_Suit
+            );
           }
           break;
         case process_Category === "Calender":
@@ -562,18 +539,33 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           );
           if (calenderData) {
             orderData = calenderData;
+            orderData.bill_generated = false;
+            amountToDeduct = calculateAmountToDeduct(
+              orderData.rate,
+              orderData.r_quantity
+            );
           }
           break;
         case process_Category === "Cutting":
           const cuttingData = await CuttingModel.findById(id).session(session);
           if (cuttingData) {
             orderData = cuttingData;
+            orderData.bill_generated = false;
+            amountToDeduct = calculateAmountToDeduct(
+              orderData.rate,
+              orderData.r_quantity
+            );
           }
           break;
         case process_Category === "Stone":
           const stoneData = await StoneModel.findById(id).session(session);
           if (stoneData) {
             orderData = stoneData;
+            orderData.bill_generated = false;
+            amountToDeduct = calculateAmountToDeduct(
+              orderData.rate,
+              orderData.r_quantity
+            );
           }
           break;
         case process_Category === "Stitching":
@@ -582,6 +574,11 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           );
           if (stitchingData.bill_generated === true) {
             orderData = stitchingData;
+            orderData.bill_generated = false;
+            amountToDeduct = calculateAmountToDeduct(
+              orderData.rate,
+              orderData.r_quantity
+            );
           }
           break;
         default:
@@ -589,43 +586,6 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
           break;
       }
       if (!orderData) throw new CustomError("Order Data not found", 404);
-
-      const addInStock = async (items) => {
-        if (items && items.length > 0) {
-          await Promise.all(
-            items?.map(async (item) => {
-              const matchedRecord = await BaseModel.findOne({
-                category: item.category,
-                colors: item.color,
-              }).session(session);
-              if (matchedRecord) {
-                matchedRecord.TYm += item.quantity_in_m;
-                await matchedRecord.save({ session });
-              } else {
-                throw new Error(
-                  `No Stock Found For category ${item.category} and color ${item.color}`
-                );
-              }
-            })
-          );
-        }
-      };
-
-      const processStockUpdate = async (oderData) => {
-        const stockItmes = [
-          { key: "shirt", items: orderData.shirt },
-          { key: "trouser", items: orderData.trouser },
-          { key: "duppata", items: orderData.duppata },
-        ];
-
-        for (const { key, items } of stockItmes) {
-          if (oderData[key]) {
-            await addInStock(items);
-          }
-        }
-      };
-
-      await processStockUpdate(orderData);
 
       //GETTING ACCOUNT DATA
       const oldAccountData = await processBillsModel
@@ -635,10 +595,6 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         })
         .session(session);
 
-      //UPDATING ACCOUNT DATA
-      const amountToDeduct = Math.round(
-        orderData.per_suit * orderData.T_Recieved_Suit
-      );
       //DATA FOR VIRTUAL ACCOUNT
       const new_total_credit =
         oldAccountData.virtual_account.total_credit - amountToDeduct;
@@ -675,17 +631,31 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
       };
 
       (oldAccountData.virtual_account = virtualAccountData),
-        oldAccountData.credit_debit_history.forEach((item) => {
-          if (item.orderId === id) {
-            item.orderId = "";
-          }
-        });
+        (oldAccountData.credit_debit_history =
+          oldAccountData.credit_debit_history.filter(
+            (item) => item.orderId !== id
+          ));
 
-      await oldAccountData.save({ session });
-      await EmbroideryModel.findByIdAndDelete(id).session(session);
+      if (
+        process_Category !== "Embroidery" &&
+        orderData.additionalExpenditure > 0
+      ) {
+        const embData = await EmbroideryModel.findById(
+          orderData.embroidery_Id
+        ).session(session);
+        embData.additionalExpenditure -= orderData.additionalExpenditure;
+        orderData.additionalExpenditure = 0;
+        await embData.save({ session });
+      }
+
+      await Promise.all([
+        oldAccountData.save({ session }),
+        orderData.save({ session }),
+      ]);
+
       res.status(200).json({
         success: true,
-        message: "Order And Bill deleted successfully",
+        message: "Order Bill deleted successfully",
       });
     });
   } catch (error) {
@@ -855,54 +825,56 @@ export const claimProcessAccount = async (req, res, next) => {
 
       await oldAccountData.save();
     } else if (claimCategory === "Claim Out") {
-       //UPDATING ACCOUNT STATUS
+      //UPDATING ACCOUNT STATUS
 
-    const credit_debit_history_details = {
-      date: today,
-      particular: note,
-      credit: 0,
-      balance: oldAccountData.virtual_account.total_balance - amount,
-      orderId: "",
-      debit: amount,
-    };
+      const credit_debit_history_details = {
+        date: today,
+        particular: note,
+        credit: 0,
+        balance: oldAccountData.virtual_account.total_balance - amount,
+        orderId: "",
+        debit: amount,
+      };
 
-    //DATA FOR VIRTUAL ACCOUNT
-    let new_total_credit = oldAccountData.virtual_account.total_credit - amount;
-    let new_total_debit = oldAccountData.virtual_account.total_debit + amount;
-    const new_total_balance =
-      oldAccountData.virtual_account.total_balance - amount;
-    let new_status = "";
+      //DATA FOR VIRTUAL ACCOUNT
+      let new_total_credit =
+        oldAccountData.virtual_account.total_credit - amount;
+      let new_total_debit = oldAccountData.virtual_account.total_debit + amount;
+      const new_total_balance =
+        oldAccountData.virtual_account.total_balance - amount;
+      let new_status = "";
 
-    switch (true) {
-      case new_total_balance === 0:
-        new_status = "Paid";
-        break;
-      case new_total_balance === new_total_credit && new_total_debit > 0 && new_total_balance > 0:
-        new_status = "Partially Paid";
-        break;
-      case new_total_debit === 0 && new_total_balance === new_total_credit:
-        new_status = "Unpaid";
-        break;
-      case new_total_balance < 0:
-        new_status = "Advance Paid";
-        break;
-      default:
-        new_status = "";
-    }
+      switch (true) {
+        case new_total_balance === 0:
+          new_status = "Paid";
+          break;
+        case new_total_balance === new_total_credit &&
+          new_total_debit > 0 &&
+          new_total_balance > 0:
+          new_status = "Partially Paid";
+          break;
+        case new_total_debit === 0 && new_total_balance === new_total_credit:
+          new_status = "Unpaid";
+          break;
+        case new_total_balance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          new_status = "";
+      }
 
-    //Creating Virtual Account Data
-    const virtualAccountData = {
-      total_debit: new_total_debit,
-      total_credit: new_total_credit,
-      total_balance: new_total_balance,
-      status: new_status,
-    };
+      //Creating Virtual Account Data
+      const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
 
-    (oldAccountData.virtual_account = virtualAccountData),
-      oldAccountData.credit_debit_history.push(credit_debit_history_details);
+      (oldAccountData.virtual_account = virtualAccountData),
+        oldAccountData.credit_debit_history.push(credit_debit_history_details);
 
-    await oldAccountData.save();
-
+      await oldAccountData.save();
     }
 
     res.status(200).json({ success: true, message: "Success" });

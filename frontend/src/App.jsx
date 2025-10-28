@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -172,7 +172,10 @@ useEffect(() => {
           {/* WILD CARD */}
           <Route path="*" element={<Navigate to={"/"}/>} />
         </Routes >
-        <Toaster />
+        <Toaster 
+         position="top-right"
+         reverseOrder={false}
+        />
     </>
   );
 }
