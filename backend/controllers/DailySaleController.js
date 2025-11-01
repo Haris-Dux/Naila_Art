@@ -1,11 +1,9 @@
 import { BranchModel } from "../models/Branch.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
-import corn from "node-cron";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../utils/nodemailer.js";
-import { PaymentMethodModel } from "../models/PaymentMethods/PaymentMethodModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
@@ -243,62 +241,3 @@ export const cashOutForBranch = async (req, res, next) => {
   }
 };
 
-corn.schedule(
-  "1 00 * * *",
-  async () => {
-    try {
-      const branchData = await BranchModel.find({});
-      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-      const yesterday = moment
-        .tz("Asia/Karachi")
-        .subtract(1, "day")
-        .format("YYYY-MM-DD");
-      const dailySalePromises = branchData?.map(async (branch) => {
-        try {
-          const verifyDuplicateSaleData = await DailySaleModel.findOne({
-            branchId: branch._id,
-            date: today,
-          });
-          if (verifyDuplicateSaleData) {
-            console.error(
-              `Daily Sale Already Exists for ${branch.branchName} on ${today}`
-            );
-            return null;
-          }
-          const previousDaySale = await DailySaleModel.findOne({
-            branchId: branch._id,
-            date: yesterday,
-          });
-          const activeMethods = await PaymentMethodModel.find({
-            active: { $ne: false },
-          });
-          const dynamicMethods = activeMethods.reduce((acc, method) => {
-            acc[method.name] = 0;
-            return acc;
-          }, {});
-          return await DailySaleModel.create({
-            branchId: branch._id,
-            date: today,
-            saleData: {
-              totalCash: previousDaySale
-                ? previousDaySale.saleData.totalCash
-                : 0,
-              ...dynamicMethods,
-            },
-          });
-        } catch (error) {
-          console.error(
-            `Failed to process branch ${branch.branchName}: ${error.message}`
-          );
-          return null;
-        }
-      });
-      await Promise.allSettled(dailySalePromises);
-    } catch (error) {
-      console.error(`Error in scheduled task: ${error.message}`);
-    }
-  },
-  {
-    timezone: "Asia/Karachi",
-  }
-);
