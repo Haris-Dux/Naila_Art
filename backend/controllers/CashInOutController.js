@@ -5,7 +5,6 @@ import { SellersModel } from "../models/sellers/SellersModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import { CashInOutModel } from "../models/CashInOutModel.js";
 import moment from "moment-timezone";
-import corn from "node-cron";
 import { BranchModel } from "../models/Branch.Model.js";
 import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { sendEmail } from "../utils/nodemailer.js";
@@ -808,43 +807,4 @@ export const markAsPaidForBuyers = async (req, res, next) => {
   }
 };
 
-corn.schedule(
-  "01 00 * * *",
-  async () => {
-    try {
-      const branchData = await BranchModel.find({});
-      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-      const dailyCashInOutPromises = branchData?.map(async (branch) => {
-        try {
-          const verifyDuplicateData = await CashInOutModel.findOne({
-            branchId: branch._id,
-            date: today,
-          });
-          if (verifyDuplicateData) {
-            console.error(
-              `Cash In Out Already Exists for ${branch.branchName} on ${today}`
-            );
-            return null;
-          }
-          return await CashInOutModel.create({
-            branchId: branch._id,
-            date: today,
-            todayCashIn: 0,
-            todayCashOut: 0,
-          });
-        } catch (error) {
-          console.error(
-            `Failed to process branch ${branch.branchName}: ${error.message}`
-          );
-          return null;
-        }
-      });
-      await Promise.allSettled(dailyCashInOutPromises);
-    } catch (error) {
-      console.error(`Error in scheduled task: ${error.message}`);
-    }
-  },
-  {
-    timezone: "Asia/Karachi",
-  }
-);
+

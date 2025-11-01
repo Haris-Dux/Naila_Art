@@ -31,10 +31,10 @@ import pictureRouter from "./routes/Process/PictureRoutes.js";
 import { AppErrorHandler } from './config/exceptionHandlers/handler.js';
 import checkRouter from "./routes/Checks/CheckRoutes.js";
 import otherSaleRouter from "./routes/OtherSaleRoutes.js";
-import moment from "moment-timezone";
 import paymentMethodRouter from "./routes/PaymentMethods/PaymentMethodRoutes.js";
 import cashBookRouter from "./routes/CashBook/CashBookRoutes.js";
 import otherAccountsRouter from "./routes/OtherAccounts/OtherAccountsRoutes.js";
+import { scheduler } from "./jobs/scheduler.js";
 
 const app = express();
 app.use(cookieParser());
@@ -94,6 +94,7 @@ app.use(session({
   app.use("/api/otheraccounts",otherAccountsRouter)
 
   app.use(AppErrorHandler);
+  scheduler();
  
 mongoose
 .connect(process.env.MONGODB_URI)
