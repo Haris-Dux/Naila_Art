@@ -1,107 +1,105 @@
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { Toaster } from "react-hot-toast";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import Login from "./auth/Login";
-import Signup from "./auth/Signup";
-import Dashboard from "./pages/dashboard/Dashboard";
-import DashboardStats from "./pages/dashboard/DashboardStats";
-import SuitsStock from "./pages/inStock/suits/SuitsStock";
-import Base from "./pages/inStock/base/Base";
-import Lace from "./pages/inStock/lace/Lace";
-import Accessories from "./pages/inStock/accessories/Accessories";
-import Bag from "./pages/inStock/bag/Bag";
-import PurchaseBills from "./pages/bills/PurchaseBills";
-import ProcessBills from "./pages/bills/ProcessBills";
-import NailaArtsBuyer from "./pages/bills/NailaArtsBuyer";
-import Expense from "./pages/inStock/expense/Expense";
-import Embroidery from "./pages/process/embroidery/Embroidery";
-import EmbroideryDetails from "./pages/process/embroidery/EmbroideryDetails";
-import Calendar from "./pages/process/calendar/Calendar";
-import Cutting from "./pages/process/cutting/Cutting";
-import Stitching from "./pages/process/stitching/Stitching";
-import Stones from "./pages/process/stones/Stones";
-import ForgetPassword from "./auth/ForgetPassword";
-import ResetPassword from "./auth/ResetPassword";
-import OtpChecker from "./auth/OtpChecker";
-import Shop from "./pages/Shop/Shop";
-import PendingRequest from "./pages/Shop/PendingRequest";
 import { useDispatch, useSelector } from "react-redux";
 import { authUserAsync, logoutUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
-import './App.css'
-import CalendarDetails from "./pages/process/calendar/CalendarDetails";
-import CuttingDetails from "./pages/process/cutting/CuttingDetails";
-import StonesDetails from "./pages/process/stones/StonesDetails";
-import StitchingDetails from "./pages/process/stitching/StitchingDetails";
-import Buyers from "./pages/accounts/Buyers";
-import Sellers from "./pages/accounts/Sellers";
-import Employee from "./pages/accounts/Employee";
-import BuyersDetails from "./pages/accounts/BuyersDetails";
-import SellersDetails from "./pages/accounts/SellersDetails";
-import EmployeeDetails from "./pages/accounts/EmployeeDetails";
-import CashInOut from "./pages/cash/CashInOut";
-import DailySale from "./pages/dailySale/DailySale";
-import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
-import GenerateBill from "./pages/generateBills/GenerateBill";
-import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
-import AssignStock from "./pages/inStock/assignstocks/AssignStock";
-import ProcessDetails from "./pages/bills/ProcessDetails";
-import B_Pair from "./pages/process/b_pair/B_Pair";
-import VerifyOTP from "./pages/dashboard/VerifyOTP";
-import AssignedStockHistory from "./pages/inStock/assignstocks/AssignedStockHistory";
-import ReturnBills from "./pages/bills/ReturnBills";
-import PackingDetails from "./pages/process/Packing/PackingDetails";
-import BuyersChecks from "./pages/checks/BuyerChecks";
-import OtherSaleBills from "./pages/bills/OtherSaleBills";
-import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
-import CashBook from "./pages/cashBook/CashBook";
-import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
-import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
-import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
-import UpdateEmbroidery from "./pages/process/embroidery/UpdateEmbroidery/index";
 import axios from "axios";
+import './App.css';
+
+// ===== Lazy Imports =====
+const Login = lazy(() => import("./auth/Login"));
+const Signup = lazy(() => import("./auth/Signup"));
+const ForgetPassword = lazy(() => import("./auth/ForgetPassword"));
+const ResetPassword = lazy(() => import("./auth/ResetPassword"));
+const OtpChecker = lazy(() => import("./auth/OtpChecker"));
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const DashboardStats = lazy(() => import("./pages/dashboard/DashboardStats"));
+const SuitsStock = lazy(() => import("./pages/inStock/suits/SuitsStock"));
+const Base = lazy(() => import("./pages/inStock/base/Base"));
+const Lace = lazy(() => import("./pages/inStock/lace/Lace"));
+const Accessories = lazy(() => import("./pages/inStock/accessories/Accessories"));
+const Bag = lazy(() => import("./pages/inStock/bag/Bag"));
+const Expense = lazy(() => import("./pages/inStock/expense/Expense"));
+const ExpenseStats = lazy(() => import("./pages/inStock/expense/ExpenseStats"));
+const AssignStock = lazy(() => import("./pages/inStock/assignstocks/AssignStock"));
+const AssignedStockHistory = lazy(() => import("./pages/inStock/assignstocks/AssignedStockHistory"));
+const PurchaseBills = lazy(() => import("./pages/bills/PurchaseBills"));
+const ProcessBills = lazy(() => import("./pages/bills/ProcessBills"));
+const ProcessDetails = lazy(() => import("./pages/bills/ProcessDetails"));
+const NailaArtsBuyer = lazy(() => import("./pages/bills/NailaArtsBuyer"));
+const OtherSaleBills = lazy(() => import("./pages/bills/OtherSaleBills"));
+const ReturnBills = lazy(() => import("./pages/bills/ReturnBills"));
+const GenerateBill = lazy(() => import("./pages/generateBills/GenerateBill"));
+const OldBuyerGenerateBill = lazy(() => import("./pages/generateBills/OldBuyerGenerateBill"));
+const Buyers = lazy(() => import("./pages/accounts/Buyers"));
+const BuyersDetails = lazy(() => import("./pages/accounts/BuyersDetails"));
+const BuyersChecks = lazy(() => import("./pages/checks/BuyerChecks"));
+const Sellers = lazy(() => import("./pages/accounts/Sellers"));
+const SellersDetails = lazy(() => import("./pages/accounts/SellersDetails"));
+const Employee = lazy(() => import("./pages/accounts/Employee"));
+const EmployeeDetails = lazy(() => import("./pages/accounts/EmployeeDetails"));
+const OtherAccounts = lazy(() => import("./pages/accounts/OtherAccounts/OtherAccounts"));
+const OtherAccountsDetails = lazy(() => import("./pages/accounts/OtherAccounts/OtherAccountDetails"));
+const CashInOut = lazy(() => import("./pages/cash/CashInOut"));
+const CashBook = lazy(() => import("./pages/cashBook/CashBook"));
+const DailySale = lazy(() => import("./pages/dailySale/DailySale"));
+const DailySaleDetail = lazy(() => import("./pages/dailySale/DailySaleDetail"));
+const Embroidery = lazy(() => import("./pages/process/embroidery/Embroidery"));
+const EmbroideryDetails = lazy(() => import("./pages/process/embroidery/EmbroideryDetails"));
+const UpdateEmbroidery = lazy(() => import("./pages/process/embroidery/UpdateEmbroidery"));
+const Calendar = lazy(() => import("./pages/process/calendar/Calendar"));
+const CalendarDetails = lazy(() => import("./pages/process/calendar/CalendarDetails"));
+const Cutting = lazy(() => import("./pages/process/cutting/Cutting"));
+const CuttingDetails = lazy(() => import("./pages/process/cutting/CuttingDetails"));
+const Stitching = lazy(() => import("./pages/process/stitching/Stitching"));
+const StitchingDetails = lazy(() => import("./pages/process/stitching/StitchingDetails"));
+const Stones = lazy(() => import("./pages/process/stones/Stones"));
+const StonesDetails = lazy(() => import("./pages/process/stones/StonesDetails"));
+const PackingDetails = lazy(() => import("./pages/process/Packing/PackingDetails"));
+const B_Pair = lazy(() => import("./pages/process/b_pair/B_Pair"));
+const VerifyOTP = lazy(() => import("./pages/dashboard/VerifyOTP"));
+const Shop = lazy(() => import("./pages/Shop/Shop"));
+const PendingRequest = lazy(() => import("./pages/Shop/PendingRequest"));
+const PaymentMethods = lazy(() => import("./pages/paymentMethods/PaymentMethods"));
 
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-
-  //Axios Configuraton
+  // Axios Configuration
   axios.defaults.timeout = 10000;
   axios.defaults.withCredentials = true;
 
   axios.interceptors.response.use(
     (response) => response,
     (error) => {
-      if(error.response && error.response.status === 401) {
-       dispatch(logoutUserAsync()).then((res) => {
-         if (res.payload.success) {
-            navigate("/");
-           }
+      if (error.response && error.response.status === 401) {
+        dispatch(logoutUserAsync()).then((res) => {
+          if (res.payload.success) navigate("/");
         });
-      };
+      }
     }
-  )
-
+  );
 
   useEffect(() => {
-    if(isAuthenticated && !user) {
-        dispatch(authUserAsync()).then((res) => {
-      if(res.payload === undefined){
-        navigate("/");
-        dispatch(logoutUserAsync())
-      }
-    });
-    };
-  }, [dispatch,isAuthenticated]);
-
+    if (isAuthenticated && !user) {
+      dispatch(authUserAsync()).then((res) => {
+        if (res.payload === undefined) {
+          navigate("/");
+          dispatch(logoutUserAsync());
+        }
+      });
+    }
+  }, [dispatch, isAuthenticated]);
 
   return (
     <>
+      <Suspense fallback={<div style={{ textAlign: "center", marginTop: "20%" }}>Loading...</div>}>
         <Routes>
           {/* AUTH ROUTE */}
-          <Route path="/" element={<LoginProtected> < Login />   </LoginProtected>} />
+          <Route path="/" element={<LoginProtected><Login /></LoginProtected>} />
           <Route path="/signup" element={<LoginProtected><Signup /></LoginProtected>} />
           <Route path="/forget" element={<LoginProtected><ForgetPassword /></LoginProtected>} />
           <Route path="/reset" element={<LoginProtected><ResetPassword /></LoginProtected>} />
@@ -110,7 +108,6 @@ function App() {
           {/* DASHBOARD ROUTE */}
           <Route path="/dashboard" element={<UserProtected><Dashboard /></UserProtected>}>
             <Route index element={<DashboardStats />} />
-            {/* INSTOCK ROUTES */}
             <Route path="suits" element={<SuitsStock />} />
             <Route path="base" element={<Base />} />
             <Route path="lace" element={<Lace />} />
@@ -120,37 +117,26 @@ function App() {
             <Route path="expense-stats" element={<ExpenseStats />} />
             <Route path="assignstocks" element={<AssignStock />} />
             <Route path="AssignedStockHistory" element={<AssignedStockHistory />} />
-
-
-            {/* GENERATE BILL */}
             <Route path="generate-bill" element={<GenerateBill />} />
             <Route path="old-buyer-generate-bill/:id" element={<OldBuyerGenerateBill />} />
-
-            {/* BILLS ROUTES */}
             <Route path="purchasebills" element={<PurchaseBills />} />
             <Route path="processbills" element={<ProcessBills />} />
             <Route path="process-details/:id/:category" element={<ProcessDetails />} />
             <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
             <Route path="other-sale" element={<OtherSaleBills />} />
             <Route path="naila-arts-return-bills" element={<ReturnBills />} />
-
-            {/* ACCOUNTS ROUTES */}
             <Route path="buyers" element={<Buyers />} />
-            <Route path="buyers-checks/:id" element={<BuyersChecks/>} />
+            <Route path="buyers-checks/:id" element={<BuyersChecks />} />
             <Route path="buyers-details/:id" element={<BuyersDetails />} />
             <Route path="sellers" element={<Sellers />} />
             <Route path="sellers-details/:id" element={<SellersDetails />} />
             <Route path="employee" element={<Employee />} />
             <Route path="employee-details/:id" element={<EmployeeDetails />} />
-            <Route path="other-accounts" element={< OtherAccounts/>} />
-            <Route path="other-accounts/:id" element={< OtherAccountsDetails/>} />
-
-            {/* CASH IN/OUT */}
+            <Route path="other-accounts" element={<OtherAccounts />} />
+            <Route path="other-accounts/:id" element={<OtherAccountsDetails />} />
             <Route path="cash" element={<CashInOut />} />
             <Route path="dailySale" element={<DailySale />} />
             <Route path="dailySale-details/:id" element={<DailySaleDetail />} />
-    
-            {/* PROCESS ROUTES */}
             <Route path="embroidery" element={<Embroidery />} />
             <Route path="embroidery-details/:id" element={<EmbroideryDetails />} />
             <Route path="embroidery-update/:id" element={<UpdateEmbroidery />} />
@@ -163,34 +149,20 @@ function App() {
             <Route path="stones" element={<Stones />} />
             <Route path="stones-details/:id" element={<StonesDetails />} />
             <Route path="packing-details/:id" element={<PackingDetails />} />
-
-            {/* Bpair */}
             <Route path="bpair" element={<B_Pair />} />
-
-            {/* Cash Book */}
             <Route path="cash-book" element={<CashBook />} />
-
-
-            {/* OTP */}
             <Route path="verifyOtp" element={<VerifyOTP />} />
-
-            {/* Shop Crud */}
             <Route path="Shop" element={<Shop />} />
             <Route path="PendingRequest" element={<PendingRequest />} />
-
-            {/* Payment Methods */}
             <Route path="paymentMethods" element={<PaymentMethods />} />
-
-
-          </Route >
+          </Route>
 
           {/* WILD CARD */}
-          <Route path="*" element={<Navigate to={"/"}/>} />
-        </Routes >
-        <Toaster 
-         position="top-right"
-         reverseOrder={false}
-        />
+          <Route path="*" element={<Navigate to={"/"} />} />
+        </Routes>
+      </Suspense>
+
+      <Toaster position="top-right" reverseOrder={false} />
     </>
   );
 }
