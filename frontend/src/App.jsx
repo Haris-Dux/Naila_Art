@@ -25,7 +25,7 @@ import ResetPassword from "./auth/ResetPassword";
 import OtpChecker from "./auth/OtpChecker";
 import Shop from "./pages/Shop/Shop";
 import PendingRequest from "./pages/Shop/PendingRequest";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { authUserAsync, logoutUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
 import './App.css'
@@ -59,28 +59,25 @@ import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
 import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
 import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
 import UpdateEmbroidery from "./pages/process/embroidery/UpdateEmbroidery/index";
+import { history } from "./Utils/history";
 
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  history.navigate = useNavigate();
+
   useEffect(() => {
-    dispatch(authUserAsync()).then((res) => {
+    if(isAuthenticated) {
+        dispatch(authUserAsync()).then((res) => {
       if(res.payload === undefined){
         navigate("/");
         dispatch(logoutUserAsync())
       }
     });
-  }, [dispatch]);
+    };
+  }, [dispatch,isAuthenticated]);
 
-
-useEffect(() => {
-  window.addEventListener('beforeunload', () => {
-    localStorage.setItem('lastPath', window.location.pathname);
-  });
-  return () => {
-    window.removeEventListener('beforeunload', () => {});
-  };
-}, []);
 
   return (
     <>
