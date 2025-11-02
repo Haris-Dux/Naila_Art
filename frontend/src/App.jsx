@@ -65,12 +65,9 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  console.log('API_URL', API_URL)
 
 
   //Axios Configuraton
-  axios.defaults.baseURL = API_URL;
   axios.defaults.timeout = 10000;
   axios.defaults.withCredentials = true;
 
