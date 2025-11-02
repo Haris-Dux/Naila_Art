@@ -9,7 +9,7 @@ export const validateOneMinuteExpiry = async (timestamp) => {
      }
      return false;
     } catch (error) {
-     res.status(401).json({message:error.message})
+     res.status(403).json({message:error.message})
     }
  };
  
@@ -23,6 +23,6 @@ export const validateOneMinuteExpiry = async (timestamp) => {
       }
       return false;
      } catch (error) {
-      res.status(401).json({message:error.message})
+      res.status(403).json({message:error.message})
      }
   }
