@@ -25,9 +25,10 @@ const Login = () => {
     e.preventDefault();
     dispatch(loginuserAsync(formData)).then((res) => {
       if (res?.payload?.login) {
+        localStorage.setItem("isAuthenticated","true")
         dispatch(getAllPaymentMetodsForTransactionAsync());
         dispatch(GetAllBranches());
-        navigate("/dashboard");
+        navigate("/dashboard")
         setFormData({
           email: "",
           password: "",
