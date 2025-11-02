@@ -59,16 +59,36 @@ import ExpenseStats from "./pages/inStock/expense/ExpenseStats";
 import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
 import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
 import UpdateEmbroidery from "./pages/process/embroidery/UpdateEmbroidery/index";
-import { history } from "./Utils/history";
+import axios from "axios";
 
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  history.navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+
+  //Axios Configuraton
+  axios.defaults.baseURL = API_URL;
+  axios.defaults.timeout = 10000;
+  axios.defaults.withCredentials = true;
+
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if(error.response && error.response.status === 401) {
+       dispatch(logoutUserAsync()).then((res) => {
+         if (res.payload.success) {
+            navigate("/");
+           }
+        });
+      };
+    }
+  )
+
 
   useEffect(() => {
-    if(isAuthenticated) {
+    if(isAuthenticated && !user) {
         dispatch(authUserAsync()).then((res) => {
       if(res.payload === undefined){
         navigate("/");
