@@ -322,8 +322,7 @@ export const cashIn = async (req, res) => {
         const new_total_debit = userDataToUpdate.virtual_account.total_debit;
         const new_total_credit =
           userDataToUpdate.virtual_account.total_credit + cash;
-        const new_total_balance =
-          userDataToUpdate.virtual_account.total_balance + cash;
+        const new_total_balance = new_total_debit - new_total_credit;
         let new_status = "";
 
         //ASSIGN ACCOUNT STATUS
@@ -331,19 +330,16 @@ export const cashIn = async (req, res) => {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit &&
-            new_total_debit > 0 &&
-            new_total_balance > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
+          case new_total_balance  > 0:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
             new_status = "Advance Paid";
             break;
           default:
-            new_status = "";
+            throw new Error(
+             "Wrong account balance calculation. Invalid account status"
+           );
         }
 
         const virtualAccountData = {
@@ -358,7 +354,7 @@ export const cashIn = async (req, res) => {
           date,
           particular: `${payment_Method}/${note}`,
           credit: cash,
-          balance: userDataToUpdate.virtual_account.total_balance + cash,
+          balance: new_total_balance,
         };
 
         //UPDATING USER DATA IN DB
@@ -423,27 +419,6 @@ export const cashIn = async (req, res) => {
 
         await userDataToUpdate.save({ session });
       }
-
-      //Sending Email
-      const branch = await BranchModel.findById(branchId)
-        .select("branchName")
-        .session(session);
-
-      const CashInEmailData = {
-        branchName: branch.branchName,
-        name: userDataToUpdate.name,
-        phone: userDataToUpdate.phone,
-        amount: cash,
-        date: date,
-        payment_Method: payment_Method,
-      };
-
-      await sendEmail({
-        branchName: branch.branchName,
-        email: "offical@nailaarts.com",
-        email_Type: "Cash In",
-        CashInEmailData,
-      });
 
       return res
         .status(200)
@@ -673,28 +648,24 @@ export const cashOut = async (req, res, next) => {
         const new_total_debit =
           userDataToUpdate.virtual_account.total_debit + cash;
         const new_total_credit =
-          userDataToUpdate.virtual_account.total_credit - cash;
-        const new_total_balance =
-          userDataToUpdate.virtual_account.total_balance - cash;
+          userDataToUpdate.virtual_account.total_credit;
+        const new_total_balance = new_total_debit - new_total_credit;
         let new_status;
 
         switch (true) {
           case new_total_balance === 0:
             new_status = "Paid";
             break;
-          case new_total_balance === new_total_credit &&
-            new_total_debit > 0 &&
-            new_total_balance > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
+          case new_total_balance > 0:
             new_status = "Unpaid";
             break;
           case new_total_balance < 0:
             new_status = "Advance Paid";
             break;
           default:
-            new_status = "";
+            throw new Error(
+               "Wrong account balance calculation. Invalid account status"
+          );
         }
 
         const virtualAccountData = {
@@ -710,7 +681,7 @@ export const cashOut = async (req, res, next) => {
           date,
           particular: `${payment_Method}/${note}`,
           debit: cash,
-          balance: userDataToUpdate.virtual_account.total_balance - cash,
+          balance: new_total_balance,
         };
 
         //UPDATING USER DATA IN DB
@@ -722,24 +693,6 @@ export const cashOut = async (req, res, next) => {
 
         await userDataToUpdate.save({ session });
       }
-
-      //SEND EMAIL
-      const branch = await BranchModel.findById(branchId)
-        .select("branchName")
-        .session(session);
-      const CashOutEmailData = {
-        branchName: branch.branchName,
-        name: userDataToUpdate.name,
-        phone: userDataToUpdate.phone,
-        amount: cash,
-        date: date,
-        payment_Method: payment_Method,
-      };
-      await sendEmail({
-        email: "offical@nailaarts.com",
-        email_Type: "Cash Out",
-        CashOutEmailData,
-      });
 
       return res
         .status(200)
