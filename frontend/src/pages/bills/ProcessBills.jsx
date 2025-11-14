@@ -102,8 +102,6 @@ const ProcessBills = () => {
 
   const setStatusColor = (status) => {
     switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
       case "Paid":
         return <span className="text-[#2ECC40]">{status}</span>;
       case "Unpaid":
@@ -111,7 +109,7 @@ const ProcessBills = () => {
       case "Advance Paid":
         return <span className="text-blue-700">{status}</span>;
       default:
-        return "";
+        return <span>{status}</span>;
     }
   };
 

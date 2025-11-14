@@ -7,12 +7,14 @@ import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
 import axios from "axios";
 import './App.css';
 
+
+import Login from "./auth/Login";
+import ForgetPassword from "./auth/ForgetPassword";
+import ResetPassword from "./auth/ResetPassword";
+import OtpChecker from "./auth/OtpChecker";
+import Loading from "./Component/Loader/Loading";
+
 // ===== Lazy Imports =====
-const Login = lazy(() => import("./auth/Login"));
-const Signup = lazy(() => import("./auth/Signup"));
-const ForgetPassword = lazy(() => import("./auth/ForgetPassword"));
-const ResetPassword = lazy(() => import("./auth/ResetPassword"));
-const OtpChecker = lazy(() => import("./auth/OtpChecker"));
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const DashboardStats = lazy(() => import("./pages/dashboard/DashboardStats"));
 const SuitsStock = lazy(() => import("./pages/inStock/suits/SuitsStock"));
@@ -69,20 +71,30 @@ function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Axios Configuration
-  axios.defaults.timeout = 10000;
-  axios.defaults.withCredentials = true;
+  useEffect(() => {
+    axios.defaults.timeout = 5 * 60 * 1000;
+    axios.defaults.withCredentials = true;
 
-  axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 401) {
-        dispatch(logoutUserAsync()).then((res) => {
-          if (res.payload.success) navigate("/");
-        });
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          dispatch(logoutUserAsync()).then((res) => {
+            if (res.payload?.success) {
+              navigate("/");
+            }
+          });
+        }
+        return Promise.reject(error);
       }
-    }
-  );
+    );
 
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [dispatch, navigate]);
+
+  
   useEffect(() => {
     if (isAuthenticated && !user) {
       dispatch(authUserAsync()).then((res) => {
@@ -96,11 +108,12 @@ function App() {
 
   return (
     <>
-      <Suspense fallback={<div style={{ textAlign: "center", marginTop: "20%" }}>Loading...</div>}>
+      <Suspense fallback={<div className="flex justify-center items-center h-screen">
+        <Loading />
+      </div>}>
         <Routes>
           {/* AUTH ROUTE */}
           <Route path="/" element={<LoginProtected><Login /></LoginProtected>} />
-          <Route path="/signup" element={<LoginProtected><Signup /></LoginProtected>} />
           <Route path="/forget" element={<LoginProtected><ForgetPassword /></LoginProtected>} />
           <Route path="/reset" element={<LoginProtected><ResetPassword /></LoginProtected>} />
           <Route path="/otp" element={<LoginProtected><OtpChecker /></LoginProtected>} />

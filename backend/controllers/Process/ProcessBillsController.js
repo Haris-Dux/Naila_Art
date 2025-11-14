@@ -11,6 +11,7 @@ import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
+import { calculateProcessAccountBalance } from "../../utils/process.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -40,7 +41,7 @@ export const generateProcessBill = async (req, res, next) => {
       // Validate required fields
       if (
         !process_Category ||
-        !serial_No ||
+        !serial_No || 
         !partyName ||
         !design_no ||
         !Manual_No ||
@@ -212,29 +213,9 @@ export const generateProcessBill = async (req, res, next) => {
       //UPDATE THE VIRUAL ACCOUNT AND PUSH CREDIT DEBIT + ORDER HISTORY
       else {
         //DATA FOR VIRTUAL ACCOUNT
-        let new_total_credit =
-          oldAccountData.virtual_account.total_credit + amount;
-        let new_total_debit = oldAccountData.virtual_account.total_debit;
-        const new_total_balance =
-          oldAccountData.virtual_account.total_balance + amount;
-        let new_status = "";
 
-        switch (true) {
-          case new_total_balance === 0:
-            new_status = "Paid";
-            break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
-            new_status = "Unpaid";
-            break;
-          case new_total_balance < 0:
-            new_status = "Advance Paid";
-            break;
-          default:
-            new_status = "";
-        }
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+   
 
         //Creating Virtual Account Data
         const virtualAccountData = {
@@ -293,7 +274,7 @@ export const generateProcessBill = async (req, res, next) => {
 
       return res.status(201).json({
         success: true,
-        message: "Process bill created successfully",
+        message: "Process bill generated successfully",
       });
     });
   } catch (error) {
@@ -596,31 +577,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         .session(session);
 
       //DATA FOR VIRTUAL ACCOUNT
-      const new_total_credit =
-        oldAccountData.virtual_account.total_credit - amountToDeduct;
-      const new_total_debit = oldAccountData.virtual_account.total_debit;
-      const new_total_balance =
-        oldAccountData.virtual_account.total_balance - amountToDeduct;
-      let new_status = "";
-
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_credit &&
-          new_total_debit > 0 &&
-          new_total_balance > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_debit === 0 && new_total_balance === new_total_credit:
-          new_status = "Unpaid";
-          break;
-        case new_total_balance < 0:
-          new_status = "Advance Paid";
-          break;
-        default:
-          new_status = "";
-      }
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
 
       //Creating Virtual Account Data
       const virtualAccountData = {
@@ -684,17 +641,14 @@ export const markAsPaid = async (req, res, next) => {
 
     const historydata = {
       date: today,
-      particular: `Account Marked As Paid`,
-      credit: 0,
+      particular: `Account marked as paid`,
+      credit: accountData.virtual_account.total_credit,
       balance: 0,
       orderId: "",
-      debit: accountData.virtual_account.total_balance,
+      debit: accountData.virtual_account.total_debit,
     };
 
-    //UPDATING ACC CREDIT DEBIT AND BALANCE
-    accountData.virtual_account.total_debit +=
-      accountData.virtual_account.total_balance;
-    accountData.virtual_account.total_credit = 0;
+    //UPDATING ACC BALANCE
     accountData.virtual_account.total_balance = 0;
     //UPDATING CREDIT DEBIT HISTORY
     accountData.credit_debit_history.push(historydata);
@@ -776,41 +730,18 @@ export const claimProcessAccount = async (req, res, next) => {
     if (claimCategory === "Calim In") {
       //UPDATING ACCOUNT STATUS
 
-      const credit_debit_history_details = {
+      //DATA FOR VIRTUAL ACCOUNT
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+
+       const credit_debit_history_details = {
         date: today,
         particular: note,
         credit: amount,
-        balance: oldAccountData.virtual_account.total_balance + amount,
+        balance: new_total_balance,
         orderId: "",
         debit: 0,
       };
 
-      //DATA FOR VIRTUAL ACCOUNT
-      let new_total_credit =
-        oldAccountData.virtual_account.total_credit + amount;
-      let new_total_debit = oldAccountData.virtual_account.total_debit;
-      const new_total_balance =
-        oldAccountData.virtual_account.total_balance + amount;
-      let new_status = "";
-
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_credit &&
-          new_total_debit > 0 &&
-          new_total_balance > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_debit === 0 && new_total_balance === new_total_credit:
-          new_status = "Unpaid";
-          break;
-        case new_total_balance < 0:
-          new_status = "Advance Paid";
-          break;
-        default:
-          new_status = "";
-      }
 
       //Creating Virtual Account Data
       const virtualAccountData = {
@@ -827,41 +758,17 @@ export const claimProcessAccount = async (req, res, next) => {
     } else if (claimCategory === "Claim Out") {
       //UPDATING ACCOUNT STATUS
 
+      //DATA FOR VIRTUAL ACCOUNT
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:false});
+
       const credit_debit_history_details = {
         date: today,
         particular: note,
         credit: 0,
-        balance: oldAccountData.virtual_account.total_balance - amount,
+        balance: new_total_balance,
         orderId: "",
         debit: amount,
       };
-
-      //DATA FOR VIRTUAL ACCOUNT
-      let new_total_credit =
-        oldAccountData.virtual_account.total_credit - amount;
-      let new_total_debit = oldAccountData.virtual_account.total_debit + amount;
-      const new_total_balance =
-        oldAccountData.virtual_account.total_balance - amount;
-      let new_status = "";
-
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_credit &&
-          new_total_debit > 0 &&
-          new_total_balance > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_debit === 0 && new_total_balance === new_total_credit:
-          new_status = "Unpaid";
-          break;
-        case new_total_balance < 0:
-          new_status = "Advance Paid";
-          break;
-        default:
-          new_status = "";
-      }
 
       //Creating Virtual Account Data
       const virtualAccountData = {
