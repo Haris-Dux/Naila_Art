@@ -70,7 +70,6 @@ function App() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  // Axios Configuration
   useEffect(() => {
     axios.defaults.timeout = 5 * 60 * 1000;
     axios.defaults.withCredentials = true;
