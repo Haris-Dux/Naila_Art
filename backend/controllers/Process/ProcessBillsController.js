@@ -738,7 +738,7 @@ export const claimProcessAccount = async (req, res, next) => {
         particular: note,
         credit: amount,
         balance: new_total_balance,
-        orderId: "",
+        orderId: "claim_entry",
         debit: 0,
       };
 
@@ -766,7 +766,7 @@ export const claimProcessAccount = async (req, res, next) => {
         particular: note,
         credit: 0,
         balance: new_total_balance,
-        orderId: "",
+        orderId: "claim_entry",
         debit: amount,
       };
 
