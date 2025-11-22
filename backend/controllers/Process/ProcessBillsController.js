@@ -681,25 +681,31 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
 
     //UPDATING ACCOUNT STATUS
 
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData:accountData,credit:false});
+
+    const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+    
     const historydata = {
       date: today,
       particular: `Discount Entry`,
       credit: 0,
-      balance: accountData.virtual_account.total_balance - amount,
+      balance: new_total_balance,
       orderId: "",
       debit: amount,
     };
 
-    //UPDATING ACC CREDIT DEBIT AND BALANCE
-    accountData.virtual_account.total_credit -= amount;
-    accountData.virtual_account.total_balance -= amount;
-    //UPDATING CREDIT DEBIT HISTORY
-    accountData.credit_debit_history.push(historydata);
-    if (accountData.virtual_account.total_balance === 0) {
-      accountData.virtual_account.status = "Paid";
-    }
-    await accountData.save();
-    res.status(200).json({ success: true, message: "Success" });
+     (accountData.virtual_account = virtualAccountData),
+      accountData.credit_debit_history.push(historydata);
+
+      await accountData.save();
+
+    return res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     next(error);
   }
