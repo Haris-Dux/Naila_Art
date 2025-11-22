@@ -330,7 +330,7 @@ const ProcessDetails = () => {
                     .map((data, index) => (
                       <tr
                         key={index}
-                        className={`border-b bg-white text-black text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white`}
+                        className={`border-b ${data.orderId === "claim_entry" ? "bg-red-500 text-white": "bg-white text-black"} text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white`}
                       >
                         <th
                           className="px-6 py-4 font-medium  whitespace-nowrap dark:text-white"

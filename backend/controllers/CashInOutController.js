@@ -322,7 +322,7 @@ export const cashIn = async (req, res) => {
         const new_total_debit = userDataToUpdate.virtual_account.total_debit;
         const new_total_credit =
           userDataToUpdate.virtual_account.total_credit + cash;
-        const new_total_balance = new_total_debit - new_total_credit;
+        const new_total_balance = new_total_credit - new_total_debit;;
         let new_status = "";
 
         //ASSIGN ACCOUNT STATUS
@@ -649,7 +649,7 @@ export const cashOut = async (req, res, next) => {
           userDataToUpdate.virtual_account.total_debit + cash;
         const new_total_credit =
           userDataToUpdate.virtual_account.total_credit;
-        const new_total_balance = new_total_debit - new_total_credit;
+        const new_total_balance = new_total_credit - new_total_debit;;
         let new_status;
 
         switch (true) {

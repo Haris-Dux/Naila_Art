@@ -12,12 +12,12 @@ export const calculateProcessAccountBalance = ({ amount, oldAccountData, credit,
       new_total_credit = oldAccountData.virtual_account.total_credit - amount;
       }
    new_total_debit = oldAccountData.virtual_account.total_debit;
-   new_total_balance = new_total_debit - new_total_credit;
+   new_total_balance = new_total_credit - new_total_debit;
 
   } else {
    new_total_credit = oldAccountData.virtual_account.total_credit;   
    new_total_debit = oldAccountData.virtual_account.total_debit + amount;
-   new_total_balance = new_total_debit - new_total_credit;
+   new_total_balance = new_total_credit - new_total_debit;
 
   }
 
