@@ -663,6 +663,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
   try {
     const { id, category, amount } = req.body;
     await verifyrequiredparams(req.body, ["id", "category", "amount"]);
+    const numericAmount = Number(amount);
     let accountData = {};
 
     if (category === "Process") {
@@ -681,7 +682,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
 
     //UPDATING ACCOUNT STATUS
 
-    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData:accountData,credit:false});
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
 
     const virtualAccountData = {
         total_debit: new_total_debit,
