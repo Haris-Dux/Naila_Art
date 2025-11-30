@@ -17,14 +17,14 @@ const ICONS = {
     }
 };
 
-const Icon = ({ name, size = 20 }) => {
+const Icon = ({ name, size = 20, className = "", onClick }) => {
   const item = ICONS[name];
   if (!item) {
     return null;
   }
 
   const { value: IconComponent, color } = item;
-  return <IconComponent  size={size} className={color} />;
+  return <IconComponent  size={size} className={`${color} ${className}`} onClick={onClick} />;
 };
 
 export default Icon;

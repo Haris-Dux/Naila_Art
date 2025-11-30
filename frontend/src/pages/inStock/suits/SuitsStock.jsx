@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AddSuit, GetAllSuit } from "../../../features/InStockSlice";
+import { AddSuit, deleteProcessSuitStockAsync, GetAllSuit } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { FaBoxOpen, FaEye } from "react-icons/fa";
@@ -7,17 +7,20 @@ import { IoAdd } from "react-icons/io5";
 import StockForBranch from "../../../Component/InStock/StockForBranch";
 import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
 import Icon from "../../../Component/Common/Icons";
+import DeleteModal from "../../../Component/Modal/DeleteModal";
 const SuitsStock = () => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
-  const [historyModalOpen, setHistoryModalOpen] = useState();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [SuitId, setSuitId] = useState("");
+  const [deleteStockData, setDeleteStockData] = useState(null);
   const [userSelectedCategory, setuserSelectedCategory] = useState("");
   const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { Suit, GetSuitloading, addSuitLoading } = useSelector(
+  const { Suit, GetSuitloading, addSuitLoading, deleteStockLoading } = useSelector(
     (state) => state.InStock
   );
   const { user } = useSelector((state) => state.auth);
@@ -192,7 +195,29 @@ const SuitsStock = () => {
 
   if (user?.user?.role !== "superadmin") {
     return <StockForBranch />;
-  }
+  };
+
+  const deleteSuitsStock = (id) => {
+    const data = {
+      suit_id: SuitId,
+      record_id:id
+    };
+   setDeleteStockData(data);
+   setIsDeleteModalOpen(true);
+   document.body.style.overflow = "hidden";
+  };
+
+  const handleDeleteStock = () => {
+    dispatch(deleteProcessSuitStockAsync(deleteStockData)).then((res) => {
+      if(res.payload.success) {
+        setDeleteStockData(null);
+        setIsDeleteModalOpen(false);
+         setHistoryModalOpen(false);
+        document.body.style.overflow = "auto";
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+      }
+    })
+  };
 
   return (
     <>
@@ -477,7 +502,7 @@ const SuitsStock = () => {
         </section>
       ) : null}
 
-      {/* ---------- ADD SUIT MODALS ------------ */}
+      {/* ---------- ADD SUIT MODAL ------------ */}
       {isOpen && (
         <div
           aria-hidden="true"
@@ -609,7 +634,7 @@ const SuitsStock = () => {
         </div>
       )}
 
-      {/* ---------- HISTORY MODALS ------------ */}
+      {/* ---------- HISTORY MODAL ------------ */}
       {historyModalOpen && (
         <div
           aria-hidden="true"
@@ -728,7 +753,7 @@ const SuitsStock = () => {
                             </td>
                             <td className="py-3 flex justify-center items-center">
                               {data?.is_stock_source_packing ? (
-                                <Icon name="delete" />
+                                <Icon name="delete" className="cursor-pointer" onClick={() => deleteSuitsStock(data._id)}/>
                               ) : (
                                 "-"
                               )}
@@ -747,6 +772,16 @@ const SuitsStock = () => {
           </div>
         </div>
       )}
+
+      {/* ---------- DELETE MODAL ------------ */}
+     {isDeleteModalOpen &&  <DeleteModal
+        title={"Delete Suit Stock"}
+        message={"Are you sure want to delete this stock ?"}
+        onClose={() => setIsDeleteModalOpen(false)}
+        Loading={deleteStockLoading}
+        onConfirm={handleDeleteStock}
+      />}
+
     </>
   );
 };

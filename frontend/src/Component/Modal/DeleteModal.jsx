@@ -1,4 +1,3 @@
-import React from 'react';
 
 const DeleteModal = ({ onClose, onConfirm, message, title, Loading}) => {
 
