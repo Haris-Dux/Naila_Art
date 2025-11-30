@@ -4,7 +4,6 @@ import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import mongoose from "mongoose";
 import { addBPair } from "./B_PairController.js";
-import moment from "moment-timezone";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
@@ -75,16 +74,16 @@ export const addStitching = async (req, res, next) => {
           partyName: { $regex: partyName, $options: "i" },
         }).session(session);
         if (checkExistingStitching) {
-          throw new Error("Party Name Already In Use");
+          throw new Error("Party name already in use");
         }
       }
 
       const lace = await LaceModel.findOne({ category: lace_category }).session(
         session
       );
-      if (!lace) throw new Error("Please Select Valid Lace Category");
+      if (!lace) throw new Error("Please select valid lace category");
       if (parseInt(lace_quantity) > lace.totalQuantity)
-        throw new Error("Not Enough Lace In Stock");
+        throw new Error("Not enough lace in stock");
       const newLaceTotalQuantity =
         parseInt(lace.totalQuantity) - parseInt(lace_quantity);
       await LaceModel.updateOne(
@@ -335,7 +334,6 @@ export const getStitchingDataBypartyName = async (req, res, next) => {
 const addSuitsInStock = async (data, session) => {
   try {
     const { category, color, quantity, cost_price, sale_price, d_no,useBags, Manual_No, serial_No, includes_pictures, embroidery_Id } = data;
-    console.log('data', data)
     if (!category || !color || !quantity || !cost_price || !sale_price || !d_no || !Manual_No || !serial_No || !embroidery_Id || includes_pictures === undefined || useBags === undefined)
       throw new Error("Missing fields for adding suits in stock");
     const existingSuitWithDNo = await SuitsModel.findOne({ d_no }).session(
