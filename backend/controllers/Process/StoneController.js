@@ -272,14 +272,18 @@ export const deleteStone = async (req, res, next) => {
       embData.next_steps.stones = false;
       await embData.save();
     };
-    const cuttingData = await CuttingModel.findById(data.cuttingId);
-    if (cuttingData) {
-      const quantity = data.category_quantity.reduce((sum,item) => {
-        return sum + item.quantity;
-      },0)
-      cuttingData.Available_Quantity += quantity;
-      await cuttingData.save();
-    }
+    
+    if (data?.cuttingId) {
+      const cuttingData = await CuttingModel.findById(data.cuttingId);
+      if (cuttingData) {
+        const quantity = data.category_quantity.reduce((sum, item) => {
+          return sum + item.quantity;
+        }, 0);
+        cuttingData.Available_Quantity += quantity;
+        await cuttingData.save();
+      }
+    };
+ 
     return res
       .status(200)
       .json({ success: true, message: "Deleted Successfully" });

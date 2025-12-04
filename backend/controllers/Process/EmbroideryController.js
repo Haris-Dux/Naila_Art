@@ -494,9 +494,15 @@ export const deleteEmbroidery = async (req, res, next) => {
         }
       }
 
-      if (embroideryData.bill_generated === true)
-        throw new Error("Cannot delete embroidery");
+      if (embroideryData.bill_generated) {
+        throw new Error(
+          "Deletion not permitted. A bill has already been generated for this embroidery entry."
+        );
+      }
 
+      if (embroideryData.pictures_Order) {
+        throw new CustomError("Deletion not permitted. Pictures order exist for this embroidery", 400);
+      }
       const addInStock = async (items) => {
         if (items && items.length > 0) {
           await Promise.all(
