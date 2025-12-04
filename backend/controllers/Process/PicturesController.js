@@ -7,6 +7,7 @@ import CustomError from "../../config/errors/CustomError.js";
 import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { calculateProcessAccountBalance } from "../../utils/process.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -36,10 +37,14 @@ export const createPictureOrder = async (req, res, next) => {
         "serial_No",
       ]);
 
-      //update embroidery for pictures order
-      await EmbroideryModel.findByIdAndUpdate(embroidery_Id, {
-        pictures_Order: true,
-      }).session(session);
+      
+      const embroideryData = await EmbroideryModel.findById(embroidery_Id).session(session);
+      if(embroideryData.pictures_Order) {
+        throw new Error('New order not permitted. Pictures order already exist for this embroidery')
+      } else {
+        embroideryData.pictures_Order = true;
+        await embroideryData.save({session})
+      }
 
       if (partyType === "newParty") {
         // Create the new picture Order
@@ -110,32 +115,10 @@ export const createPictureOrder = async (req, res, next) => {
         );
 
         //GETTING OLD SELLER DATA
-        const oldAccountData = await PicruresAccountModel.findById(accountId);
+        const oldAccountData = await PicruresAccountModel.findById(accountId).session(session);
 
-        //DATA FOR VIRTUAL ACCOUNT
-        let new_total_credit =
-          oldAccountData.virtual_account.total_credit + rate;
-        let new_total_debit = oldAccountData.virtual_account.total_debit;
-        const new_total_balance =
-          oldAccountData.virtual_account.total_balance + rate;
-        let new_status = "";
-
-        switch (true) {
-          case new_total_balance === 0:
-            new_status = "Paid";
-            break;
-          case new_total_balance === new_total_credit && new_total_debit > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_debit === 0 && new_total_balance === new_total_credit:
-            new_status = "Unpaid";
-            break;
-          case new_total_balance < 0:
-            new_status = "Advance Paid";
-            break;
-          default:
-            new_status = "";
-        }
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = 
+        calculateProcessAccountBalance  ({amount:rate,oldAccountData,credit:true});
 
         //Creating Virtual Account Data
         const virtualAccountData = {
@@ -168,7 +151,7 @@ export const createPictureOrder = async (req, res, next) => {
 
       res
         .status(201)
-        .json({ success: true, message: "Picture Order Creates Successfully" });
+        .json({ success: true, message: "Picture order created successfully" });
     });
   } catch (error) {
     next(error);
@@ -199,45 +182,26 @@ export const deletePictureOrderById = async (req, res, next) => {
   try {
     await session.withTransaction(async () => {
       const { id } = req.body;
-      if (!id) throw new CustomError("Picture Order Id is required", 404);
+      if (!id) throw new CustomError("Picture rrder id is required", 404);
       const pictureOrder = await PicruresModel.findById(id).session(session);
       if (!pictureOrder) throw new CustomError("Picture not found", 404);
-      if (pictureOrder.status === "Completed")
-        throw new CustomError("Cannot Delete A Completed Order");
+
       //GETTING ACCOUNT DATA
       const oldAccountData = await PicruresAccountModel.findOne({
         partyName: pictureOrder.partyName,
       }).session(session);
+
+      //UPDATE EMBROIDERY
+      await EmbroideryModel.findByIdAndUpdate(pictureOrder.embroidery_Id, {
+        pictures_Order: false
+      }).session(session);
+      
       //UPDATING ACCOUNT DATA
       const amountToDeduct = pictureOrder.rate;
 
       //DATA FOR VIRTUAL ACCOUNT
-      const new_total_credit =
-        oldAccountData.virtual_account.total_credit - amountToDeduct;
-      const new_total_debit = oldAccountData.virtual_account.total_debit;
-      const new_total_balance =
-        oldAccountData.virtual_account.total_balance - amountToDeduct;
-      let new_status = "";
-
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_credit &&
-          new_total_debit > 0 &&
-          new_total_balance > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_debit === 0 && new_total_balance === new_total_credit:
-          new_status = "Unpaid";
-          break;
-        case new_total_balance < 0:
-          new_status = "Advance Paid";
-          break;
-        default:
-          new_status = "";
-      }
-
+       const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
+ 
       //Creating Virtual Account Data
       const virtualAccountData = {
         total_credit: new_total_credit,
@@ -245,20 +209,16 @@ export const deletePictureOrderById = async (req, res, next) => {
         total_balance: new_total_balance,
         status: new_status,
       };
+
       //   const ObjectId = new mongoose.Types.ObjectId(id);
       (oldAccountData.virtual_account = virtualAccountData),
-        oldAccountData.credit_debit_history.forEach((item) => {
-          if (item.orderId === id) {
-            item.orderId = "";
-            item.particular = `Deleted Bill For D.NO : ${pictureOrder.design_no}`;
-          }
-        });
-
+      oldAccountData.credit_debit_history = oldAccountData.credit_debit_history.filter((item) => item.orderId !== id);
+       
       await oldAccountData.save({ session });
       await PicruresModel.findByIdAndDelete(id).session(session);
       res
         .status(200)
-        .json({ success: true, message: "Picture deleted successfully" });
+        .json({ success: true, message: "Pictures order deleted successfully" });
     });
   } catch (error) {
     next(error);
