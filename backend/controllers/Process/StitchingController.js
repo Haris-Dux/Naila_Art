@@ -279,16 +279,20 @@ export const deleteStitching = async (req, res, next) => {
     if (!id) throw new Error("Stitching Id Required");
     const data = await StitchingModel.findById(id);
     if (!data) throw new Error("Stitching Not Found");
-    if (data.bill_generated)
-      throw new Error("Bill Generated Cannot Delete This stitching");
+    const embData = await EmbroideryModel.findById(data.embroidery_Id);
+    if (!embData) throw new Error("No embroidery record found for this cutting.");
+    embData.next_steps.stitching = false;
+    if (data.bill_generated) {
+      throw new Error("Deletion not permitted. This stitching step bill has already been generated.");
+    }
+    if (data.packed) {
+      throw new Error("Deletion not permitted. This stitching step has already been packed.");
+    }
     if(data.lace_quantity >= 0) {
       const lace = await LaceModel.findOne({category:data.lace_category});
       lace.totalQuantity += data.lace_quantity;
       await lace.save();
     };
-    const embData = await EmbroideryModel.findById(data.embroidery_Id);
-    if (!embData) throw new Error("Embroidery Data not Found For this Cutting");
-    embData.next_steps.stitching = false;
     await StitchingModel.findByIdAndDelete(id);
     await embData.save(); 
     return res
