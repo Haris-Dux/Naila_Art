@@ -272,8 +272,8 @@ export const deleteStone = async (req, res, next) => {
       embData.next_steps.stones = false;
       await embData.save();
     };
-    
-    if (data?.cuttingId) {
+
+    if (data?.cuttingId !== 'null') {
       const cuttingData = await CuttingModel.findById(data.cuttingId);
       if (cuttingData) {
         const quantity = data.category_quantity.reduce((sum, item) => {
@@ -286,7 +286,7 @@ export const deleteStone = async (req, res, next) => {
  
     return res
       .status(200)
-      .json({ success: true, message: "Deleted Successfully" });
+      .json({ success: true, message: "Deleted successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

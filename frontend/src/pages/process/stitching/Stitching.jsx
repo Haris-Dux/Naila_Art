@@ -198,7 +198,7 @@ const Stitching = () => {
                           <Link to={`/dashboard/stitching-details/${data.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>
-                          {!data.bill_generated && (
+                          {(!data.bill_generated && !data.packed) && (
                             <button onClick={() => openDeleteModal(data.id)}>
                               <MdOutlineDelete
                                 size={20}
