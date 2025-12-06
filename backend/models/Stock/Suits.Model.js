@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const record_data = new mongoose.Schema({
   date:{
-    type:String
+    type:String,
   },
   quantity:{
     type:Number
@@ -12,7 +12,26 @@ const record_data = new mongoose.Schema({
   },
   sale_price:{
     type:Number
+  },
+  embroidery_Id: {
+    type: mongoose.Types.ObjectId
+  },
+  Manual_No: {
+    type:String,
+  },
+  serial_No: {
+    type:Number
+  },
+  bags_used:{
+    type:Boolean
+  }, 
+  includes_pictures:{
+    type: Boolean
+  }, 
+  is_stock_source_packing: {
+    type:Boolean
   }
+    
 },{ timestamps: true });
 
 const suitsSchema = new mongoose.Schema({

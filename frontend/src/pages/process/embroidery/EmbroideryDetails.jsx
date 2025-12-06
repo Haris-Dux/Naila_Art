@@ -18,6 +18,7 @@ import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import toast from "react-hot-toast";
+import { setAccountStatusColor } from "../../../Utils/Common";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -342,21 +343,6 @@ const EmbroideryDetails = () => {
     };
   });
 
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   const handleSkipStep = (e) => {
     const value = e.target.value;
     switch (true) {
@@ -401,6 +387,7 @@ const EmbroideryDetails = () => {
           state: {
             embroidery_Id: SingleEmbroidery.id,
             design_no: SingleEmbroidery.design_no,
+            Manual_No: SingleEmbroidery.Manual_No,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
             suits_category: SingleEmbroidery.shirt,
@@ -840,8 +827,8 @@ const EmbroideryDetails = () => {
                         <div className="box text-center">
                           <h3 className="pb-1 font-normal ">Status</h3>
                           <h3>
-                            {setAccountStatusColor(accountData?.status) ||
-                              "No Status"}
+                            <span className={setAccountStatusColor(accountData?.status)}>{accountData?.status}</span>
+
                           </h3>
                         </div>
                       </div>

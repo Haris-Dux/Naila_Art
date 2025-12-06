@@ -494,9 +494,15 @@ export const deleteEmbroidery = async (req, res, next) => {
         }
       }
 
-      if (embroideryData.bill_generated === true)
-        throw new Error("Cannot delete embroidery");
+      if (embroideryData.bill_generated) {
+        throw new Error(
+          "Deletion not permitted. A bill has already been generated for this embroidery entry."
+        );
+      }
 
+      if (embroideryData.pictures_Order) {
+        throw new CustomError("Deletion not permitted. Pictures order exist for this embroidery", 400);
+      }
       const addInStock = async (items) => {
         if (items && items.length > 0) {
           await Promise.all(
@@ -706,16 +712,11 @@ export const replaceEmroideryData = async (req, res, next) => {
       const isEmbroideryEditable = () => {
       const { project_status, bill_generated, updated, next_steps } = oldEmbroideryData;
       const isNextStepsTrue = Object.entries(next_steps).some(item => item[1] === true);
-      console.log('isNextStepsTrue', isNextStepsTrue)
-      console.log('project_status', project_status)
-      console.log('bill_generated', bill_generated)
-      console.log('updated', updated)
       if (project_status === "Pending" && !bill_generated && !updated && !isNextStepsTrue){
        return true
       };
         return false;
        };
-       console.log('isEmbroideryEditable', isEmbroideryEditable())
        if(!isEmbroideryEditable()){
         throw new Error("Failed to update embroidery")
        };

@@ -53,6 +53,10 @@ const cuttingSchema = new mongoose.Schema({
         type: Number,
         default:0
       },
+      additionalExpenditure: {
+        type: Number,
+        default: 0,
+    },
 
 }, { timestamps: true });
 

@@ -115,7 +115,11 @@ const stitchingSchema = new mongoose.Schema(
     packed:{
       type: Boolean,
       default: false
-    }
+    },
+     additionalExpenditure: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

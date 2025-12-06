@@ -98,16 +98,6 @@ const ForgetPassword = () => {
                     Submit
                   </button>
                 )}
-
-                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                  Don’t have an account yet?{" "}
-                  <Link
-                    to="/signup"
-                    className="font-medium text-black hover:underline"
-                  >
-                    Sign up
-                  </Link>
-                </p>
               </form>
             </div>
           </div>

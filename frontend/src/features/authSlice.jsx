@@ -45,7 +45,7 @@ export const loginuserAsync = createAsyncThunk(
 export const logoutUserAsync = createAsyncThunk("user/logout", async () => {
   try {
     const response = await axios.delete(logoutUrl);
-    window.sessionStorage.clear();
+    window.localStorage.clear();
     return response.data;
   } catch (error) {
     toast.error(error.response.data.error);
@@ -130,17 +130,13 @@ export const UpdateUser = createAsyncThunk("user/uppdateUser", async (data) => {
 
 // AUTH USER ASYNC THUNK - UPDATED
 export const authUserAsync = createAsyncThunk(
-  "users/authClientSessionEverytime",
-  async (_, thunkAPI) => {
-    thunkAPI.dispatch(setLoading(true));
+  "users/getUserSession",
+  async () => {
     try {
       const response = await axios.get(authUserSessionUrl);
       return response.data;
     } catch (error) {
-      localStorage.removeItem("lastPath");
       throw new Error(error);
-    } finally {
-      thunkAPI.dispatch(setLoading(false));
     }
   }
 );
@@ -149,6 +145,7 @@ export const authUserAsync = createAsyncThunk(
 const initialState = {
   createUser: null,
   user: null,
+  isAuthenticated: localStorage.getItem("isAuthenticated") === "true",
   routingLoading: false,
   logoutLoading: false,
   loading: false,
@@ -166,15 +163,12 @@ const authSlice = createSlice({
   name: "authSlice",
   initialState,
   reducers: {
-    setLoading(state, action) {
-      state.routingLoading = action.payload;
-    },
     RemoveUserData: (state) => {
       state.user = null;
     },
     addUserData: (state, action) => {
       state.user = action.payload;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -195,6 +189,7 @@ const authSlice = createSlice({
       .addCase(loginuserAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
+        state.isAuthenticated = true;
       })
       .addCase(loginuserAsync.rejected, (state) => {
         state.loading = false;
@@ -245,6 +240,9 @@ const authSlice = createSlice({
         state.routingLoading = false;
         state.user = action.payload;
       })
+      .addCase(authUserAsync.rejected, (state) => {
+        state.routingLoading = false;
+      })
 
       .addCase(UpdateUser.pending, (state) => {
         state.loading = true;
@@ -267,10 +265,11 @@ const authSlice = createSlice({
       .addCase(logoutUserAsync.fulfilled, (state) => {
         state.logoutLoading = false;
         state.user = null;
+        state.isAuthenticated = false;
       });
   },
 });
 
-export const { setLoading, reset } = authSlice.actions;
+export const { reset } = authSlice.actions;
 
 export default authSlice.reducer;

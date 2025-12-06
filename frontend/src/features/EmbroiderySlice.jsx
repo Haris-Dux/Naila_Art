@@ -370,12 +370,16 @@ const EmbroiderySlice = createSlice({
       })
 
       // EMBROIDERY BILL
-      .addCase(generateEmbroideryBillAsync.pending, (state, action) => {
+      .addCase(generateEmbroideryBillAsync.pending, (state) => {
         state.generateBillLoading = true;
       })
-      .addCase(generateEmbroideryBillAsync.fulfilled, (state, action) => {
+      .addCase(generateEmbroideryBillAsync.fulfilled, (state) => {
         state.generateBillLoading = false;
       })
+        .addCase(generateEmbroideryBillAsync.rejected, (state) => {
+        state.generateBillLoading = false;
+      })
+
 
       .addCase(GETEmbroidery.pending, (state, action) => {
         state.loading = true;

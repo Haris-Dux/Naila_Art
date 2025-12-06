@@ -211,6 +211,10 @@ const embroiderySchema = new mongoose.Schema(
         default: false,
       },
     },
+    embAdditionalExpenditure : {
+      type: Number,
+      default: 0,
+    },
     additionalExpenditure: {
       type: Number,
       default: 0,

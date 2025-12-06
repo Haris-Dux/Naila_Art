@@ -28,10 +28,12 @@ const PackingDetails = () => {
     embroidery_Id: "",
     suits_category: [],
     dupatta_category: [],
+    Manual_No: null,
+    serial_No: null,
   });
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
-  const { embroidery_Id, design_no, serial_No, suits_category } =
+  const { embroidery_Id, design_no, serial_No, Manual_No, suits_category } =
     location.state || {};
 
   useEffect(() => {
@@ -63,6 +65,8 @@ const PackingDetails = () => {
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleStitching?.embroidery_Id,
         packing_Id: SingleStitching.id,
+        Manual_No: SingleStitching.Manual_No,
+        serial_No: SingleStitching.serial_No,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -84,6 +88,8 @@ const PackingDetails = () => {
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleStitching?.embroidery_Id,
         packing_Id: SingleStitching.id,
+        Manual_No: SingleStitching.Manual_No,
+        serial_No: SingleStitching.serial_No,
         dupatta_category:
           SingleStitching.dupatta_category?.map((item) => ({
             id: item.id,
@@ -105,6 +111,8 @@ const PackingDetails = () => {
         d_no: SingleStitching?.design_no,
         embroidery_Id: SingleStitching?.embroidery_Id,
         packing_Id: SingleStitching.id,
+        Manual_No: SingleStitching.Manual_No,
+        serial_No: SingleStitching.serial_No,
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
@@ -120,6 +128,8 @@ const PackingDetails = () => {
         ...formData,
         d_no: design_no,
         embroidery_Id: embroidery_Id,
+        Manual_No: Manual_No,
+        serial_No: serial_No,
         suits_category:
           (suits_category &&
             suits_category?.map((item) => ({
@@ -136,8 +146,6 @@ const PackingDetails = () => {
     const idData = SingleStitching.embroidery_Id || embroidery_Id;
     dispatch(GETEmbroiderySIngle({ id: idData }));
   }, [SingleStitching, id]);
-
-  console.log('suits_category',suits_category);
 
   if (loading) {
     return (
@@ -212,12 +220,17 @@ const PackingDetails = () => {
 
         {/* DETAILS SECTION */}
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5 border border-gray-300 dark:border-gray-500 bg-[#F7F7F7] dark:bg-gray-800 rounded-md">
-          <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-5 gap-x-2 gap-y-5 text-center text-sm">
+          <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-6 gap-x-2 gap-y-5 text-center text-sm">
             {/* ROW 1 */}
             <div className="box">
               <span className="font-medium">Serial No:</span>
               <span> {SingleStitching?.serial_No || serial_No}</span>
             </div>
+            <div className="box">
+              <span className="font-medium">Manual No:</span>
+              <span> {SingleStitching?.Manual_No || Manual_No}</span>
+            </div>
+
             <div className="box">
               <span className="font-medium">Design No:</span>
               <span> {SingleStitching?.design_no || design_no}</span>
@@ -421,46 +434,52 @@ const PackingDetails = () => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-3 my-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 shadow-sm">
                 <CgShoppingBag
-                  size={24}
+                  size={28}
                   className={`${
                     formData?.useBags ? "text-green-500" : "text-red-500"
                   }`}
                 />
-                <p
-                  className={`font-bold  ${
-                    formData?.useBags
-                      ? "text-green-500 text-center"
-                      : "text-red-500 text-center"
-                  }`}
-                >
-                  {formData?.useBags
-                    ? "Packing bags selected"
-                    : "Packing bags not selected"}
-                </p>
+
+                <div className="flex flex-col leading-tight">
+                  <p
+                    className={`font-semibold text-base ${
+                      formData?.useBags ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {formData?.useBags
+                      ? "Packing Bags Selected"
+                      : "No Packing Bags Selected"}
+                  </p>
+                 
+                </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2  my-2">
+              <div className="flex items-center justify-center gap-3 my-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 shadow-sm">
                 <AiOutlinePicture
-                  size={24}
+                  size={28}
                   className={`${
                     SingleEmbroidery?.pictures_Order
                       ? "text-green-500"
                       : "text-red-500"
                   }`}
                 />
-                <p
-                  className={`font-bold ${
-                    SingleEmbroidery?.pictures_Order
-                      ? "text-green-500 text-center"
-                      : "text-red-500 text-center"
-                  }`}
-                >
-                  {SingleEmbroidery?.pictures_Order
-                    ? "Order includes pictures"
-                    : "No pictures in the order"}
-                </p>
+
+                <div className="flex flex-col leading-tight">
+                  <p
+                    className={`font-semibold text-base ${
+                      SingleEmbroidery?.pictures_Order
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {SingleEmbroidery?.pictures_Order
+                      ? "Order Includes Pictures"
+                      : "No Pictures Added"}
+                  </p>
+                 
+                </div>
               </div>
 
               <div className="flex justify-center p-2">

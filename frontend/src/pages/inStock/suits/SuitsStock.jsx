@@ -1,24 +1,26 @@
 import { useState, useEffect } from "react";
-import {
-  AddSuit,
-  GetAllSuit,
-} from "../../../features/InStockSlice";
+import { AddSuit, deleteProcessSuitStockAsync, GetAllSuit } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { FaBoxOpen, FaEye } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
 import StockForBranch from "../../../Component/InStock/StockForBranch";
+import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
+import Icon from "../../../Component/Common/Icons";
+import DeleteModal from "../../../Component/Modal/DeleteModal";
 const SuitsStock = () => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
-  const [historyModalOpen, setHistoryModalOpen] = useState();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [SuitId, setSuitId] = useState("");
+  const [deleteStockData, setDeleteStockData] = useState(null);
   const [userSelectedCategory, setuserSelectedCategory] = useState("");
   const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
-  const { Suit, GetSuitloading, addSuitLoading } = useSelector(
+  const { Suit, GetSuitloading, addSuitLoading, deleteStockLoading } = useSelector(
     (state) => state.InStock
   );
   const { user } = useSelector((state) => state.auth);
@@ -44,7 +46,10 @@ const SuitsStock = () => {
     if (selectedSuits.some((item) => item._id === suit._id)) {
       updatedSelection = selectedSuits.filter((item) => item._id !== suit._id);
     } else {
-      updatedSelection = [...selectedSuits,{ ...suit,assignQuantity:0,all_records:null}];
+      updatedSelection = [
+        ...selectedSuits,
+        { ...suit, assignQuantity: 0, all_records: null },
+      ];
     }
     setSelectedSuits(updatedSelection);
     localStorage.setItem("selectedSuits", JSON.stringify(updatedSelection));
@@ -59,9 +64,9 @@ const SuitsStock = () => {
   // Function to handle changes in form inputs
   const handleChange = (e) => {
     let { name, value } = e.target;
-    if (name === "category" || name === "color"){
-      value = value.charAt(0).toUpperCase() + value.slice(1)
-    } 
+    if (name === "category" || name === "color") {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -71,24 +76,20 @@ const SuitsStock = () => {
   // Function to handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(AddSuit(formData))
-      .then((res) => {
-        if (res.payload.message === "Successfully Added") {
-          dispatch(
-            GetAllSuit({ category: userSelectedCategory, search, page })
-          );
-          setFormData({
-            category: "",
-            color: "",
-            quantity: "",
-            cost_price: "",
-            sale_price: "",
-            d_no: "",
-          });
-        }
-        closeModal();
-      })
-     
+    dispatch(AddSuit(formData)).then((res) => {
+      if (res.payload.message === "Successfully Added") {
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+        setFormData({
+          category: "",
+          color: "",
+          quantity: "",
+          cost_price: "",
+          sale_price: "",
+          d_no: "",
+        });
+      }
+      closeModal();
+    });
   };
 
   const openModal = () => {
@@ -115,7 +116,7 @@ const SuitsStock = () => {
   const renderPaginationLinks = () => {
     const totalPages = Suit?.totalPages;
     const paginationLinks = [];
-    const visiblePages = 5; 
+    const visiblePages = 5;
     const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
     const endPage = Math.min(totalPages, startPage + visiblePages - 1);
 
@@ -125,7 +126,7 @@ const SuitsStock = () => {
           .....
         </li>
       );
-    };
+    }
 
     for (let i = startPage; i <= endPage; i++) {
       paginationLinks.push(
@@ -141,7 +142,7 @@ const SuitsStock = () => {
           </Link>
         </li>
       );
-    };
+    }
 
     if (endPage < totalPages) {
       paginationLinks.push(
@@ -188,12 +189,35 @@ const SuitsStock = () => {
   };
 
   const dataForHistoryModal = Suit?.data?.filter((item) => item._id === SuitId);
-  const filteredSuitData =  dataForHistoryModal?.flatMap((record) => {return record.all_records});
-
+  const filteredSuitData = dataForHistoryModal?.flatMap((record) => {
+    return record.all_records;
+  });
 
   if (user?.user?.role !== "superadmin") {
     return <StockForBranch />;
-  }
+  };
+
+  const deleteSuitsStock = (id) => {
+    const data = {
+      suit_id: SuitId,
+      record_id:id
+    };
+   setDeleteStockData(data);
+   setIsDeleteModalOpen(true);
+   document.body.style.overflow = "hidden";
+  };
+
+  const handleDeleteStock = () => {
+    dispatch(deleteProcessSuitStockAsync(deleteStockData)).then((res) => {
+      if(res.payload.success) {
+        setDeleteStockData(null);
+        setIsDeleteModalOpen(false);
+         setHistoryModalOpen(false);
+        document.body.style.overflow = "auto";
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+      }
+    })
+  };
 
   return (
     <>
@@ -372,112 +396,113 @@ const SuitsStock = () => {
       </section>
 
       {/* -------- PAGINATION -------- */}
-      {Suit?.totalPages && Suit?.totalPages !== 1 ? 
-      <section className="flex justify-center">
-        <nav aria-label="Page navigation example">
-          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-            <li>
-              {Suit?.page > 1 ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/suits?page=${page - 1}`}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
+      {Suit?.totalPages && Suit?.totalPages !== 1 ? (
+        <section className="flex justify-center">
+          <nav aria-label="Page navigation example">
+            <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
+              <li>
+                {Suit?.page > 1 ? (
+                  <Link
+                    onClick={ToDown}
+                    to={`/dashboard/suits?page=${page - 1}`}
+                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
+                    <span className="sr-only">Previous</span>
+                    <svg
+                      className="w-2.5 h-2.5 rtl:rotate-180"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 1 1 5l4 4"
+                      />
+                    </svg>
+                  </Link>
+                ) : (
+                  <button
+                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
+                    disabled
                   >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-            {renderPaginationLinks()}
-            <li>
-              {Suit?.totalPages !== page ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/suits?page=${page + 1}`}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
+                    <span className="sr-only">Previous</span>
+                    <svg
+                      className="w-2.5 h-2.5 rtl:rotate-180"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 1 1 5l4 4"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </li>
+              {renderPaginationLinks()}
+              <li>
+                {Suit?.totalPages !== page ? (
+                  <Link
+                    onClick={ToDown}
+                    to={`/dashboard/suits?page=${page + 1}`}
+                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
+                    <span className="sr-only">Next</span>
+                    <svg
+                      className="w-2.5 h-2.5 rtl:rotate-180"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="m1 9 4-4-4-4"
+                      />
+                    </svg>
+                  </Link>
+                ) : (
+                  <button
+                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
+                    disabled
                   >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
-      </section> : null}
+                    <span className="sr-only">Next</span>
+                    <svg
+                      className="w-2.5 h-2.5 rtl:rotate-180"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="m1 9 4-4-4-4"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </li>
+            </ul>
+          </nav>
+        </section>
+      ) : null}
 
-      {/* ---------- ADD SUIT MODALS ------------ */}
+      {/* ---------- ADD SUIT MODAL ------------ */}
       {isOpen && (
         <div
           aria-hidden="true"
@@ -588,7 +613,7 @@ const SuitsStock = () => {
                 <div className="flex justify-center pt-2">
                   {addSuitLoading ? (
                     <button
-                    disabled
+                      disabled
                       type="submit"
                       className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-300 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
                     >
@@ -609,13 +634,13 @@ const SuitsStock = () => {
         </div>
       )}
 
-      {/* ---------- HISTORY MODALS ------------ */}
+      {/* ---------- HISTORY MODAL ------------ */}
       {historyModalOpen && (
         <div
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-full max-w-7xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -650,17 +675,35 @@ const SuitsStock = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
                 <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className=" px-6 py-3 text-center" scope="col">
+                    <th className="py-3 text-center" scope="col">
                       Date
                     </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
+                    <th className="py-3 text-center" scope="col">
                       Cost Price
                     </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
+                    <th className="py-3 text-center" scope="col">
                       Sale Price
                     </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
+                    <th className="py-3 text-center" scope="col">
                       Quantity
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Manual No
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Serial No
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Bags
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Pictures
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Source
+                    </th>
+                    <th className="py-3 text-center" scope="col">
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -669,26 +712,54 @@ const SuitsStock = () => {
                 <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
                   <tbody>
                     {filteredSuitData && filteredSuitData.length > 0 ? (
-                      filteredSuitData?.slice().reverse().map((data, index) => (
+                      filteredSuitData
+                        ?.slice()
+                        .reverse()
+                        .map((data, index) => (
                           <tr
                             key={index}
                             className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                           >
-                            <td className=" px-6 py-3 text-center" scope="row">
-                              {new Date(data?.date).toLocaleDateString()}
+                            <td className="py-3 text-center" scope="row">
+                              {data?.date}
                             </td>
-                            <td className=" px-6 py-3 text-center">
+                            <td className="py-3 text-center">
                               {data?.cost_price}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="py-3 text-center">
                               {data?.sale_price}
                             </td>
-                            <td className=" px-6 py-3 text-center">
+                            <td className="py-3 text-center">
                               {data?.quantity}
+                            </td>
+                            <td className="py-3 text-center">
+                              {data?.Manual_No ?? "-"}
+                            </td>
+                            <td className="py-3 text-center">
+                              {data?.serial_No ?? "-"}
+                            </td>
+                            <td className="py-3 text-center">
+                              <BooleanIndicator value={data?.bags_used} />
+                            </td>
+                            <td className="py-3 text-center">
+                              <BooleanIndicator
+                                value={data?.includes_pictures}
+                              />
+                            </td>
+                            <td className="py-3 text-center">
+                              {data?.is_stock_source_packing
+                                ? "Process"
+                                : "Manual"}
+                            </td>
+                            <td className="py-3 flex justify-center items-center">
+                              {data?.is_stock_source_packing ? (
+                                <Icon name="delete" className="cursor-pointer" onClick={() => deleteSuitsStock(data._id)}/>
+                              ) : (
+                                "-"
+                              )}
                             </td>
                           </tr>
                         ))
-                      
                     ) : (
                       <tr className="w-full flex justify-center items-center">
                         <td className="text-xl mt-3">No Data Available</td>
@@ -701,6 +772,16 @@ const SuitsStock = () => {
           </div>
         </div>
       )}
+
+      {/* ---------- DELETE MODAL ------------ */}
+     {isDeleteModalOpen &&  <DeleteModal
+        title={"Delete Suit Stock"}
+        message={"Are you sure want to delete this stock ?"}
+        onClose={() => setIsDeleteModalOpen(false)}
+        Loading={deleteStockLoading}
+        onConfirm={handleDeleteStock}
+      />}
+
     </>
   );
 };
