@@ -1,6 +1,11 @@
 import moment from "moment-timezone";
 import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import CustomError from "../../config/errors/CustomError.js";
+import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
+import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
+import { StitchingModel } from "../../models/Process/StitchingModel.js";
+import mongoose from "mongoose";
 
 export const addSuitsInStock = async (req, res, next) => {
   try {
@@ -147,12 +152,74 @@ export const getAllCategoriesForSuits = async (req, res, next) => {
     const data = await SuitsModel.find({})
       .sort({ createdAt: -1 })
       .select("category");
+
     const categoryNames = Array.from(
       new Set(data?.map((item) => item.category))
-    );
+    )
+
     setMongoose();
     return res.status(200).json(categoryNames);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteProcessSuitStock = async (req,res,next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { suit_id, record_id } = req.body;
+
+      if(!suit_id || !record_id) {
+        throw new CustomError("Missing required fields",400)
+      };
+
+      const suitRecord = await SuitsModel.findById(suit_id).session(session);
+      let recordToDelete = null;
+      if(suitRecord){
+        recordToDelete = suitRecord.all_records.find((item) => item._id.equals(record_id));
+      };
+
+      //UPDATING SUIT RECORD QUANTITY
+      const updatedQuantity = suitRecord.quantity - recordToDelete.quantity;
+      if(updatedQuantity < 0) {
+        throw new CustomError("Not enough quantity in stock",400)
+      };
+      suitRecord.quantity = updatedQuantity;
+
+
+      //UPDATING NEXT STEP IN EMBROIDERY
+       const embroideryData = await EmbroideryModel.findById(recordToDelete.embroidery_Id).session(session);
+       embroideryData.next_steps.packing = false;
+
+       //UPDATE BAGS STOCK
+       if(recordToDelete.bags_used) {
+         await BagsAndBoxModel.findOneAndUpdate(
+        {name: "Bags"}, 
+        { $inc:  {totalQuantity: recordToDelete.quantity } },
+        {new:true,session});
+       };
+     
+       //UPDATING PACKING STATUS FOR STITCHING
+       if(embroideryData.next_steps.stitching){
+        const stitchingUpdate = await StitchingModel.findOneAndUpdate(
+          {embroidery_Id:recordToDelete.embroidery_Id},
+          {$set: {packed:false}},
+           {new:true,session}
+        );
+        console.log('stitchingUpdate', stitchingUpdate)
+       };
+
+        await embroideryData.save({ session });
+        suitRecord.all_records = suitRecord.all_records.filter((r) => r._id.toString() !== record_id)
+        await suitRecord.save({session});
+    });
+    return res
+    .status(200)
+    .json({ success: true, message: "Stock deleted successfully" });
+  } catch (error) {
+    next(error)
+  } finally {
+    session.endSession();
   }
 };

@@ -20,7 +20,7 @@ export const superAdminAndAdminOnly = async (req, res, next) => {
   }
   const user = await UserModel.findById(id);
   if (user.role !== "superadmin" && user.role !== "admin") {
-    return res.status(403).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
   next();
 };
@@ -48,11 +48,11 @@ export const verifyOtp = (req, res, next) => {
   try {
     const decodedToken = jwt.verify(D_Token, process.env.TOEKN_SECRET);
     if (!decodedToken) {
-      return res.status(401).json({ error: "Access For Dashboard Expired" });
+      return res.status(403).json({ error: "Access For Dashboard Expired" });
     }
     next();
   } catch (error) {
-    return res.status(401).json({ error: error });
+    return res.status(403).json({ error: error });
   }
  
  

@@ -4,11 +4,11 @@ import { SuitsModel } from "../../models/Stock/Suits.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import mongoose from "mongoose";
 import { addBPair } from "./B_PairController.js";
-import moment from "moment-timezone";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { PicruresModel } from "../../models/Process/PicturesModel.js";
+import { getTodayDate } from "../../utils/Common.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -74,16 +74,16 @@ export const addStitching = async (req, res, next) => {
           partyName: { $regex: partyName, $options: "i" },
         }).session(session);
         if (checkExistingStitching) {
-          throw new Error("Party Name Already In Use");
+          throw new Error("Party name already in use");
         }
       }
 
       const lace = await LaceModel.findOne({ category: lace_category }).session(
         session
       );
-      if (!lace) throw new Error("Please Select Valid Lace Category");
+      if (!lace) throw new Error("Please select valid lace category");
       if (parseInt(lace_quantity) > lace.totalQuantity)
-        throw new Error("Not Enough Lace In Stock");
+        throw new Error("Not enough lace in stock");
       const newLaceTotalQuantity =
         parseInt(lace.totalQuantity) - parseInt(lace_quantity);
       await LaceModel.updateOne(
@@ -277,14 +277,24 @@ export const deleteStitching = async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) throw new Error("Stitching Id Required");
-    const data = await StitchingModel.findByIdAndDelete(id);
+    const data = await StitchingModel.findById(id);
     if (!data) throw new Error("Stitching Not Found");
-    if (data.bill_generated)
-      throw new Error("Bill Generated Cannot Delete This stitching");
     const embData = await EmbroideryModel.findById(data.embroidery_Id);
-    if (!embData) throw new Error("Embroidery Data not Found For this Cutting");
+    if (!embData) throw new Error("No embroidery record found for this cutting.");
     embData.next_steps.stitching = false;
-    await embData.save();
+    if (data.bill_generated) {
+      throw new Error("Deletion not permitted. This stitching step bill has already been generated.");
+    }
+    if (data.packed) {
+      throw new Error("Deletion not permitted. This stitching step has already been packed.");
+    }
+    if(data.lace_quantity >= 0) {
+      const lace = await LaceModel.findOne({category:data.lace_category});
+      lace.totalQuantity += data.lace_quantity;
+      await lace.save();
+    };
+    await StitchingModel.findByIdAndDelete(id);
+    await embData.save(); 
     return res
       .status(200)
       .json({ success: true, message: "Deleted Successfully" });
@@ -327,9 +337,9 @@ export const getStitchingDataBypartyName = async (req, res, next) => {
 
 const addSuitsInStock = async (data, session) => {
   try {
-    const { category, color, quantity, cost_price, sale_price, d_no,useBags } = data;
-    if (!category || !color || !quantity || !cost_price || !sale_price || !d_no)
-      throw new Error("Missing Fields For Adding Suits Stock");
+    const { category, color, quantity, cost_price, sale_price, d_no,useBags, Manual_No, serial_No, includes_pictures, embroidery_Id } = data;
+    if (!category || !color || !quantity || !cost_price || !sale_price || !d_no || !Manual_No || !serial_No || !embroidery_Id || includes_pictures === undefined || useBags === undefined)
+      throw new Error("Missing fields for adding suits in stock");
     const existingSuitWithDNo = await SuitsModel.findOne({ d_no }).session(
       session
     );
@@ -362,8 +372,8 @@ const addSuitsInStock = async (data, session) => {
       await bagsStock.save({ session });
     };
   
-    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-    let recordData = { date: today, quantity, cost_price, sale_price };
+    const today = getTodayDate();
+    let recordData = { date: today, quantity, cost_price, sale_price, Manual_No, embroidery_Id, serial_No, bags_used:useBags, includes_pictures, is_stock_source_packing:true };
     if (
       checkExistingSuitStock &&
       checkExistingSuitStock.color.toLowerCase() === color.toLowerCase()
@@ -399,18 +409,23 @@ export const addInStockFromPackaging = async (req,res,next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { suits_category,dupatta_category, d_no,embroidery_Id,useBags,packing_Id } = req.body;
+      const { suits_category,dupatta_category, d_no,embroidery_Id,useBags,packing_Id, Manual_No, serial_No } = req.body;
       //CHECK PICTURES ORDER
       const checkPicturesOrder = await PicruresModel.findOne({embroidery_Id:embroidery_Id});
       if(checkPicturesOrder && checkPicturesOrder.status === 'Pending'){
-        throw new Error("Please Complete the Pictures Order First");
+        throw new Error("Please complete the pictures order to add suits stock");
       }
       if (suits_category && suits_category.length > 0) {
         for (const item of suits_category) {
           const data = {
             ...item,
+            useBags,
             d_no: d_no,
             quantity: item.return_quantity,
+            Manual_No,
+            serial_No,
+            includes_pictures:!!checkPicturesOrder,
+            embroidery_Id
           };
           const res = await addSuitsInStock(data, session);
           if (res.error) {
@@ -425,6 +440,10 @@ export const addInStockFromPackaging = async (req,res,next) => {
             useBags,
             d_no: d_no,
             quantity: item.return_quantity,
+            Manual_No,
+            serial_No,
+            includes_pictures:checkPicturesOrder,
+            embroidery_Id
           };
           const res = await addSuitsInStock(data, session);
           if (res.error) {

@@ -22,14 +22,13 @@ const getExpensesCategoriesUrl = "/api/stock/expense/getExpensesCategories";
 const getExpenseStatsUrl = "/api/stock/expense/getExpenseStats";
 const deleteEXpenseUrl = "/api/stock/expense/deleteExpense";
 const AddSuits = "/api/stock/suits/addBaseInStock";
+const deleteSuitStock = "/api/stock/suits/deleteProcessSuitStock";
 const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
 const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
 const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock";
 const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
 const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
-
-// GET ALL BRANCHES API
 const getAllBranches = "/api/branches/getAllBranches";
 
 export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
@@ -391,6 +390,20 @@ export const getPendingStockForBranchAsync = createAsyncThunk(
   }
 );
 
+export const deleteProcessSuitStockAsync = createAsyncThunk(
+  "Suits/deletesuitstock",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteSuitStock,data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data)
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const sessionStorageKey = "branches"
 const initialState = {
@@ -422,6 +435,7 @@ const initialState = {
   ExpenseCategoryLoading: false,
   ExpenseUpdateLoading: false,
   ExpenseStatsLoading: false,
+  deleteStockLoading:false
 };
 
 const InStockSlic = createSlice({
@@ -658,7 +672,18 @@ const InStockSlic = createSlice({
       .addCase(GetAllLaceForEmroidery.fulfilled, (state, action) => {
         state.loading = false;
         state.LaceForEmroidery = action.payload;
-      });
+      })
+
+      //DELETE PROCESS STOCK
+      .addCase(deleteProcessSuitStockAsync.pending, (state, action) => {
+        state.deleteStockLoading = true;
+      })
+      .addCase(deleteProcessSuitStockAsync.fulfilled, (state, action) => {
+        state.deleteStockLoading = false;
+      })
+      .addCase(deleteProcessSuitStockAsync.rejected, (state, action) => {
+        state.deleteStockLoading = false;
+      })
   },
 });
 

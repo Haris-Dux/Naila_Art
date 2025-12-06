@@ -21,6 +21,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { RxCross2 } from "react-icons/rx";
+import { setAccountStatusColor } from "../../../Utils/Common";
 
 const StonesDetails = () => {
   const { id } = useParams();
@@ -505,20 +506,7 @@ const StonesDetails = () => {
     setProcessBillData(data);
   };
 
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
+
 
   const handleSelectedRecord = (value) => {
     const Data = previousDataByPartyName?.accountData.find(
@@ -591,6 +579,7 @@ const StonesDetails = () => {
         embroidery_Id: SingleEmbroidery.id,
         design_no: SingleStone.design_no,
         serial_No: SingleStone.serial_No,
+        Manual_No: SingleEmbroidery.Manual_No,
         from: location.pathname,
         suits_category: suitDataForPacking,
       },
@@ -869,8 +858,8 @@ const StonesDetails = () => {
                     <div className="box text-center">
                       <h3 className="pb-1 font-normal ">Status</h3>
                       <h3>
-                        {setAccountStatusColor(accountData?.status) ||
-                          "No Status"}
+                       <span className={setAccountStatusColor(accountData?.status)}>{accountData?.status}</span>
+
                       </h3>
                     </div>
                   </div>
@@ -1333,7 +1322,7 @@ const StonesDetails = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-2">
-              <h3 className="mb-2">
+              <h3 className="my-5">
                 Category :{" "}
                 <span className="text-red-500 font-bold">
                   {SingleEmbroidery?.shirt[0]?.category}
@@ -1388,13 +1377,13 @@ const StonesDetails = () => {
   />
 </div>
 
-                    <div>
+                   {item?.length > 1 && <div>
                       <RxCross2
                         onClick={() => removeRowForPackingData(index)}
                         size={24}
                         className="text-red-500 cursor-pointer"
                       />
-                    </div>
+                    </div>}
                   </div>
                 ))}
 
