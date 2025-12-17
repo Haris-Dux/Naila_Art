@@ -1,4 +1,4 @@
-import { MdOutlineDelete } from "react-icons/md";
+import { MdOutlineDelete, MdOutlineEdit } from "react-icons/md";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
 
@@ -14,6 +14,10 @@ const ICONS = {
     cross: {
         value:FaTimesCircle,
         color:"text-red-500"
+    },
+    edit: {
+      value:MdOutlineEdit,
+      color:"text-black"
     }
 };
 
