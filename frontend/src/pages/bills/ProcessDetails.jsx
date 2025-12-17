@@ -9,6 +9,7 @@ import {
   GetPicturesBillByIdAsync,
   GetProcessBillByIdAsync,
   markAsPaidAsync,
+  temporaryAccountUpdateAsync,
 } from "../../features/ProcessBillSlice";
 import { FaEye } from "react-icons/fa";
 import {
@@ -21,6 +22,7 @@ import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import PicturesOrder from "./Modals/PicturesOrder";
 import { CiLogin } from "react-icons/ci";
 import { CiLogout } from "react-icons/ci";
+import Icon from "../../Component/Common/Icons";
 
 const ProcessDetails = () => {
   const dispatch = useDispatch();
@@ -32,8 +34,32 @@ const ProcessDetails = () => {
   const [openCModal, setCModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const [picturesOrderModal, setpicturesOrderModal] = useState(false);
-  const { loading, ProcessBillsDetails, deleteLoadings, discountLoading } =
+  const { loading, ProcessBillsDetails, deleteLoadings, discountLoading, accountUpdateLoading } =
     useSelector((state) => state.ProcessBill);
+
+    //TEMPORAY
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editFormData, setEditFormData] = useState({
+      accountId: "",
+      totalDebit: "",
+      totalCredit: "",
+      totalBalance: "",
+      category: "process",
+    });
+
+    useEffect(() => {
+  if (accountUpdateLoading) {
+    document.body.style.cursor = "wait";
+  } else {
+    document.body.style.cursor = "default";
+  }
+
+  return () => {
+    document.body.style.cursor = "default";
+  };
+}, [accountUpdateLoading]);
+
+//
 
   useEffect(() => {
     if (id && category === "Pictures") {
@@ -204,6 +230,30 @@ const ProcessDetails = () => {
     });
   };
 
+  const handleAccountUpdate = () => {
+    const updatedData = {
+      ...editFormData,
+      accountId:ProcessBillsDetails.id
+    };
+    dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
+     if(res.payload.success) {
+         if (id && category === "Pictures") {
+      dispatch(GetPicturesBillByIdAsync({ id }));
+    } else if (id) {
+      dispatch(GetProcessBillByIdAsync({ id }));
+    }
+    setIsEditMode(false);
+    setEditFormData({
+      accountId: "",
+      totalDebit: "",
+      totalCredit: "",
+      totalBalance: "",
+      category: "process",
+    })
+     }
+    })
+  }
+
   return (
     <>
       
@@ -213,8 +263,70 @@ const ProcessDetails = () => {
           <div className="box">
             <h3 className="pb-1 font-medium">Party Name</h3>
             <h3>{ProcessBillsDetails?.partyName}</h3>
+                <div className="flex items-center justify-center gap-4">
+                                 {!isEditMode && <Icon name="edit" className="cursor-pointer" size={20} onClick={() => setIsEditMode(true)}/>}
+
+               {isEditMode && <Icon name="cross" className="cursor-pointer" size={20} onClick={() => setIsEditMode(false)}/>}
+               {isEditMode && <Icon name="tick" className="cursor-pointer" size={20} onClick={handleAccountUpdate}/>}
+               </div>
           </div>
-          <div className="box">
+         {isEditMode ? 
+         
+     <>
+      <div className="box relative">
+        <h3 className="pb-1 font-medium flex items-center justify-center gap-2">
+          Total Debit
+        </h3>
+        <input
+          type="number"
+          placeholder="Enter debit"
+          className="w-full px-2 py-1 border rounded"
+          onChange={(e) =>
+    setEditFormData((prev) => ({
+      ...prev,
+      totalDebit: e.target.value,
+    }))
+  }
+        />
+      </div>
+
+      <div className="box relative">
+        <h3 className="pb-1 font-medium flex items-center justify-center gap-2">
+          Total Credit
+        </h3>
+        <input
+          type="number"
+          placeholder="Enter credit"
+          className="w-full px-2 py-1 border rounded"
+          onChange={(e) =>
+    setEditFormData((prev) => ({
+      ...prev,
+      totalCredit: e.target.value,
+    }))
+  }
+        />
+      </div>
+
+      <div className="box relative">
+        <h3 className="pb-1 font-medium flex items-center justify-center gap-2">
+          Total Balance
+        </h3>
+        <input
+          type="number"
+          placeholder="Enter balance"
+          className="w-full px-2 py-1 border rounded"
+         onChange={(e) =>
+    setEditFormData((prev) => ({
+      ...prev,
+      totalBalance: e.target.value,
+    }))
+  }
+        />
+      </div>
+    </>
+         
+         
+         : <> <div className="box">
             <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
             <h3 className="font-medium text-red-500">
               {ProcessBillsDetails?.virtual_account?.total_debit === null
@@ -237,7 +349,7 @@ const ProcessDetails = () => {
                 ? "0"
                 : ProcessBillsDetails?.virtual_account?.total_balance}
             </h3>
-          </div>
+          </div> </>}
         </div>
 
         <div className="mt-5 mx-auto max-w-3xl text-center">

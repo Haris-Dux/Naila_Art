@@ -796,3 +796,44 @@ export const claimProcessAccount = async (req, res, next) => {
     next(error);
   }
 };
+
+export const temporaryAcoountUpdate = async (req, res, next) => {
+  try {
+    const { accountId, totalDebit, totalCredit, totalBalance, category } =
+      req.body;
+    let accountData = null;
+    let new_status = "";
+    if (category === "process") {
+      accountData = await processBillsModel.findById(accountId);
+
+      switch (true) {
+        case totalBalance === 0:
+          new_status = "Paid";
+          break;
+        case totalBalance > 0:
+          new_status = "Unpaid";
+          break;
+        case totalBalance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          throw new Error(
+            "Wrong account balance calculation. Invalid account status"
+          );
+      }
+    } else throw new CustomError("Invalid category", 400);
+
+    const updateVirtualAccountData = {
+      total_debit:totalDebit,
+      total_credit:totalCredit,
+      total_balance:totalBalance,
+      status: new_status,
+    };
+
+    accountData.virtual_account = updateVirtualAccountData;
+    await accountData.save();
+    return res.status(200).json({ success:true, message: "Account updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
