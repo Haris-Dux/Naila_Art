@@ -9,6 +9,7 @@ import {
   getAllProcessBills,
   getProcessillById,
   markAsPaid,
+  temporaryAcoountUpdate,
 } from "../../controllers/Process/ProcessBillsController.js";
 
 const processBillRouter = express.Router();
@@ -52,6 +53,11 @@ processBillRouter.post(
     "/claimProcessAccount",
     superAdminAndAdminOnly,
     claimProcessAccount
+  );
+    processBillRouter.put(
+    "/temporaryAcoountUpdate",
+    superAdminAndAdminOnly,
+    temporaryAcoountUpdate
   );
 
 export default processBillRouter;

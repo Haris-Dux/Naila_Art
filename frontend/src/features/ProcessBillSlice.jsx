@@ -14,6 +14,7 @@ const deleteBillAndProcessOrderURL =
 const markAsPaidURL = "/api/processBillRouter/markAsPaid";
 const applyDiscountOnProcessAccountURL = "/api/processBillRouter/applyDiscountOnProcessAccount";
 const applyClaimOnProcessAccountURL = "/api/processBillRouter/claimProcessAccount";
+const temporaryAcoountUpdateUrl = "/api/processBillRouter/temporaryAcoountUpdate"
 
 // GENERATE PROCESS BILL ASYNC
 export const GenerateProcessBillAsync = createAsyncThunk(
@@ -168,13 +169,27 @@ export const applyClaimAccountAsync = createAsyncThunk(
   }
 );
 
+export const temporaryAccountUpdateAsync = createAsyncThunk(
+  "ProcessBills/accountUpdate",
+  async (data) => {
+    try {
+      const response = await axios.put(temporaryAcoountUpdateUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 
 const initialState = {
   ProcessBills: [],
   ProcessBillsDetails: [],
   loading: false,
   deleteLoadings: false,
-  discountLoading:false
+  discountLoading:false,
+  accountUpdateLoading:false
 };
 
 const ProcessBillSlice = createSlice({
@@ -270,7 +285,19 @@ const ProcessBillSlice = createSlice({
       .addCase(GetPicturesBillByIdAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.ProcessBillsDetails = action.payload;
+      })
+
+      //APPLY DISCOUNT ACCOUNT
+      .addCase(temporaryAccountUpdateAsync.pending, (state) => {
+        state.accountUpdateLoading = true;
+      })
+      .addCase(temporaryAccountUpdateAsync.fulfilled, (state) => {
+        state.accountUpdateLoading = false;
+      })
+      .addCase(temporaryAccountUpdateAsync.rejected, (state) => {
+        state.accountUpdateLoading = false;
       });
+
   },
 });
 
