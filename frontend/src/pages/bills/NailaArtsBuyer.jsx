@@ -3,19 +3,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import { FaEdit, FaEye } from "react-icons/fa";
 import {
+  deleteBuyerBillAsync,
   getBuyerBillsHistoryForBranchAsync,
   getBuyerByIdAsync,
 } from "../../features/BuyerSlice";
 import Return from "./Modals/Return";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import Icon from "../../Component/Common/Icons";
+import DeleteModal from "../../Component/Modal/DeleteModal";
 
 const NailaArtsBuyer = () => {
   const dispatch = useDispatch();
-
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const [otherBillModal, setOthebillNodal] = useState(false);
   const [returnModal, setreturnModal] = useState(false);
   const [selected, setselected] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
 
   const [search, setSearch] = useState();
   const [suitSaleData, setSuitSaleData] = useState("");
@@ -28,7 +32,7 @@ const NailaArtsBuyer = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { BuyerBillHistory, billHistoryLoading, BuyerById } = useSelector(
+  const { BuyerBillHistory, billHistoryLoading, BuyerById, deleteBillLoading } = useSelector(
     (state) => state.Buyer
   );
   const [selectedBranchId, setSelectedBranchId] = useState();
@@ -176,6 +180,33 @@ const NailaArtsBuyer = () => {
     }
   };
 
+  const openDeleteModal = (id) => {
+    setDeleteModal(true);
+    setToDelete(id);
+    document.body.style.overflow = "hidden";
+  };
+  
+  const closeDeleteModal = () => {
+    setDeleteModal(false);
+    setToDelete(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleDeleteBill = () => {
+    dispatch(deleteBuyerBillAsync(toDelete)).then((res) => {
+      if(res.payload.success){
+        const payload = {
+        id: selectedBranchId
+          ? selectedBranchId
+          : user?.user?.branchId || Branches[0].id,
+        page,
+      };
+      closeDeleteModal();
+      dispatch(getBuyerBillsHistoryForBranchAsync(payload));
+      }
+    })
+  }
+
   return (
     <>
       {billHistoryLoading || branchesLoading ? (
@@ -313,7 +344,7 @@ const NailaArtsBuyer = () => {
                       Details
                     </th>
                     <th className="px-6 py-4 text-md font-medium" scope="col">
-                      Return Bill
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -382,6 +413,9 @@ const NailaArtsBuyer = () => {
                           <button onClick={() => openReturnModal(data)}>
                             <FaEdit size={20} className="cursor-pointer" />
                           </button>
+                         {data?.canDelete && <button onClick={() => openDeleteModal(data.id)}>
+                           <Icon name="delete" size={20}/>
+                          </button>}
                         </td>
                       </tr>
                     ))
@@ -663,6 +697,8 @@ const NailaArtsBuyer = () => {
           </div>
         </div>
       )}
+
+      {/*Return Bill Modal  */}
       {returnModal && (
         <Return
           closeModal={closeReturnModal}
@@ -670,6 +706,15 @@ const NailaArtsBuyer = () => {
           selected={selected}
         />
       )}
+
+      {/* Delete Confiramtion Modal */}
+      {deleteModal && <DeleteModal
+      onClose={closeDeleteModal}
+      onConfirm={handleDeleteBill}
+      message={"Are you sure want to delete this bill ?"}
+      title={"Delete Bill"}
+      Loading={deleteBillLoading}
+      />}
     </>
   );
 };

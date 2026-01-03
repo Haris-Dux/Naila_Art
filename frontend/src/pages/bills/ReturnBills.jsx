@@ -279,7 +279,7 @@ const ReturnBills = () => {
                           {data.Amount_From_Balance} Rs
                         </td>
                         <td className="px-6 py-4 text-center font-medium">
-                          {data.Amount_From_TotalCash} Rs
+                          {data.Amount_From_TotalCash ?? "0"} Rs
                         </td>
                        
                         <td className="px-6 py-4 text-center font-medium">{data.date}</td>

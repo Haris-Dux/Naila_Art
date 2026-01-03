@@ -6,6 +6,8 @@ import { setMongoose } from "../../utils/Mongoose.js";
 import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel.js";
 import { cashBookService } from "../../services/CashbookService.js";
 import moment from "moment-timezone";
+import { calculateBuyerAccountBalance } from "../../utils/buyers.js";
+import { CashbookTransactionAccounts, CashbookTransactionSource } from "../../enums/cashbookk.enum.js";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -139,6 +141,7 @@ export const createReturn = async (req, res, next) => {
           `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
         );
       }
+      buyerBill.is_return_made = true;
       await buyerBill.save({ session });
       await dailySaleForSaleDay.save({ session });
 
@@ -154,39 +157,15 @@ export const createReturn = async (req, res, next) => {
       }
 
       //UPDATE BUYERS ACCOUNT
+
       if (Amount_Payable <= 0 && method === "default-account") {
-        const new_total_debit =
-          buyer.virtual_account.total_debit - Amount_From_Balance;
-        const new_total_credit =
-          buyer.virtual_account.total_credit + Amount_From_Balance;
-        const new_total_balance =
-          buyer.virtual_account.total_balance - Amount_From_Balance;
-        let new_status = "";
 
-        switch (true) {
-          case new_total_balance === 0:
-            new_status = "Paid";
-            break;
-          case new_total_balance === new_total_debit &&
-            new_total_credit > 0 &&
-            new_total_balance > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_credit === 0 && new_total_balance === new_total_debit:
-            new_status = "Unpaid";
-            break;
-          case new_total_balance < 0:
-            new_status = "Advance Paid";
-            break;
-          default:
-            new_status = "";
-        }
-
+        const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_From_Balance, total:0, oldAccountData:buyer, deleteBill:true})
         const virtualAccountData = {
-          total_debit: new_total_debit,
-          total_credit: new_total_credit,
-          total_balance: new_total_balance,
-          status: new_status,
+          total_debit,
+          total_credit,
+          total_balance,
+          status
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
@@ -194,7 +173,7 @@ export const createReturn = async (req, res, next) => {
           date: date,
           particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_From_Balance,
-          balance: buyer.virtual_account.total_balance - Amount_From_Balance,
+          balance: total_balance,
         };
 
         //UPDATING Buyer DATA IN DB
@@ -202,22 +181,14 @@ export const createReturn = async (req, res, next) => {
         buyer.credit_debit_history.push(credit_debit_history_details);
         await buyer.save({ session });
       } else if (Amount_Payable > 0 && method === "account") {
-        const new_total_debit =
-          buyer.virtual_account.total_debit >= 0
-            ? -Amount_Payable
-            : buyer.virtual_account.total_debit - Amount_Payable;
-        const new_total_credit = buyer.virtual_account.total_credit;
-        const new_total_balance =
-          buyer.virtual_account.total_balance >= 0
-            ? -Amount_Payable
-            : buyer.virtual_account.total_balance - Amount_Payable;
-        let new_status = "Advance Paid";
+
+       const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer})
 
         const virtualAccountData = {
-          total_debit: new_total_debit,
-          total_credit: new_total_credit,
-          total_balance: new_total_balance,
-          status: new_status,
+          total_debit,
+          total_credit,
+          total_balance,
+          status,
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
@@ -226,7 +197,7 @@ export const createReturn = async (req, res, next) => {
           date,
           particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_Payable,
-          balance: buyer.virtual_account.total_balance - Amount_Payable,
+          balance: total_balance,
         };
 
         //UPDATING USER DATA IN DB
@@ -301,19 +272,14 @@ export const createReturn = async (req, res, next) => {
         }
 
         if (Amount_From_Balance > 0) {
-          const new_total_debit =
-            buyer.virtual_account.total_debit - Amount_From_Balance;
-          const new_total_credit =
-            buyer.virtual_account.total_credit + Amount_From_Balance;
-          const new_total_balance =
-            buyer.virtual_account.total_balance - Amount_From_Balance;
-          let new_status = "Paid";
+
+          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer, deleteBill:true});
 
           const virtualAccountData = {
-            total_debit: new_total_debit,
-            total_credit: new_total_credit,
-            total_balance: new_total_balance,
-            status: new_status,
+            total_debit,
+            total_credit,
+            total_balance,
+            status,
           };
 
           //DATA FOR CREDIT DEBIT HISTORY
@@ -321,7 +287,7 @@ export const createReturn = async (req, res, next) => {
             date: date,
             particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
             credit: Amount_From_Balance,
-            balance: buyer.virtual_account.total_balance - Amount_From_Balance,
+            balance: total_balance,
           };
 
           //UPDATING Buyer DATA IN DB
@@ -336,8 +302,10 @@ export const createReturn = async (req, res, next) => {
           branchId,
           amount: Amount_Payable,
           tranSactionType: "WithDraw",
-          transactionFrom: "Return bills",
+          transactionFrom: CashbookTransactionSource.RETURN_BILLS,
           partyName: buyerBill.name,
+          sourceId:bill_Id,
+          category:CashbookTransactionAccounts.BUYERS,
           payment_Method: "cashSale",
           session,
           ...(isPastDate && { pastDate: date }),
