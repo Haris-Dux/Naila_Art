@@ -2,12 +2,14 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { buildQueryParams } from "../Utils/Common";
+import toast from "react-hot-toast";
 
 //API URL
 const getAllCashBookEntriesUrl = `/api/cashBook/getAllCashBookEntries`;
+const deleteCashBookEntryUrl = '/api/cashbook/deleteCashBookEntry'
 
 export const getAllCashBookEntriesAsync = createAsyncThunk(
-  "Cash Book/getAllCashBookEntries",
+  "CashBook/getAllCashBookEntries",
   async (filters) => {
     const query = buildQueryParams({
           dateFrom: filters.dateFrom,
@@ -25,11 +27,26 @@ export const getAllCashBookEntriesAsync = createAsyncThunk(
   }
 );
 
+//DELETE CASH BOOK ENTRY
+export const deleteCashBookEntryAsync = createAsyncThunk(
+  "CashBook/DeleteCashbookEntry",
+  async (id) => {
+    try {
+      const response = await axios.post(`${deleteCashBookEntryUrl}/${id}`);
+      toast.success(response.data.message)      
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data)
+      throw new Error(error.response.data);
+    }
+  }
+);
 
 // INITIAL STATE
 const initialState = {
   cashBookData: [],
   loading: false,
+  deleteLoading: false
 };
 
 const CashBookSlice = createSlice({
@@ -49,6 +66,17 @@ const CashBookSlice = createSlice({
       .addCase(getAllCashBookEntriesAsync.rejected, (state) => {
         state.loading = false;
         state.cashBookData = [];
+      })
+
+       // DELETE CASH BOOK ENTRY
+      .addCase(deleteCashBookEntryAsync.pending, (state) => {
+        state.deleteLoading = true;
+      })
+      .addCase(deleteCashBookEntryAsync.fulfilled, (state,action) => {
+        state.deleteLoading = false;
+      })
+      .addCase(deleteCashBookEntryAsync.rejected, (state) => {
+        state.deleteLoading = false;
       })
   },
 });

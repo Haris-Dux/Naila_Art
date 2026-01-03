@@ -1,6 +1,7 @@
 import express from "express";
-import { verifyUser } from "../middleware/Auth.js";
+import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
 import {
+  deleteBuyerBill,
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
   generatePdfFunction,
@@ -46,6 +47,11 @@ buyerRouter.post(
   "/markAsPaidForBuyers",
   verifyUser,
   markAsPaidForBuyers
+);
+buyerRouter.post(
+  "/deleteBuyerBill/:billId",
+  superAdminOnly,
+  deleteBuyerBill
 );
 
 export default buyerRouter;

@@ -18,6 +18,8 @@ const showNotificationsForChecksUrl =
   "/api/buyers/checks/showNotificationsForChecks";
 const getSuitsStockToGenerateBillUrl =
   "/api/branches/getSuitsStockToGenerateBill";
+  const deleteBuyerBillUrl = "/api/buyers/deleteBuyerBill";
+
 
 // GET BUYER FOR BRANCH THUNK
 export const getBuyerForBranchAsync = createAsyncThunk(
@@ -189,6 +191,23 @@ export const getSuitsStockToGenerateBillAsync = createAsyncThunk(
   }
 );
 
+//DELETE BUYER BILL
+export const deleteBuyerBillAsync = createAsyncThunk(
+  "BuyerBills/deleteBuyerBill",
+  async (id) => {
+    try {
+      const response = await axios.post(`${deleteBuyerBillUrl}/${id}`);
+      toast.success(response.data.message)      
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data)
+      throw new Error(error.response.data);
+    }
+  }
+);
+
+
+
 // INITIAL STATE
 const initialState = {
   Buyers: [],
@@ -204,7 +223,8 @@ const initialState = {
   returnBillLoading: false,
   getReturnBillLoading: false,
   StockToGenerateBill: [],
-  stockLoading:false
+  stockLoading:false,
+  deleteBillLoading: false
 };
 
 const BuyerSlice = createSlice({
@@ -320,7 +340,18 @@ const BuyerSlice = createSlice({
           state.billHistoryLoading = false;
           state.BuyerBillHistory = action.payload;
         }
-      );
+      )
+
+      //DELETE BUYER BILL
+      .addCase(deleteBuyerBillAsync.pending, (state) => {
+        state.deleteBillLoading = true;
+      })
+      .addCase(deleteBuyerBillAsync.fulfilled, (state) => {
+        state.deleteBillLoading = false;
+      })
+       .addCase(deleteBuyerBillAsync.rejected, (state) => {
+        state.deleteBillLoading = false;
+      })
   },
 });
 

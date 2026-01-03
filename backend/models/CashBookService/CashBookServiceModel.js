@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CashbookTransactionAccounts } from "../../enums/cashbookk.enum.js";
 
 const cashBookServiceSchema = new mongoose.Schema(
   {
@@ -42,8 +43,18 @@ const cashBookServiceSchema = new mongoose.Schema(
     transactionTime:{
         type: String,
         required: [true,"Transaction time is required"],  
+    },
+    sourceId: {
+      type: mongoose.Types.ObjectId,
+      default: null
+      // required: [true,"Cash book transaction source data is required"],
+    },
+    category: {
+      type:String,
+      default:null
+      // enum:[CashbookTransactionAccounts],
+      // required: [true,"Cash book transaction account category data is required"],  
     }
-
   },
   { timestamps: true }
 );
