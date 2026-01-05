@@ -708,7 +708,12 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       //DATA FOR VIRTUAL ACCOUNT
 
-      const { total_debit, total_credit, total_balance, status } = calculateBuyerAccountBalance({paid:paid, total:total, oldAccountData:buyerData.virtual_account});
+      const { total_debit, total_credit, total_balance, status } =
+        calculateBuyerAccountBalance({
+          paid: paid,
+          total: total,
+          oldAccountData: buyerData.virtual_account,
+        });
 
       const virtualAccountData = {
         total_debit,
@@ -930,11 +935,14 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     };
 
     const totalDocuments = await BuyersBillsModel.countDocuments(query);
-    const data = await BuyersBillsModel.find(query)
+    const docs = await BuyersBillsModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 })
-      .lean();
+
+      setMongoose();
+
+      const data = docs.map((d) => d.toJSON());
 
     const updatedData = data.map((item) => ({
       ...item,
@@ -951,7 +959,6 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
       page,
       totalPages: Math.ceil(totalDocuments / limit),
     };
-    setMongoose();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -1103,7 +1110,7 @@ export const deleteBuyerBill = async (req, res, next) => {
       };
 
       buyerAccountData.virtual_account = virtualAccountData;
-      buyerAccountData.credit_debit_history = buyerAccountData.credit_debit_history.filter((item) => item.bill_id.toString() !== billId);
+      buyerAccountData.credit_debit_history = buyerAccountData.credit_debit_history.filter((item) => item?.bill_id?.toString() !== billId);
       await buyerAccountData.save({session});
 
       //DELETE BUYER BILL

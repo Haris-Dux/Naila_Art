@@ -45,6 +45,9 @@ const transaction_details = new mongoose.Schema({
   orderId: {
     type: String,
   },
+  bill_id: {
+    type: mongoose.Types.ObjectId
+  }
 });
 
 const picturesSchema = new mongoose.Schema(

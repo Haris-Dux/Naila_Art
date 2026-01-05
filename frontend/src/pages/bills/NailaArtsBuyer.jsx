@@ -194,7 +194,7 @@ const NailaArtsBuyer = () => {
 
   const handleDeleteBill = () => {
     dispatch(deleteBuyerBillAsync(toDelete)).then((res) => {
-      if(res.payload.success){
+      if(res.payload.succes){
         const payload = {
         id: selectedBranchId
           ? selectedBranchId

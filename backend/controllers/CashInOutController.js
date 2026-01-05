@@ -373,7 +373,12 @@ export const cashIn = async (req, res) => {
       //BUYERS CASE
       else {
 
-      const { total_debit, total_credit, total_balance, status } = calculateBuyerAccountBalance({paid:cash, total:0, oldAccountData:userDataToUpdate.virtual_account});
+      const { total_debit, total_credit, total_balance, status } =
+        calculateBuyerAccountBalance({
+          paid: cash,
+          total: 0,
+          oldAccountData: userDataToUpdate.virtual_account,
+        });
         
         //DATA FOR VIRTUAL ACCOUNT
 
@@ -581,7 +586,7 @@ export const cashOut = async (req, res, next) => {
             paid: cash,
             total: 0,
             oldAccountData: userDataToUpdate.virtual_account,
-            deleteBill: true,
+            isCashOut: true,
           });
 
 

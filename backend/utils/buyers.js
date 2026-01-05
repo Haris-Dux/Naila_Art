@@ -3,16 +3,21 @@ export const calculateBuyerAccountBalance = ({
   total,
   oldAccountData,
   deleteBill = false,
+  isCashOut = false
 }) => {
   let total_credit = 0;
   let total_debit = 0;
   let total_balance = 0;
 
-  if (!deleteBill) {
+  if (!deleteBill && !isCashOut) {
     total_credit = oldAccountData.total_credit + paid;
     total_debit = oldAccountData.total_debit + total;
     total_balance = total_debit - total_credit;
-  } else {
+  } else if (isCashOut) {
+    total_credit = oldAccountData.total_credit;
+    total_debit = oldAccountData.total_debit + paid;
+    total_balance = total_debit - total_credit;
+  }  else if (deleteBill) {
     total_credit = oldAccountData.total_credit - paid;
     total_debit = oldAccountData.total_debit - total;
     total_balance = total_debit - total_credit;
