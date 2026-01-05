@@ -171,6 +171,8 @@ class cashBookHistoryService {
       const payment_Method = record.payment_Method;
       const branchId = record.branchId;
       const isDeposit = record.tranSactionType === TransactionType.DEPOSIT;
+      const amount = isDeposit ? -record.amount : record.amount;
+
 
       const modelBycategory = {
         [CashbookTransactionAccounts.BUYERS]: BuyersModel,
@@ -185,13 +187,12 @@ class cashBookHistoryService {
       if (!accountData) throw new CustomError("Linked account not found", 404);
 
       if (category === CashbookTransactionAccounts.BUYERS) {
-        const amount = isDeposit ? -record.amount : record.amount;
         const { total_debit, total_credit, total_balance, status } =
           calculateBuyerAccountBalance({
-            paid: record.amount,
-            total: 0,
+            paid: isDeposit ? record.amount : 0,
+            total: isDeposit ? 0 : record.amount,
             oldAccountData: accountData.virtual_account,
-            deleteBill: isDeposit ? true : false,
+            deleteBill: true,
           });
 
         const virtualAccountData = {
@@ -201,98 +202,6 @@ class cashBookHistoryService {
           status,
         };
         accountData.virtual_account = virtualAccountData;
-
-        //UPDATING DAILY SALES AND PAYMENT METHODS AMOUNT
-  
-        //GET DATES TO UPDATE
-        const startDate = moment(date, "YYYY-MM-DD");
-        const endDate = this.getTodayDate();
-        let datesToUpdate = [];
-        const current = startDate.clone();
-        while (current.isSameOrBefore(endDate)) {
-          datesToUpdate.push(current.format("YYYY-MM-DD"));
-          current.add(1, "day");
-        }
-
-        //LOOP THROUGH ALL DATES TILL TODAY TO UPDATE TOTAL CASH
-        if (payment_Method === "cashSale") {
-          for (const date of datesToUpdate) {
-            const dailySale = await DailySaleModel.findOne({
-              branchId,
-              date: date,
-            }).session(session);
-            if (!dailySale) {
-              throw new CustomError(
-                `Daily sale record not found for ${date}`,
-                404
-              );
-            }
-            dailySale.saleData.totalCash += amount;
-            if (isDeposit) {
-              dailySale.saleData.cashSale += amount;
-              dailySale.saleData.todayBuyerCredit += amount;
-              dailySale.saleData.totalSale += amount;
-            }
-          
-            if (dailySale.saleData.totalCash < 0) {
-              throw new CustomError(`Not Enough Total Cash For ${date}`, 400);
-            }
-            await dailySale.save({ session });
-          }
-        }
-
-        //UPDATING CASH IN OUT
-        for (const date of datesToUpdate) {
-          const cashInOutRecord = await CashInOutModel.findOne({
-            branchId,
-            date: date,
-          }).session(session);
-          if (!cashInOutRecord) {
-            throw new CustomError("Cash In Out Not Found For Today", 404);
-          }
-          if(isDeposit) {
-           cashInOutRecord.todayCashIn += amount;
-          } else {
-           cashInOutRecord.todayCashOut -= amount;
-          }
-          await cashInOutRecord.save({ session });
-        }
-
-        //UPDATING VIRTUAL ACCOUNTS AND DAILY SALE 
-        if (payment_Method !== "cashSale") {
-          const data = {
-            session,
-            payment_Method,
-            amount: record.amount,
-            transactionType: isDeposit ? "WithDraw" : "Deposit",
-            date: this.getTodayDate(),
-            note: `Cash Book Transaction Deleted For : ${record.partyName}`,
-          };
-          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-          if (isDeposit) {
-            const dailySale = await DailySaleModel.findOne({
-              branchId,
-              date: date,
-            }).session(session);
-            if (!dailySale) {
-              throw new CustomError(
-                `Daily sale record not found for ${date}`,
-                404
-              );
-            }
-
-            const updatedSaleData = {
-              ...dailySale.saleData,
-              [payment_Method]: (dailySale.saleData[payment_Method] += amount),
-              todayBuyerCredit: (dailySale.saleData.todayBuyerCredit += amount),
-              totalSale: (dailySale.saleData.totalSale += amount),
-            };
-
-            dailySale.saleData = updatedSaleData;
-
-            await dailySale.save({ session });
-          }
-        }
       } else {
         const {
           new_total_debit,
@@ -300,7 +209,7 @@ class cashBookHistoryService {
           new_total_balance,
           new_status,
         } = calculateProcessAccountBalance({
-          amount: amountToDeduct,
+          amount: record.amount,
           oldAccountData: accountData,
           credit: true,
           add: false,
@@ -314,9 +223,100 @@ class cashBookHistoryService {
         accountData.virtual_account = virtualAccountData;
       }
 
+      //UPDATING DAILY SALES AND PAYMENT METHODS AMOUNT
+
+      //GET DATES TO UPDATE
+      const startDate = moment(date, "YYYY-MM-DD");
+      const endDate = this.getTodayDate();
+      let datesToUpdate = [];
+      const current = startDate.clone();
+      while (current.isSameOrBefore(endDate)) {
+        datesToUpdate.push(current.format("YYYY-MM-DD"));
+        current.add(1, "day");
+      }
+
+      //LOOP THROUGH ALL DATES TILL TODAY TO UPDATE TOTAL CASH
+      if (payment_Method === "cashSale") {
+        for (const item of datesToUpdate) {
+          const dailySale = await DailySaleModel.findOne({
+            branchId,
+            date: item,
+          }).session(session);
+          if (!dailySale) {
+            throw new CustomError(
+              `Daily sale record not found for ${item}`,
+              404
+            );
+          }
+          dailySale.saleData.totalCash += amount;
+          if (isDeposit && date === item) {
+            dailySale.saleData.cashSale += amount;
+            dailySale.saleData.todayBuyerCredit += amount;
+            dailySale.saleData.totalSale += amount;
+          }
+
+          if (dailySale.saleData.totalCash < 0) {
+            throw new CustomError(`Not Enough Total Cash For ${item}`, 400);
+          }
+          await dailySale.save({ session });
+        }
+      }
+
+      //UPDATING CASH IN OUT
+      for (const date of datesToUpdate) {
+        const cashInOutRecord = await CashInOutModel.findOne({
+          branchId,
+          date: date,
+        }).session(session);
+        if (!cashInOutRecord) {
+          throw new CustomError("Cash In Out Not Found For Today", 404);
+        }
+        if (isDeposit) {
+          cashInOutRecord.todayCashIn += amount;
+        } else {
+          cashInOutRecord.todayCashOut -= amount;
+        }
+        await cashInOutRecord.save({ session });
+      }
+
+      //UPDATING VIRTUAL ACCOUNTS AND DAILY SALE
+      if (payment_Method !== "cashSale") {
+        const data = {
+          session,
+          payment_Method,
+          amount: record.amount,
+          transactionType: isDeposit ? "WithDraw" : "Deposit",
+          date: this.getTodayDate(),
+          note: `Cash Book Transaction Deleted For : ${record.partyName}`,
+        };
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+        if (isDeposit && category === CashbookTransactionAccounts.BUYERS) {
+          const dailySale = await DailySaleModel.findOne({
+            branchId,
+            date: date,
+          }).session(session);
+          if (!dailySale) {
+            throw new CustomError(
+              `Daily sale record not found for ${date}`,
+              404
+            );
+          }
+
+          const updatedSaleData = {
+            ...dailySale.saleData,
+            [payment_Method]: (dailySale.saleData[payment_Method] += amount),
+            todayBuyerCredit: (dailySale.saleData.todayBuyerCredit += amount),
+            totalSale: (dailySale.saleData.totalSale += amount),
+          };
+
+          dailySale.saleData = updatedSaleData;
+          await dailySale.save({ session });
+        }
+      }
+console.log('here', )
       accountData.credit_debit_history =
         accountData.credit_debit_history.filter(
-          (item) => item.bill_id.toString() !== id
+          (item) => {console.log('item', item),item?.bill_id?.toString() !== id}
         );
       await accountData.save({ session });
       await cashBookServiceModel.findByIdAndDelete(id).session(session);
