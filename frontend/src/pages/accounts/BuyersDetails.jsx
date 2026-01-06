@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBuyerByIdAsync, markAsPaidAsync } from "../../features/BuyerSlice";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
+import { temporaryAccountUpdateAsync } from "../../features/ProcessBillSlice";
+import Icon from "../../Component/Common/Icons";
 
 const BuyersDetails = () => {
   const { id } = useParams();
@@ -12,6 +14,14 @@ const BuyersDetails = () => {
     (state) => state.Buyer
   );
   const [openCModal, setCModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    accountId: "",
+    totalDebit: "",
+    totalCredit: "",
+    totalBalance: "",
+    category: "buyers",
+  });
+  const [isEditMode, setIsEditMode] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -36,54 +46,154 @@ const BuyersDetails = () => {
     });
   };
 
+  const onNumberChange = (key,value) => {
+      setEditFormData((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleAccountUpdate = () => {
+     const updatedData = {
+    accountId: id,
+    totalDebit: Number(editFormData.totalDebit || 0),
+    totalCredit: Number(editFormData.totalCredit || 0),
+    totalBalance: Number(editFormData.totalBalance || 0),
+    category: "buyers"
+  };
+    dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
+      if (res.payload.success) {
+        dispatch(getBuyerByIdAsync({ id }));
+        setIsEditMode(false);
+        setEditFormData({
+          accountId: "",
+          totalDebit: "",
+          totalCredit: "",
+          totalBalance: "",
+          category: "buyers",
+        });
+      }
+    });
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
         {/* BUYER DETAILS */}
-        <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
-          <div className="box">
-            <h3 className="pb-1 font-medium">Title</h3>
-            <h3>{BuyerById?.name}</h3>
-          </div>
-          <div className="box">
-            <h3 className="pb-1 font-medium">Phone Number</h3>
-            <h3>{BuyerById?.phone}</h3>
-          </div>
-          <div className="box">
-            <h3 className="pb-1 font-medium">Location</h3>
-            <h3>{BuyerById?.city}</h3>
-          </div>
-          <div className="box">
-            <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
-            <h3 className="font-medium text-red-500">
-              {BuyerById?.virtual_account?.total_debit}
-            </h3>
-          </div>
-          <div className="box">
-            <h3 className="pb-1 font-medium">Total Credit</h3>
-            <h3>{BuyerById?.virtual_account?.total_credit}</h3>
-          </div>
-          <div className="box">
-            <h3 className="pb-1 font-medium">Total Balance</h3>
-            <h3>{BuyerById?.virtual_account?.total_balance}</h3>
-          </div>
-          {BuyerById?.virtual_account?.status !== "Paid" && (
-            <>
+          <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
+      <div className="box">
+        <h3 className="pb-1 font-medium">Title</h3>
+        <h3>{BuyerById?.name}</h3>
+      </div>
+
+      <div className="box">
+        <h3 className="pb-1 font-medium">Phone Number</h3>
+        <h3>{BuyerById?.phone}</h3>
+      </div>
+
+      <div className="box">
+        <h3 className="pb-1 font-medium">Location</h3>
+        <h3>{BuyerById?.city}</h3>
+      </div>
+
+      {/* Total Debit */}
+      <div className="box">
+        <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
+
+        {!isEditMode ? (
+          <h3 className="font-medium text-red-500">
+            {BuyerById?.virtual_account?.total_debit}
+          </h3>
+        ) : (
+          <input
+            type="text"
+            placeholder="Enter debit"
+            value={editFormData.totalDebit}
+            onChange={(e) => onNumberChange("totalDebit", e.target.value)}
+            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+          />
+        )}
+      </div>
+
+      {/* Total Credit */}
+      <div className="box">
+        <h3 className="pb-1 font-medium">Total Credit</h3>
+
+        {!isEditMode ? (
+          <h3>{BuyerById?.virtual_account?.total_credit}</h3>
+        ) : (
+          <input
+            type="text"
+            placeholder="Enter credit"
+            value={editFormData.totalCredit}
+            onChange={(e) => onNumberChange("totalCredit", e.target.value)}
+            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+          />
+        )}
+      </div>
+
+      {/* Total Balance + icons */}
+      <div className="box">
+        <div className="flex items-center gap-2">
+          <h3 className="pb-1 font-medium">Total Balance</h3>
+
+          {!isEditMode ? (
+            <button
+              type="button"
+              onClick={() => setIsEditMode(true)}
+              title="Edit credit/debit/balance"
+            >
+             <Icon name="edit" className="cursor-pointer" />
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
               <button
-                onClick={openConfirmationModaL}
-                className="bg-red-500 mt-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+                type="button"
+                onClick={handleAccountUpdate}
+                title="Submit"
               >
-                Mark As Paid
+              <Icon name="tick" className="cursor-pointer" />
+
               </button>
-            </>
+
+              <button
+                type="button"
+                onClick={() => setIsEditMode(false)}
+                title="Cancel"
+              >
+               <Icon name="cross" className="cursor-pointer" />
+
+              </button>
+            </div>
           )}
-          <button
-            className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-            onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
-          >
-            Checks
-          </button>
         </div>
+
+        {!isEditMode ? (
+          <h3>{BuyerById?.virtual_account?.total_balance}</h3>
+        ) : (
+          <input
+            type="text"
+            placeholder="Enter balance"
+            value={editFormData.totalBalance}
+            onChange={(e) => onNumberChange("totalBalance", e.target.value)}
+            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+          />
+        )}
+      </div>
+
+      {BuyerById?.virtual_account?.status !== "Paid" && (
+        <button
+          onClick={openConfirmationModaL}
+          className="bg-red-500 mt-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+        >
+          Mark As Paid
+        </button>
+      )}
+
+      <button
+        className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
+        onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
+      >
+        Checks
+      </button>
+    </div>
 
         {/* -------------- TABLE -------------- */}
         {loading ? (

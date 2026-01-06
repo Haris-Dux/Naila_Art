@@ -12,6 +12,7 @@ import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateProcessAccountBalance } from "../../utils/process.js";
+import { BuyersModel } from "../../models/BuyersModel.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -821,6 +822,26 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
             "Wrong account balance calculation. Invalid account status"
           );
       }
+    } else if (category === "buyers") {
+      accountData = await BuyersModel.findById(accountId);
+
+      switch (true) {
+        case totalBalance === 0:
+          new_status = "Paid";
+          break;
+        case totalCredit === 0:
+          new_status = "Unpaid";
+        case totalBalance > 0:
+          new_status = "Partially Paid";
+          break;
+        case totalBalance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          throw new Error(
+            "Wrong account balance calculation. Invalid account status"
+          );
+      }
     } else throw new CustomError("Invalid category", 400);
 
     const updateVirtualAccountData = {
@@ -829,6 +850,8 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
       total_balance:totalBalance,
       status: new_status,
     };
+
+    console.log('updateVirtualAccountData', updateVirtualAccountData)
 
     accountData.virtual_account = updateVirtualAccountData;
     await accountData.save();

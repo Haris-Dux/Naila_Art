@@ -65,7 +65,8 @@ const transaction_details = new mongoose.Schema({
   },
   bill_id : {
     type:mongoose.Types.ObjectId,
-    required: [true, "Bill id is required"],
+    default:null
+    // required: [true, "Bill id is required"],
   }
 });
 
