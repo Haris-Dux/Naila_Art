@@ -9,8 +9,7 @@ import { processBillsModel } from "../models/Process/ProcessBillsModel.js";
 import { SellersModel } from "../models/sellers/SellersModel.js";
 import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
-import { calculateProcessAccountBalance } from "../utils/process.js";
-import { Roles } from "../enums/Roles.js";
+import { calculateAccountBalance } from "../utils/accounting.js";
 import { canDeleteRecord } from "../utils/Common.js";
 import { virtualAccountsService } from "./VirtualAccountsService.js";
 import { DailySaleModel } from "../models/DailySaleModel.js";
@@ -208,11 +207,11 @@ class cashBookHistoryService {
           new_total_credit,
           new_total_balance,
           new_status,
-        } = calculateProcessAccountBalance({
-          amount: record.amount,
+        } = calculateAccountBalance({
+          amount: isDeposit ? record.amount : -record.amount,
           oldAccountData: accountData,
-          credit: true,
-          add: false,
+          credit: isDeposit ?? true,
+          add:false,
         });
         const virtualAccountData = {
           total_credit: new_total_credit,
@@ -313,10 +312,9 @@ class cashBookHistoryService {
           await dailySale.save({ session });
         }
       }
-console.log('here', )
       accountData.credit_debit_history =
         accountData.credit_debit_history.filter(
-          (item) => {console.log('item', item),item?.bill_id?.toString() !== id}
+          (item) => item?.bill_id?.toString() !== id
         );
       await accountData.save({ session });
       await cashBookServiceModel.findByIdAndDelete(id).session(session);

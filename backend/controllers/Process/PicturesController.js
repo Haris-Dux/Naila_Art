@@ -7,7 +7,7 @@ import CustomError from "../../config/errors/CustomError.js";
 import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import { calculateProcessAccountBalance } from "../../utils/process.js";
+import { calculateAccountBalance } from "../../utils/accounting.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -118,7 +118,7 @@ export const createPictureOrder = async (req, res, next) => {
         const oldAccountData = await PicruresAccountModel.findById(accountId).session(session);
 
         const {new_total_debit,new_total_credit,new_total_balance,new_status} = 
-        calculateProcessAccountBalance  ({amount:rate,oldAccountData,credit:true});
+        calculateAccountBalance  ({amount:rate,oldAccountData,credit:true});
 
         //Creating Virtual Account Data
         const virtualAccountData = {
@@ -200,7 +200,7 @@ export const deletePictureOrderById = async (req, res, next) => {
       const amountToDeduct = pictureOrder.rate;
 
       //DATA FOR VIRTUAL ACCOUNT
-       const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
+       const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
  
       //Creating Virtual Account Data
       const virtualAccountData = {

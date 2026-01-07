@@ -17,6 +17,10 @@ const previousDataSchema = new mongoose.Schema({
     type: String,
     required: [true, "quantity required"],
   },
+    bill_id: {
+      type: mongoose.Types.ObjectId,
+      default: null
+    }
 });
 
 const accessoriesUsedDataSchema = new mongoose.Schema({

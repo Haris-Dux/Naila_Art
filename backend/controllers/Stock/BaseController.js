@@ -121,8 +121,7 @@ export const deleteBaseStock = async (req, res, next) => {
     }
 
     base.TYm -= itemQuantity;
-
-    item.quantity = `Deleted/${item.quantity}`;
+    base.all_Records = base.all_Records.filter((record) => record._id.toString() !== itemId)
 
     await base.save();
 

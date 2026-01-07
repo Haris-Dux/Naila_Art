@@ -21,6 +21,10 @@ const previousDataSchema = new mongoose.Schema({
   quantity: {
     type: String,
     required: [true,"Recently required"],
+  },
+  bill_id: {
+    type: mongoose.Types.ObjectId,
+    default: null
   }
 })
 

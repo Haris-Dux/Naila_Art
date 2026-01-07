@@ -1,14 +1,14 @@
 import { AccssoriesModel } from "../../models/Stock/AccssoriesModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,session,category}) => {
+export const addAccesoriesInStock = async ({billId,serial_No, name, r_Date, quantity,session,category}) => {
   try {
     if (!serial_No || !quantity || !r_Date || !name || !category)
       throw new Error("All Fields Required");
     const checkExistingStock = await AccssoriesModel.findOne({
       name: { $regex: new RegExp(`^${category}$`, "i") },
     }).session(session);
-    let recordData = { serial_No, name: category, quantity, date: r_Date };
+    let recordData = { serial_No, name: category, quantity, date: r_Date, bill_id:billId };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
       (checkExistingStock.recently = quantity),
@@ -33,22 +33,20 @@ export const addAccesoriesInStock = async ({serial_No, name, r_Date, quantity,se
   }
 };
 
-export const removeAccesoriesFromStock = async ({serial_No, name, r_Date, quantity,session,category}) => {
+export const removeAccesoriesFromStock = async ({billId,serial_No, name, r_Date, quantity,session,category}) => {
   try {
     if (!serial_No || !quantity || !r_Date || !name || !category)
       throw new Error("All Fields Required To Delete Stock");
     const checkExistingStock = await AccssoriesModel.findOne({
       name: { $regex: new RegExp(`^${category}$`, "i") },
     }).session(session);
-    const modifiedQuantity = `Deleted/${quantity}`
-    let recordData = { serial_No, name: category, quantity:modifiedQuantity, date: r_Date };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity - quantity;
       if(updatedTotalQuantity < 0){
         throw new Error(`Not Enough ${category}  In Stock`);
       }
         (checkExistingStock.totalQuantity = updatedTotalQuantity),
-        checkExistingStock.all_Records.push(recordData);
+        checkExistingStock.all_Records = checkExistingStock.all_Records.filter((record) => record?.bill_id?.toString() !== billId)
       await checkExistingStock.save({session});
     } else {
       throw new Error("Accessories Stock Not Found")

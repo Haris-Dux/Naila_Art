@@ -1,6 +1,6 @@
 
 
-export const calculateProcessAccountBalance = ({ amount, oldAccountData, credit, add=true }) => {
+export const calculateAccountBalance = ({ amount, oldAccountData, credit, add=true }) => {
   let new_total_credit = 0;
   let new_total_debit = 0;
   let new_total_balance = 0;

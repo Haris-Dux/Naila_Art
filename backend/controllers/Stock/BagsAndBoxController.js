@@ -1,7 +1,7 @@
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
-export const addBagsAndBoxInStock = async ({name, bill_no, r_Date, quantity,session}) => {
+export const addBagsAndBoxInStock = async ({billId,name, bill_no, r_Date, quantity,session}) => {
   try {
     if (!name || !bill_no || !quantity || !r_Date)
       throw new Error("All Fields Required");
@@ -12,7 +12,7 @@ export const addBagsAndBoxInStock = async ({name, bill_no, r_Date, quantity,sess
     const checkExistingStock = await BagsAndBoxModel.findOne({
       name: name,
     }).session(session);
-    let recordData = { bill_no, name, quantity, date: r_Date };
+    let recordData = { bill_no, name, quantity, date: r_Date, bill_id:billId };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + parseInt(quantity);
       checkExistingStock.recently = parseInt(quantity),
@@ -38,7 +38,7 @@ export const addBagsAndBoxInStock = async ({name, bill_no, r_Date, quantity,sess
   }
 };
 
-export const removeBagsAndBoxFromStock = async ({name, bill_no, r_Date, quantity,session}) => {
+export const removeBagsAndBoxFromStock = async ({billId,name, bill_no, r_Date, quantity,session}) => {
   try {
     if (!name || !bill_no || !quantity || !r_Date)
       throw new Error("All Fields Required To Delete Stock");
@@ -49,15 +49,13 @@ export const removeBagsAndBoxFromStock = async ({name, bill_no, r_Date, quantity
     const checkExistingStock = await BagsAndBoxModel.findOne({
       name: name,
     }).session(session);
-    const modifiedName = `Deleted/${name}`;
-    let recordData = { bill_no, name:modifiedName, quantity, date: r_Date };
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity - parseInt(quantity);
       if(updatedTotalQuantity < 0){
         throw new Error(`Not Enough ${name} Quantity In Stock`);
       }
         checkExistingStock.totalQuantity = updatedTotalQuantity;
-      checkExistingStock.all_Records.push(recordData);
+      checkExistingStock.all_Records = checkExistingStock.all_Records.filter((record) => record?.bill_id?.toString() !== billId)
       await checkExistingStock.save({session});
     } else {
       throw new Error("Bags/Box Stock Not Found")

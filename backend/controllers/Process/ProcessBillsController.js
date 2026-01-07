@@ -11,7 +11,7 @@ import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
-import { calculateProcessAccountBalance } from "../../utils/process.js";
+import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -215,7 +215,7 @@ export const generateProcessBill = async (req, res, next) => {
       else {
         //DATA FOR VIRTUAL ACCOUNT
 
-        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:true});
    
 
         //Creating Virtual Account Data
@@ -578,7 +578,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         .session(session);
 
       //DATA FOR VIRTUAL ACCOUNT
-        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
 
       //Creating Virtual Account Data
       const virtualAccountData = {
@@ -683,7 +683,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
 
     //UPDATING ACCOUNT STATUS
 
-    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
 
     const virtualAccountData = {
         total_debit: new_total_debit,
@@ -739,7 +739,7 @@ export const claimProcessAccount = async (req, res, next) => {
       //UPDATING ACCOUNT STATUS
 
       //DATA FOR VIRTUAL ACCOUNT
-      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:true});
 
        const credit_debit_history_details = {
         date: today,
@@ -767,7 +767,7 @@ export const claimProcessAccount = async (req, res, next) => {
       //UPDATING ACCOUNT STATUS
 
       //DATA FOR VIRTUAL ACCOUNT
-      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:false});
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:false});
 
       const credit_debit_history_details = {
         date: today,
@@ -850,8 +850,6 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
       total_balance:totalBalance,
       status: new_status,
     };
-
-    console.log('updateVirtualAccountData', updateVirtualAccountData)
 
     accountData.virtual_account = updateVirtualAccountData;
     await accountData.save();
