@@ -471,7 +471,7 @@ const Base = () => {
                         ?.map((data, subIndex) => (
                           <tr
                             key={`${index}-${subIndex}`}
-                            className={`${data?.quantity?.startsWith("Deleted") ? "bg-red-500 text-white" : "bg-white text-black"}   border-b text-sm font-medium`}
+                            className={`bg-white text-black border-b text-sm font-medium`}
                           >
                             <th className="px-6 py-4 font-medium" scope="row">
                               {data?.category}

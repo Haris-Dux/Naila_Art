@@ -15,7 +15,7 @@ const financialDetails = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Paid", "Unpaid", "Partially Paid","Advance Paid"],
+    enum: ["Paid", "Unpaid","Advance Paid"],
   },
 });
 
@@ -40,6 +40,10 @@ const transaction_details = new mongoose.Schema({
     type: Number,
     required: [true, "Balance value is required"],
   },
+  bill_id : {
+    type: mongoose.Types.ObjectId,
+    default: null
+  }
 });
 
 const SellersSchema = new mongoose.Schema({

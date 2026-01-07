@@ -92,9 +92,7 @@ const SellersDetails = () => {
                             <tbody>
                                 {SellerById && SellerById?.credit_debit_history?.length > 0 ? (
                                     SellerById?.credit_debit_history?.slice().reverse().map((data, index) => (
-                                        <tr key={index} className={` border-b text-md font-semibold ${
-                                            data.particular.startsWith("Bill Deleted") ? "bg-red-500 text-white" : "bg-white text-black"
-                                          }`}>
+                                        <tr key={index} className={` border-b text-md font-semibold "bg-white text-black"`}>
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"
                                             >

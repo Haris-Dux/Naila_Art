@@ -2,14 +2,14 @@ import { LaceModel } from "../../models/Stock/Lace.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 
 
-export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,session}) => {
+export const addLaceInStock = async ({billId,bill_no,name,category,quantity,r_Date,session}) => {
   try {
     if (!category || !bill_no || !quantity || !r_Date || !name)
       throw new Error("All Fields Required");
     const checkExistingStock = await LaceModel.findOne({
       category: category,
     }).session(session);
-    let recordData = {bill_no,name,category,quantity,date:r_Date};
+    let recordData = {bill_no,name,category,quantity,date:r_Date,bill_id:billId};
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity + quantity;
           checkExistingStock.recently = quantity,
@@ -32,26 +32,24 @@ export const addLaceInStock = async ({bill_no,name,category,quantity,r_Date,sess
 
     return { message: "Successfully Added" };
   } catch (error) {
-    return { error: error.message };
+    throw error;
   }
 };
 
-export const removeLaceFromStock = async ({bill_no,name,category,quantity,r_Date,session}) => {
+export const removeLaceFromStock = async ({billId,bill_no,name,category,quantity,r_Date,session}) => {
   try {
     if (!category || !bill_no || !quantity || !r_Date || !name)
       throw new Error("All Fields Required To Delete Stock");
     const checkExistingStock = await LaceModel.findOne({
       category: category,
     }).session(session);
-    const modifiedQuantity = `Deleted/${quantity}`;
-    let recordData = {bill_no,name,category,quantity:modifiedQuantity,date:r_Date};
     if (checkExistingStock) {
       const updatedTotalQuantity = checkExistingStock.totalQuantity - quantity;
       if(updatedTotalQuantity < 0){
         throw new Error("Not Enough Lace Quantity In Stock");
       }
           checkExistingStock.totalQuantity = updatedTotalQuantity,
-          checkExistingStock.all_Records.push(recordData)
+          checkExistingStock.all_Records = checkExistingStock.all_Records.filter((record) => record?.bill_id?.toString() !== billId)
           await checkExistingStock.save({session});     
     } else {
      throw new Error("Lace Stock Not Found")
