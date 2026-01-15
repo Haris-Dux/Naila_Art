@@ -13,6 +13,7 @@ const creditEmployeeeSalary = '/api/employ/creditSalaryForSingleEmploye'
 const addLeaveUrl = '/api/employ/addLeave'
 const updateOvertimeUrl = '/api/employ/updateOvertime'
 const reverseSalaryeUrl = '/api/employ/reverseSalary'
+const deleteCreditDebitEntryUrl = '/api/employ/deleteCreditDebitEntry'
 
 
 export const CreateEmployee = createAsyncThunk(
@@ -151,6 +152,19 @@ export const reverseSalaryAsync = createAsyncThunk(
   }
 );
 
+export const deleteCreditDebitEntryAsync = createAsyncThunk(
+  "Employee/deleteCreditDebit",
+  async (data) => {
+    try {
+      const response = await axios.post(`${deleteCreditDebitEntryUrl}/${data.employeId}/${data.recordId}`);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 const initialState = {
   Employees: [],
   ActiveEmployees: [],
@@ -180,13 +194,23 @@ const AccountSlice = createSlice({
       })
 
       
-      .addCase(reverseSalaryAsync.pending, (state, action) => {
+      .addCase(reverseSalaryAsync.pending, (state) => {
         state.employeEditLoading = true;
       })
-      .addCase(reverseSalaryAsync.fulfilled, (state, action) => {
+      .addCase(reverseSalaryAsync.fulfilled, (state) => {
         state.employeEditLoading = false;
       })
-      .addCase(reverseSalaryAsync.rejected, (state, action) => {
+      .addCase(reverseSalaryAsync.rejected, (state) => {
+        state.employeEditLoading = false;
+      })
+
+      .addCase(deleteCreditDebitEntryAsync.pending, (state) => {
+        state.employeEditLoading = true;
+      })
+      .addCase(deleteCreditDebitEntryAsync.fulfilled, (state) => {
+        state.employeEditLoading = false;
+      })
+      .addCase(deleteCreditDebitEntryAsync.rejected, (state) => {
         state.employeEditLoading = false;
       })
 

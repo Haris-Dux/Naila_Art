@@ -1,10 +1,11 @@
 import express from "express";
-import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
+import { superAdminOnly } from "../middleware/Auth.js";
 import {
   addEmploye,
   addLeave,
   creditDebitBalance,
   creditSalaryForSingleEmploye,
+  deleteCreditDebitEntry,
   getAllActiveEmploye,
   getAllPastEmploye,
   getEmployeDataById,
@@ -29,5 +30,7 @@ employRouter.post("/getAllPastEmploye", superAdminOnly, getAllPastEmploye);
 employRouter.post("/addLeave", superAdminOnly, addLeave);
 employRouter.post("/updateOvertime", superAdminOnly, updateOvertime);
 employRouter.post("/reverseSalary", superAdminOnly, reverseSalary);
+employRouter.post("/deleteCreditDebitEntry/:employeId/:recordId", superAdminOnly, deleteCreditDebitEntry);
+
 
 export default employRouter;

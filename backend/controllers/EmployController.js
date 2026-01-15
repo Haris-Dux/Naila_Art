@@ -5,6 +5,8 @@ import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
+import { CashbookTransactionAccounts, CashbookTransactionSource, TransactionType } from "../enums/cashbookk.enum.js";
+import { getTodayDate } from "../utils/Common.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -70,9 +72,9 @@ export const creditDebitBalance = async (req, res, next) => {
 
       const credit = parseInt(req.body.credit, 10);
       const debit = parseInt(req.body.debit, 10);
-      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      const today = getTodayDate();
       const employe = await EmployeModel.findById(id).session(session);
-      if (!employe) throw new Error("Employe Not Found");
+      if (!employe) throw new Error("Employe data not found");
       const lastNonSalaryTransaction = employe.financeData
         .slice()
         .reverse()
@@ -100,7 +102,9 @@ export const creditDebitBalance = async (req, res, next) => {
           particular: particular,
           date: date,
           payment_Method,
+          branchId
         });
+        const financeRecordId = employe.financeData[employe.financeData.length -1]._id
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -108,7 +112,7 @@ export const creditDebitBalance = async (req, res, next) => {
             session,
             payment_Method,
             amount: credit,
-            transactionType: "Deposit",
+            transactionType: TransactionType.DEPOSIT,
             date,
             note: `Credit Transaction for ${employe.name}`,
           };
@@ -119,8 +123,10 @@ export const creditDebitBalance = async (req, res, next) => {
           pastTransaction: isPastDate,
           branchId,
           amount: credit,
-          tranSactionType: "Deposit",
-          transactionFrom: "Employe",
+          tranSactionType: TransactionType.DEPOSIT,
+          transactionFrom: CashbookTransactionSource.EMPLOYE,
+          category: CashbookTransactionAccounts.EMPLOYE,
+          sourceId:financeRecordId,
           partyName: employe.name,
           payment_Method,
           ...(isPastDate && { pastDate: date }),
@@ -141,7 +147,9 @@ export const creditDebitBalance = async (req, res, next) => {
           debit: debit,
           credit: 0,
           payment_Method,
+          branchId
         });
+        const financeRecordId = employe.financeData[employe.financeData.length -1]._id
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -149,7 +157,7 @@ export const creditDebitBalance = async (req, res, next) => {
             session,
             payment_Method,
             amount: debit,
-            transactionType: "WithDraw",
+            transactionType: TransactionType.WITHDRAW,
             date,
             note: `Debit Transaction for ${employe.name}`,
           };
@@ -160,8 +168,10 @@ export const creditDebitBalance = async (req, res, next) => {
           pastTransaction: isPastDate,
           branchId,
           amount: debit,
-          tranSactionType: "WithDraw",
-          transactionFrom: "Employe",
+          tranSactionType: TransactionType.WITHDRAW,
+          transactionFrom: CashbookTransactionSource.EMPLOYE,
+          category: CashbookTransactionAccounts.EMPLOYE,
+          sourceId:financeRecordId,
           partyName: employe.name,
           payment_Method,
           ...(isPastDate && { pastDate: date }),
@@ -269,13 +279,13 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         throw new Error("Invalid month");
       }
       const employe = await EmployeModel.findById(id).session(session);
-      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
-      if (!employe) throw new Error("Employe Not Found");
+      const today = getTodayDate();
+      if (!employe) throw new Error("Employe data not found");
 
       //VERIFY IF SALARY IS CREDITED FOR CURRENT MOTN OR NOT
       const isSalaryPaid = employe.salaryStatus[Number(month)];
       if (isSalaryPaid) {
-        throw new Error("Salary Already Paid For This Month");
+        throw new Error("Salary already paid for this month");
       } else {
         employe.salaryStatus[month] = true;
       }
@@ -285,14 +295,14 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         debit: salary,
         balance: 0,
         particular: `Salary Credit/${payment_Method}/Overtime:${over_time}/Leaves:${leaves}/Month:${month}`,
-        date: today,
+        date,
         over_time,
         leaves,
         payment_Method,
         branchId,
         salaryTransaction: true,
       });
-
+      const financeRecordId = employe.financeData[employe.financeData.length - 1]._id;
       employe.overtime_Data.hours = 0;
       await employe.save({ session });
 
@@ -357,7 +367,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
             date: today,
           }).session(session);
           if (!dailySaleForToday) {
-            throw new Error("Daily sale record not found for This Date");
+            throw new Error("Daily sale record not found for this date");
           }
 
           dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash -=
@@ -377,7 +387,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           session,
           payment_Method,
           amount: salary,
-          transactionType: "WithDraw",
+          transactionType: TransactionType.WITHDRAW,
           date,
           note: `Salary credit for ${employe.name}`,
         };
@@ -389,12 +399,13 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         pastTransaction: isPastDate,
         branchId,
         amount: salary,
-        tranSactionType: "WithDraw",
-        transactionFrom: "Employe",
+        tranSactionType: TransactionType.WITHDRAW,
+        transactionFrom: CashbookTransactionSource.EMPLOYE,
+        category: CashbookTransactionAccounts.EMPLOYE,
+        sourceId: financeRecordId,
         partyName: employe.name,
         payment_Method,
         ...(isPastDate && { pastDate: date }),
-
         session,
       };
       await cashBookService.createCashBookEntry(dataForCashBook);
@@ -601,25 +612,34 @@ export const reverseSalary = async (req, res, next) => {
     await session.withTransaction(async () => {
       const { id, transactionId, amount, payment_Method, branchId } = req.body;
       if (!id || !transactionId || !amount || !branchId || !payment_Method)
-        throw new Error("Missing Fields");
+        throw new Error("Missing fields");
       const employe = await EmployeModel.findById(id).session(session);
-      const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
+      const transaction = employe.financeData.find(
+        (item) => item._id.toString() === transactionId
+      );
+      if (!transaction || !transaction.salaryTransaction) {
+        throw new Error("Can Not Delete Transaction");
+      } 
+      const today = getTodayDate();
       if (!employe) throw new Error("Employe Not Found");
 
       //ADD IN PAYMENT METHID
-      const dailySaleForToday = await DailySaleModel.findOne({
-        branchId,
-        date: today,
-      }).session(session);
-      if (!dailySaleForToday) {
-        throw new Error("Daily sale record not found for This Date");
+      if(payment_Method === "cashSale") {
+        await DailySaleModel.updateMany(
+          {
+          branchId,
+          date:{
+            $gte: transaction.date,
+            $lte:today
+          }
+        },
+        {
+          $inc:{
+           "saleData.totalCash": amount,
+          }
+        }
+      );
       }
-      if (payment_Method === "cashSale") {
-        dailySaleForToday.totalCash = dailySaleForToday.saleData.totalCash +=
-          amount;
-      }
-
-      await dailySaleForToday.save({ session });
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -627,43 +647,177 @@ export const reverseSalary = async (req, res, next) => {
           session,
           payment_Method,
           amount,
-          transactionType: "Deposit",
+          transactionType: TransactionType.DEPOSIT,
           date: today,
           note: `Salary Reversed for ${employe.name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
-      //PUSH DATA FOR CASH BOOK
+      //DELETE CASH BOOK ENTRY
       const dataForCashBook = {
-        pastTransaction: false,
-        branchId,
-        amount,
-        tranSactionType: "Deposit",
-        transactionFrom: "Employe",
-        partyName: employe.name,
-        payment_Method,
+        id: transactionId,
         session,
       };
-      await cashBookService.createCashBookEntry(dataForCashBook);
+      await cashBookService.deleteEntry(dataForCashBook);
 
       //MARKING TRANSACTION AS DELETED
-      const transaction = employe.financeData.find(
-        (item) => item._id.toString() === transactionId
-      );
-      if (!transaction || !transaction.salaryTransaction) {
-        throw new Error("Can Not Delete Transaction");
-      }
       const month = transaction.particular.match(/Month:(\d+)/);
       if (month) {
         employe.salaryStatus[Number(month[1])] = false;
       } else {
         throw new Error("Something Went Wrong");
       }
-      transaction.reversed = true;
+      employe.financeData = employe.financeData.filter(
+        (item) => item?._id?.toString() !== transactionId
+      );
+      employe.salaryStatus[transaction.m]
       await employe.save({ session });
 
-      return res.status(200).json({ success: true, message: "Success" });
+      return res.status(200).json({ success: true, message: "Salary reverse successfull" });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
+export const deleteCreditDebitEntry = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { employeId, recordId } = req.params;
+      if (!employeId || !recordId) throw new Error("Record id is required");
+
+      const today = getTodayDate();
+      const employe = await EmployeModel.findById(employeId).session(session);
+      if (!employe) throw new Error("Employe data not found");
+      const recordData = employe.financeData.find(
+        (record) => record._id?.toString() === recordId
+      );
+      const payment_Method = recordData.payment_Method;
+      let credit = null;
+      let debit = null;
+
+      if (recordData.credit > 0) {
+        credit = parseInt(recordData.credit, 10);
+      } else if (recordData.debit > 0) {
+        debit = parseInt(recordData.debit, 10);
+      }
+
+      const lastNonSalaryTransaction = employe.financeData
+        .slice()
+        .reverse()
+        .find((transaction) => !transaction.salaryTransaction);
+
+      let newBalance = lastNonSalaryTransaction
+        ? lastNonSalaryTransaction.balance
+        : 0;
+
+      //CREDIT LOGIC
+      if (credit >= 0) {
+        newBalance -= credit;
+
+        //UPDATING VIRTUAL ACCOUNTS
+        if (payment_Method !== "cashSale") {
+          const data = {
+            session,
+            payment_Method,
+            amount: credit,
+            transactionType: TransactionType.WITHDRAW,
+            date:today,
+            note: `Credit transaction deleted for ${employe.name}`,
+          };
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+        }
+      }
+
+      //DEBIT LOGIC
+      if (debit >= 0) {
+        newBalance += debit;
+
+        //UPDATING VIRTUAL ACCOUNTS
+        if (payment_Method !== "cashSale") {
+          const data = {
+            session,
+            payment_Method,
+            amount: debit,
+            transactionType: TransactionType.DEPOSIT,
+            date:today,
+            note: `Debit transaction deleted for ${employe.name}`,
+          };
+          await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+        }
+      }
+
+      //DELETE CASH BOOK ENTRY
+      const dataForCashBook = {
+        id: recordId,
+        session,
+      };
+      await cashBookService.deleteEntry(dataForCashBook);
+
+      //UPDATE DAILY SALE
+      if (payment_Method === "cashSale") {
+
+        const amountForDailySale =
+          credit > 0 ? -credit : debit > 0 ? debit : 0;
+
+          const targetDate = moment.tz(recordData.date, "Asia/Karachi").startOf("day");
+          const dateList = [];
+
+          const current = moment(targetDate);
+          while (current.isSameOrBefore(today)) {
+            dateList.push(current.format("YYYY-MM-DD"));
+            current.add(1, "day");
+          }
+
+          const dailySales = await DailySaleModel.find({
+            branchId:recordData.branchId,
+            date: { $in: dateList },
+          }).session(session);
+
+          if (dailySales.length !== dateList.length) {
+            const foundDates = dailySales.map((d) => d.date);
+            const missing = dateList.filter((d) => !foundDates.includes(d));
+            throw new Error(
+              `Missing Daily Sale records for: ${missing.join(", ")}`
+            );
+          }
+
+          // Prepare bulk operations
+          const bulkOps = dailySales.map((saleDoc) => {
+            const update = {
+              $inc: {
+                "saleData.totalCash": amountForDailySale,
+              },
+            };
+            if (credit >= 0) {
+              const futureCash = saleDoc.saleData.totalCash - credit;
+              if (futureCash < 0) {
+                throw new Error(`Not enough cash on ${saleDoc.date}`);
+              }
+            }
+
+            return {
+              updateOne: {
+                filter: { _id: saleDoc._id },
+                update,
+              },
+            };
+          });
+
+          await DailySaleModel.bulkWrite(bulkOps, { session });
+      };
+
+       employe.financeData = employe.financeData.filter(
+        (record) => record._id?.toString() !== recordId
+      );
+      await employe.save({ session });
+      return res
+        .status(200)
+        .json({ success: true, message: "Transaction deleted successfully" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
