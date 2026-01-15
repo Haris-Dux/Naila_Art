@@ -183,7 +183,7 @@ class cashBookHistoryService {
       const Model = modelBycategory[category];
       if (!Model) throw new CustomError("Invalid account category", 400);
       const accountData = await Model.findById(sourceId).session(session);
-      if (!accountData) throw new CustomError("Linked account not found", 404);
+      if (!accountData) throw new CustomError("Linked account with transaction not found", 404);
 
       if (category === CashbookTransactionAccounts.BUYERS) {
         const { total_debit, total_credit, total_balance, status } =
@@ -250,8 +250,10 @@ class cashBookHistoryService {
           dailySale.saleData.totalCash += amount;
           if (isDeposit && date === item) {
             dailySale.saleData.cashSale += amount;
-            dailySale.saleData.todayBuyerCredit += amount;
             dailySale.saleData.totalSale += amount;
+            if (category === CashbookTransactionAccounts.BUYERS) {
+              dailySale.saleData.todayBuyerCredit += amount;
+            }
           }
 
           if (dailySale.saleData.totalCash < 0) {

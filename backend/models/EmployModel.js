@@ -42,8 +42,8 @@ const financeSchema = new mongoose.Schema({
     default: 0,
   },
   branchId: {
-    type: String,
-    default: "",
+    type:  String,
+    default:null
   },
 });
 

@@ -47,13 +47,14 @@ const cashBookServiceSchema = new mongoose.Schema(
     sourceId: {
       type: mongoose.Types.ObjectId,
       default: null
-      // required: [true,"Cash book transaction source data is required"],
     },
     category: {
       type:String,
-      default:null
-      // enum:[CashbookTransactionAccounts],
-      // required: [true,"Cash book transaction account category data is required"],  
+      default:null,
+      enum: {
+        values: Object.values(CashbookTransactionAccounts),
+        message: "Invalid cashbook transaction category"
+      },
     }
   },
   { timestamps: true }

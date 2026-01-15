@@ -1089,7 +1089,6 @@ export const deleteBuyerBill = async (req, res, next) => {
       const dataForCashBook = {
         id:billData._id,
         session,
-        category:CashbookTransactionAccounts.BUYERS
       };
       await cashBookService.deleteEntry(dataForCashBook);
 

@@ -26,7 +26,6 @@ const Employee = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -369,7 +368,7 @@ const Employee = () => {
                           </Link>
                         </td>
                         {selectedCategory === "Active Employee" && (
-                          <td className="pl-10 py-4 flex gap-2 mt-2">
+                          <td className="pl-10 py-4 flex gap-2 mt-2">                          
                             <FaEdit
                               size={20}
                               className="cursor-pointer"

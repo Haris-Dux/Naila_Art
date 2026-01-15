@@ -9,7 +9,6 @@ import { updateTotalCashForDateRange } from "../../services/DailySaleService.js"
 import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { cashBookService } from "../../services/CashbookService.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
-
 import mongoose from "mongoose";
 
 export const createOtherAccount = async (req, res, next) => {
