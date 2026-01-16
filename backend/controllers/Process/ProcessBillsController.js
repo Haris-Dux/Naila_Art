@@ -13,6 +13,7 @@ import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
+import { SellersModel } from "../../models/sellers/SellersModel.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -803,7 +804,7 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
     const { accountId, totalDebit, totalCredit, totalBalance, category } =
       req.body;
     let accountData = null;
-    let new_status = "";
+    let new_status = ""; 
     if (category === "process") {
       accountData = await processBillsModel.findById(accountId);
 
@@ -842,7 +843,26 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
             "Wrong account balance calculation. Invalid account status"
           );
       }
-    } else throw new CustomError("Invalid category", 400);
+    } else if(category === "sellers") {
+      accountData = await SellersModel.findById(accountId);
+
+      switch (true) {
+        case totalBalance === 0:
+          new_status = "Paid";
+          break;
+        case totalBalance > 0:
+          new_status = "Unpaid";
+          break;
+        case totalBalance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          throw new Error(
+            "Wrong account balance calculation. Invalid account status"
+          );
+      }
+    } 
+    else throw new CustomError("Invalid category", 400);
 
     const updateVirtualAccountData = {
       total_debit:totalDebit,
