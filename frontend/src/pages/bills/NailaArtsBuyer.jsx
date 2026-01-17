@@ -209,17 +209,7 @@ const NailaArtsBuyer = () => {
 
   return (
     <>
-      {billHistoryLoading || branchesLoading ? (
-        <div className="min-h-[90vh] flex justify-center items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-      ) : (
+
         <>
           <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
             {/* UPPER TABS */}
@@ -307,7 +297,17 @@ const NailaArtsBuyer = () => {
             <p className="w-full bg-gray-300 h-px mt-5"></p>
 
             {/* -------------- TABLE -------------- */}
-
+      {billHistoryLoading || branchesLoading ? (
+        <div className="min-h-[90vh] flex justify-center items-center">
+          <div
+            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+            role="status"
+            aria-label="loading"
+          >
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+      ) : (
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
@@ -427,6 +427,7 @@ const NailaArtsBuyer = () => {
                 </tbody>
               </table>
             </div>
+             )}
           </section>
 
           {/* -------- PAGINATION -------- */}
@@ -534,7 +535,7 @@ const NailaArtsBuyer = () => {
             </nav>
           </section>
         </>
-      )}
+     
       {/* Suit Histoty Modal */}
       {isOpen && (
         <div

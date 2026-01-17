@@ -7,7 +7,7 @@ import { branchStockModel } from "../../models/BranchStock/BranchSuitsStockModel
 import { cashBookService } from "../../services/CashbookService.js";
 import moment from "moment-timezone";
 import { calculateBuyerAccountBalance } from "../../utils/buyers.js";
-import { CashbookTransactionAccounts, CashbookTransactionSource } from "../../enums/cashbookk.enum.js";
+import { CashbookTransactionAccounts, CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -160,7 +160,7 @@ export const createReturn = async (req, res, next) => {
 
       if (Amount_Payable <= 0 && method === "default-account") {
 
-        const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_From_Balance, total:0, oldAccountData:buyer, deleteBill:true})
+        const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account, deleteBill:true})
         const virtualAccountData = {
           total_debit,
           total_credit,
@@ -182,7 +182,7 @@ export const createReturn = async (req, res, next) => {
         await buyer.save({ session });
       } else if (Amount_Payable > 0 && method === "account") {
 
-       const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer})
+       const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer.virtual_account})
 
         const virtualAccountData = {
           total_debit,
@@ -195,7 +195,7 @@ export const createReturn = async (req, res, next) => {
 
         const credit_debit_history_details = {
           date,
-          particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
+          particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_Payable,
           balance: total_balance,
         };
@@ -214,11 +214,11 @@ export const createReturn = async (req, res, next) => {
             date: date,
           }).session(session);
           if (!dailySaleForToday) {
-            throw new Error("Daily sale record not found for Today");
+            throw new Error("Daily sale record not found for selected date");
           }
           dailySaleForToday.saleData.totalCash -= Amount_Payable;
           if (dailySaleForToday.saleData.totalCash < 0) {
-            throw new Error("Not Enough Total Cash");
+            throw new Error("Not enough total cash");
           }
           await dailySaleForToday.save({ session });
         }
@@ -243,7 +243,7 @@ export const createReturn = async (req, res, next) => {
             const foundDates = dailySales.map((d) => d.date);
             const missing = dateList.filter((d) => !foundDates.includes(d));
             throw new Error(
-              `Missing Daily Sale records for: ${missing.join(", ")}`
+              `Missing daily dale records for: ${missing.join(", ")}`
             );
           }
 
@@ -257,7 +257,7 @@ export const createReturn = async (req, res, next) => {
 
             const futureCash = saleDoc.saleData.totalCash - Amount_Payable;
             if (futureCash < 0) {
-              throw new Error(`Not enough cash on ${saleDoc.date}`);
+              throw new Error(`Not enough cash available on ${saleDoc.date}`);
             }
 
             return {
@@ -273,7 +273,7 @@ export const createReturn = async (req, res, next) => {
 
         if (Amount_From_Balance > 0) {
 
-          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer, deleteBill:true});
+          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer.virtual_account, deleteBill:true});
 
           const virtualAccountData = {
             total_debit,
@@ -285,7 +285,7 @@ export const createReturn = async (req, res, next) => {
           //DATA FOR CREDIT DEBIT HISTORY
           const credit_debit_history_details = {
             date: date,
-            particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
+            particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
             credit: Amount_From_Balance,
             balance: total_balance,
           };
@@ -301,7 +301,7 @@ export const createReturn = async (req, res, next) => {
           pastTransaction: isPastDate,
           branchId,
           amount: Amount_Payable,
-          tranSactionType: "WithDraw",
+          tranSactionType: TransactionType.WITHDRAW,
           transactionFrom: CashbookTransactionSource.RETURN_BILLS,
           partyName: buyerBill.name,
           sourceId:bill_Id,
@@ -337,7 +337,7 @@ export const createReturn = async (req, res, next) => {
 
       return res
         .status(200)
-        .json({ success: true, message: "Return Successfull" });
+        .json({ success: true, message: "Return bill successfull" });
     });
   } catch (error) {
     return res.status(400).json({ error: error.message });
