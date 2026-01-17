@@ -273,7 +273,7 @@ export const createReturn = async (req, res, next) => {
 
         if (Amount_From_Balance > 0) {
 
-          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable + Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account, deleteBill:true});
+          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer.virtual_account});
 
           const virtualAccountData = {
             total_debit,
