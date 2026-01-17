@@ -1002,6 +1002,7 @@ const EmbroideryDetails = () => {
             embroidery_Id={id}
             design_no={design_no}
             serial_No={serial_No}
+            Manual_No={Manual_No}
           />
         )}
 

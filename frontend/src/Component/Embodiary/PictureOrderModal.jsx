@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import Select from "react-select";
+import { useState } from "react";
 import ReactSearchBox from "react-search-box";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +7,8 @@ import {
   getaccountDataForPicturesAsync,
 } from "../../features/EmbroiderySlice";
 import toast from "react-hot-toast";
-const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) => {
+
+const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No, Manual_No }) => {
   const dispatch = useDispatch();
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [partyValue, setPartyValue] = useState("newParty");
@@ -25,6 +25,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) 
     accountId: "",
     serial_No:serial_No
   });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -32,6 +33,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) 
       [name]: name === 'T_Quantity' || name === 'rate' ? Number(value) : value
     }));
   };
+
   const togleNameField = (e) => {
     const value = e.target.value;
     setPartyValue(value);
@@ -49,7 +51,6 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) 
     const Data = accountDataForPictures?.find(
       (item) => item.partyName === value
     );
-    console.log('Data?.id',Data?.id);
     setFormData((prev) => ({
         ...prev,
         partyName: value,
@@ -62,6 +63,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) 
       setAccountData(false);
     }
   };
+
   const setAccountStatusColor = (status) => {
     switch (status) {
       case "Partially Paid":
@@ -86,10 +88,15 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if(formData.partyName === "") 
-        return toast.error("Please fill all the required fields");
+    if (formData.partyName === "")
+      return toast.error("Please fill all the required fields");
+    const payload = {
+      ...formData,
+      rate: formData.rate * formData.T_Quantity,
+      Manual_No:Manual_No
+    };
 
-    dispatch(createPictureOrderAsync(formData)).then((res) => {
+    dispatch(createPictureOrderAsync(payload)).then((res) => {
         if(res.payload.success === true){
             closeModal();
         }
