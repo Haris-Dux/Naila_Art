@@ -19,7 +19,8 @@ import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
-import { getTodayDate } from "../../../../backend/utils/Common";
+import { getTodayDate } from "../../Utils/Common";
+
 
 const EmployeeDetails = () => {
   const { id } = useParams();
