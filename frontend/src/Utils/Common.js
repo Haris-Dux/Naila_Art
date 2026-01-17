@@ -14,7 +14,7 @@ export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };
 
-  export const setAccountStatusColor = (status) => {
+export const setAccountStatusColor = (status) => {
     switch (status) {
       case "Paid":
         return "text-[#2ECC40]";
@@ -25,4 +25,4 @@ export const getTodayDate = () => {
       default:
         return "text-black";
     }
-  };
+};
