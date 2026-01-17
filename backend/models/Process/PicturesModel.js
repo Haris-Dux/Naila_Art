@@ -21,8 +21,7 @@ const financialDetails = new mongoose.Schema({
 });
 
 const transaction_details = new mongoose.Schema({
-
-  date: {
+date: {
     type: String,
     required: [true, "Date is required"],
   },
