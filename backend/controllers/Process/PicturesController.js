@@ -79,7 +79,7 @@ export const createPictureOrder = async (req, res, next) => {
         const credit_debit_history_details = [
           {
             date,
-            particular: `New bill For Design No. ${design_no}/Manual No. ${Manual_No}`,
+            particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
             credit: rate,
             balance: rate,
             orderId: newPictureOrder[0]._id,
@@ -133,7 +133,7 @@ export const createPictureOrder = async (req, res, next) => {
         //DATA FOR CREDIT DEBIT HISTORY
         const credit_debit_history_details = {
           date,
-          particular: `New bill For Design No. ${design_no}/Manual No. ${Manual_No}`,
+          particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
           credit: rate,
           balance: new_total_balance,
           orderId: newPictureOrder[0]._id,
