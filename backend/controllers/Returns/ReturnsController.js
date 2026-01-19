@@ -82,7 +82,7 @@ export const createReturn = async (req, res, next) => {
       }
 
       if (Amount_Payable > 0 && method === "default-account") {
-        throw new Error("Please Select a Valid Method");
+        throw new Error("Please select a valid method");
       }
 
       //ADDING RETURN QUANTITY BACK INTO STOCK
@@ -112,7 +112,7 @@ export const createReturn = async (req, res, next) => {
       }).session(session);
 
       if (!dailySaleForSaleDay) {
-        throw new Error("Daily sale record not found for Sale Day");
+        throw new Error("Daily sale record not found for sale day");
       }
       const buyerBill = await BuyersBillsModel.findById(bill_Id).session(
         session
@@ -128,7 +128,7 @@ export const createReturn = async (req, res, next) => {
             record.quantity_for_return -= suit.quantity;
             if (record.quantity_for_return < 0) {
               throw new Error(
-                `Not Enough Returnable Quantity For (Category/${record.category},Color/${record.color})`
+                `Not enough returnable quantity for (Category/${record.category},Color/${record.color})`
               );
             }
           }
@@ -138,7 +138,7 @@ export const createReturn = async (req, res, next) => {
       dailySaleForSaleDay.saleData.totalSale -= amounttodeductFromBillSale;
       if (dailySaleForSaleDay.saleData.totalSale < 0) {
         throw new Error(
-          `Invalid Return Request.Total Sale for ${bill_Date} cannot be less then 0`
+          `Invalid return request.Total sale for ${bill_Date} cannot be less then 0`
         );
       }
       buyerBill.is_return_made = true;
@@ -160,7 +160,7 @@ export const createReturn = async (req, res, next) => {
 
       if (Amount_Payable <= 0 && method === "default-account") {
 
-        const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account, deleteBill:true})
+        const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account})
         const virtualAccountData = {
           total_debit,
           total_credit,
@@ -271,9 +271,39 @@ export const createReturn = async (req, res, next) => {
           await DailySaleModel.bulkWrite(bulkOps, { session });
         }
 
+        // Need to work on case if amount from balance is greater then 0 but account status is paid.
         if (Amount_From_Balance > 0) {
+          console.log('running this')
 
-          const {total_debit, total_credit, total_balance, status} = calculateBuyerAccountBalance({paid:Amount_Payable, total:0, oldAccountData:buyer.virtual_account});
+          const result = calculateBuyerAccountBalance({paid:Amount_Payable + Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account});
+
+            const accountDataAterCreditEntry = {
+              total_debit: result.total_debit,
+              total_credit: result.total_credit,
+              total_balance: result.total_balance,
+            };
+
+            const creditEntry = {
+              date: date,
+              particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
+              credit: Amount_From_Balance + Amount_Payable,
+              balance: accountDataAterCreditEntry.total_balance,
+            };
+
+          const { total_debit, total_credit, total_balance, status } =
+            calculateBuyerAccountBalance({
+              paid: Amount_Payable,
+              total: 0,
+              oldAccountData: accountDataAterCreditEntry,
+              isCashOut: true,
+            });
+
+          const debitEntry = {
+            date: date,
+            particular: `Cash payment for return bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
+            debit: Amount_Payable,
+            balance: total_balance,
+          };
 
           const virtualAccountData = {
             total_debit,
@@ -282,17 +312,9 @@ export const createReturn = async (req, res, next) => {
             status,
           };
 
-          //DATA FOR CREDIT DEBIT HISTORY
-          const credit_debit_history_details = {
-            date: date,
-            particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
-            credit: Amount_From_Balance,
-            balance: total_balance,
-          };
-
           //UPDATING Buyer DATA IN DB
           buyer.virtual_account = virtualAccountData;
-          buyer.credit_debit_history.push(credit_debit_history_details);
+          buyer.credit_debit_history.push(creditEntry, debitEntry);
           await buyer.save({ session });
         }
 
