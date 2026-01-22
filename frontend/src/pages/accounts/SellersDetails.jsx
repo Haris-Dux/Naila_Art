@@ -1,12 +1,27 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { GetSellerByIdAsync } from '../../features/SellerSlice';
 import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Icon from '../../Component/Common/Icons';
+import { temporaryAccountUpdateAsync } from '../../features/ProcessBillSlice';
 
 
 const SellersDetails = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
+
+    const [sellerEditFormData, setEditFormData] = useState({
+        accountId: "",
+        totalDebit: "",
+        totalCredit: "",
+        totalBalance: "",
+        category: "buyers",
+      });
+    const [isSellerEditMode, setIsSellerEditMode] = useState(false);
+
+      const onSellerNumberChange = (key,value) => {
+      setEditFormData((prev) => ({ ...prev, [key]: value }))
+      }
 
     const { loading, SellerById } = useSelector((state) => state.Seller);
 
@@ -16,33 +31,134 @@ const SellersDetails = () => {
         }
     }, [dispatch, id]);
 
+      const handleAccountUpdate = () => {
+         const updatedData = {
+        accountId: id,
+        totalDebit: Number(sellerEditFormData.totalDebit || 0),
+        totalCredit: Number(sellerEditFormData.totalCredit || 0),
+        totalBalance: Number(sellerEditFormData.totalBalance || 0),
+        category: "sellers"
+      };
+        dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
+          if (res.payload.success) {
+            dispatch(GetSellerByIdAsync({ id }));
+            setIsSellerEditMode(false);
+            setEditFormData({
+              accountId: "",
+              totalDebit: "",
+              totalCredit: "",
+              totalBalance: "",
+              category: "buyers",
+            });
+          }
+        });
+      };
+
 
     return (
         <>
             <section className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg'>
                 {/* BUYER DETAILS */}
-                <div className="px-2 py-2 mb-3 grid grid-cols-1 items-center text-center gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Title</h3>
-                        <h3>{SellerById?.name}</h3>
-                    </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Phone Number</h3>
-                        <h3>{SellerById?.phone}</h3>
-                    </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium text-red-500'>Total Debit</h3>
-                        <h3 className='font-medium text-red-500'>{SellerById?.virtual_account?.total_debit === null ? "0" : SellerById?.virtual_account?.total_debit}</h3>
-                    </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Total Credit</h3>
-                        <h3>{SellerById?.virtual_account?.total_credit === null ? "0" : SellerById?.virtual_account?.total_credit}</h3>
-                    </div>
-                    <div className="box">
-                        <h3 className='pb-1 font-medium'>Total Balance</h3>
-                        <h3>{SellerById?.virtual_account?.total_balance === null ? "0" : SellerById?.virtual_account?.total_balance}</h3>
-                    </div>
-                </div>
+<div className="px-2 py-2 mb-3 grid grid-cols-1 items-center text-center gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
+  <div className="box">
+    <h3 className="pb-1 font-medium">Title</h3>
+    <h3>{SellerById?.name}</h3>
+  </div>
+
+  <div className="box">
+    <h3 className="pb-1 font-medium">Phone Number</h3>
+    <h3>{SellerById?.phone}</h3>
+  </div>
+
+  {/* Total Debit */}
+  <div className="box">
+    <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
+
+    {!isSellerEditMode ? (
+      <h3 className="font-medium text-red-500">
+        {SellerById?.virtual_account?.total_debit === null
+          ? "0"
+          : SellerById?.virtual_account?.total_debit}
+      </h3>
+    ) : (
+      <input
+        type="text"
+        placeholder="Enter debit"
+        value={sellerEditFormData.totalDebit}
+        onChange={(e) => onSellerNumberChange("totalDebit", e.target.value)}
+        className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+      />
+    )}
+  </div>
+
+  {/* Total Credit */}
+  <div className="box">
+    <h3 className="pb-1 font-medium">Total Credit</h3>
+
+    {!isSellerEditMode ? (
+      <h3>
+        {SellerById?.virtual_account?.total_credit === null
+          ? "0"
+          : SellerById?.virtual_account?.total_credit}
+      </h3>
+    ) : (
+      <input
+        type="text"
+        placeholder="Enter credit"
+        value={sellerEditFormData.totalCredit}
+        onChange={(e) => onSellerNumberChange("totalCredit", e.target.value)}
+        className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+      />
+    )}
+  </div>
+
+  {/* Total Balance + icons */}
+  <div className="box">
+    <div className="flex items-center justify-center gap-2">
+      <h3 className="pb-1 font-medium">Total Balance</h3>
+
+      {!isSellerEditMode ? (
+        <button
+          type="button"
+          onClick={() => setIsSellerEditMode(true)}
+          title="Edit credit/debit/balance"
+        >
+          <Icon name="edit" className="cursor-pointer" />
+        </button>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={handleAccountUpdate} title="Submit">
+            <Icon name="tick" className="cursor-pointer" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsSellerEditMode(false)}
+            title="Cancel"
+          >
+            <Icon name="cross" className="cursor-pointer" />
+          </button>
+        </div>
+      )}
+    </div>
+
+    {!isSellerEditMode ? (
+      <h3>
+        {SellerById?.virtual_account?.total_balance === null
+          ? "0"
+          : SellerById?.virtual_account?.total_balance}
+      </h3>
+    ) : (
+      <input
+        type="text"
+        placeholder="Enter balance"
+        value={sellerEditFormData.totalBalance}
+        onChange={(e) => onSellerNumberChange("totalBalance", e.target.value)}
+        className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+      />
+    )}
+  </div>
+</div>
 
 
                 {/* -------------- TABLE -------------- */}
@@ -92,9 +208,7 @@ const SellersDetails = () => {
                             <tbody>
                                 {SellerById && SellerById?.credit_debit_history?.length > 0 ? (
                                     SellerById?.credit_debit_history?.slice().reverse().map((data, index) => (
-                                        <tr key={index} className={` border-b text-md font-semibold ${
-                                            data.particular.startsWith("Bill Deleted") ? "bg-red-500 text-white" : "bg-white text-black"
-                                          }`}>
+                                        <tr key={index} className={` border-b text-md font-semibold "bg-white text-black"`}>
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"
                                             >

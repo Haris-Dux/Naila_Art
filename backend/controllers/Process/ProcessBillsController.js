@@ -11,7 +11,9 @@ import moment from "moment-timezone";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
-import { calculateProcessAccountBalance } from "../../utils/process.js";
+import { calculateAccountBalance } from "../../utils/accounting.js";
+import { BuyersModel } from "../../models/BuyersModel.js";
+import { SellersModel } from "../../models/sellers/SellersModel.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -214,7 +216,7 @@ export const generateProcessBill = async (req, res, next) => {
       else {
         //DATA FOR VIRTUAL ACCOUNT
 
-        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:true});
    
 
         //Creating Virtual Account Data
@@ -577,7 +579,7 @@ export const deleteBillAndProcessOrder = async (req, res, next) => {
         .session(session);
 
       //DATA FOR VIRTUAL ACCOUNT
-        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
+        const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
 
       //Creating Virtual Account Data
       const virtualAccountData = {
@@ -682,7 +684,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
 
     //UPDATING ACCOUNT STATUS
 
-    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
 
     const virtualAccountData = {
         total_debit: new_total_debit,
@@ -738,7 +740,7 @@ export const claimProcessAccount = async (req, res, next) => {
       //UPDATING ACCOUNT STATUS
 
       //DATA FOR VIRTUAL ACCOUNT
-      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:true});
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:true});
 
        const credit_debit_history_details = {
         date: today,
@@ -766,7 +768,7 @@ export const claimProcessAccount = async (req, res, next) => {
       //UPDATING ACCOUNT STATUS
 
       //DATA FOR VIRTUAL ACCOUNT
-      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount,oldAccountData,credit:false});
+      const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount,oldAccountData,credit:false});
 
       const credit_debit_history_details = {
         date: today,
@@ -802,7 +804,7 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
     const { accountId, totalDebit, totalCredit, totalBalance, category } =
       req.body;
     let accountData = null;
-    let new_status = "";
+    let new_status = ""; 
     if (category === "process") {
       accountData = await processBillsModel.findById(accountId);
 
@@ -821,7 +823,46 @@ export const temporaryAcoountUpdate = async (req, res, next) => {
             "Wrong account balance calculation. Invalid account status"
           );
       }
-    } else throw new CustomError("Invalid category", 400);
+    } else if (category === "buyers") {
+      accountData = await BuyersModel.findById(accountId);
+
+      switch (true) {
+        case totalBalance === 0:
+          new_status = "Paid";
+          break;
+        case totalCredit === 0:
+          new_status = "Unpaid";
+        case totalBalance > 0:
+          new_status = "Partially Paid";
+          break;
+        case totalBalance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          throw new Error(
+            "Wrong account balance calculation. Invalid account status"
+          );
+      }
+    } else if(category === "sellers") {
+      accountData = await SellersModel.findById(accountId);
+
+      switch (true) {
+        case totalBalance === 0:
+          new_status = "Paid";
+          break;
+        case totalBalance > 0:
+          new_status = "Unpaid";
+          break;
+        case totalBalance < 0:
+          new_status = "Advance Paid";
+          break;
+        default:
+          throw new Error(
+            "Wrong account balance calculation. Invalid account status"
+          );
+      }
+    } 
+    else throw new CustomError("Invalid category", 400);
 
     const updateVirtualAccountData = {
       total_debit:totalDebit,

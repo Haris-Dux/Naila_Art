@@ -252,17 +252,6 @@ const Sellers = () => {
             </button>
 
             <button
-              onClick={() => handleStatusClick("Partially Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Partially Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Partially Paid
-            </button>
-
-            <button
               onClick={() => handleStatusClick("Advance Paid")}
               className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
                 paymentStatus === "Advance Paid"

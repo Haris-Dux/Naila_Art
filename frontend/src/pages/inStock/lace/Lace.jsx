@@ -381,7 +381,7 @@ const Lace = () => {
                                     {filteredData && filteredData.length > 0 ? (
                                         filteredData.map((item, index) => (
                                             item?.all_Records?.slice().reverse().map((data, subIndex) => (
-                                                <tr key={`${index}-${subIndex}`}                       className={`${data?.quantity?.startsWith("Deleted") ? "bg-red-500 text-white" : "text-black bg-white"} border-b text-md font-medium `}
+                                                <tr key={`${index}-${subIndex}`}                       className={`text-black bg-white border-b text-md font-medium `}
 >
                                                     <th className="px-6 py-4">
                                                         {data.bill_no}

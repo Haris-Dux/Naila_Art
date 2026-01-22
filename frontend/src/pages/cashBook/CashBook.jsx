@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllCashBookEntriesAsync } from "../../features/CashBookSlice";
+import { deleteCashBookEntryAsync, getAllCashBookEntriesAsync } from "../../features/CashBookSlice";
 import { CiSearch } from "react-icons/ci";
 import { GrPowerReset } from "react-icons/gr";
-import moment from "moment-timezone";
+import Icon from "../../Component/Common/Icons";
+import { getTodayDate } from "../../Utils/Common";
+import { Roles } from "../../constants/Roles";
+import DeleteModal from "../../Component/Modal/DeleteModal";
 
 const CashBook = () => {
   const dispatch = useDispatch();
-  const { loading, cashBookData } = useSelector((state) => state.CashBook);
+  const { loading, cashBookData, deleteLoading } = useSelector((state) => state.CashBook);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
-   const { user } = useSelector((state) => state.auth);
-    const { Branches } = useSelector((state) => state.InStock);
+  const { role } = useSelector((state) => state.auth);
+  const { Branches } = useSelector((state) => state.InStock);
+  const [toDelete, setToDelete] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(false);
 
-  const today = moment().tz("Asia/Karachi").format("YYYY-MM-DD");
+  const today = getTodayDate();
 
   const [filters, setFilters] = useState({
     dateFrom: today,
@@ -51,6 +56,30 @@ const CashBook = () => {
     setFilters(updatedFilters);
     dispatch(getAllCashBookEntriesAsync(updatedFilters));
   };
+
+    const openDeleteModal = (id) => {
+      setDeleteModal(true);
+      setToDelete(id);
+      document.body.style.overflow = "hidden";
+    };
+    
+    const closeDeleteModal = () => {
+      setDeleteModal(false);
+      setToDelete(null);
+      document.body.style.overflow = "auto";
+    };
+  
+    const handleDeleteRecord = () => {
+      dispatch(deleteCashBookEntryAsync(toDelete)).then((res) => {
+        console.log('res', res)
+        if(res.payload.success){
+        closeDeleteModal();
+        dispatch(getAllCashBookEntriesAsync(filters));
+        }
+      })
+    }
+
+
 
   return (
     <>
@@ -111,7 +140,7 @@ const CashBook = () => {
 
 
 
-            {user && user?.user?.role === "superadmin" ? (
+            {role === Roles.SUPER_ADMIN ? (
                    
                       <select
                         id="branchId"
@@ -199,6 +228,9 @@ const CashBook = () => {
                   <th className="px-6 py-3 text-center font-medium" scope="col">
                     Amount
                   </th>
+                   <th className="px-6 py-3 text-center font-medium">
+                    Action
+                  </th>
                 </tr>
               </thead>
 
@@ -251,6 +283,10 @@ const CashBook = () => {
                           {data.payment_Method}
                         </td>
                         <td className="px-6 text-center py-4">{data.amount}</td>
+
+                         <td className="px-6 text-center py-4">
+                           {data?.canDelete ? <Icon name="delete" onClick={() => openDeleteModal(data._id)} size={22} className="cursor-pointer"/> : "-"}
+                        </td> 
                       </tr>
                     ))
                   ) : (
@@ -266,6 +302,14 @@ const CashBook = () => {
           </div>
         </>
       </section>
+
+       {deleteModal && <DeleteModal
+      onClose={closeDeleteModal}
+      onConfirm={handleDeleteRecord}
+      message={"Are you sure want to delete this cash book transaction ?"}
+      title={"Delete Transaction"}
+      Loading={deleteLoading}
+      />}
     </>
   );
 };

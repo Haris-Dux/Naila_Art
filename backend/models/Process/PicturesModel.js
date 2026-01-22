@@ -21,8 +21,7 @@ const financialDetails = new mongoose.Schema({
 });
 
 const transaction_details = new mongoose.Schema({
-
-  date: {
+date: {
     type: String,
     required: [true, "Date is required"],
   },
@@ -45,6 +44,9 @@ const transaction_details = new mongoose.Schema({
   orderId: {
     type: String,
   },
+  bill_id: {
+    type: mongoose.Types.ObjectId
+  }
 });
 
 const picturesSchema = new mongoose.Schema(

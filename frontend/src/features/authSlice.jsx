@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 //API URL
 const signupUrl = "/api/users/signup";
 const loginUrl = "/api/users/login";
-const userSessionUrl = "/api/users/persistUserSession";
 const logoutUrl = "/api/users/logout";
 const authUserSessionUrl = "/api/users/persistUserSession";
 const forgetPassUrl = "/api/users/sendResetPasswordOTP";
@@ -145,6 +144,7 @@ export const authUserAsync = createAsyncThunk(
 const initialState = {
   createUser: null,
   user: null,
+  role:null,
   isAuthenticated: localStorage.getItem("isAuthenticated") === "true",
   routingLoading: false,
   logoutLoading: false,
@@ -190,6 +190,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        state.role = action.payload.user.role;
       })
       .addCase(loginuserAsync.rejected, (state) => {
         state.loading = false;
@@ -239,6 +240,7 @@ const authSlice = createSlice({
       .addCase(authUserAsync.fulfilled, (state, action) => {
         state.routingLoading = false;
         state.user = action.payload;
+        state.role = action.payload.user.role;
       })
       .addCase(authUserAsync.rejected, (state) => {
         state.routingLoading = false;

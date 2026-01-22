@@ -5,6 +5,7 @@ import {
   AddCreditDebit,
   addLeaveAsync,
   CreditSalary,
+  deleteCreditDebitEntryAsync,
   GetEmployeeById,
   reverseSalaryAsync,
   updateOvertimeHoursAsync,
@@ -18,6 +19,8 @@ import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdEdit, MdOutlineDelete } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
+import { getTodayDate } from "../../Utils/Common";
+
 
 const EmployeeDetails = () => {
   const { id } = useParams();
@@ -29,7 +32,7 @@ const EmployeeDetails = () => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [salaryReverseModal, setSalaryReverseModal] = useState(false);
+  const [deleteModal, setDeleteTransactionModal] = useState(false);
   const [afterConfirmation, setAfterConfirmation] = useState(null);
   const [leavesModal, setLeavesModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -37,7 +40,7 @@ const EmployeeDetails = () => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [overTimeModal, setOverTimeModal] = useState(false);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const today = getTodayDate();
 
   const [formData, setFormData] = useState({
     date: today,
@@ -169,7 +172,7 @@ const EmployeeDetails = () => {
 
   const closeConfirmationModal = () => {
     setIsConfirmationOpen(false);
-    setSalaryReverseModal(false);
+    setDeleteTransactionModal(false);
     setOverTimeModal(false);
     setFormData((prev) => ({
       ...prev,
@@ -259,25 +262,49 @@ const EmployeeDetails = () => {
     return payableSalary;
   };
 
-  const handleReverseSalary = (data) => {
-    setSalaryReverseModal(true);
-    const reqData = {
-      id,
-      transactionId: data.id,
-      amount: data.debit,
-      payment_Method: data.payment_Method,
-      branchId: data.branchId,
-      leaves: data.leaves,
+  const handleDeleteTransaction = (data) => {
+    if(!data) return;
+    setDeleteTransactionModal(true);
+    const isSalaryTransaction = data.salaryTransaction;
+
+    const onSuccess = () => {
+      dispatch(GetEmployeeById({ id }));
+      setDeleteTransactionModal(false);
     };
-    const reverseSalary = () => {
-      dispatch(reverseSalaryAsync(reqData)).then((res) => {
-        if (res.payload.success === true) {
-          dispatch(GetEmployeeById({ id }));
-          setSalaryReverseModal(false);
+
+    const buildSalaryDeletePayload = {
+        id,
+        transactionId: data.id,
+        amount: data.debit,
+        payment_Method: data.payment_Method,
+        branchId: data.branchId,
+        leaves: data.leaves,
+    };
+
+    const buildCreditDebitDeletePayload = {
+        employeId: id,
+        recordId: data.id,
+    };
+
+    const runAndHandle = (action) => {
+      dispatch(action).then((res) => {
+        if(res?.payload?.success) {
+          onSuccess()
         }
-      });
+      })
+    }
+
+    const confirmAction = () => {
+      if(isSalaryTransaction){
+        runAndHandle(reverseSalaryAsync(buildSalaryDeletePayload));
+        return;
+      } else {
+        runAndHandle(deleteCreditDebitEntryAsync(buildCreditDebitDeletePayload))
+      }
     };
-    setAfterConfirmation(() => reverseSalary);
+
+    setAfterConfirmation(() => confirmAction);
+
   };
 
   const openOverTimeHistory = () => {
@@ -298,6 +325,7 @@ const EmployeeDetails = () => {
       calculatePayableSlary();
     }
   }, [formData.salaryMonth]);
+
 
   return (
     <>
@@ -472,18 +500,14 @@ const EmployeeDetails = () => {
                         </td>
                         <td className="px-6 py-4 font-medium">
                           {data.balance === 0 ? "-" : data.balance}
-                        </td>
-                        {!data.reversed && data.salaryTransaction ? (
+                        </td>                     
                           <td className=" px-6 py-4">
                             <MdOutlineDelete
-                              onClick={() => handleReverseSalary(data)}
+                              onClick={() => handleDeleteTransaction(data)}
                               size={20}
                               className="cursor-pointer  text-red-500"
                             />
                           </td>
-                        ) : (
-                          <div className=" px-6 py-4">--</div>
-                        )}
                       </tr>
                     ))
                 ) : (
@@ -588,7 +612,7 @@ const EmployeeDetails = () => {
             <div className="relative py-2 px-3 w-96 max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Add Or Delete Leave
+                  Update Leaves
                 </h3>
                 <button
                   onClick={closeAddLeaveModal}
@@ -706,7 +730,7 @@ const EmployeeDetails = () => {
             <div className="relative py-4 px-3 w-96 max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {formData.type === "credit" ? "Add Credit" : "Add Debit"}
+                  {formData.type === "credit" ? "Credit" : "Debit"}
                 </h3>
                 <button
                   onClick={closeModal}
@@ -832,7 +856,7 @@ const EmployeeDetails = () => {
             <div className="relative py-4 px-3 max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
               <div className="flex items-center justify-between p-2 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Confirm Credit Salary
+                  Credit Salary
                 </h3>
                 <button
                   onClick={closeConfirmationModal}
@@ -1136,12 +1160,12 @@ const EmployeeDetails = () => {
         )}
 
         {/* REVERSE SALARY CONFIRMATION */}
-        {salaryReverseModal && (
+        {deleteModal && (
           <ConfirmationModal
             onClose={closeConfirmationModal}
             onConfirm={afterConfirmation}
-            message={"Are You Sure Want to Reverse This Salary Transaction."}
-            title={"Reverse Salary"}
+            message={"Are you sure want to delete this transaction."}
+            title={"Delete Transaction"}
             updateStitchingLoading={employeEditLoading}
           />
         )}

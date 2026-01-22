@@ -7,7 +7,7 @@ import CustomError from "../../config/errors/CustomError.js";
 import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
-import { calculateProcessAccountBalance } from "../../utils/process.js";
+import { calculateAccountBalance } from "../../utils/accounting.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -24,6 +24,7 @@ export const createPictureOrder = async (req, res, next) => {
         partyType,
         accountId,
         serial_No,
+        Manual_No
       } = req.body;
 
       await verifyrequiredparams(req.body, [
@@ -35,6 +36,7 @@ export const createPictureOrder = async (req, res, next) => {
         "rate",
         "partyType",
         "serial_No",
+        "Manual_No"
       ]);
 
       
@@ -77,7 +79,7 @@ export const createPictureOrder = async (req, res, next) => {
         const credit_debit_history_details = [
           {
             date,
-            particular: `New Bill For D.NO : ${design_no}`,
+            particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
             credit: rate,
             balance: rate,
             orderId: newPictureOrder[0]._id,
@@ -118,7 +120,7 @@ export const createPictureOrder = async (req, res, next) => {
         const oldAccountData = await PicruresAccountModel.findById(accountId).session(session);
 
         const {new_total_debit,new_total_credit,new_total_balance,new_status} = 
-        calculateProcessAccountBalance  ({amount:rate,oldAccountData,credit:true});
+        calculateAccountBalance({amount:rate,oldAccountData,credit:true});
 
         //Creating Virtual Account Data
         const virtualAccountData = {
@@ -131,7 +133,7 @@ export const createPictureOrder = async (req, res, next) => {
         //DATA FOR CREDIT DEBIT HISTORY
         const credit_debit_history_details = {
           date,
-          particular: `New Bill For D.NO : ${design_no}`,
+          particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
           credit: rate,
           balance: new_total_balance,
           orderId: newPictureOrder[0]._id,
@@ -200,7 +202,7 @@ export const deletePictureOrderById = async (req, res, next) => {
       const amountToDeduct = pictureOrder.rate;
 
       //DATA FOR VIRTUAL ACCOUNT
-       const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateProcessAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
+       const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:amountToDeduct,oldAccountData,credit:true,add:false});
  
       //Creating Virtual Account Data
       const virtualAccountData = {

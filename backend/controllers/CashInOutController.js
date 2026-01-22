@@ -11,6 +11,8 @@ import { PicruresAccountModel } from "../models/Process/PicturesModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import { getTodayDate } from "../utils/Common.js";
+import { calculateBuyerAccountBalance } from "../utils/buyers.js";
+import { CashbookTransactionSource } from "../enums/cashbookk.enum.js";
 
 export const validatePartyNameForMainBranch = async (req, res, next) => {
   try {
@@ -157,7 +159,7 @@ export const cashIn = async (req, res) => {
         throw new Error("All Fields Required");
 
       //GETTING ACCOUNT CATEGORY DATA
-      let userDataToUpdate = {};
+      let userDataToUpdate = null;
       switch (true) {
         case accountCategory === "Buyers":
           userDataToUpdate = await BuyersModel.findById(partyId).session(
@@ -301,19 +303,23 @@ export const cashIn = async (req, res) => {
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
+
+
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
         pastTransaction: pastTransaction,
         branchId,
         amount: cash,
         tranSactionType: "Deposit",
-        transactionFrom: "Cash In",
+        transactionFrom: CashbookTransactionSource.CASH_IN,
         partyName: userDataToUpdate.partyName || userDataToUpdate.name,
         payment_Method,
+        sourceId:userDataToUpdate._id,
+        category:accountCategory,
         session,
         ...(pastTransaction && { pastDate: date }),
       };
-      await cashBookService.createCashBookEntry(dataForCashBook);
+     const cashBookResult = await cashBookService.createCashBookEntry(dataForCashBook);
 
       if (accountCategory !== "Buyers") {
         //SELLERS , PROCESS , PICTURES CASE
@@ -353,6 +359,7 @@ export const cashIn = async (req, res) => {
           particular: `${payment_Method}/${note}`,
           credit: cash,
           balance: new_total_balance,
+          bill_id:cashBookResult[0]._id
         };
 
         //UPDATING USER DATA IN DB
@@ -365,40 +372,21 @@ export const cashIn = async (req, res) => {
       }
       //BUYERS CASE
       else {
-        //DATA FOR VIRTUAL ACCOUNT
-        const new_total_debit =
-          userDataToUpdate.virtual_account.total_debit - cash;
-        const new_total_credit =
-          userDataToUpdate.virtual_account.total_credit + cash;
-        const new_total_balance =
-          userDataToUpdate.virtual_account.total_balance - cash;
-        let new_status = "";
 
-        //ASSIGN ACCOUNT STATUS
-        switch (true) {
-          case new_total_balance === 0:
-            new_status = "Paid";
-            break;
-          case new_total_balance === new_total_debit &&
-            new_total_credit > 0 &&
-            new_total_balance > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_credit === 0 && new_total_balance === new_total_debit:
-            new_status = "Unpaid";
-            break;
-          case new_total_balance < 0:
-            new_status = "Advance Paid";
-            break;
-          default:
-            new_status = "";
-        }
+      const { total_debit, total_credit, total_balance, status } =
+        calculateBuyerAccountBalance({
+          paid: cash,
+          total: 0,
+          oldAccountData: userDataToUpdate.virtual_account,
+        });
+        
+        //DATA FOR VIRTUAL ACCOUNT
 
         const virtualAccountData = {
-          total_debit: new_total_debit,
-          total_credit: new_total_credit,
-          total_balance: new_total_balance,
-          status: new_status,
+          total_debit,
+          total_credit,
+          total_balance,
+          status,
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
@@ -406,7 +394,8 @@ export const cashIn = async (req, res) => {
           date,
           particular: `${payment_Method}/${note}`,
           credit: cash,
-          balance: userDataToUpdate.virtual_account.total_balance - cash,
+          balance: total_balance,
+          bill_id:cashBookResult[0]._id
         };
 
         //UPDATING USER DATA IN DB
@@ -455,7 +444,7 @@ export const cashOut = async (req, res, next) => {
       )
         throw new Error("All Fields Required");
       //GETTING ACCOUNT CATEGORY DATA
-      let userDataToUpdate = {};
+      let userDataToUpdate = null;
       switch (true) {
         case accountCategory === "Buyers":
           userDataToUpdate = await BuyersModel.findById(partyId).session(
@@ -558,8 +547,6 @@ export const cashOut = async (req, res, next) => {
         }
       }
 
-
-
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
         const data = {
@@ -573,7 +560,8 @@ export const cashOut = async (req, res, next) => {
           }`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
-      }
+      };
+
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
@@ -581,47 +569,32 @@ export const cashOut = async (req, res, next) => {
         branchId,
         amount: cash,
         tranSactionType: "WithDraw",
-        transactionFrom: "Cash Out",
+        transactionFrom: CashbookTransactionSource.CASH_OUT,
         partyName: userDataToUpdate.partyName || userDataToUpdate.name,
         payment_Method,
+        sourceId:userDataToUpdate._id,
+        category:accountCategory,
         session,
         ...(pastTransaction && { pastDate: date }),
       };
-      await cashBookService.createCashBookEntry(dataForCashBook);
+      const cashBookResult = await cashBookService.createCashBookEntry(dataForCashBook);
 
       if (accountCategory === "Buyers") {
-        //DATA FOR VIRTUAL ACCOUNT
-        const new_total_debit =
-          userDataToUpdate.virtual_account.total_debit + cash;
-        const new_total_credit = userDataToUpdate.virtual_account.total_credit;
-        const new_total_balance =
-          userDataToUpdate.virtual_account.total_balance + cash;
-        let new_status;
 
-        switch (true) {
-          case new_total_balance === 0:
-            new_status = "Paid";
-            break;
-          case new_total_balance === new_total_debit &&
-            new_total_credit > 0 &&
-            new_total_balance > 0:
-            new_status = "Partially Paid";
-            break;
-          case new_total_credit === 0 && new_total_balance === new_total_debit:
-            new_status = "Unpaid";
-            break;
-          case new_total_balance < 0:
-            new_status = "Advance Paid";
-            break;
-          default:
-            new_status = "";
-        }
+        const { total_debit, total_credit, total_balance, status } =
+          calculateBuyerAccountBalance({
+            paid: cash,
+            total: 0,
+            oldAccountData: userDataToUpdate.virtual_account,
+            isCashOut: true,
+          });
+
 
         const virtualAccountData = {
-          total_debit: new_total_debit,
-          total_credit: new_total_credit,
-          total_balance: new_total_balance,
-          status: new_status,
+          total_debit,
+          total_credit,
+          total_balance,
+          status,
         };
 
         //DATA FOR CREDIT DEBIT HISTORY
@@ -631,6 +604,7 @@ export const cashOut = async (req, res, next) => {
           particular: `${payment_Method}/${note}`,
           debit: cash,
           balance: userDataToUpdate.virtual_account.total_balance + cash,
+          bill_id:cashBookResult[0]._id
         };
 
         //UPDATING USER DATA IN DB
@@ -680,6 +654,7 @@ export const cashOut = async (req, res, next) => {
           particular: `${payment_Method}/${note}`,
           debit: cash,
           balance: new_total_balance,
+          bill_id:cashBookResult[0]._id
         };
 
         //UPDATING USER DATA IN DB
@@ -757,5 +732,6 @@ export const markAsPaidForBuyers = async (req, res, next) => {
     next(error);
   }
 };
+
 
 

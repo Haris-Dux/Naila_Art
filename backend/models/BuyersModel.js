@@ -63,6 +63,11 @@ const transaction_details = new mongoose.Schema({
     type: Number,
     required: [true, "Balance value is required"],
   },
+  bill_id : {
+    type:mongoose.Types.ObjectId,
+    default:null
+    // required: [true, "Bill id is required"],
+  }
 });
 
 const BuyersSchema = new mongoose.Schema(
@@ -212,16 +217,30 @@ const historySchema = new mongoose.Schema(
       type: Number,
       required: [true, "Total Profit Number is required"],
     },
-     city: {
+    city: {
       type: String,
       required: [true, "City value is required"],
     },
-     payment_Method: {
+    payment_Method: {
       type: String,
       required: [true, "Payment meyhod vaalue is required"],
     },
+    packaging: {
+      packaging_type: {
+        type: mongoose.Types.ObjectId,
+        default: null,
+      },
+      quantity: {
+        type: Number,
+        default: 0,
+      }
+    },
+    is_return_made: {
+      type: Boolean,
+      default: false,
+    },
     profitDataForHistory: [historyData],
-    other_Bill_Data:{
+    other_Bill_Data: {
       o_b_quantity: {
         type: Number,
       },
@@ -234,7 +253,7 @@ const historySchema = new mongoose.Schema(
       show: {
         type: Boolean,
       },
-    }
+    },
   },
   {
     timestamps: true,

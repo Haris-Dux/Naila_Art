@@ -44,6 +44,9 @@ const financialDetails = new mongoose.Schema({
     orderId: {
       type: String
     },
+    bill_id: {
+      type: mongoose.Types.ObjectId
+    }
   });
 
 const processBillsSchema = new mongoose.Schema(

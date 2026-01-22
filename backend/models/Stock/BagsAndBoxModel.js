@@ -3,21 +3,25 @@ import mongoose from 'mongoose';
 const previousDataSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true,"category required"],
+    required: [true, "category required"],
   },
   bill_no: {
     type: Number,
-    required: [true,"color required"],
+    required: [true, "color required"],
   },
   date: {
     type: Date,
-    required: [true,"R_Date required"],
+    required: [true, "R_Date required"],
   },
   quantity: {
     type: Number,
-    required: [true,"Recently required"],
+    required: [true, "Recently required"],
   },
-})
+  bill_id: {
+    type: mongoose.Types.ObjectId,
+    default: null,
+  },
+});
 
 const bagsSchema = new mongoose.Schema({
   name: {

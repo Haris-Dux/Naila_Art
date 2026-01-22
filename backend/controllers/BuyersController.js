@@ -9,11 +9,14 @@ import {
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
-import { sendEmail } from "../utils/nodemailer.js";
 import moment from "moment-timezone";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
+import CustomError from "../config/errors/CustomError.js";
+import { calculateBuyerAccountBalance } from "../utils/buyers.js";
+import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
+import { canDeleteRecord } from "../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -276,14 +279,17 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       };
 
       //PUSH DATA FOR CASH BOOK
+      const billId = new mongoose.Types.ObjectId();
       const dataForCashBook = {
         pastTransaction: pastBill,
         branchId,
         amount: totalAmount,
         tranSactionType: "Deposit",
-        transactionFrom: "Buyer Bills",
+        transactionFrom: CashbookTransactionSource.BUYERS,
         partyName: name,
         payment_Method,
+        sourceId:billId,
+        category:CashbookTransactionAccounts.BUYERS,
         session,
         ...(pastBill && { pastDate: date }),
       };
@@ -291,30 +297,28 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       await cashBookService.createCashBookEntry(dataForCashBook);
 
       //DATA FOR VIRTUAL ACCOUNT OF BUYER
-      const total_debit = remaining;
+      const total_debit = total;
       const total_credit = paid;
-      const total_balance = remaining;
+      const total_balance = total_debit - total_credit;
       let status = "";
 
-      switch (true) {
-        case total_balance === 0:
-          status = "Paid";
-          break;
-        case total_balance === total_debit &&
-          total_credit > 0 &&
-          total_balance > 0:
-          status = "Partially Paid";
-          break;
-        case total_credit === 0 &&
-          (total_balance === total_credit || total_balance === total_debit):
-          status = "Unpaid";
-          break;
-        case total_balance < 0:
-          status = "Advance Paid";
-          break;
-        default:
-          status = "";
-      }
+       switch (true) {
+         case total_balance === 0:
+           status = "Paid";
+           break;
+         case total_credit === 0:
+           status = "Unpaid";
+         case total_balance > 0:
+           status = "Partially Paid";
+           break;
+         case total_balance < 0:
+           status = "Advance Paid";
+           break;
+         default:
+           throw new Error(
+             "Wrong account balance calculation. Invalid account status"
+           );
+       }
 
       const virtualAccountData = {
         total_debit,
@@ -324,13 +328,13 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       };
 
       //DATA FOR CREDIT DEBIT HISTORY
-
       const credit_debit_history_details = [
         {
           date,
           particular: `Bill No ${serialNumber}`,
           debit: total,
-          balance: total,
+          balance: total_balance,
+          bill_id:billId
         },
       ];
       if (paid > 0) {
@@ -338,7 +342,8 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           date,
           particular: payment_Method,
           credit: paid,
-          balance: remaining,
+          balance: total_balance,
+          bill_id:billId
         });
       }
 
@@ -378,6 +383,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       await BuyersBillsModel.create(
         [
           {
+            _id:billId,
             branchId,
             buyerId: buyerResult[0]._id,
             serialNumber,
@@ -392,12 +398,15 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             payment_Method,
             city,
             profitDataForHistory,
+            ...(packaging && {packaging: {
+              packaging_type:packaging.id,
+              quantity: packaging.quantity
+            }}),
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
         ],
         { session }
       );
-
 
       return res
         .status(200)
@@ -432,7 +441,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
         paid,
         remaining,
         other_Bill_Data,
-        pastBill
+        pastBill,
       } = req.body;
 
       //VALIDATING FIELDS DATA
@@ -499,9 +508,9 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       //DEDUCTING SUITS FROM STOCK
       const suitsIdsToDeduct = suits_data.map((suit) => suit.id);
-      const suitsStock = await branchStockModel.find({_id:suitsIdsToDeduct});
+      const suitsStock = await branchStockModel.find({ _id: suitsIdsToDeduct });
       if (!suitsStock.length) throw new Error("No suitsStock found");
-       const bulkOps = suitsStock.map((suit) => {
+      const bulkOps = suitsStock.map((suit) => {
         const suitToUpdate = suits_data.find((item) => item.id == suit._id);
         const updatedSuitQuantity = suit.total_quantity - suitToUpdate.quantity;
         const updatedSoldQuantity = suit.sold_quantity + suitToUpdate.quantity;
@@ -510,14 +519,19 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             `Not enough stock for suit with Design No: ${suit.d_no}`
           );
         return {
-          updateOne : {
-            filter: {_id:suit._id},
-            update : { $set : {total_quantity : updatedSuitQuantity,sold_quantity:updatedSoldQuantity} }
-          }
-        }
+          updateOne: {
+            filter: { _id: suit._id },
+            update: {
+              $set: {
+                total_quantity: updatedSuitQuantity,
+                sold_quantity: updatedSoldQuantity,
+              },
+            },
+          },
+        };
       });
 
-      await branchStockModel.bulkWrite(bulkOps, {session})
+      await branchStockModel.bulkWrite(bulkOps, { session });
 
       //CHECK FUTURE DATE
       const isFutureDate = moment
@@ -569,8 +583,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
                 // Step 4: Update existing sales
                 console.log(`Updated existing sale for ${formattedDate}`);
                 // Example update
-                dailySale.saleData.totalCash +=
-                  paid 
+                dailySale.saleData.totalCash += paid;
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -598,8 +611,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
               if (dailySale) {
                 // Update existing sales
                 console.log(`Updated existing sale for ${formattedDate}`);
-                dailySale.saleData.totalCash +=
-                  paid 
+                dailySale.saleData.totalCash += paid;
                 await dailySale.save({ session });
               } else {
                 console.log(`No sale found for ${formattedDate}, skipping.`);
@@ -635,7 +647,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
 
       //TOTAL AMOUNT PAID + OTHER BILL
-      const totalAmount = paid ;
+      const totalAmount = paid;
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -648,29 +660,31 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           note: `Bill Generated For : ${name}`,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      }
+
+      //PUSH DATA FOR CASH BOOK
+      const billId = new mongoose.Types.ObjectId();
+      const dataForCashBook = {
+        pastTransaction: pastBill,
+        branchId,
+        amount: totalAmount,
+        tranSactionType: "Deposit",
+        transactionFrom: CashbookTransactionSource.BUYERS,
+        partyName: name,
+        payment_Method,
+        sourceId: billId,
+        category:CashbookTransactionAccounts.BUYERS,
+        session,
+        ...(pastBill && { pastDate: date }),
       };
 
-          //PUSH DATA FOR CASH BOOK
-          const dataForCashBook = {
-            pastTransaction: pastBill,
-            branchId,
-            amount:totalAmount,
-            tranSactionType: "Deposit",
-            transactionFrom: "Buyer Bills",
-            partyName: name,
-            payment_Method,
-            session,
-            ...(pastBill && { pastDate: date }),
-          };
-
-          await cashBookService.createCashBookEntry(dataForCashBook);
+      await cashBookService.createCashBookEntry(dataForCashBook);
 
       //UPDATING DAILY SALE
 
       const updatedSaleData = {
         ...dailySaleForToday.saleData,
-        [payment_Method]: (dailySaleForToday.saleData[payment_Method] +=
-          paid ),
+        [payment_Method]: (dailySaleForToday.saleData[payment_Method] += paid),
         totalSale: (dailySaleForToday.saleData.totalSale += paid),
         todayBuyerCredit: (dailySaleForToday.saleData.todayBuyerCredit += paid),
         todayBuyerDebit: (dailySaleForToday.saleData.todayBuyerDebit +=
@@ -680,7 +694,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       if (payment_Method === "cashSale") {
         updatedSaleData.totalCash = dailySaleForToday.saleData.totalCash +=
-          paid 
+          paid;
       }
 
       dailySaleForToday.saleData = updatedSaleData;
@@ -690,51 +704,32 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       const buyerData = await BuyersModel.findById({ _id: buyerId }).session(
         session
       );
-      if (!buyerData) throw new Error("Buyer Data Not Found");
+      if (!buyerData) throw new Error("Buyer data not found");
 
       //DATA FOR VIRTUAL ACCOUNT
-      const new_total_debit = buyerData.virtual_account.total_debit + remaining;
-      const new_total_credit = buyerData.virtual_account.total_credit + paid;
-      const new_total_balance =
-        buyerData.virtual_account.total_balance + remaining;
-      let new_status = "";
 
-      switch (true) {
-        case new_total_balance === 0:
-          new_status = "Paid";
-          break;
-        case new_total_balance === new_total_debit &&
-          new_total_credit > 0 &&
-          new_total_balance > 0:
-          new_status = "Partially Paid";
-          break;
-        case new_total_credit === 0 &&
-          (new_total_balance === new_total_credit ||
-            new_total_balance === new_total_debit):
-          new_status = "Unpaid";
-          break;
-        case new_total_balance < 0:
-          new_status = "Advance Paid";
-          break;
-        default:
-          new_status = "";
-      }
+      const { total_debit, total_credit, total_balance, status } =
+        calculateBuyerAccountBalance({
+          paid: paid,
+          total: total,
+          oldAccountData: buyerData.virtual_account,
+        });
 
       const virtualAccountData = {
-        total_debit: new_total_debit,
-        total_credit: new_total_credit,
-        total_balance: new_total_balance,
-        status: new_status,
+        total_debit,
+        total_credit,
+        total_balance,
+        status,
       };
 
       //DATA FOR CREDIT DEBIT HISTORY
-
       const credit_debit_history_details = [
         {
           date,
           particular: `Bill No ${serialNumber}`,
           debit: total,
-          balance: buyerData.virtual_account.total_balance + total,
+          balance: total_balance,
+          bill_id:billId
         },
       ];
       if (paid > 0) {
@@ -742,7 +737,8 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           date,
           particular: payment_Method,
           credit: paid,
-          balance: new_total_balance,
+          balance: total_balance,
+          bill_id:billId
         });
       }
 
@@ -774,6 +770,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       await BuyersBillsModel.create(
         [
           {
+            _id:billId,
             branchId,
             buyerId: buyerData._id,
             serialNumber,
@@ -788,6 +785,10 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             payment_Method,
             city,
             profitDataForHistory,
+            ...(packaging && {packaging: {
+              packaging_type:packaging.id,
+              quantity: packaging.quantity
+            }}),
             ...(other_Bill_Data ? { other_Bill_Data } : {}),
           },
         ],
@@ -922,6 +923,7 @@ export const generatePdfFunction = async (req, res, next) => {
 export const getBuyerBillHistoryForBranch = async (req, res, next) => {
   try {
     const id  = req.query.id;
+    const role = req.user_role;
     if (!id) throw new Error("Branch Id Required");
     const name = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
@@ -933,19 +935,193 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     };
 
     const totalDocuments = await BuyersBillsModel.countDocuments(query);
-    const data = await BuyersBillsModel.find(query)
+    const docs = await BuyersBillsModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+
+      setMongoose();
+
+      const data = docs.map((d) => d.toJSON());
+
+    const updatedData = data.map((item) => ({
+      ...item,
+      canDelete: canDeleteRecord({
+        role,
+        date: item.createdAt,
+        transactionFrom: CashbookTransactionSource.BUYERS,
+        cashBookCase: false
+      }),
+    }));
+
     const response = {
-      data,
+      data:updatedData,
       page,
       totalPages: Math.ceil(totalDocuments / limit),
     };
-    setMongoose();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteBuyerBill = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const billId = req.params.billId;
+      const billData = await BuyersBillsModel.findById(billId);
+
+      if (!billData) {
+        throw new CustomError("Bill record not found", 404);
+      }
+      if (billData.is_return_made) {
+        throw new CustomError(
+          "Deletion not permitted. A return entry has already been made for this bill."
+        );
+      }
+
+      //RESROCK PACKAGING
+      if (billData.packaging.packaging_type !== null) {
+        const packagingStock = await BagsAndBoxModel.findById(
+          billData.packaging.packaging_type
+        ).session(session);
+        if (!packagingStock) throw new CustomError("Packaging not found", 404);
+        const updatedBagsorBoxQuantity =
+          packagingStock.totalQuantity + parseInt(billData.packaging.quantity);
+        packagingStock.totalQuantity = updatedBagsorBoxQuantity;
+        await packagingStock.save({ session });
+      };
+
+      //RESTOCK SUITS
+      const suitsIds = billData.profitDataForHistory.map((suit) => suit.suitId);
+      const suitsStock = await branchStockModel.find({ _id: suitsIds });
+      if (!suitsStock.length)
+        throw new CustomError("No suits stock found", 404);
+      const bulkOps = suitsStock.map((suit) => {
+        const suitToUpdate = billData.profitDataForHistory.find(
+          (item) => item.suitId == suit._id
+        );
+        const updatedSuitQuantity = suit.total_quantity + suitToUpdate.quantity;
+        const updatedSoldQuantity = suit.sold_quantity - suitToUpdate.quantity;
+        return {
+          updateOne: {
+            filter: { _id: suit._id },
+            update: {
+              $set: {
+                total_quantity: updatedSuitQuantity,
+                sold_quantity: updatedSoldQuantity,
+              },
+            },
+          },
+        };
+      });
+
+      await branchStockModel.bulkWrite(bulkOps, { session });
+
+      //DAILY SALE,CASH METHOD AND VIRUAL ACCOUNTS CALCULATIONS
+
+      //ADDING IN DAILY SALE AND HANDLING PAST SALE
+      let saleRecordForSaleDate = await DailySaleModel.findOne({
+        branchId: billData.branchId,
+        date: billData.date ,
+      }).session(session);
+
+      const {payment_Method} = billData;
+
+      if (payment_Method === "cashSale") {
+        let currentDate = moment(billData.date);
+        const endDate = moment(today);
+
+        while (currentDate.isBefore(endDate)) {
+          currentDate.add(1, "days");
+          const formattedDate = currentDate.format("YYYY-MM-DD");
+
+          const saleRecord = await DailySaleModel.findOne({
+            branchId: billData.branchId,
+            date: formattedDate,
+          }).session(session);
+
+          if (saleRecord) {
+            console.log(`Updated existing sale for ${formattedDate}`);
+            saleRecord.saleData.totalCash -= billData.paid;
+            await saleRecord.save({ session });
+          } else {
+            console.log(`No sale found for ${formattedDate}, skipping.`);
+          }
+        }
+      }
+
+      let updatedSaleData = {
+        ...saleRecordForSaleDate.saleData,
+        [payment_Method]: (saleRecordForSaleDate.saleData[payment_Method] -=
+          billData.paid),
+        totalSale: (saleRecordForSaleDate.saleData.totalSale -= billData.paid),
+        todayBuyerCredit: (saleRecordForSaleDate.saleData.todayBuyerCredit -=
+          billData.paid),
+        todayBuyerDebit: (saleRecordForSaleDate.saleData.todayBuyerDebit -=
+          billData.remaining > 0 ? billData.remaining : 0),
+        totalProfit: (saleRecordForSaleDate.saleData.totalProfit -=
+          billData.TotalProfit),
+      };
+
+      if (payment_Method === "cashSale") {
+        updatedSaleData.totalCash = saleRecordForSaleDate.saleData.totalCash -=
+          billData.paid;
+      };
+
+      saleRecordForSaleDate.saleData = updatedSaleData;
+      await saleRecordForSaleDate.save({ session });
+
+      if (payment_Method !== "cashSale") {
+        const data = {
+          session,
+          payment_Method: billData.payment_Method,
+          amount: billData.paid,
+          transactionType: "WithDraw",
+          date: today,
+          note: `Bill deleted For : ${billData.name}`,
+        };
+        await virtualAccountsService.makeTransactionInVirtualAccounts(data);
+      };
+
+      //PUSH DATA FOR CASH BOOK
+      const dataForCashBook = {
+        id:billData._id,
+        session,
+      };
+      await cashBookService.deleteEntry(dataForCashBook);
+
+      //UPDATE BUYERS ACCOUNT
+
+      const buyerAccountData = await BuyersModel.findById(billData.buyerId);
+      if(!buyerAccountData){
+        throw new CustomError("Buyer account record not found", 404);
+      };
+
+      const { total_debit, total_credit, total_balance, status } = calculateBuyerAccountBalance({paid:billData.paid, total:billData.total, oldAccountData:buyerAccountData.virtual_account, deleteBill:true})
+
+      const virtualAccountData = {
+        total_debit,
+        total_credit,
+        total_balance,
+        status,
+      };
+
+      buyerAccountData.virtual_account = virtualAccountData;
+      buyerAccountData.credit_debit_history = buyerAccountData.credit_debit_history.filter((item) => item?.bill_id?.toString() !== billId);
+      await buyerAccountData.save({session});
+
+      //DELETE BUYER BILL
+      await BuyersBillsModel.findByIdAndDelete(billId).session(session);
+
+      return res.status(200).json({ succes:true, message: "Bill deleted successfull"})
+
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    session.endSession();
   }
 };
 
