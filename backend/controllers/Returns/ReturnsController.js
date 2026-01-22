@@ -271,7 +271,6 @@ export const createReturn = async (req, res, next) => {
           await DailySaleModel.bulkWrite(bulkOps, { session });
         }
 
-        // Need to work on case if amount from balance is greater then 0 but account status is paid.
         if (Amount_From_Balance > 0) {
           console.log('running this')
 
