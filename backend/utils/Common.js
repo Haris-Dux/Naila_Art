@@ -20,7 +20,7 @@ export const verifyPastDate = (date) => {
 export const canDeleteRecord = (data) => {
   const { role, date, transactionFrom, cashBookCase = true } = data;
   if (!role || !date || !transactionFrom) throw new Error("Missing arguments");
-  const threshold = new Date("2026-01-02T00:00:00.000Z");
+  const threshold = new Date("2026-01-23T00:00:00.000Z");
   if (cashBookCase) {
     return (
       role === Roles.SUPER_ADMIN &&
