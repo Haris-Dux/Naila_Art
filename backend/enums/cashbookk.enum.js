@@ -23,5 +23,5 @@ export const CashbookTransactionAccounts = Object.freeze({
 
 export const TransactionType = Object.freeze({
   DEPOSIT: "Deposit",
-  WITHDRAW: "Withdraw",
+  WITHDRAW: "WithDraw",
 });
