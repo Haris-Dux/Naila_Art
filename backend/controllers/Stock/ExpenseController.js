@@ -13,6 +13,7 @@ import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { updateTotalCashForDateRange } from "../../services/DailySaleService.js";
+import { CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
 
 export const addExpense = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -21,11 +22,11 @@ export const addExpense = async (req, res, next) => {
       const { categoryId, reason, Date, rate, branchId, payment_Method } =
         req.body;
       if (!categoryId || !reason || !Date || !rate || !branchId)
-        throw new Error("Missing Fields");
+        throw new Error("Missing required fields");
       const branch = await BranchModel.findOne({ _id: branchId }).session(
         session
       );
-      if (!branch) throw new Error("Branch Not Found");
+      if (!branch) throw new Error("Branch data not found");
       const today = moment.tz("Asia/karachi").format("YYYY-MM-DD");
 
       const futureDate = moment.tz(Date, "Asia/Karachi").startOf("day");
@@ -139,15 +140,19 @@ export const addExpense = async (req, res, next) => {
         categoryId
       ).select("name");
 
+      const newEntryId = new mongoose.Types.ObjectId();
+
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
         pastTransaction: isPastDate,
         branchId,
         amount: rate,
-        tranSactionType: "WithDraw",
-        transactionFrom: "Expense",
+        tranSactionType: TransactionType.WITHDRAW,
+        transactionFrom: CashbookTransactionSource.EXPENSE,
         partyName: categoryName.name,
         payment_Method: payment_Method ? payment_Method : "cashSale",
+        sourceId:newEntryId,
+        category: CashbookTransactionSource.EXPENSE,
         session,
         ...(isPastDate && { pastDate: Date }),
       };
@@ -163,6 +168,7 @@ export const addExpense = async (req, res, next) => {
       await ExpenseModel.create(
         [
           {
+            _id:newEntryId,
             branchId,
             categoryId,
             reason,
@@ -175,7 +181,7 @@ export const addExpense = async (req, res, next) => {
         { session }
       );
 
-      return res.status(200).json({ success: true, message: "Expense Added" });
+      return res.status(200).json({ success: true, message: "Expense added successfully" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -273,25 +279,11 @@ export const deleteExpense = async (req, res, next) => {
 
       //DELETE EXPENSE
       await ExpenseModel.findByIdAndDelete(id).session(session);
-
-      const categoryName = await ExpenseCategoriesModel.findById(
-        ExpenseData.categoryId
-      ).select("name");
-
-      //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
-        pastTransaction: isPastDate,
-        branchId: ExpenseData.branchId,
-        amount: rate,
-        tranSactionType: "Deposit",
-        transactionFrom: "Expense",
-        partyName: categoryName.name,
-        payment_Method,
-        ...(isPastDate && { pastDate: ExpenseData.Date }),
+        id,
         session,
       };
-
-      await cashBookService.createCashBookEntry(dataForCashBook);
+      await cashBookService.deleteEntry(dataForCashBook);
 
       return res
         .status(200)
