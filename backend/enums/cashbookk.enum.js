@@ -19,6 +19,8 @@ export const CashbookTransactionAccounts = Object.freeze({
     PROCESS: "Process Account",
     PICTURES: "Pictures Account",
     EMPLOYE: "Employe",
+    EXPENSE: "Expense",
+    OTHER_ACCOUNTS: "Other Accounts",
 });
 
 export const TransactionType = Object.freeze({

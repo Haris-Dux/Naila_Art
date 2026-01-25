@@ -10,6 +10,7 @@ import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { cashBookService } from "../../services/CashbookService.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import mongoose from "mongoose";
+import { CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
 
 export const createOtherAccount = async (req, res, next) => {
   try {
@@ -124,12 +125,14 @@ export const creditDebitOtherAccount = async (req, res, next) => {
       if (!account) throw new CustomError("Account not found", 404);
       const isPastDate = verifyPastDate(date);
       let transactionDetails = {};
-
+      const newEntryId = new mongoose.Types.ObjectId();
+      
       if (transactionType === "credit") {
         account.total_balance = account.total_balance + amount;
 
         //DATA FOR TRANSACTION DETAILS
         transactionDetails = {
+          _id:newEntryId,
           date,
           reason: `${payment_Method}/${reason}`,
           credit: amount,
@@ -143,6 +146,7 @@ export const creditDebitOtherAccount = async (req, res, next) => {
 
         //DATA FOR TRANSACTION DETAILS
         transactionDetails = {
+          _id:newEntryId,
           date,
           reason: `${payment_Method}/${reason}`,
           debit: amount,
@@ -204,10 +208,12 @@ export const creditDebitOtherAccount = async (req, res, next) => {
         pastTransaction: isPastDate,
         branchId,
         amount,
-        tranSactionType: transactionType === "credit" ? "Deposit" : "WithDraw",
-        transactionFrom: "Other Accounts",
+        tranSactionType: transactionType === "credit" ? TransactionType.WITHDRAW : TransactionType.DEPOSIT,
+        transactionFrom: CashbookTransactionSource.OTHER_ACCOUNTS,
         partyName: account.name,
         payment_Method,
+        sourceId:newEntryId,
+        category: CashbookTransactionSource.OTHER_ACCOUNTS,
         ...(isPastDate && { pastDate: date }),
         session,
       };
@@ -284,7 +290,8 @@ export const deleteOtherAccontsTransaction = async (req, res, next) => {
           session,
           payment_Method,
           amount,
-          transactionType: transactionType === "credit" ?  "WithDraw" : "Deposit",
+          transactionType:
+            transactionType === "credit" ? "WithDraw" : "Deposit",
           date: getTodayDate(),
           note: `${transactionType} transaction deleted for other account ${account.name}`,
         };
@@ -292,17 +299,11 @@ export const deleteOtherAccontsTransaction = async (req, res, next) => {
       }
 
       const dataForCashBook = {
-        pastTransaction: isPastDate,
-        branchId,
-        amount,
-        tranSactionType: transactionType ===  "credit" ?  "WithDraw" : "Deposit",
-        transactionFrom: "Other Accounts",
-        partyName: account.name,
-        payment_Method,
-        ...(isPastDate && { pastDate: date }),
+        id,
         session,
       };
-      await cashBookService.createCashBookEntry(dataForCashBook);
+      await cashBookService.deleteEntry(dataForCashBook);
+
       return res.status(200).json({
         success: true,
         message: `tranaction deleted successfull`,
