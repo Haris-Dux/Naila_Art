@@ -289,6 +289,8 @@ class cashBookHistoryService {
           transactionType: isDeposit ? "WithDraw" : "Deposit",
           date: this.getTodayDate(),
           note: `Cash Book Transaction Deleted For : ${record.partyName}`,
+          isDelete: true,
+          sourceId: id 
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         if (isDeposit && category === CashbookTransactionAccounts.BUYERS) {
