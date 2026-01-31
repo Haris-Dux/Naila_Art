@@ -36,6 +36,7 @@ export const addExpense = async (req, res, next) => {
       if (isFutureDate) {
         throw new Error("Date cannot be in the future");
       }
+      const newEntryId = new mongoose.Types.ObjectId();
 
       if (payment_Method) {
         //SUPERADMIN CASE
@@ -116,6 +117,7 @@ export const addExpense = async (req, res, next) => {
             transactionType: "WithDraw",
             date:Date,
             note: `Expense Entry/${reason}`,
+            sourceId:newEntryId,
           };
           await dailySalebyDate.save({ session });
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
@@ -140,7 +142,6 @@ export const addExpense = async (req, res, next) => {
         categoryId
       ).select("name");
 
-      const newEntryId = new mongoose.Types.ObjectId();
 
       //PUSH DATA FOR CASH BOOK
       const dataForCashBook = {
@@ -250,6 +251,8 @@ export const deleteExpense = async (req, res, next) => {
           transactionType: "Deposit",
           date: today,
           note: `Expense Entry Deleted/${ExpenseData.name}/${ExpenseData.reason}`,
+          sourceId: id,
+          isDelete: true
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       } else {

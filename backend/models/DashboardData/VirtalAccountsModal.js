@@ -27,9 +27,12 @@ const historySchema = new mongoose.Schema(
       type: String,
       required: [true, "Note is required"],
     },
-   
+    sourceId: {
+      type: mongoose.Types.ObjectId,
+      default: null,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const VA_HistoryModal = mongoose.model(

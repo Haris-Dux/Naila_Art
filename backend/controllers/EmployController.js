@@ -115,6 +115,7 @@ export const creditDebitBalance = async (req, res, next) => {
             transactionType: TransactionType.DEPOSIT,
             date,
             note: `Credit Transaction for ${employe.name}`,
+            sourceId:financeRecordId,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -160,6 +161,7 @@ export const creditDebitBalance = async (req, res, next) => {
             transactionType: TransactionType.WITHDRAW,
             date,
             note: `Debit Transaction for ${employe.name}`,
+            sourceId:financeRecordId,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -390,6 +392,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           transactionType: TransactionType.WITHDRAW,
           date,
           note: `Salary credit for ${employe.name}`,
+          sourceId:financeRecordId,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -650,6 +653,8 @@ export const reverseSalary = async (req, res, next) => {
           transactionType: TransactionType.DEPOSIT,
           date: today,
           note: `Salary Reversed for ${employe.name}`,
+          sourceId:transactionId,
+          isDelete:true
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -716,7 +721,7 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
         : 0;
 
       //CREDIT LOGIC
-      if (credit >= 0) {
+      if (credit > 0) {
         newBalance -= credit;
 
         //UPDATING VIRTUAL ACCOUNTS
@@ -728,15 +733,16 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
             transactionType: TransactionType.WITHDRAW,
             date:today,
             note: `Credit transaction deleted for ${employe.name}`,
+            isDelete:true,
+            sourceId:recordId
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
       }
 
       //DEBIT LOGIC
-      if (debit >= 0) {
+      if (debit > 0) {
         newBalance += debit;
-
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
           const data = {
@@ -746,6 +752,8 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
             transactionType: TransactionType.DEPOSIT,
             date:today,
             note: `Debit transaction deleted for ${employe.name}`,
+            sourceId:recordId,
+            isDelete:true
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -756,6 +764,7 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
         id: recordId,
         session,
       };
+      console.log('dataForCashBook', dataForCashBook)
       await cashBookService.deleteEntry(dataForCashBook);
 
       //UPDATE DAILY SALE
@@ -810,7 +819,6 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
 
           await DailySaleModel.bulkWrite(bulkOps, { session });
       };
-
        employe.financeData = employe.financeData.filter(
         (record) => record._id?.toString() !== recordId
       );
