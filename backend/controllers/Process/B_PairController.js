@@ -4,10 +4,6 @@ import { UserModel } from "../../models/User.Model.js";
 import { DailySaleModel } from "../../models/DailySaleModel.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
-import {
-  VA_HistoryModal,
-  VirtalAccountModal,
-} from "../../models/DashboardData/VirtalAccountsModal.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import { cashBookService } from "../../services/CashbookService.js";

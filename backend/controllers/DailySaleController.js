@@ -102,7 +102,7 @@ export const cashOutForBranch = async (req, res, next) => {
         }
         dailySaleForToday.saleData.totalCash -= amount;
         if (dailySaleForToday.saleData.totalCash < 0) {
-          throw new Error("Insufficient Cash");
+          throw new Error("Insufficient cash");
         }
         await dailySaleForToday.save({ session });
       }
@@ -126,7 +126,7 @@ export const cashOutForBranch = async (req, res, next) => {
 
       //UPDATING TOTAL CASH FOR HEAD OFFICE
       else if (payment_Method === "cashSale") {
-        if (!headOffice) throw new Error("Cannot find head office data ");
+        if (!headOffice) throw new Error("Unable to find head office data ");
         if (isPastDate) {
           const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
           const today = moment.tz("Asia/Karachi").startOf("day");

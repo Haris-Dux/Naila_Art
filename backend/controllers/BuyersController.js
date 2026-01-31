@@ -264,6 +264,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
 
       //TOTAL AMOUNT PAID + OTHER BILL
       const totalAmount = paid 
+      const billId = new mongoose.Types.ObjectId();
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -274,12 +275,12 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
           transactionType: "Deposit",
           date,
           note: `Bill Generated For : ${name}`,
+          sourceId: billId
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       };
 
       //PUSH DATA FOR CASH BOOK
-      const billId = new mongoose.Types.ObjectId();
       const dataForCashBook = {
         pastTransaction: pastBill,
         branchId,
@@ -648,6 +649,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 
       //TOTAL AMOUNT PAID + OTHER BILL
       const totalAmount = paid;
+      const billId = new mongoose.Types.ObjectId();
 
       //UPDATING VIRTUAL ACCOUNTS
       if (payment_Method !== "cashSale") {
@@ -658,12 +660,12 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
           transactionType: "Deposit",
           date,
           note: `Bill Generated For : ${name}`,
+          sourceId: billId
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
 
       //PUSH DATA FOR CASH BOOK
-      const billId = new mongoose.Types.ObjectId();
       const dataForCashBook = {
         pastTransaction: pastBill,
         branchId,
@@ -1081,6 +1083,9 @@ export const deleteBuyerBill = async (req, res, next) => {
           transactionType: "WithDraw",
           date: today,
           note: `Bill deleted For : ${billData.name}`,
+          isDelete: true,
+          sourceId: billId
+
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       };

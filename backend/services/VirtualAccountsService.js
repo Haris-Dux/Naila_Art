@@ -10,7 +10,7 @@ import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/Vir
 
   async makeTransactionInVirtualAccounts(data) {
         try {
-            let {session,payment_Method,amount,transactionType,date,note} = data;
+            let {session,payment_Method,amount,transactionType,date,note,isDelete=false,sourceId=null} = data;
             if (transactionType === "WithDraw") {
                 amount = -amount;
             }            
@@ -35,21 +35,31 @@ import { VA_HistoryModal, VirtalAccountModal } from "../models/DashboardData/Vir
                   if (transactionType === "WithDraw" && new_balance < 0){
                     throw new CustomError("Not Enough Cash In Payment Method",400)
                 };
-          
-                  const historyData = {
+
+                if(!isDelete) {
+                 const historyData = {
                     date,
                     transactionType: transactionType,
                     payment_Method,
                     new_balance,
                     amount: amount,
                     note,
+                    sourceId
                   };
                   await VA_HistoryModal.create([historyData], { session });
+                }
+
+                if(isDelete) {
+                  await VA_HistoryModal.findOneAndDelete({sourceId}).session(session)
+                }
+          
+ 
             
         } catch (error) {
             throw error;
         }
     }
+
 };
 
 export const virtualAccountsService = new virtualAccountsTransactionService();
