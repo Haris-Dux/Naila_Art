@@ -9,6 +9,7 @@ import {
   getPreviousDataBypartyName,
   replaceEmroideryData,
   updateEmbroidery,
+  updateVerificationStatus,
 } from "../../controllers/Process/EmbroideryController.js";
 import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 
@@ -54,6 +55,11 @@ embrioderyRouter.post(
   "/deleteEmbroiderybyId",
   superAdminAndAdminOnly,
   deleteEmbroidery
+);
+embrioderyRouter.put(
+  "/updateVerificationStatus/:id",
+  superAdminAndAdminOnly,
+  updateVerificationStatus
 );
 
 export default embrioderyRouter;

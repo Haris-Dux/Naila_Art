@@ -219,6 +219,10 @@ const embroiderySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+     is_verified: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

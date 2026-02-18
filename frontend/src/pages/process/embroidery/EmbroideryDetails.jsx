@@ -5,6 +5,7 @@ import {
   generateEmbroideryBillAsync,
   generateEmbroideryGatePssPdfAsync,
   GETEmbroiderySIngle,
+  markEmbroideryAsVerifiedAsync,
   UpdateEmbroidery,
 } from "../../../features/EmbroiderySlice";
 import ReactSearchBox from "react-search-box";
@@ -16,14 +17,14 @@ import {
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
-import moment from "moment-timezone";
 import toast from "react-hot-toast";
-import { setAccountStatusColor } from "../../../Utils/Common";
+import { getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
+import { Button } from "../../../Component/Common/button/Button";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const today = getTodayDate();
   const [isOpen, setIsOpen] = useState(false);
   const [processBillModal, setProcessBillModal] = useState(false);
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
@@ -44,6 +45,7 @@ const EmbroideryDetails = () => {
     SingleEmbroidery,
     EmroiderypdfLoading,
     generateBillLoading,
+    markVerifiedLoading
   } = useSelector((state) => state.Embroidery);
   const [processBillData, setProcessBillData] = useState({});
   const [partyValue, setPartyValue] = useState("newParty");
@@ -399,6 +401,15 @@ const EmbroideryDetails = () => {
         break;
     }
   };
+
+  const handleMarkEmbroideryAsVerified = (e) => {
+    e.preventDefault();
+    dispatch(markEmbroideryAsVerifiedAsync(id)).then((res) => {
+      if(res.payload.success) {
+        dispatch(GETEmbroiderySIngle({ id }));
+      }
+    })
+  }
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -692,12 +703,14 @@ const EmbroideryDetails = () => {
         </div>
         <div className="flex justify-center items-center">
           {project_status !== "Completed" && (
-            <button
-              className="px-2 mt-2 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
-              onClick={handleUpdateReceivedClick}
-            >
-              Update Recived
-            </button>
+            <>
+               <Button onClick={handleUpdateReceivedClick} className="ml-4 mt-2" size="lg">
+                Update Recived
+              </Button>
+              <Button  onClick={handleMarkEmbroideryAsVerified} loading={markVerifiedLoading} loadingText="Updating" className="ml-4 mt-2" size="lg">
+                Update Verification Status
+              </Button>
+            </>
           )}
         </div>
         {/* -------------- BUTTONS BAR -------------- */}
@@ -827,8 +840,13 @@ const EmbroideryDetails = () => {
                         <div className="box text-center">
                           <h3 className="pb-1 font-normal ">Status</h3>
                           <h3>
-                            <span className={setAccountStatusColor(accountData?.status)}>{accountData?.status}</span>
-
+                            <span
+                              className={setAccountStatusColor(
+                                accountData?.status,
+                              )}
+                            >
+                              {accountData?.status}
+                            </span>
                           </h3>
                         </div>
                       </div>
@@ -1044,7 +1062,7 @@ const EmbroideryDetails = () => {
             closeModal={closeBillModal}
             Manual_No={SingleEmbroidery.Manual_No}
             processBillAmount={Math.round(
-              SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit
+              SingleEmbroidery?.per_suit * SingleEmbroidery?.T_Recieved_Suit,
             )}
           />
         )}

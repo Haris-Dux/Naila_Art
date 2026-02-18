@@ -21,6 +21,7 @@ import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 import { IoAdd } from "react-icons/io5";
 import Loading from "../../../Component/Loader/Loading";
 import { GetAllBaseforEmroidery } from "../../../features/InStockSlice";
+import Icon from "../../../Component/Common/Icons";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -413,7 +414,7 @@ const Embroidery = () => {
                       <span className="text-green-500">Suit Qty</span>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
-                      Status
+                      Status/Verified
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Actions
@@ -464,7 +465,14 @@ const Embroidery = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          {setStatusColor(data.project_status)}
+                          <div className="flex items-center gap-3">
+                            {setStatusColor(data.project_status)}
+                            {data?.is_verified && (
+                              <span>
+                                <Icon name="tick" />
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="pl-10 py-4 flex items-center  gap-3">
                           <Link to={`/dashboard/embroidery-details/${data.id}`}>
@@ -638,7 +646,7 @@ const Embroidery = () => {
               </button>
             </div>
             {/* ACCOUNT DATA */}
-            {(designNumberLoading || EmbroideryBaseLoading )? (
+            {designNumberLoading || EmbroideryBaseLoading ? (
               <div className="flex justify-center my-12 items-center">
                 <Loading />
               </div>
