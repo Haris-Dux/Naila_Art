@@ -7,6 +7,7 @@ import {
   GETEmbroiderySIngle,
   replaceEmbroideryDataAsync,
 } from "../../../../../features/EmbroiderySlice";
+import { Button } from "../../../../../Component/Common/button/Button";
 
 const BaseCategorySection = ({
   designNumberSectionData,
@@ -754,21 +755,9 @@ const BaseCategorySection = ({
       </div>
 
       <div className="flex justify-center pt-6">
-        {UpdatEmbroideryloading ? (
-          <button
-            disabled
-            className="inline-block cursor-progress rounded border border-gray-600 bg-gray-400 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indgrayigo-500"
-          >
-            updating...
-          </button>
-        ) : (
-          <button
-            onClick={handleSubmit}
-            className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-          >
-            update
-          </button>
-        )}
+           <Button onClick={handleSubmit} loadingText="Updating" loading={UpdatEmbroideryloading} className="ml-4" size="lg">
+            Update
+          </Button>
       </div>
     </div>
   );

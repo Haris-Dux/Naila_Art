@@ -846,3 +846,23 @@ export const replaceEmroideryData = async (req, res, next) => {
     session.endSession();
   }
 };
+
+export const updateVerificationStatus = async (req,res, next) => {
+  try {
+    const id = req.params.id;
+    if(!id) throw new CustomError("Embroidery id is missing", 422);
+    const update = await EmbroideryModel.findByIdAndUpdate(id,[
+      {
+        $set: {
+          is_verified: { $not: "$is_verified"}
+        }
+      }
+    ], {new:true});
+    if(!update) throw new CustomError("Failed to update embroidery", 400);
+    res.status(200).json({success: true, message: "Embroidery verification status updated successfully"})
+  } catch (error) {
+    next(error)
+  }
+}
+
+

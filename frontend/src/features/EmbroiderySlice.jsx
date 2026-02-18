@@ -22,6 +22,8 @@ const searchAccountByPartyNameURL =
 const createPictureOrderURL = "/api/process/pictures/createPictureOrder";
 const getPicturesOrderByIdURL = "/api/process/pictures/getPictureOrderById";
 const updatePictureOrderByIdURL = "/api/process/pictures/updatePictureOrderById";
+const markEmbroideryAsVerifiedUrl = "/api/process/embriodery/updateVerificationStatus";
+
 
 //GET SINGLE PICTURE BU ID
 export const getPictureOrderByIdAsync = createAsyncThunk(
@@ -265,6 +267,21 @@ export const replaceEmbroideryDataAsync = createAsyncThunk(
   }
 );
 
+//Mark Embroidery as verified
+export const markEmbroideryAsVerifiedAsync = createAsyncThunk(
+  "Embroidery/markEmbroideryAsVerified",
+  async (id) => {
+    try {
+      const response = await axios.put(`${markEmbroideryAsVerifiedUrl}/${id}`);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
+
 // INITIAL STATE
 const initialState = {
   embroidery: [],
@@ -272,6 +289,7 @@ const initialState = {
   loading: false,
   oldDataLoading: false,
   UpdatEmbroideryloading: false,
+  markVerifiedLoading: false,
   EmroiderypdfLoading: false,
   createEmbroideryLoading: false,
   generateBillLoading: false,
@@ -426,6 +444,17 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(replaceEmbroideryDataAsync.rejected, (state, action) => {
         state.UpdatEmbroideryloading = false;
+      })
+
+        //MARK EMBROIDERY AS VERIFIED
+      .addCase(markEmbroideryAsVerifiedAsync.pending, (state) => {
+        state.markVerifiedLoading = true;
+      })
+      .addCase(markEmbroideryAsVerifiedAsync.fulfilled, (state) => {
+        state.markVerifiedLoading = false;
+      })
+      .addCase(markEmbroideryAsVerifiedAsync.rejected, (state) => {
+        state.markVerifiedLoading = false;
       })
 
       //DOWNLOAD PDF
