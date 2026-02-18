@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
   GETEmbroiderySIngle,
+  markEmbroideryAsVerifiedAsync,
   replaceEmbroideryDataAsync,
 } from "../../../../../features/EmbroiderySlice";
 import { Button } from "../../../../../Component/Common/button/Button";
@@ -16,7 +17,7 @@ const BaseCategorySection = ({
 }) => {
   const dispatch = useDispatch();
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
-  const { UpdatEmbroideryloading } = useSelector((state) => state.Embroidery);
+  const { UpdatEmbroideryloading,markVerifiedLoading } = useSelector((state) => state.Embroidery);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [colorOptions, setColorOptions] = useState([]);
   const [colorOptions2, setColorOptions2] = useState([]);
@@ -426,6 +427,15 @@ const BaseCategorySection = ({
     }
   };
 
+    const handleMarkEmbroideryAsVerified = (e) => {
+    e.preventDefault();
+    dispatch(markEmbroideryAsVerifiedAsync(designNumberSectionData.id)).then((res) => {
+      if(res.payload.success) {
+         dispatch(GETEmbroiderySIngle({ id:designNumberSectionData.id }));
+      }
+    })
+  }
+
   return (
     <div>
       <div className="box">
@@ -757,6 +767,9 @@ const BaseCategorySection = ({
       <div className="flex justify-center pt-6">
            <Button onClick={handleSubmit} loadingText="Updating" loading={UpdatEmbroideryloading} className="ml-4" size="lg">
             Update
+          </Button>
+          <Button  onClick={handleMarkEmbroideryAsVerified} loading={markVerifiedLoading} loadingText="Updating" className="ml-4" size="lg">
+                Update Verification Status
           </Button>
       </div>
     </div>

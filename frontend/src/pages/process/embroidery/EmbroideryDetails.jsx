@@ -5,7 +5,6 @@ import {
   generateEmbroideryBillAsync,
   generateEmbroideryGatePssPdfAsync,
   GETEmbroiderySIngle,
-  markEmbroideryAsVerifiedAsync,
   UpdateEmbroidery,
 } from "../../../features/EmbroiderySlice";
 import ReactSearchBox from "react-search-box";
@@ -44,8 +43,7 @@ const EmbroideryDetails = () => {
     UpdatEmbroideryloading,
     SingleEmbroidery,
     EmroiderypdfLoading,
-    generateBillLoading,
-    markVerifiedLoading
+    generateBillLoading
   } = useSelector((state) => state.Embroidery);
   const [processBillData, setProcessBillData] = useState({});
   const [partyValue, setPartyValue] = useState("newParty");
@@ -402,14 +400,7 @@ const EmbroideryDetails = () => {
     }
   };
 
-  const handleMarkEmbroideryAsVerified = (e) => {
-    e.preventDefault();
-    dispatch(markEmbroideryAsVerifiedAsync(id)).then((res) => {
-      if(res.payload.success) {
-        dispatch(GETEmbroiderySIngle({ id }));
-      }
-    })
-  }
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -707,9 +698,7 @@ const EmbroideryDetails = () => {
                <Button onClick={handleUpdateReceivedClick} className="ml-4 mt-2" size="lg">
                 Update Recived
               </Button>
-              <Button  onClick={handleMarkEmbroideryAsVerified} loading={markVerifiedLoading} loadingText="Updating" className="ml-4 mt-2" size="lg">
-                Update Verification Status
-              </Button>
+             
             </>
           )}
         </div>
