@@ -295,7 +295,7 @@ export const deleteOtherAccontsTransaction = async (req, res, next) => {
             transactionType === "credit" ? "WithDraw" : "Deposit",
           date: getTodayDate(),
           note: `${transactionType} transaction deleted for other account ${account.name}`,
-          sourceId:newEntryId,
+          sourceId:id,
           isDelete: true
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
