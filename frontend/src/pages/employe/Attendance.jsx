@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import moment from "moment";
 import { IoClose } from "react-icons/io5";
-import { getTodayDate } from "../../../../backend/utils/Common";
 import { useDispatch, useSelector } from "react-redux";
 import {
   GetAttendencedataAsync,
@@ -10,6 +9,7 @@ import {
 import Loading from "../../Component/Loader/Loading";
 import toast from "react-hot-toast";
 import { Button } from "../../Component/Common/button/Button";
+import { getTodayDate } from "../../Utils/Common";
 
 const Attendance = () => {
   const today = getTodayDate();
