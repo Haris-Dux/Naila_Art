@@ -1,12 +1,21 @@
 import mongoose from "mongoose";
-import { EmployeModel } from "../models/EmployModel.js";
+import {
+  EmployeAttendenceModel,
+  EmployeModel,
+  EmployeSalaryRecordModel,
+} from "../models/EmployModel.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import { DailySaleModel } from "../models/DailySaleModel.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
-import { CashbookTransactionAccounts, CashbookTransactionSource, TransactionType } from "../enums/cashbookk.enum.js";
+import {
+  CashbookTransactionAccounts,
+  CashbookTransactionSource,
+  TransactionType,
+} from "../enums/cashbookk.enum.js";
 import { getTodayDate } from "../utils/Common.js";
+import { getPublicHolidaysForMonth } from "../utils/PublicHolidays.js";
 
 export const addEmploye = async (req, res, next) => {
   try {
@@ -84,8 +93,8 @@ export const creditDebitBalance = async (req, res, next) => {
         ? lastNonSalaryTransaction.balance
         : 0;
 
-      const futureDate = moment.tz(date, "Asia/Karachi").startOf('day');
-      const now = moment.tz("Asia/Karachi").startOf('day');
+      const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const now = moment.tz("Asia/Karachi").startOf("day");
       const isFutureDate = futureDate.isAfter(now);
       const isPastDate = futureDate.isBefore(now);
       if (isFutureDate) {
@@ -102,9 +111,10 @@ export const creditDebitBalance = async (req, res, next) => {
           particular: particular,
           date: date,
           payment_Method,
-          branchId
+          branchId,
         });
-        const financeRecordId = employe.financeData[employe.financeData.length -1]._id
+        const financeRecordId =
+          employe.financeData[employe.financeData.length - 1]._id;
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -115,7 +125,7 @@ export const creditDebitBalance = async (req, res, next) => {
             transactionType: TransactionType.DEPOSIT,
             date,
             note: `Credit Transaction for ${employe.name}`,
-            sourceId:financeRecordId,
+            sourceId: financeRecordId,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -127,7 +137,7 @@ export const creditDebitBalance = async (req, res, next) => {
           tranSactionType: TransactionType.DEPOSIT,
           transactionFrom: CashbookTransactionSource.EMPLOYE,
           category: CashbookTransactionAccounts.EMPLOYE,
-          sourceId:financeRecordId,
+          sourceId: financeRecordId,
           partyName: employe.name,
           payment_Method,
           ...(isPastDate && { pastDate: date }),
@@ -148,9 +158,10 @@ export const creditDebitBalance = async (req, res, next) => {
           debit: debit,
           credit: 0,
           payment_Method,
-          branchId
+          branchId,
         });
-        const financeRecordId = employe.financeData[employe.financeData.length -1]._id
+        const financeRecordId =
+          employe.financeData[employe.financeData.length - 1]._id;
 
         //UPDATING VIRTUAL ACCOUNTS
         if (payment_Method !== "cashSale") {
@@ -161,7 +172,7 @@ export const creditDebitBalance = async (req, res, next) => {
             transactionType: TransactionType.WITHDRAW,
             date,
             note: `Debit Transaction for ${employe.name}`,
-            sourceId:financeRecordId,
+            sourceId: financeRecordId,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -173,7 +184,7 @@ export const creditDebitBalance = async (req, res, next) => {
           tranSactionType: TransactionType.WITHDRAW,
           transactionFrom: CashbookTransactionSource.EMPLOYE,
           category: CashbookTransactionAccounts.EMPLOYE,
-          sourceId:financeRecordId,
+          sourceId: financeRecordId,
           partyName: employe.name,
           payment_Method,
           ...(isPastDate && { pastDate: date }),
@@ -205,7 +216,7 @@ export const creditDebitBalance = async (req, res, next) => {
             const foundDates = dailySales.map((d) => d.date);
             const missing = dateList.filter((d) => !foundDates.includes(d));
             throw new Error(
-              `Missing Daily Sale records for: ${missing.join(", ")}`
+              `Missing Daily Sale records for: ${missing.join(", ")}`,
             );
           }
 
@@ -276,20 +287,20 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         date,
       } = req.body;
       if (!id || !salary || !payment_Method || !branchId || !month || !date)
-        throw new Error("Please fill all fields");
-      if (month < 1 || month > 12) {
-        throw new Error("Invalid month");
-      }
+        throw new Error("Please select all options");
       const employe = await EmployeModel.findById(id).session(session);
       const today = getTodayDate();
       if (!employe) throw new Error("Employe data not found");
 
       //VERIFY IF SALARY IS CREDITED FOR CURRENT MOTN OR NOT
-      const isSalaryPaid = employe.salaryStatus[Number(month)];
+      const isSalaryPaid = await EmployeSalaryRecordModel.findOne({
+        employee_id: id,
+        for_month: month,
+      }).session(session);
       if (isSalaryPaid) {
-        throw new Error("Salary already paid for this month");
-      } else {
-        employe.salaryStatus[month] = true;
+        throw new Error(
+          `Salary for this employee and period ${month} has already been processed`,
+        );
       }
 
       employe.financeData.push({
@@ -304,8 +315,8 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         branchId,
         salaryTransaction: true,
       });
-      const financeRecordId = employe.financeData[employe.financeData.length - 1]._id;
-      employe.overtime_Data.hours = 0;
+      const financeRecordId =
+        employe.financeData[employe.financeData.length - 1]._id;
       await employe.save({ session });
 
       const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
@@ -313,7 +324,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
       const isFutureDate = futureDate.isAfter(now);
       const isPastDate = futureDate.isBefore(now);
       if (isFutureDate) {
-        throw new Error("Date cannot be in the future");
+        throw new Error("Transaction date cannot be in the future");
       }
 
       //UPDATE DAILY SALE
@@ -337,7 +348,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
             const foundDates = dailySales.map((d) => d.date);
             const missing = dateList.filter((d) => !foundDates.includes(d));
             throw new Error(
-              `Missing Daily Sale records for: ${missing.join(", ")}`
+              `Missing Daily Sale records for: ${missing.join(", ")}`,
             );
           }
 
@@ -392,7 +403,7 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
           transactionType: TransactionType.WITHDRAW,
           date,
           note: `Salary credit for ${employe.name}`,
-          sourceId:financeRecordId,
+          sourceId: financeRecordId,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -411,9 +422,18 @@ export const creditSalaryForSingleEmploye = async (req, res, next) => {
         ...(isPastDate && { pastDate: date }),
         session,
       };
+
+      await EmployeSalaryRecordModel.create({
+        employee_id: id,
+        for_month: month,
+        payment_date: date,
+        transaction_id: financeRecordId,
+      });
       await cashBookService.createCashBookEntry(dataForCashBook);
 
-      return res.status(200).json({ success: true, message: "Salary Transaction Successfull" });
+      return res
+        .status(200)
+        .json({ success: true, message: "Salary transaction successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -475,7 +495,7 @@ export const updateEmploye = async (req, res, next) => {
     }
     const updatedEmployee = await EmployeModel.findByIdAndUpdate(
       id,
-      updateQuery
+      updateQuery,
     );
     if (!updatedEmployee) throw new Error("Employee not found");
     return res
@@ -489,7 +509,6 @@ export const updateEmploye = async (req, res, next) => {
 export const getEmployeDataById = async (req, res, next) => {
   try {
     const { id } = req.body;
-
     if (!id) throw new Error("Employe Not Found");
     const employe = await EmployeModel.findById(id);
     if (!employe) throw new Error("Employe Not Found");
@@ -507,16 +526,51 @@ export const getAllActiveEmploye = async (req, res, next) => {
     let search = req.query.search || "";
 
     let query = {
-      name: { $regex: search, $options: "i" },
       pastEmploye: false,
     };
 
-    const employData = await EmployeModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    if (search) {
+      const regexSearch = new RegExp(`\\b${search}`, "i");
+      query.name = regexSearch;
+    }
 
-    const total = await EmployeModel.countDocuments(query);
+    const [result, total] = await Promise.all([
+      EmployeModel.find(query)
+        .select("name financeData salary")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      EmployeModel.countDocuments(query),
+    ]);
+
+    const getFinancials = (data) => {
+      if (data.length === 0) {
+        return {
+          balance: 0,
+          advance: 0,
+        };
+      }
+       const lastNonsalaryDocument =
+          data.findLast((doc) => !doc.salaryTransaction);
+          console.log('lastNonsalaryDocument', lastNonsalaryDocument)
+        const { balance } = lastNonsalaryDocument;
+        return {
+          balance: balance,
+          advance: balance < 0 ? Math.abs(balance) : 0,
+        };
+    };
+
+    const employData = result.map((record) => {
+      const { balance, advance } = getFinancials(record.financeData || []);
+      return {
+        id: record._id,
+        name: record.name,
+        salary: record.salary,
+        balance: balance,
+        advance: advance,
+      };
+    });
 
     const response = {
       totalPages: Math.ceil(total / limit),
@@ -538,16 +592,51 @@ export const getAllPastEmploye = async (req, res, next) => {
     let search = req.query.search || "";
 
     let query = {
-      name: { $regex: search, $options: "i" },
       pastEmploye: true,
     };
 
-    const employData = await EmployeModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    if (search) {
+      const regexSearch = new RegExp(`\\b${search}`, "i");
+      query.name = regexSearch;
+    }
 
-    const total = await EmployeModel.countDocuments(query);
+    const [result, total] = await Promise.all([
+      EmployeModel.find(query)
+        .select("name financeData salary")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      EmployeModel.countDocuments(query),
+    ]);
+
+    const getFinancials = (data) => {
+      if (data.length === 0) {
+        return {
+          balance: 0,
+          advance: 0,
+        };
+      }
+       const lastNonsalaryDocument =
+          data.findLast((doc) => !doc.salaryTransaction);
+          console.log('lastNonsalaryDocument', lastNonsalaryDocument)
+        const { balance } = lastNonsalaryDocument;
+        return {
+          balance: balance,
+          advance: balance < 0 ? Math.abs(balance) : 0,
+        };
+    };
+
+    const employData = result.map((record) => {
+      const { balance, advance } = getFinancials(record.financeData || []);
+      return {
+        id: record._id,
+        name: record.name,
+        salary: record.salary,
+        balance: balance,
+        advance: advance,
+      };
+    });
 
     const response = {
       totalPages: Math.ceil(total / limit),
@@ -557,29 +646,6 @@ export const getAllPastEmploye = async (req, res, next) => {
     };
     setMongoose();
     return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const addLeave = async (req, res) => {
-  try {
-    const { employeeId, date } = req.body;
-    if (!employeeId || !date)
-      throw new Error("Employee ID and Date are required");
-    // Check if leave already exists for the date
-    const employeData = await EmployeModel.findById(employeeId);
-    const existingLeave = employeData.leaves.some((leave) => leave === date);
-    if (existingLeave) {
-      employeData.leaves = employeData.leaves.filter((leave) => leave !== date);
-    } else {
-      employeData.leaves.push(date);
-    }
-    await employeData.save();
-
-    return res
-      .status(201)
-      .json({ success: true, message: "Leave Update Successfull" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -617,31 +683,31 @@ export const reverseSalary = async (req, res, next) => {
       if (!id || !transactionId || !amount || !branchId || !payment_Method)
         throw new Error("Missing fields");
       const employe = await EmployeModel.findById(id).session(session);
+      if (!employe) throw new Error("Employe not found");
       const transaction = employe.financeData.find(
-        (item) => item._id.toString() === transactionId
+        (item) => item._id.toString() === transactionId,
       );
       if (!transaction || !transaction.salaryTransaction) {
-        throw new Error("Can Not Delete Transaction");
-      } 
+        throw new Error("Unable to delete this transaction");
+      }
       const today = getTodayDate();
-      if (!employe) throw new Error("Employe Not Found");
 
       //ADD IN PAYMENT METHID
-      if(payment_Method === "cashSale") {
+      if (payment_Method === "cashSale") {
         await DailySaleModel.updateMany(
           {
-          branchId,
-          date:{
-            $gte: transaction.date,
-            $lte:today
-          }
-        },
-        {
-          $inc:{
-           "saleData.totalCash": amount,
-          }
-        }
-      );
+            branchId,
+            date: {
+              $gte: transaction.date,
+              $lte: today,
+            },
+          },
+          {
+            $inc: {
+              "saleData.totalCash": amount,
+            },
+          },
+        );
       }
 
       //UPDATING VIRTUAL ACCOUNTS
@@ -653,8 +719,8 @@ export const reverseSalary = async (req, res, next) => {
           transactionType: TransactionType.DEPOSIT,
           date: today,
           note: `Salary Reversed for ${employe.name}`,
-          sourceId:transactionId,
-          isDelete:true
+          sourceId: transactionId,
+          isDelete: true,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -667,19 +733,19 @@ export const reverseSalary = async (req, res, next) => {
       await cashBookService.deleteEntry(dataForCashBook);
 
       //MARKING TRANSACTION AS DELETED
-      const month = transaction.particular.match(/Month:(\d+)/);
-      if (month) {
-        employe.salaryStatus[Number(month[1])] = false;
-      } else {
-        throw new Error("Something Went Wrong");
-      }
+      await EmployeSalaryRecordModel.findOneAndDelete({
+        employee_id: id,
+        transaction_id: transactionId,
+      });
       employe.financeData = employe.financeData.filter(
-        (item) => item?._id?.toString() !== transactionId
+        (item) => item?._id?.toString() !== transactionId,
       );
-      employe.salaryStatus[transaction.m]
+
       await employe.save({ session });
 
-      return res.status(200).json({ success: true, message: "Salary reverse successfull" });
+      return res
+        .status(200)
+        .json({ success: true, message: "Salary reverse successfull" });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -699,7 +765,7 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
       const employe = await EmployeModel.findById(employeId).session(session);
       if (!employe) throw new Error("Employe data not found");
       const recordData = employe.financeData.find(
-        (record) => record._id?.toString() === recordId
+        (record) => record._id?.toString() === recordId,
       );
       const payment_Method = recordData.payment_Method;
       let credit = null;
@@ -731,10 +797,10 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
             payment_Method,
             amount: credit,
             transactionType: TransactionType.WITHDRAW,
-            date:today,
+            date: today,
             note: `Credit transaction deleted for ${employe.name}`,
-            isDelete:true,
-            sourceId:recordId
+            isDelete: true,
+            sourceId: recordId,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -750,10 +816,10 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
             payment_Method,
             amount: debit,
             transactionType: TransactionType.DEPOSIT,
-            date:today,
+            date: today,
             note: `Debit transaction deleted for ${employe.name}`,
-            sourceId:recordId,
-            isDelete:true
+            sourceId: recordId,
+            isDelete: true,
           };
           await virtualAccountsService.makeTransactionInVirtualAccounts(data);
         }
@@ -764,63 +830,62 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
         id: recordId,
         session,
       };
-      console.log('dataForCashBook', dataForCashBook)
       await cashBookService.deleteEntry(dataForCashBook);
 
       //UPDATE DAILY SALE
       if (payment_Method === "cashSale") {
+        const amountForDailySale = credit > 0 ? -credit : debit > 0 ? debit : 0;
 
-        const amountForDailySale =
-          credit > 0 ? -credit : debit > 0 ? debit : 0;
+        const targetDate = moment
+          .tz(recordData.date, "Asia/Karachi")
+          .startOf("day");
+        const dateList = [];
 
-          const targetDate = moment.tz(recordData.date, "Asia/Karachi").startOf("day");
-          const dateList = [];
+        const current = moment(targetDate);
+        while (current.isSameOrBefore(today)) {
+          dateList.push(current.format("YYYY-MM-DD"));
+          current.add(1, "day");
+        }
 
-          const current = moment(targetDate);
-          while (current.isSameOrBefore(today)) {
-            dateList.push(current.format("YYYY-MM-DD"));
-            current.add(1, "day");
-          }
+        const dailySales = await DailySaleModel.find({
+          branchId: recordData.branchId,
+          date: { $in: dateList },
+        }).session(session);
 
-          const dailySales = await DailySaleModel.find({
-            branchId:recordData.branchId,
-            date: { $in: dateList },
-          }).session(session);
+        if (dailySales.length !== dateList.length) {
+          const foundDates = dailySales.map((d) => d.date);
+          const missing = dateList.filter((d) => !foundDates.includes(d));
+          throw new Error(
+            `Missing Daily Sale records for: ${missing.join(", ")}`,
+          );
+        }
 
-          if (dailySales.length !== dateList.length) {
-            const foundDates = dailySales.map((d) => d.date);
-            const missing = dateList.filter((d) => !foundDates.includes(d));
-            throw new Error(
-              `Missing Daily Sale records for: ${missing.join(", ")}`
-            );
-          }
-
-          // Prepare bulk operations
-          const bulkOps = dailySales.map((saleDoc) => {
-            const update = {
-              $inc: {
-                "saleData.totalCash": amountForDailySale,
-              },
-            };
-            if (credit >= 0) {
-              const futureCash = saleDoc.saleData.totalCash - credit;
-              if (futureCash < 0) {
-                throw new Error(`Not enough cash on ${saleDoc.date}`);
-              }
+        // Prepare bulk operations
+        const bulkOps = dailySales.map((saleDoc) => {
+          const update = {
+            $inc: {
+              "saleData.totalCash": amountForDailySale,
+            },
+          };
+          if (credit >= 0) {
+            const futureCash = saleDoc.saleData.totalCash - credit;
+            if (futureCash < 0) {
+              throw new Error(`Not enough cash on ${saleDoc.date}`);
             }
+          }
 
-            return {
-              updateOne: {
-                filter: { _id: saleDoc._id },
-                update,
-              },
-            };
-          });
+          return {
+            updateOne: {
+              filter: { _id: saleDoc._id },
+              update,
+            },
+          };
+        });
 
-          await DailySaleModel.bulkWrite(bulkOps, { session });
-      };
-       employe.financeData = employe.financeData.filter(
-        (record) => record._id?.toString() !== recordId
+        await DailySaleModel.bulkWrite(bulkOps, { session });
+      }
+      employe.financeData = employe.financeData.filter(
+        (record) => record._id?.toString() !== recordId,
       );
       await employe.save({ session });
       return res
@@ -831,5 +896,251 @@ export const deleteCreditDebitEntry = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
+  }
+};
+
+export const updateAttendanceData = async (req, res) => {
+  try {
+    const {
+      employee_id,
+      date,
+      status,
+      check_in,
+      check_out,
+      is_weekly_holiday,
+      is_public_holiday,
+      overtime_hours,
+      note,
+    } = req.body;
+    if (!employee_id) {
+      throw new Error("Employee id is required");
+    }
+    let calculatedOvertimeHours = Number(overtime_hours) || 0;
+    if (status === "present") {
+      await EmployeAttendenceModel.findOneAndUpdate(
+        {
+          employee_id,
+          date,
+        },
+        {
+          $set: {
+            status: "present",
+            check_in,
+            check_out,
+            overtime_hours: calculatedOvertimeHours,
+            is_weekly_holiday,
+            is_public_holiday,
+            note,
+          },
+        },
+        { upsert: true, new: true, runValidators: true },
+      );
+    } else {
+      await EmployeAttendenceModel.findOneAndUpdate(
+        {
+          employee_id,
+          date,
+        },
+        {
+          $set: {
+            status: status,
+            check_in: null,
+            check_out: null,
+            overtime_hours: 0,
+            note,
+          },
+        },
+        { upsert: true, new: true, runValidators: true },
+      );
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Attendance data updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAttendencedata = async (req, res) => {
+  try {
+    const month = req.query.month;
+    if (!month || !moment(month, "YYYY-MM", true).isValid()) {
+      throw new Error("Please select a valid month");
+    }
+    const startOfMonth = moment(month, "YYYY-MM").startOf("month").toDate();
+    const endOfMonth = moment(month, "YYYY-MM").endOf("month").toDate();
+    const [employees, publicHolidays] = await Promise.all([
+      EmployeModel.find({ pastEmploye: false })
+        .select("name designation")
+        .populate({
+          path: "attendanceRecords",
+          match: {
+            date: {
+              $gte: startOfMonth,
+              $lte: endOfMonth,
+            },
+          },
+          select:
+            "date status check_in check_out overtime_hours is_weekly_holiday is_public_holiday note",
+        }),
+      getPublicHolidaysForMonth(month),
+    ]);
+    const data = employees.map((employee) => {
+      const employeeData = employee;
+      const recordsByDate = new Map(
+        (employeeData.attendanceRecords || []).map((record) => [
+          moment(record.date).format("YYYY-MM-DD"),
+          record,
+        ]),
+      );
+
+      for (const holiday of publicHolidays) {
+        const existingRecord = recordsByDate.get(holiday.date);
+
+        if (existingRecord) {
+          continue;
+        }
+
+        const holidayRecord = {
+          date: holiday.date,
+          status: "leave",
+          check_in: null,
+          check_out: null,
+          overtime_hours: 0,
+          is_weekly_holiday: false,
+          is_public_holiday: false,
+          public_holiday_name: holiday.name,
+          note: null,
+          is_system_generated: true,
+        };
+
+        employeeData.attendanceRecords.push(holidayRecord);
+        recordsByDate.set(holiday.date, holidayRecord);
+      }
+
+      employeeData.attendanceRecords.sort(
+        (a, b) => moment(a.date).valueOf() - moment(b.date).valueOf(),
+      );
+
+      return employeeData;
+    });
+    setMongoose();
+    const response = {
+      data,
+      publicHolidays,
+    };
+    return res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const calculateSalary = async (req, res) => {
+  try {
+    const { month, employee_id } = req.body;
+    if (!month || !employee_id) {
+      throw new Error("Month and employee id is required");
+    }
+    const isInvalidMonth = moment(month).isAfter();
+    if(isInvalidMonth){
+      throw new Error("Invalid month selection")
+    } 
+    const isSalaryPaid = await EmployeSalaryRecordModel.findOne({
+      employee_id,
+      for_month: month,
+    });
+    if (isSalaryPaid) {
+      throw new Error(
+        `Salary for this employee and period ${month} has already been processed`,
+      );
+    }
+    const startOfMonth = moment(month, "YYYY-MM").startOf("month").toDate();
+    const endOfMonth = moment(month, "YYYY-MM").endOf("month").toDate();
+    const daysInMonth = moment(month).daysInMonth();
+    const attendanceRecords = await EmployeAttendenceModel.find({
+      employee_id,
+      date: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    }).populate({
+      path: "employee_id",
+      select: "salary",
+    });
+
+    const publicHolidaysInMonth = await getPublicHolidaysForMonth(month);
+
+    const publicHolidayDates = new Set(
+      publicHolidaysInMonth.map((holiday) => holiday.date)
+    );
+
+    const attendanceDates = new Set(
+      attendanceRecords.map((record) => moment(record.date).format("YYYY-MM-DD"))
+    );
+
+    const missingAttendanceDates = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = moment(month, "YYYY-MM").date(day);
+      const dateKey = date.format("YYYY-MM-DD");
+
+      const isSunday = date.day() === 0;
+      const isPublicHoliday = publicHolidayDates.has(dateKey);
+
+      if (!isSunday && !isPublicHoliday && !attendanceDates.has(dateKey)) {
+        missingAttendanceDates.push(dateKey);
+      }
+    }
+
+    const baseSalary = attendanceRecords[0]?.employee_id?.salary || 0;
+    const perDaySalary = baseSalary / daysInMonth;
+    let weeklyHolidayWorked = 0;
+    let publicHolidayWorked = 0;
+    let absentDays = 0;
+    let leavesDays = 0;
+    let overtimeHours = 0;
+
+    attendanceRecords.forEach((record) => {
+      const {status} = record;
+      if (status === "present" || status === "leave") {
+        if (record.is_public_holiday) {
+          publicHolidayWorked++;
+        } else if (record.is_weekly_holiday) {
+          weeklyHolidayWorked++;
+        } 
+
+        if (record.overtime_hours > 0) {
+          overtimeHours += record.overtime_hours;
+        }
+        if(status === "leave") {
+          leavesDays++;
+        }
+      } else if(status === "absent"){
+        absentDays++;
+      };
+    });
+
+
+    const deduction = absentDays * perDaySalary;
+    const extraWeeklyPay = weeklyHolidayWorked * (perDaySalary * 2);
+    const extraPublicPay = publicHolidayWorked * (perDaySalary * 2);
+    const overtimePay = (overtimeHours / 12) * perDaySalary;
+
+    const total = Math.round(baseSalary - deduction + extraWeeklyPay + extraPublicPay + overtimePay);
+
+    const response = {
+      totalSalary: total,
+      oveerTime: overtimeHours,
+      absents: absentDays,
+      leaves: leavesDays,
+      weeklyHolidayWorked: weeklyHolidayWorked,
+      publicHolidaysWorked: publicHolidayWorked,
+      missingAttendanceDates: missingAttendanceDates
+    };
+
+    return res.status(200).json(response)
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

@@ -9,7 +9,6 @@ import {
   GetEmployeePast,
   UpdateEmployee,
 } from "../../features/AccountSlice";
-import moment from "moment-timezone";
 
 const categories = ["Active Employee", "Past Employee"];
 
@@ -21,12 +20,8 @@ const Employee = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-
   const [selectedCategory, setSelectedCategory] = useState("Active Employee");
-  const [searchText, setSearchText] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -35,11 +30,11 @@ const Employee = () => {
 
   useEffect(() => {
     if (selectedCategory === "Active Employee") {
-      dispatch(GetEmployeeActive({ searchText, page: page }));
+      dispatch(GetEmployeeActive({page: page }));
     } else {
-      dispatch(GetEmployeePast({ searchText, page: page }));
+      dispatch(GetEmployeePast({page: page }));
     }
-  }, [currentPage, searchText, dispatch, page]);
+  }, [dispatch, page]);
 
   const Employees =
     selectedCategory === "Active Employee" ? ActiveEmployees : PastEmployees;
@@ -121,7 +116,7 @@ const Employee = () => {
       pastEmploye: true,
     };
     dispatch(UpdateEmployee(data)).then(() => {
-      dispatch(GetEmployeeActive(searchText));
+      dispatch(GetEmployeeActive());
 
       closeConfirmationModal();
     });
@@ -335,30 +330,10 @@ const Employee = () => {
                           {employee.salary} Rs
                         </td>
                         <td className="px-6 py-4 font-medium">
-                          {employee?.financeData &&
-                          employee.financeData.length > 0
-                            ? `${
-                                employee.financeData[
-                                  employee.financeData.length - 1
-                                ]?.balance < 0
-                                  ? Math.abs(
-                                      employee.financeData[
-                                        employee.financeData.length - 1
-                                      ]?.balance
-                                    )
-                                  : 0
-                              } Rs`
-                            : "-"}
+                          {employee?.advance} Rs
                         </td>
                         <td className="px-6 py-4 font-medium">
-                          {employee?.financeData &&
-                          employee.financeData.length > 0
-                            ? `${
-                                employee.financeData[
-                                  employee.financeData.length - 1
-                                ]?.balance
-                              } Rs`
-                            : "-"}
+                          {employee?.balance} Rs
                         </td>
                         <td className="pl-10 py-4">
                           <Link

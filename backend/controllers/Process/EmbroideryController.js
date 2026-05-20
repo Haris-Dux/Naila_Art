@@ -5,6 +5,10 @@ import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import CustomError from "../../config/errors/CustomError.js";
+import { CalenderModel } from "../../models/Process/CalenderModel.js";
+import { CuttingModel } from "../../models/Process/CuttingModel.js";
+import { StitchingModel } from "../../models/Process/StitchingModel.js";
+import { StoneModel } from "../../models/Process/StoneModel.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -264,14 +268,13 @@ export const getAllEmbroidery = async (req, res, next) => {
     if (Manual_No) query.Manual_No = Manual_No;
     if (project_status) query.project_status = project_status;
     if (design_no) query.design_no = design_no;
-    if (partyName) {
-      query.partyName = { $regex: partyName, $options: "i" };
-    }
+    if (partyName) query.partyName =  partyName
 
     const data = await EmbroideryModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     const total = await EmbroideryModel.countDocuments(query);
     const response = {
       totalPages: Math.ceil(total / limit),
@@ -862,6 +865,35 @@ export const updateVerificationStatus = async (req,res, next) => {
     res.status(200).json({success: true, message: "Embroidery verification status updated successfully"})
   } catch (error) {
     next(error)
+  }
+}
+
+export const getProcessFiltersData = async (req, res) => {
+  try {
+    const category = req.params.category;
+    if(!category) {
+      throw new error("Please provide process category")
+    };
+    const processModelMapping = {
+      embroidery: EmbroideryModel,
+      calender: CalenderModel,
+      cutting: CuttingModel,
+      stitching: StitchingModel,
+      stones: StoneModel
+    };
+
+    const [partyNames, designNumbers] = await Promise.all([
+      processModelMapping[category].find().distinct('partyName'),
+      EmbroideryModel.distinct("design_no")
+    ]);
+
+    const data = {
+      partyNames,
+      designNumbers
+    };
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 }
 

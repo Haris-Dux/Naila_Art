@@ -17,6 +17,8 @@ const getHeadDataByDesignNoURL =
   "/api/process/embriodery/getHeadDataByDesignNo";
 const getPreviousDataBypartyNameURL =
   "/api/process/embriodery/getPreviousDataBypartyName";
+const getProcessFiltersDataURL =
+  "/api/process/embriodery/getProcessFiltersData";
 const searchAccountByPartyNameURL =
   "/api/process/pictures/searchAccountByPartyName";
 const createPictureOrderURL = "/api/process/pictures/createPictureOrder";
@@ -73,12 +75,12 @@ export const GETEmbroidery = createAsyncThunk(
     const filters = data?.filters ?? {};
     const query = buildQueryParams({
       Manual_No: filters.Manual_No,
+      design_no: filters.Design_No,
       partyName: filters.partyName,
       project_status: filters.project_status,
       page: data.page,
     });
     try {
-  
       const response = await axios.post(
         `${getEmbroidery}?${query}`
       );
@@ -210,6 +212,19 @@ export const getPreviousDataBypartyNameAsync = createAsyncThunk(
   }
 );
 
+//GET PROCESS FILTER OPTIONS
+export const getProcessFiltersDataAsync = createAsyncThunk(
+  "Embroider/getProcessFiltersData",
+  async (category) => {
+    try {
+      const response = await axios.get(`${getProcessFiltersDataURL}/${category}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.error || error.message);
+    }
+  }
+);
+
 //GET ACCOUNT DATA FOR PICTURES ORDER
 export const getaccountDataForPicturesAsync = createAsyncThunk(
   "Pictures/getAccountsData",
@@ -296,6 +311,11 @@ const initialState = {
   designNumbers: [],
   headStitchData: [],
   previousDataByPartyName: [],
+  processFiltersData: {
+    partyNames: [],
+    designNumbers: [],
+  },
+  processFiltersLoading: false,
   picturesLoading: false,
   createPictureOrderLoading: false,
   accountDataForPictures: [],
@@ -363,6 +383,25 @@ const EmbroiderySlice = createSlice({
       })
       .addCase(getPreviousDataBypartyNameAsync.rejected, (state, action) => {
         state.oldDataLoading = false;
+      })
+
+      // GET PROCESS FILTER OPTIONS
+      .addCase(getProcessFiltersDataAsync.pending, (state) => {
+        state.processFiltersLoading = true;
+      })
+      .addCase(getProcessFiltersDataAsync.fulfilled, (state, action) => {
+        state.processFiltersLoading = false;
+        state.processFiltersData = action.payload || {
+          partyNames: [],
+          designNumbers: [],
+        };
+      })
+      .addCase(getProcessFiltersDataAsync.rejected, (state) => {
+        state.processFiltersLoading = false;
+        state.processFiltersData = {
+          partyNames: [],
+          designNumbers: [],
+        };
       })
 
       // GET ACCOUNTS DATA BY PARTY NAME

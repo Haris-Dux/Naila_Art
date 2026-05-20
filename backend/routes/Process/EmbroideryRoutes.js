@@ -6,6 +6,7 @@ import {
   getAllEmbroidery,
   getEmbroideryById,
   getHeadDataByDesignNo,
+  getProcessFiltersData,
   getPreviousDataBypartyName,
   replaceEmroideryData,
   updateEmbroidery,
@@ -60,6 +61,11 @@ embrioderyRouter.put(
   "/updateVerificationStatus/:id",
   superAdminAndAdminOnly,
   updateVerificationStatus
+);
+embrioderyRouter.get(
+  "/getProcessFiltersData/:category",
+  superAdminAndAdminOnly,
+  getProcessFiltersData
 );
 
 export default embrioderyRouter;

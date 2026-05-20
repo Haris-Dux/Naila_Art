@@ -27,6 +27,7 @@ const Dashboard = () => {
   const [isBillsDropdownOpen, setIsBillsDropdownOpen] = useState(false);
   const [isProcessDropdownOpen, setIsProcessDropdownOpen] = useState(false);
   const [isAccountsDropdownOpen, setIsAccountsDropdownOpen] = useState(false);
+  const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
   const [othersaleModal, setOtherSaleModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -59,6 +60,7 @@ const Dashboard = () => {
     setIsBillsDropdownOpen(false);
     setIsProcessDropdownOpen(false);
     setIsAccountsDropdownOpen(false);
+    setIsEmployeeDropdownOpen(false);
   };
 
   const toggleBillsDropdown = () => {
@@ -66,6 +68,7 @@ const Dashboard = () => {
     setIsInStockDropdownOpen(false);
     setIsProcessDropdownOpen(false);
     setIsAccountsDropdownOpen(false);
+    setIsEmployeeDropdownOpen(false);
   };
 
   const toggleProcessDropdown = () => {
@@ -73,6 +76,7 @@ const Dashboard = () => {
     setIsInStockDropdownOpen(false);
     setIsBillsDropdownOpen(false);
     setIsAccountsDropdownOpen(false);
+    setIsEmployeeDropdownOpen(false);
   };
 
   const toggleAccountsDropdown = () => {
@@ -80,6 +84,15 @@ const Dashboard = () => {
     setIsProcessDropdownOpen(false);
     setIsInStockDropdownOpen(false);
     setIsBillsDropdownOpen(false);
+    setIsEmployeeDropdownOpen(false);
+  };
+
+  const toggleEmployeeDropdown = () => {
+    setIsEmployeeDropdownOpen((prevState) => !prevState);
+    setIsProcessDropdownOpen(false);
+    setIsInStockDropdownOpen(false);
+    setIsBillsDropdownOpen(false);
+    setIsAccountsDropdownOpen(false);
   };
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
@@ -196,7 +209,6 @@ const Dashboard = () => {
   };
 
   const enviroment = import.meta.env.VITE_APP_ENV;
-  console.log('enviroment', enviroment)
 
   return (
     <>
@@ -602,10 +614,7 @@ const Dashboard = () => {
                                           ) ||
                                           location.pathname.includes(
                                             "sellers"
-                                          ) ||
-                                          location.pathname.includes("employee") || location.pathname.includes('other-accounts')
-                                            ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                                            : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                                          ) 
                                         }`}
                   onClick={toggleAccountsDropdown}
                 >
@@ -662,18 +671,6 @@ const Dashboard = () => {
                     {user?.user?.role === "superadmin" && (
                       <li>
                         <Link
-                          to="/dashboard/employee"
-                          onClick={handleMoveTop}
-                          className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
-                            location.pathname === "/dashboard/employee" ||
-                            location.pathname.includes("employee-details")
-                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
-                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
-                          } group`}
-                        >
-                          Employee
-                        </Link>
-                          <Link
                           to="/dashboard/other-accounts"
                           onClick={handleMoveTop}
                           className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
@@ -689,6 +686,69 @@ const Dashboard = () => {
                   </ul>
                 )}
               </li>
+
+              {/* EMPLOYEE MANAGEMENT DROPDOWN */}
+              {user?.user?.role === "superadmin" && (
+                <li className="relative">
+                  <button
+                    className={`h-14 pl-4 w-full border-t flex items-center p-2 text-base font-medium group
+                                          ${
+                                            location.pathname.includes("employee")
+                                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                                          }`}
+                    onClick={toggleEmployeeDropdown}
+                  >
+                    <span className="ml-3">Employee</span>
+                    <svg
+                      className={`ml-auto w-4 h-4 transform ${
+                        isEmployeeDropdownOpen ? "rotate-180" : ""
+                      } transition-transform`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {isEmployeeDropdownOpen && (
+                    <ul className="absolute left-0 z-10 mt-2 w-full border border-gray-200 rounded shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                      <li>
+                        <Link
+                          to="/dashboard/employee"
+                          onClick={handleMoveTop}
+                          className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                            location.pathname === "/dashboard/employee" ||
+                            location.pathname.includes("employee-details")
+                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                          } group`}
+                        >
+                          All Employees
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/dashboard/employee-attendance"
+                          onClick={handleMoveTop}
+                          className={`h-14 pl-12 border-t flex items-center p-2 text-base cursor-pointer font-medium ${
+                            location.pathname === "/dashboard/employee-attendance"
+                              ? "bg-[#434343] text-white dark:bg-gray-600 dark:text-gray-100 dark:border-gray-400"
+                              : "bg-[#FAFAFA] dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:border-gray-500 hover:bg-gray-100"
+                          } group`}
+                        >
+                          Attendance
+                        </Link>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+              )}
 
               {/* BILLS DROPDOWN */}
               <li className="relative">

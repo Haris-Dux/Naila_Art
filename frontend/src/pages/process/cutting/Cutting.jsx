@@ -31,7 +31,9 @@ const Cutting = () => {
         <li key={i} onClick={ToDown}>
           <Link
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === parseInt(page) ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === parseInt(page)
+                ? "bg-[#252525] text-white"
+                : "hover:bg-gray-100"
             }`}
             onClick={() => dispatch(GetAllCutting({ filters, page: i }))}
           >
@@ -92,7 +94,7 @@ const Cutting = () => {
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
+        <div className="header flex justify-between items-center mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Cutting
           </h1>
