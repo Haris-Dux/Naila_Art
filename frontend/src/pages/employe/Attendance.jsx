@@ -74,8 +74,8 @@ const Attendance = () => {
     if (record?.status === "present") {
       setFormData({
         status: status,
-        check_in: moment(record.check_in).format("YYYY-MM-DDTHH:mm"),
-        check_out:moment(record.check_out).format("YYYY-MM-DDTHH:mm"),
+        check_in: moment.parseZone(record.check_in).format("YYYY-MM-DDTHH:mm"),
+        check_out:moment.parseZone(record.check_out).format("YYYY-MM-DDTHH:mm"),
         overtime_hours: ot,
         employee_id: employee.id,
         is_weekly_holiday: isSunday,
