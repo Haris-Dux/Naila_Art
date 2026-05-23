@@ -20,6 +20,7 @@ import {
   IoSettingsOutline,
   IoStorefrontOutline,
   IoWalletOutline,
+  IoPeople,
 } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
@@ -333,30 +334,12 @@ const Dashboard = () => {
       ].filter((item) => canAccess(item.allowedRoles)),
     },
     {
-      key: "employee",
+      type: "link",
       label: "Employee",
+      to: "/dashboard/employee",
       icon: IoPeopleOutline,
       allowedRoles: roleGroups.superAdminOnly,
-      matches: [{ path: "employee" }],
-      items: [
-        {
-          label: "All Employees",
-          to: "/dashboard/employee",
-          icon: IoPeopleOutline,
-          allowedRoles: roleGroups.superAdminOnly,
-          matches: [
-            { path: "/dashboard/employee", exact: true },
-            { path: "employee-details" },
-          ],
-        },
-        {
-          label: "Attendance",
-          to: "/dashboard/employee-attendance",
-          icon: IoCalendarOutline,
-          allowedRoles: roleGroups.superAdminOnly,
-          matches: [{ path: "employee-attendance" }],
-        },
-      ].filter((item) => canAccess(item.allowedRoles)),
+      matches: [{ path: "/dashboard/employee", exact: true}]
     },
     {
       key: "bills",
@@ -481,7 +464,8 @@ const Dashboard = () => {
             <div className="flex justify-start items-center">
               <button
                 aria-controls="drawer-navigation"
-                className="p-2 mr-2 text-gray-600 rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                className="p-2 mr-2 text-gray-600                           {section.items.map((item) =>
+rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 onClick={toggleSidebar}
               >
                 <svg
@@ -528,6 +512,7 @@ const Dashboard = () => {
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
+             
               <Link
                 to="/dashboard/cash-book"
                 className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
@@ -543,12 +528,23 @@ const Dashboard = () => {
                 Generate Buyer Bill
               </Link>
               {user && user?.user?.role === Roles.SUPER_ADMIN && (
+                <>
                 <button
                   onClick={openOtherSaleModal}
                   className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
                 >
                   Generate Other Sale
                 </button>
+
+                <Link
+                to="/dashboard/employee-attendance"
+                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+              >
+                Attendance
+                <IoPeople size={24} />
+              </Link>
+
+              </>
               )}
               {user && user?.user?.role !== Roles.BRANCH_USER && (
                 <button className="relative mr-2">

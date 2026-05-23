@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { GrPowerReset } from "react-icons/gr";
-import { IoClose, IoFilter } from "react-icons/io5";
+import { IoFilter } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import Select from "react-select";
 import { getProcessFiltersDataAsync } from "../../features/EmbroiderySlice";
 import AppSelect from "../Common/select/AppSelect";
 
@@ -15,12 +14,6 @@ const initialFilters = {
   Design_No: "",
 };
 
-const filterLabels = {
-  project_status: "Status",
-  partyName: "Party",
-  Manual_No: "Manual",
-  Design_No: "Design",
-};
 
 const inputClass =
   "h-10 w-[170px] rounded-md border border-gray-300 bg-gray-50 px-2.5 text-sm font-medium text-gray-900 outline-none transition focus:border-gray-500 focus:bg-white focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white";
@@ -42,11 +35,7 @@ const ProcessFilters = ({ handlers }) => {
   const { processFiltersData } = useSelector((state) => state.Embroidery);
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
-  const [appliedFilters, setAppliedFilters] = useState(initialFilters);
 
-  const appliedFilterEntries = Object.entries(appliedFilters).filter(
-    ([, value]) => value,
-  );
 
   const routeCategory = useMemo(
     () => getRouteCategory(location.pathname),
@@ -97,54 +86,18 @@ const ProcessFilters = ({ handlers }) => {
   const handleFiltersSearch = () => {
     dispatch(dispatchFunction({ filters, page: 1 }));
     liftUpFiltersData(filters);
-    setAppliedFilters(filters);
-    setIsOpen(false);
   };
 
   const handleResetFilters = () => {
     setFilters(initialFilters);
-    setAppliedFilters(initialFilters);
     liftUpFiltersData(initialFilters);
     dispatch(dispatchFunction({ page: 1 }));
-    setIsOpen(false);
   };
 
-  const handleRemoveChip = (key) => {
-    const updatedFilters = {
-      ...appliedFilters,
-      [key]: "",
-    };
-
-    setFilters(updatedFilters);
-    setAppliedFilters(updatedFilters);
-    liftUpFiltersData(updatedFilters);
-    dispatch(dispatchFunction({ filters: updatedFilters, page: 1 }));
-  };
 
   return (
     <div className="flex min-w-0 items-center justify-end gap-2">
-      {appliedFilterEntries.length > 0 && !isOpen && (
-        <div className="flex max-w-[420px] flex-wrap items-center justify-end gap-1.5">
-          {appliedFilterEntries.map(([key, value]) => (
-            <span
-              key={key}
-              className="inline-flex max-w-[160px] items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            >
-              <span className="truncate">
-                {filterLabels[key]}: {value}
-              </span>
-              <button
-                type="button"
-                onClick={() => handleRemoveChip(key)}
-                className="rounded-full p-0.5 text-gray-500 hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-600 dark:hover:text-white"
-              >
-                <IoClose size={12} />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
+     
       <div
         className={`overflow-hidden transition-[width,opacity,transform] duration-300 ease-out ${
           isOpen
