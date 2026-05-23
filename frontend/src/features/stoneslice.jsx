@@ -50,6 +50,7 @@ export const GetAllStone = createAsyncThunk("Stone/Get", async (data) => {
  const filters = data?.filters ?? {};
       const query = buildQueryParams({
         Manual_No: filters.Manual_No,
+        design_no: filters.Design_No,
         partyName: filters.partyName,
         project_status: filters.project_status,
         page: data.page,
@@ -197,7 +198,7 @@ const StoneSlice = createSlice({
     builder
 
        // DATA BY PARTY NAME
-       .addCase(getStoneDataBypartyNameAsync.pending, (state, action) => {
+       .addCase(getStoneDataBypartyNameAsync.pending, (state) => {
         state.previousDataByPartyName = true;
       })
       .addCase(getStoneDataBypartyNameAsync.fulfilled, (state, action) => {
@@ -205,18 +206,18 @@ const StoneSlice = createSlice({
       })
 
       // DELETE STONE
-      .addCase(deleteStoneAsync.pending, (state, action) => {
+      .addCase(deleteStoneAsync.pending, (state) => {
         state.deleteloadings = true;
       })
-      .addCase(deleteStoneAsync.fulfilled, (state, action) => {
+      .addCase(deleteStoneAsync.fulfilled, (state) => {
         state.deleteloadings = false;
       })
 
     // STONE BILL
-    .addCase(generateStoneBillAsync.pending, (state, action) => {
+    .addCase(generateStoneBillAsync.pending, (state) => {
       state.StnoneBillLoading = true;
     })
-    .addCase(generateStoneBillAsync.fulfilled, (state, action) => {
+    .addCase(generateStoneBillAsync.fulfilled, (state) => {
       state.StnoneBillLoading = false;
     })
 
@@ -224,21 +225,21 @@ const StoneSlice = createSlice({
     .addCase(generateStoneGatePssPdfAsync.pending, (state) => {
       state.StonerpdfLoading = true;
     })
-    .addCase(generateStoneGatePssPdfAsync.fulfilled, (state, action) => {
+    .addCase(generateStoneGatePssPdfAsync.fulfilled, (state) => {
       state.StonerpdfLoading = false;
     })
 
       // Shop Add ADD CASE
-      .addCase(createStone.pending, (state, action) => {
+      .addCase(createStone.pending, (state) => {
         state.loading = true;
       })
-      .addCase(createStone.fulfilled, (state, action) => {
+      .addCase(createStone.fulfilled, (state) => {
         state.loading = false;
 
       })
 
       // LOGIN ADD CASE
-      .addCase(GetAllStone.pending, (state, action) => {
+      .addCase(GetAllStone.pending, (state) => {
         state.loading = true;
       })
       .addCase(GetAllStone.fulfilled, (state, action) => {
@@ -246,7 +247,7 @@ const StoneSlice = createSlice({
         state.Stone = action.payload;
       })
 
-      .addCase(GetSingleStone.pending, (state, action) => {
+      .addCase(GetSingleStone.pending, (state) => {
         state.loading = true;
       })
       .addCase(GetSingleStone.fulfilled, (state, action) => {
@@ -254,7 +255,7 @@ const StoneSlice = createSlice({
         state.SingleStone = action.payload
       })
 
-      .addCase(getColorsForCurrentEmbroidery.pending, (state, action) => {
+      .addCase(getColorsForCurrentEmbroidery.pending, (state) => {
         state.loading = true;
       })
       .addCase(getColorsForCurrentEmbroidery.fulfilled, (state, action) => {

@@ -1,7 +1,7 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   deleteCalenderAsync,
   GetAllCalender,
@@ -18,13 +18,12 @@ const Calendar = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const page = Calender?.page || "1";
-  const [filters, setFilters] = useState(null)
+  const [filters, setFilters] = useState(null);
 
   const filteredCalender = Calender?.data;
   useEffect(() => {
-    dispatch(GetAllCalender({filters, page }));
-  }, [ dispatch]);
-
+    dispatch(GetAllCalender({ filters, page }));
+  }, [dispatch]);
 
   const renderPaginationLinks = () => {
     const totalPages = Calender?.totalPages;
@@ -34,10 +33,11 @@ const Calendar = () => {
         <li key={i} onClick={ToDown}>
           <Link
             className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === Number(page) ? "bg-[#252525] text-white" : "hover:bg-gray-100"
+              i === Number(page)
+                ? "bg-[#252525] text-white"
+                : "hover:bg-gray-100"
             }`}
-                         onClick={() => dispatch(GetAllCalender({filters, page: i }))}
-            
+            onClick={() => dispatch(GetAllCalender({ filters, page: i }))}
           >
             {i}
           </Link>
@@ -88,21 +88,22 @@ const Calendar = () => {
     });
   };
 
-   const liftUpFiltersData = (data) => {
+  const liftUpFiltersData = (data) => {
     setFilters(data);
   };
-
 
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
+        <div className="header flex justify-between items-center mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Calendar
           </h1>
           {/* SEARCH FILTERS */}
-          <ProcessFilters handlers={{dispatchFunction:GetAllCalender,liftUpFiltersData}} />
+          <ProcessFilters
+            handlers={{ dispatchFunction: GetAllCalender, liftUpFiltersData }}
+          />
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>

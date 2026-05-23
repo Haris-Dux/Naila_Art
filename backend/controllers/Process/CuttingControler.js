@@ -131,9 +131,8 @@ export const getAllCutting = async (req, res, next) => {
     if (Manual_No) query.Manual_No = Manual_No;
     if (project_status) query.project_status = project_status;
     if (design_no) query.design_no = design_no;
-    if (partyName) {
-      query.partyName = { $regex: partyName, $options: "i" };
-    }
+    if (partyName) query.partyName = partyName;
+    
     const data = await CuttingModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)

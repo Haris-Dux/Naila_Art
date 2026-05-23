@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
 const financeSchema = new mongoose.Schema({
   date: {
@@ -52,6 +52,7 @@ const employeSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Name required"],
+      index:true
     },
     father_Name: {
       type: String,
@@ -93,54 +94,89 @@ const employeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    leaves: [],
-    overtime_Data: {
-      1: { type: Number, default: 0 },
-      2: { type: Number, default: 0 },
-      3: { type: Number, default: 0 },
-      4: { type: Number, default: 0 },
-      5: { type: Number, default: 0 },
-      6: { type: Number, default: 0 },
-      7: { type: Number, default: 0 },
-      8: { type: Number, default: 0 },
-      9: { type: Number, default: 0 },
-      10: { type: Number, default: 0 },
-      11: { type: Number, default: 0 },
-      12: { type: Number, default: 0 },
-    },
-
     financeData: [financeSchema],
-    over_time_history: [
-      {
-        date: {
-          type: String,
-          required: [true, "overtime date required"],
-        },
-        time: {
-          type: Number,
-          required: [true, "overtime value required"],
-        },
-        note: {
-          type: String,
-        },
-      },
-    ],
-    salaryStatus: {
-      1: { type: Boolean, default: false },
-      2: { type: Boolean, default: false },
-      3: { type: Boolean, default: false },
-      4: { type: Boolean, default: false },
-      5: { type: Boolean, default: false },
-      6: { type: Boolean, default: false },
-      7: { type: Boolean, default: false },
-      8: { type: Boolean, default: false },
-      9: { type: Boolean, default: false },
-      10: { type: Boolean, default: false },
-      11: { type: Boolean, default: false },
-      12: { type: Boolean, default: false },
-    },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+employeSchema.virtual('attendanceRecords',{
+  ref: "EmployeAttendence",
+  localField: "_id",
+  foreignField: "employee_id"
+});
+
+
 export const EmployeModel = mongoose.model("Employ", employeSchema);
+
+
+///////
+
+const attendanceSchema = new mongoose.Schema({
+  employee_id: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Employ", 
+    required: true,
+    index: true 
+  },
+  date: {
+    type: Date,
+    required: [true,"Date is required"],
+  },
+  status: {
+    type: String,
+    required: [true, "Employee status is required"],
+    enum: ['present', 'absent', 'leave'],
+    default: 'present'
+  },
+  check_in: {
+    type: Date, 
+    default: null
+  },
+  check_out: {
+    type: Date, 
+    default: null
+  },
+  overtime_hours: {
+    type: Number,
+    default: 0,
+  },
+  is_weekly_holiday: {
+    type: Boolean,
+    default: false
+  },
+  is_public_holiday: {
+    type: Boolean,
+    default: false
+  },
+  note: {
+    type: String,
+    default: null
+  }
+}, { timestamps: true });
+
+export const EmployeAttendenceModel = mongoose.model("EmployeAttendence", attendanceSchema);
+
+///////
+
+const SalarySchema = new mongoose.Schema({
+  employee_id: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Employ",
+    required: true,
+    index: true 
+  },
+  transaction_id : {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true,"Transaction id is required"],
+  },
+  for_month: {
+    type: String,
+    required: true
+  },
+  payment_date: {
+    type: Date,
+    required: [true,"Payment date is required"]
+  },
+}, { timestamps: true });
+
+export const EmployeSalaryRecordModel = mongoose.model("EmployeSalaryRecord", SalarySchema);

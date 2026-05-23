@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const addEmployee = "/api/employ/addEmploye";
@@ -14,6 +15,9 @@ const addLeaveUrl = '/api/employ/addLeave'
 const updateOvertimeUrl = '/api/employ/updateOvertime'
 const reverseSalaryeUrl = '/api/employ/reverseSalary'
 const deleteCreditDebitEntryUrl = '/api/employ/deleteCreditDebitEntry'
+const getAttendencedataUrl = '/api/employ/getAttendencedata';
+const updateAttendanceDataUrl = '/api/employ/updateAttendanceData'
+const calculateSalaryUrl = '/api/employ/calculateSalary'
 
 
 export const CreateEmployee = createAsyncThunk(
@@ -165,13 +169,51 @@ export const deleteCreditDebitEntryAsync = createAsyncThunk(
   }
 );
 
+export const GetAttendencedataAsync = createAsyncThunk("Employee/GetAttendenceData", async (data) => {
+      const queryParams = buildQueryParams({
+      month: data.month
+    });
+  try {
+    const response = await axios.get(`${getAttendencedataUrl}?${queryParams}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.error);
+  }
+}
+)
+
+export const UpdateAttendencedataAsync = createAsyncThunk("Employee/UpdateAttendanceData", async (data) => {
+  try {
+    const response = await axios.post(updateAttendanceDataUrl, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.error);
+  }
+}
+)
+
+export const CalculateSalaryAsync = createAsyncThunk("Employee/CalculateSalary", async (data) => {
+  try {
+    const response = await axios.post(calculateSalaryUrl, data);
+    return response.data;
+  } catch (error) {
+    toast.error(error.response?.data?.error || "Unable to calculate salary");
+    throw new Error(error.response?.data?.error || "Unable to calculate salary");
+  }
+}
+)
+
 const initialState = {
   Employees: [],
   ActiveEmployees: [],
   PastEmployees: [],
+  attendanceData: [],
   Employee: {},
   loading: false,
-  employeEditLoading:false
+  employeEditLoading:false,
+  getAttendaceLoading:false,
+  updateAttendanceLoading:false,
+  calculateSalaryLoading:false
 };
 
 const AccountSlice = createSlice({
@@ -183,13 +225,13 @@ const AccountSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      .addCase(CreateEmployee.pending, (state, action) => {
+      .addCase(CreateEmployee.pending, (state,) => {
         state.employeEditLoading = true;
       })
-      .addCase(CreateEmployee.fulfilled, (state, action) => {
+      .addCase(CreateEmployee.fulfilled, (state,) => {
         state.employeEditLoading = false;
       })
-      .addCase(CreateEmployee.rejected, (state, action) => {
+      .addCase(CreateEmployee.rejected, (state,) => {
         state.employeEditLoading = false;
       })
 
@@ -214,29 +256,29 @@ const AccountSlice = createSlice({
         state.employeEditLoading = false;
       })
 
-      .addCase(addLeaveAsync.pending, (state, action) => {
+      .addCase(addLeaveAsync.pending, (state, ) => {
         state.employeEditLoading = true;
       })
-      .addCase(addLeaveAsync.fulfilled, (state, action) => {
+      .addCase(addLeaveAsync.fulfilled, (state, ) => {
         state.employeEditLoading = false;
       })
 
-      .addCase(updateOvertimeHoursAsync.pending, (state, action) => {
+      .addCase(updateOvertimeHoursAsync.pending, (state,) => {
         state.employeEditLoading = true;
       })
-      .addCase(updateOvertimeHoursAsync.fulfilled, (state, action) => {
+      .addCase(updateOvertimeHoursAsync.fulfilled, (state,) => {
         state.employeEditLoading = false;
       })
 
-      .addCase(GetEmployeeActive.pending, (state, action) => {
+      .addCase(GetEmployeeActive.pending, (state,) => {
         state.loading = true;
       })
-      .addCase(GetEmployeeActive.fulfilled, (state, action) => {
+      .addCase(GetEmployeeActive.fulfilled, (state,action ) => {
         state.loading = false;
         state.ActiveEmployees = action.payload
       })
 
-      .addCase(GetEmployeePast.pending, (state, action) => {
+      .addCase(GetEmployeePast.pending, (state, ) => {
         state.loading = true;
       })
       .addCase(GetEmployeePast.fulfilled, (state, action) => {
@@ -245,7 +287,7 @@ const AccountSlice = createSlice({
       })
 
 
-      .addCase(GetEmployeeById.pending, (state, action) => {
+      .addCase(GetEmployeeById.pending, (state, ) => {
         state.loading = true;
       })
       .addCase(GetEmployeeById.fulfilled, (state, action) => {
@@ -254,27 +296,58 @@ const AccountSlice = createSlice({
       })
 
 
-      .addCase(UpdateEmployee.pending, (state, action) => {
+      .addCase(UpdateEmployee.pending, (state,) => {
         state.employeEditLoading = true;
       })
-      .addCase(UpdateEmployee.fulfilled, (state, action) => {
+      .addCase(UpdateEmployee.fulfilled, (state,) => {
         state.employeEditLoading = false;
       })
 
 
-      .addCase(AddCreditDebit.pending, (state, action) => {
+      .addCase(AddCreditDebit.pending, (state) => {
         state.employeEditLoading = true;
       })
-      .addCase(AddCreditDebit.fulfilled, (state, action) => {
+      .addCase(AddCreditDebit.fulfilled, (state) => {
         state.employeEditLoading = false;
       })
 
 
-      .addCase(CreditSalary.pending, (state, action) => {
+      .addCase(CreditSalary.pending, (state) => {
         state.employeEditLoading = true;
       })
-      .addCase(CreditSalary.fulfilled, (state, action) => {
+      .addCase(CreditSalary.fulfilled, (state) => {
         state.employeEditLoading = false;
+      })
+
+      .addCase(GetAttendencedataAsync.pending, (state) => {
+        state.getAttendaceLoading = true;
+      })
+      .addCase(GetAttendencedataAsync.fulfilled, (state, action) => {
+        state.attendanceData = action.payload
+        state.getAttendaceLoading = false;
+      })
+      .addCase(GetAttendencedataAsync.rejected, (state) => {
+        state.getAttendaceLoading = false;
+      })
+
+      .addCase(UpdateAttendencedataAsync.pending, (state) => {
+        state.updateAttendanceLoading = true;
+      })
+      .addCase(UpdateAttendencedataAsync.fulfilled, (state) => {
+        state.updateAttendanceLoading = false;
+      })
+      .addCase(UpdateAttendencedataAsync.rejected, (state) => {
+        state.updateAttendanceLoading = false;
+      })
+
+      .addCase(CalculateSalaryAsync.pending, (state) => {
+        state.calculateSalaryLoading = true;
+      })
+      .addCase(CalculateSalaryAsync.fulfilled, (state) => {
+        state.calculateSalaryLoading = false;
+      })
+      .addCase(CalculateSalaryAsync.rejected, (state) => {
+        state.calculateSalaryLoading = false;
       })
   },
 });

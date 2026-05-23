@@ -14,7 +14,6 @@ import {
 import { useDispatch } from "react-redux";
 import Select from "react-select";
 import ReactSearchBox from "react-search-box";
-import moment from "moment";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { LuPackageCheck } from "react-icons/lu";
 import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
@@ -22,6 +21,7 @@ import { IoAdd } from "react-icons/io5";
 import Loading from "../../../Component/Loader/Loading";
 import { GetAllBaseforEmroidery } from "../../../features/InStockSlice";
 import Icon from "../../../Component/Common/Icons";
+import { getTodayDate } from "../../../Utils/Common";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,11 +37,13 @@ const Embroidery = () => {
     deleteLoadings,
     designNumberLoading,
   } = useSelector((state) => state.Embroidery);
-  const { loading:EmbroideryBaseLoading } = useSelector((state) => state.InStock);
+  const { loading: EmbroideryBaseLoading } = useSelector(
+    (state) => state.InStock,
+  );
   const [accountData, setAccountData] = useState(null);
   const page = embroidery?.page || "1";
   const dispatch = useDispatch();
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const today = getTodayDate();
   const [formData, setFormData] = useState({
     partyName: "",
     Manual_No: "",
@@ -346,8 +348,15 @@ const Embroidery = () => {
 
   const checkEditableEmroidery = (data) => {
     const { project_status, bill_generated, updated, next_steps } = data;
-    const isNextStepsTrue = Object.entries(next_steps).some(item => item[1] === true)
-    if (project_status === "Pending" && !bill_generated && !updated && !isNextStepsTrue)
+    const isNextStepsTrue = Object.entries(next_steps).some(
+      (item) => item[1] === true,
+    );
+    if (
+      project_status === "Pending" &&
+      !bill_generated &&
+      !updated &&
+      !isNextStepsTrue
+    )
       return true;
     return false;
   };
@@ -356,12 +365,12 @@ const Embroidery = () => {
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6">
+        <div className="header flex justify-between items-center ">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
             Embroidery
           </h1>
 
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-end gap-3">
             {/* SEARCH FILTERS */}
             <ProcessFilters
               handlers={{ dispatchFunction: GETEmbroidery, liftUpFiltersData }}

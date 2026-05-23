@@ -113,13 +113,13 @@ export const getAllStone = async (req, res, next) => {
     if (Manual_No) query.Manual_No = Manual_No;
     if (project_status) query.project_status = project_status;
     if (design_no) query.design_no = design_no;
-    if (partyName) {
-      query.partyName = { $regex: partyName, $options: "i" };
-    }
+    if (partyName) query.partyName = partyName;
+
     const data = await StoneModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });
+      
     const total = await StoneModel.countDocuments(query);
     const response = {
       totalPages: Math.ceil(total / limit),

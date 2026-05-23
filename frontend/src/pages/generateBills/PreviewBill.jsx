@@ -25,7 +25,7 @@ const PreviewBill = ({ onReturnClick, billData }) => {
 
                             {/* company details */}
                             <div className="company_header col-span-2 pl-8 py-6">
-                                <h2 className='mb-4 text-2xl font-medium'>Naila Arts</h2>
+                                {/* <h2 className='mb-4 text-2xl font-medium'>Naila Arts</h2> */}
                                 <h2 className='px-3 py-1 inline text-xl rounded-md font-light tracking-wide bg-gray-800 text-white'>ہمارے ہاں ہر قسم کی فینسی رپلیکا کی تمام ورائٹی ہول سیل ریٹ پر دستیاب ہے</h2>
                                 <h2 className='mt-4 text-2xl font-medium'>ہول سیل ڈیلر</h2>
 

@@ -6,14 +6,11 @@ import { authUserAsync, logoutUserAsync } from "./features/authSlice";
 import { LoginProtected, UserProtected } from "./Component/Protected/Protected";
 import axios from "axios";
 import './App.css';
-
 import Login from "./auth/Login";
 import ForgetPassword from "./auth/ForgetPassword";
 import ResetPassword from "./auth/ResetPassword";
 import OtpChecker from "./auth/OtpChecker";
-import Loading from "./Component/Loader/Loading";
 
-// ===== Direct Imports (lazy removed) =====
 import Dashboard from "./pages/dashboard/Dashboard";
 import DashboardStats from "./pages/dashboard/DashboardStats";
 import SuitsStock from "./pages/inStock/suits/SuitsStock";
@@ -38,8 +35,6 @@ import BuyersDetails from "./pages/accounts/BuyersDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
 import Sellers from "./pages/accounts/Sellers";
 import SellersDetails from "./pages/accounts/SellersDetails";
-import Employee from "./pages/accounts/Employee";
-import EmployeeDetails from "./pages/accounts/EmployeeDetails";
 import OtherAccounts from "./pages/accounts/OtherAccounts/OtherAccounts";
 import OtherAccountsDetails from "./pages/accounts/OtherAccounts/OtherAccountDetails";
 import CashInOut from "./pages/cash/CashInOut";
@@ -63,6 +58,9 @@ import VerifyOTP from "./pages/dashboard/VerifyOTP";
 import Shop from "./pages/Shop/Shop";
 import PendingRequest from "./pages/Shop/PendingRequest";
 import PaymentMethods from "./pages/paymentMethods/PaymentMethods";
+import Employee from "./pages/employe/Employee";
+import EmployeeDetails from "./pages/employe/EmployeeDetails";
+import Attendance from "./pages/employe/Attendance";
 
 function App() {
   const dispatch = useDispatch();
@@ -162,6 +160,7 @@ function App() {
           <Route path="Shop" element={<Shop />} />
           <Route path="PendingRequest" element={<PendingRequest />} />
           <Route path="paymentMethods" element={<PaymentMethods />} />
+          <Route path="employee-attendance" element={<Attendance />} />
         </Route>
 
         {/* WILD CARD */}

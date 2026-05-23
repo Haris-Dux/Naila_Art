@@ -58,6 +58,7 @@ export const GetAllCutting = createAsyncThunk("Cutting/Get", async (data) => {
   const filters = data?.filters ?? {};
       const query = buildQueryParams({
         Manual_No: filters.Manual_No,
+        design_no: filters.Design_No,
         partyName: filters.partyName,
         project_status: filters.project_status,
         page: data.page,
