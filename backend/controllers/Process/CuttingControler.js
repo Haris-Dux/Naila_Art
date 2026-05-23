@@ -136,8 +136,7 @@ export const getAllCutting = async (req, res, next) => {
     const data = await CuttingModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
     const total = await CuttingModel.countDocuments(query);
     const response = {
       totalPages: Math.ceil(total / limit),

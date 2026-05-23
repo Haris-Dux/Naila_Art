@@ -118,8 +118,7 @@ export const getAllStone = async (req, res, next) => {
     const data = await StoneModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
       
     const total = await StoneModel.countDocuments(query);
     const response = {

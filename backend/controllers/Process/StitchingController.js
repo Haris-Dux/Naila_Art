@@ -149,8 +149,7 @@ export const getAllStitching = async (req, res, next) => {
     const data = await StitchingModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
     const total = await StitchingModel.countDocuments(query);
     const response = {
       totalPages: Math.ceil(total / limit),
