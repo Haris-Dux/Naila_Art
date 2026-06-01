@@ -536,7 +536,9 @@ export const getAllActiveEmploye = async (req, res, next) => {
 
     const [result, total] = await Promise.all([
       EmployeModel.find(query)
-        .select("name financeData salary")
+        .select(
+          "name father_Name CNIC phone_number address father_phone_number last_work_place designation salary joininig_date financeData",
+        )
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ createdAt: -1 })
@@ -566,7 +568,15 @@ export const getAllActiveEmploye = async (req, res, next) => {
       return {
         id: record._id,
         name: record.name,
+        father_Name: record.father_Name,
+        CNIC: record.CNIC,
+        phone_number: record.phone_number,
+        address: record.address,
+        father_phone_number: record.father_phone_number,
+        last_work_place: record.last_work_place,
+        designation: record.designation,
         salary: record.salary,
+        joininig_date: record.joininig_date,
         balance: balance,
         advance: advance,
       };
@@ -602,7 +612,9 @@ export const getAllPastEmploye = async (req, res, next) => {
 
     const [result, total] = await Promise.all([
       EmployeModel.find(query)
-        .select("name financeData salary")
+        .select(
+          "name father_Name CNIC phone_number address father_phone_number last_work_place designation salary joininig_date financeData",
+        )
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ createdAt: -1 })
@@ -632,7 +644,15 @@ export const getAllPastEmploye = async (req, res, next) => {
       return {
         id: record._id,
         name: record.name,
+        father_Name: record.father_Name,
+        CNIC: record.CNIC,
+        phone_number: record.phone_number,
+        address: record.address,
+        father_phone_number: record.father_phone_number,
+        last_work_place: record.last_work_place,
+        designation: record.designation,
         salary: record.salary,
+        joininig_date: record.joininig_date,
         balance: balance,
         advance: advance,
       };
