@@ -12,6 +12,39 @@ import {
 
 const categories = ["Active Employee", "Past Employee"];
 
+const emptyEmployeeFormData = {
+  name: "",
+  father_Name: "",
+  CNIC: "",
+  phone_number: "",
+  address: "",
+  father_phone_number: "",
+  last_work_place: "",
+  designation: "",
+  salary: "",
+  joininig_date: "",
+};
+
+const formatDateForInput = (date) => {
+  if (!date) return "";
+
+  return String(date).slice(0, 10);
+};
+
+const mapEmployeeToFormData = (employee = {}) => ({
+  ...emptyEmployeeFormData,
+  name: employee.name ?? "",
+  father_Name: employee.father_Name ?? "",
+  CNIC: employee.CNIC ?? "",
+  phone_number: employee.phone_number ?? "",
+  address: employee.address ?? "",
+  father_phone_number: employee.father_phone_number ?? "",
+  last_work_place: employee.last_work_place ?? "",
+  designation: employee.designation ?? "",
+  salary: employee.salary ?? "",
+  joininig_date: formatDateForInput(employee.joininig_date),
+});
+
 const Employee = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -39,18 +72,7 @@ const Employee = () => {
   const Employees =
     selectedCategory === "Active Employee" ? ActiveEmployees : PastEmployees;
 
-  const [formData, setFormData] = useState({
-    name: "",
-    father_Name: "",
-    CNIC: "",
-    phone_number: "",
-    address: "",
-    father_phone_number: "",
-    last_work_place: "",
-    designation: "",
-    salary: "",
-    joininig_date: "",
-  });
+  const [formData, setFormData] = useState(emptyEmployeeFormData);
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -81,13 +103,15 @@ const Employee = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isEditing) {
-      const updatedFormData = { ...formData, id: selectedEmployee.id };
+      const updatedFormData = {
+        ...formData,
+        id: selectedEmployee?.id || selectedEmployee?._id,
+      };
 
       dispatch(UpdateEmployee(updatedFormData)).then((res) => {
         if (res.payload.success === true) {
-          dispatch(GetEmployeeActive({ searchText, currentPage }));
+          dispatch(GetEmployeeActive({ search: search || "", page }));
           closeModal();
-          setFormData("");
           setIsEditing(false);
         }
       });
@@ -95,16 +119,15 @@ const Employee = () => {
       dispatch(CreateEmployee(formData)).then((res) => {
         if (res.payload.success === true) {
           console.log('executing');
-          dispatch(GetEmployeeActive({ searchText, currentPage }));
+          dispatch(GetEmployeeActive({ search: search || "", page }));
           closeModal();
-          setFormData("");
         }
       });
     }
   };
 
   const handleEdit = (employee) => {
-    setFormData(employee);
+    setFormData(mapEmployeeToFormData(employee));
     setSelectedEmployee(employee);
     setIsEditing(true);
     openModal();
@@ -131,7 +154,8 @@ const Employee = () => {
     setIsOpen(false);
     document.body.style.overflow = "auto";
     setIsEditing(false);
-    setFormData("");
+    setSelectedEmployee(null);
+    setFormData(emptyEmployeeFormData);
   };
 
   const openConfirmationModal = (employee) => {
