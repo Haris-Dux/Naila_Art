@@ -17,6 +17,7 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
+import { buildDateRangeQuery } from "../../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -308,7 +309,7 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     let limit = 30;
-    let search = req.query.search || "";
+    let name = req.query.name || "";
     let category = req.query.category || "";
     const status = req.query.status || "";
 
@@ -322,19 +323,25 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
       query["virtual_account.status"] = status;
     }
 
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
+    if (name) {
+      query.name = name;
     }
 
-    const totalSellers = await SellersModel.countDocuments(query);
+    const namesQuery = { ...query };
+    delete namesQuery.name;
 
-    const sellers = await SellersModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const [sellerNames, totalSellers, sellers] = await Promise.all([
+      SellersModel.distinct("name", namesQuery),
+      SellersModel.countDocuments(query),
+      SellersModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       sellers,
+      sellerNames,
       page,
       totalSellers,
       totalPages: Math.ceil(totalSellers / limit),
@@ -627,8 +634,10 @@ export const getAllPurchasingHistory = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     let limit = 30;
-    let search = req.query.search || "";
+    let name = req.query.name || "";
     let category = req.query.category || "";
+    let dateFrom = req.query.dateFrom || "";
+    let dateTo = req.query.dateTo || "";
 
     let query = {};
 
@@ -636,20 +645,31 @@ export const getAllPurchasingHistory = async (req, res, next) => {
       query.seller_stock_category = category;
     }
 
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
+    if (name) {
+      query.name = name;
     }
 
-    const sellerHistory = await purchasing_History_model.countDocuments(query);
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
 
-    const sellers = await purchasing_History_model
-      .find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const [sellerNames, sellerHistory, sellers] = await Promise.all([
+      purchasing_History_model.distinct(
+        "name",
+        category ? { seller_stock_category: category } : {},
+      ),
+      purchasing_History_model.countDocuments(query),
+      purchasing_History_model
+        .find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       sellerHistory,
+      sellerNames,
       page,
       sellers,
       totalPages: Math.ceil(sellerHistory / limit),

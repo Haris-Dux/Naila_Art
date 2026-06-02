@@ -17,7 +17,7 @@ import ReactSearchBox from "react-search-box";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { LuPackageCheck } from "react-icons/lu";
 import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
-import { IoAdd } from "react-icons/io5";
+import { IoAdd, IoColorPaletteOutline } from "react-icons/io5";
 import Loading from "../../../Component/Loader/Loading";
 import { GetAllBaseforEmroidery } from "../../../features/InStockSlice";
 import Icon from "../../../Component/Common/Icons";
@@ -361,6 +361,41 @@ const Embroidery = () => {
     return false;
   };
 
+
+const getColorItems = (data) =>
+  [data?.shirt]
+    .flatMap((items) => (Array.isArray(items) ? items : []))
+    .filter((item) => item?.category || item?.color);
+
+const ColorsTooltip = ({ data }) => {
+  const colorItems = getColorItems(data);
+
+  return (
+    <div className="group relative inline-flex items-center">
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+      >
+        <IoColorPaletteOutline size={20} />
+      </button>
+      <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden min-w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-left text-xs font-medium text-white shadow-lg group-hover:block dark:bg-gray-100 dark:text-gray-900">
+        {colorItems.length > 0 ? (
+          colorItems.map((item, index) => (
+            <div
+              key={`${item.category}-${item.color}-${index}`}
+              className="whitespace-nowrap py-0.5"
+            >
+              {item.category || "--"} - {item.color || "--"}
+            </div>
+          ))
+        ) : (
+          <div className="whitespace-nowrap">No colors</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
@@ -413,14 +448,32 @@ const Embroidery = () => {
                       Design No
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
+                      Rate
+                    </th>
+                    <th className="px-6 py-3 font-medium" scope="col">
+                      Colors
+                    </th>
+                    <th className="px-6 py-3 font-medium" scope="col">
                       Date
                     </th>
                     <th
                       className="px-6 py-3 font-medium text-center"
                       scope="col"
                     >
-                      <span className="text-red-500">Qty</span>/
-                      <span className="text-green-500">Suit Qty</span>
+                      <div className="flex flex-col items-center justify-center gap-1 leading-none">
+                        <span className="text-gray-700 dark:text-gray-200">
+                          Qty
+                        </span>
+                        <div className="flex items-center gap-1 text-xs font-semibold">
+                          <span className="rounded bg-red-50 px-1.5 py-0.5 text-red-500 dark:bg-red-900/30">
+                            m
+                          </span>
+                          <span className="text-gray-400">/</span>
+                          <span className="rounded bg-green-50 px-1.5 py-0.5 text-green-600 dark:bg-green-900/30">
+                            Suit
+                          </span>
+                        </div>
+                      </div>
                     </th>
                     <th className="px-6 py-3 font-medium" scope="col">
                       Status/Verified
@@ -461,12 +514,16 @@ const Embroidery = () => {
                         </th>
                         <td className="px-6 py-4">{data.partyName}</td>
                         <td className="px-6 py-4">{data.design_no}</td>
+                        <td className="px-6 py-4">{data.per_suit}</td>
+                        <td className="px-6 py-4">
+                          <ColorsTooltip data={data} />
+                        </td>
                         <td className="px-6 py-4">
                           {new Date(data.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 text-center py-4">
+                        <td className="px-6 text-center py-4 whitespace-nowrap">
                           <span className="text-red-500">
-                            {data?.T_Quantity}
+                            {data?.T_Quantity_In_m}
                           </span>
                           /
                           <span className="text-green-500">

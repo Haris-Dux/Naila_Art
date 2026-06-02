@@ -16,7 +16,7 @@ import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js
 import CustomError from "../config/errors/CustomError.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
-import { canDeleteRecord } from "../utils/Common.js";
+import { buildDateRangeQuery, canDeleteRecord } from "../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -813,7 +813,7 @@ export const getBuyersForBranch = async (req, res, next) => {
     const { id } = req.body;
     const page = parseInt(req.query.page) || 1;
     let limit = 20;
-    let search = req.query.search || "";
+    let name = req.query.name || "";
     let branchQuery = req.query.branchId || "";
     const status = req.query.status || "";
 
@@ -833,19 +833,25 @@ export const getBuyersForBranch = async (req, res, next) => {
       query["virtual_account.status"] = status;
     }
 
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
+    if (name) {
+      query.name = name;
     }
 
-    const totalBuyers = await BuyersModel.countDocuments(query);
+    const namesQuery = { ...query };
+    delete namesQuery.name;
 
-    const buyers = await BuyersModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const [buyerNames, totalBuyers, buyers] = await Promise.all([
+      BuyersModel.distinct("name", namesQuery),
+      BuyersModel.countDocuments(query),
+      BuyersModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       buyers,
+      buyerNames,
       page,
       totalBuyers,
       totalPages: Math.ceil(totalBuyers / limit),
@@ -927,20 +933,33 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     const id  = req.query.id;
     const role = req.user_role;
     if (!id) throw new Error("Branch Id Required");
-    const name = req.query.search || "";
+    const name = req.query.name || "";
+    const dateFrom = req.query.dateFrom || "";
+    const dateTo = req.query.dateTo || "";
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
     let query = {
       branchId: id,
-      name: { $regex: name, $options: "i" },
     };
 
-    const totalDocuments = await BuyersBillsModel.countDocuments(query);
-    const docs = await BuyersBillsModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 })
+    if (name) {
+      query.name = name;
+    }
+
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
+
+    const [buyerNames, totalDocuments, docs] = await Promise.all([
+      BuyersBillsModel.distinct("name", { branchId: id }),
+      BuyersBillsModel.countDocuments(query),
+      BuyersBillsModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
       setMongoose();
 
@@ -958,6 +977,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
 
     const response = {
       data:updatedData,
+      buyerNames,
       page,
       totalPages: Math.ceil(totalDocuments / limit),
     };

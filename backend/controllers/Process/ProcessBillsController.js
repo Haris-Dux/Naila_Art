@@ -14,6 +14,7 @@ import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { SellersModel } from "../../models/sellers/SellersModel.js";
+import { buildDateRangeQuery } from "../../utils/Common.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -303,8 +304,11 @@ export const getAllProcessBills = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     let limit = 20;
-    let search = req.query.search || "";
+    let name = req.query.name || "";
     let category = req.query.category || "";
+    let dateFrom = req.query.dateFrom || "";
+    let dateTo = req.query.dateTo || "";
+    let status = req.query.status || "";
 
     let query = {};
 
@@ -312,20 +316,36 @@ export const getAllProcessBills = async (req, res, next) => {
       query.process_Category = category;
     }
 
-    if (search) {
-      query.partyName = { $regex: search, $options: "i" };
+    if (name) {
+      query.partyName = name;
     }
 
-    const totalProcessBills = await processBillsModel.countDocuments(query);
+    if (status) {
+      query["virtual_account.status"] = status;
+    }
 
-    const processBills = await processBillsModel
-      .find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
+
+    const namesQuery = { ...query };
+    delete namesQuery.partyName;
+    delete namesQuery.date;
+
+    const [partyNames, totalProcessBills, processBills] = await Promise.all([
+      processBillsModel.distinct("partyName", namesQuery),
+      processBillsModel.countDocuments(query),
+      processBillsModel
+        .find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       processBills,
+      partyNames,
       page,
       totalProcessBills,
       totalPages: Math.ceil(totalProcessBills / limit),

@@ -28,7 +28,6 @@ const AppSelect = ({ className = "w-[170px]", ...props }) => {
   return (
     <div className={className}>
       <Select
-        isClearable
         unstyled
         classNames={selectClassNames}
         styles={selectStyles}

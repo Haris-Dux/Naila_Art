@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const addNewSellerDetails =
@@ -19,21 +20,15 @@ const deleteSellerBillAndReverseStockUrl =
 export const getAllSellerForPurchasingAsync = createAsyncThunk(
   "get/allSellers",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-        const status =
-        data?.status !== undefined && data?.status !== null
-          ? `&status=${data?.status}`
-          : "";
-    const category =
-      data?.category !== undefined && data?.category !== null
-        ? `&category=${data?.category}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      category: data.category,
+      name: data.name,
+      status: data.status,
+    });
     try {
       const response = await axios.post(
-        `${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}${status}`
+        `${getAllSellerForPurchasingURL}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -87,18 +82,16 @@ export const AddOldSellerDetailsFromAsync = createAsyncThunk(
 export const getAllPurchasingHistoryAsync = createAsyncThunk(
   "getAll/PurchasingHistory",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-
-    const category =
-      data?.category !== undefined && data?.category !== null
-        ? `&category=${data?.category}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      category: data.category,
+      name: data.name,
+      dateFrom: data.dateFrom,
+      dateTo: data.dateTo,
+    });
     try {
       const response = await axios.post(
-        `${purchasingHistory}?&page=${data.page}${category}${searchQuery}`
+        `${purchasingHistory}?${query}`
       );
       return response.data;
     } catch (error) {

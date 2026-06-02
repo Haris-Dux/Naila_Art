@@ -23,6 +23,62 @@ import PicturesOrder from "./Modals/PicturesOrder";
 import { CiLogin } from "react-icons/ci";
 import { CiLogout } from "react-icons/ci";
 import Icon from "../../Component/Common/Icons";
+import AccountFilters, {
+  emptyAccountFilters,
+  FilteredAccountTotals,
+} from "../../Component/AccountFilters/Accountfilters";
+
+const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
+
+const getDateOnlyTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+const getDateRange = ({ dateFrom, dateTo }) => {
+  const from = getDateOnlyTime(dateFrom);
+  const to = getDateOnlyTime(dateTo);
+
+  if (from && to) {
+    return {
+      from: Math.min(from, to),
+      to: Math.max(from, to),
+    };
+  }
+
+  if (from || to) {
+    const date = from || to;
+    return { from: date, to: date };
+  }
+
+  return null;
+};
+
+const filterTransactionsByDate = (transactions = [], filters) => {
+  const range = getDateRange(filters);
+  if (!range) return transactions;
+
+  return transactions.filter((transaction) => {
+    const transactionDate = getDateOnlyTime(transaction.date);
+    return (
+      transactionDate !== null &&
+      transactionDate >= range.from &&
+      transactionDate <= range.to
+    );
+  });
+};
+
+const calculateTransactionTotals = (transactions = []) =>
+  transactions.reduce(
+    (totals, transaction) => ({
+      debit: totals.debit + Number(transaction.debit || 0),
+      credit: totals.credit + Number(transaction.credit || 0),
+    }),
+    { debit: 0, credit: 0 },
+  );
 
 const ProcessDetails = () => {
   const dispatch = useDispatch();
@@ -46,6 +102,8 @@ const ProcessDetails = () => {
       totalBalance: "",
       category: "process",
     });
+    const [filters, setFilters] = useState(emptyAccountFilters);
+    const [appliedFilters, setAppliedFilters] = useState(emptyAccountFilters);
 
     useEffect(() => {
   if (accountUpdateLoading) {
@@ -254,6 +312,23 @@ const ProcessDetails = () => {
     })
   }
 
+  const transactions = ProcessBillsDetails?.credit_debit_history || [];
+  const filteredTransactions = filterTransactionsByDate(
+    transactions,
+    appliedFilters,
+  );
+  const filteredTotals = calculateTransactionTotals(filteredTransactions);
+  const isFilterApplied = hasDateFilters(appliedFilters);
+
+  const handleFiltersSearch = () => {
+    setAppliedFilters(filters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(emptyAccountFilters);
+    setAppliedFilters(emptyAccountFilters);
+  };
+
   return (
     <>
       
@@ -329,7 +404,7 @@ const ProcessDetails = () => {
          : <> <div className="box">
             <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
             <h3 className="font-medium text-red-500">
-              {ProcessBillsDetails?.virtual_account?.total_debit === null
+              {ProcessBillsDetails?.virtual_account?.total_debit === null || ProcessBillsDetails?.virtual_account?.total_debit === undefined
                 ? "0"
                 : ProcessBillsDetails?.virtual_account?.total_debit}
             </h3>
@@ -337,7 +412,7 @@ const ProcessDetails = () => {
           <div className="box">
             <h3 className="pb-1 font-medium">Total Credit</h3>
             <h3>
-              {ProcessBillsDetails?.virtual_account?.total_credit === null
+              {ProcessBillsDetails?.virtual_account?.total_credit === null || ProcessBillsDetails?.virtual_account?.total_credit === undefined
                 ? "0"
                 : ProcessBillsDetails?.virtual_account?.total_credit}
             </h3>
@@ -352,49 +427,66 @@ const ProcessDetails = () => {
           </div> </>}
         </div>
 
-        <div className="mt-5 mx-auto max-w-3xl text-center">
-        {ProcessBillsDetails?.virtual_account?.status !== "Paid" && (
-          <>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 text-center">
+          <div className="flex flex-wrap items-center gap-3">
+            {ProcessBillsDetails?.virtual_account?.status !== "Paid" && (
+              <>
+                <button
+                  onClick={openConfirmationModaL}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span>
+                      <MdOutlineCreditScore />
+                    </span>
+                    Mark As Paid
+                  </div>
+                </button>
+                <button
+                  onClick={openDiscountModal}
+                  className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <MdOutlineDiscount />
+                    Discount
+                  </div>
+                </button>
+              </>
+            )}
             <button
-              onClick={openConfirmationModaL}
+              onClick={() => openClaimProcessModal("Calim In")}
               className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             >
               <div className="flex items-center justify-center gap-2">
-                <span>
-                  <MdOutlineCreditScore />
-                </span>
-                Mark As Paid
+                <CiLogout />
+                Claim Out
               </div>
             </button>
             <button
-              onClick={openDiscountModal}
-              className=" mx-2 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={() => openClaimProcessModal("Claim Out")}
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
             >
               <div className="flex items-center justify-center gap-2">
-                <MdOutlineDiscount />
-                Discount
+                <CiLogin />
+                Claim In
               </div>
             </button>
-          </>
-        )}
-        <button
-          onClick={() => openClaimProcessModal("Calim In")}
-          className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-        >
-             <div className="flex items-center justify-center gap-2">
-          <CiLogout />
-          Claim Out
           </div>
-        </button>
-        <button
-          onClick={() => openClaimProcessModal("Claim Out")}
-          className="mx-2 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-        >
-          <div className="flex items-center justify-center gap-2">
-          <CiLogin />
-            Claim In
-          </div>
-        </button>
+
+          <div className="ml-auto flex flex-wrap justify-end gap-3">
+          <FilteredAccountTotals
+            show={isFilterApplied}
+            debit={filteredTotals.debit}
+            credit={filteredTotals.credit}
+            count={filteredTransactions.length}
+          />
+          <AccountFilters
+            filters={filters}
+            onChange={setFilters}
+            onSearch={handleFiltersSearch}
+            onReset={handleResetFilters}
+          />
+        </div>
       </div>
 
         {/* -------------- TABLE -------------- */}
@@ -434,9 +526,8 @@ const ProcessDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {ProcessBillsDetails &&
-                ProcessBillsDetails?.credit_debit_history?.length > 0 ? (
-                  ProcessBillsDetails?.credit_debit_history
+                {filteredTransactions?.length > 0 ? (
+                  filteredTransactions
                     ?.slice()
                     .reverse()
                     .map((data, index) => (

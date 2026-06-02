@@ -8,13 +8,12 @@ import {
 import { MdDeleteOutline } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 
-const BaseTable = () => {
+const BaseTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory,deleteLoading } = useSelector((state) => state.Seller);
 
   const [baseId, setBaseId] = useState();
-  const [search, setSearch] = useState();
   const [showConfirmationModal, setConfirmationModal] = useState();
   const [onConfitmation, setOnConfirmation] = useState(null);
 
@@ -24,8 +23,8 @@ const BaseTable = () => {
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
-    dispatch(getAllPurchasingHistoryAsync({ category: "Base", search, page }));
-  }, [page, dispatch]);
+    dispatch(getAllPurchasingHistoryAsync({ category: "Base", ...filters, page }));
+  }, [page, dispatch, filters]);
 
   const renderPaginationLinks = () => {
     const totalPages = PurchasingHistory?.totalPages;
@@ -42,7 +41,7 @@ const BaseTable = () => {
               dispatch(
                 getAllPurchasingHistoryAsync({
                   category: "Base",
-                  search,
+                  ...filters,
                   page: i,
                 })
               )
@@ -75,9 +74,9 @@ const BaseTable = () => {
     setConfirmationModal(true);
     const deleteBill = () => {
       dispatch(deleteSelllerBillAsync(pyaload)).then((res) => {
-        if (res.payload.success) {
+          if (res.payload.success) {
           closeModal();
-          dispatch(getAllPurchasingHistoryAsync({ category: "Base", search, page }));
+          dispatch(getAllPurchasingHistoryAsync({ category: "Base", ...filters, page }));
         }
       });
     };
@@ -93,7 +92,7 @@ const BaseTable = () => {
     <>
       <section>
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
+          <div className="pt-16 flex justify-center mt-12 min-h-screen  items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
               role="status"

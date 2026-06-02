@@ -4,6 +4,17 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { validateOldBuyerAsync } from "../../features/GenerateBillSlice";
 import { getAllSellerForPurchasingAsync } from "../../features/SellerSlice";
+import BillFilters, {
+  emptyBillFilters,
+} from "../../Component/BillFilters/BillFilters";
+import { accountStatusOptions } from "../../Utils/Common";
+
+const sellerCategories = ["Base", "Lace", "Bag/box", "Accessories"];
+
+const initialSellerFilters = {
+  ...emptyBillFilters,
+  status: "Unpaid",
+};
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -23,8 +34,7 @@ const Sellers = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchUser, setSearchUser] = useState(false);
-  const [search, setSearch] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("");
+  const [filters, setFilters] = useState(initialSellerFilters);
 
   const [validateOldBuyer, setValidateOldBuyer] = useState("");
 
@@ -36,14 +46,14 @@ const Sellers = () => {
   const [selectedCategory, setSelectedCategory] = useState("Base");
 
   useEffect(() => {
-    setPaymentStatus(paymentStatus || "All");
     const payload = {
       category: selectedCategory,
       page,
-      status: paymentStatus !== "All" ? paymentStatus : null
+      name: filters.name || undefined,
+      status: filters.status || undefined,
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
-  }, [dispatch,page]);
+  }, [dispatch, page]);
 
   const closeModal = () => {
     setIsOpen(false);
@@ -68,7 +78,8 @@ const Sellers = () => {
                 getAllSellerForPurchasingAsync({
                   category: selectedCategory,
                   page: i,
-                  status: paymentStatus !== "All" ? paymentStatus : null
+                  name: filters.name || undefined,
+                  status: filters.status || undefined,
                 })
               )
             }
@@ -88,19 +99,6 @@ const Sellers = () => {
     });
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearch(value);
-
-    const payload = {
-      search: value.length > 0 ? value : null,
-      category: selectedCategory,
-      page: 1,
-    };
-
-    dispatch(getAllSellerForPurchasingAsync(payload));
-  };
-
   const handleValidateOldBuyer = (e) => {
     const value = e.target.value;
     setValidateOldBuyer(value);
@@ -113,16 +111,17 @@ const Sellers = () => {
     }
   };
 
-  const handleTabClick = (category) => {
-    setSelectedCategory(category);
-    setSearch("");
-    setPaymentStatus("All");
+  const handleCategoryFilterChange = (category) => {
+    const nextCategory = category || "Base";
+    setSelectedCategory(nextCategory);
+    setFilters(initialSellerFilters);
     const payload = {
-      category: category,
+      category: nextCategory,
       page: 1,
-      status: paymentStatus !== "All" ? paymentStatus : null,
+      status: initialSellerFilters.status,
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
+    navigate(`/dashboard/sellers?page=${1}`);
   };
 
   const setStatusColor = (status) => {
@@ -140,44 +139,56 @@ const Sellers = () => {
     }
   };
 
-  const handleStatusClick = (status) => {
-    setPaymentStatus(status);
-    setSearch("");
+  const handleFiltersSearch = () => {
     const payload = {
       page: 1,
-      category:selectedCategory,
-      status: status !== "All" ? status : null,
+      category: selectedCategory,
+      name: filters.name || undefined,
+      status: filters.status || undefined,
     };
 
     dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
-      console.log('navigating');
-      navigate(`/dashboard/sellers?page=${payload.page}`)
-    })
+      navigate(`/dashboard/sellers?page=${payload.page}`);
+    });
+  };
+
+  const handleFiltersChange = (nextFilters) => {
+    const statusChanged = nextFilters.status !== filters.status;
+    const updatedFilters = statusChanged
+      ? { ...nextFilters, name: "" }
+      : nextFilters;
+
+    setFilters(updatedFilters);
+
+    if (statusChanged) {
+      const payload = {
+        page: 1,
+        category: selectedCategory,
+        status: updatedFilters.status || undefined,
+      };
+
+      dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
+        navigate(`/dashboard/sellers?page=${payload.page}`);
+      });
+    }
+  };
+
+  const handleResetFilters = () => {
+    setFilters(initialSellerFilters);
+    const payload = {
+      page: 1,
+      category: selectedCategory,
+      status: initialSellerFilters.status,
+    };
+
+    dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
+      navigate(`/dashboard/sellers?page=${payload.page}`);
+    });
   };
 
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
-        {/* UPPER TABS */}
-        <div className="mb-3 upper_tabs flex justify-start items-center">
-          <div className="tabs_button">
-            {["Base", "Lace", "Bag/box", "Accessories"]?.map((category) => (
-              <Link
-                to={`/dashboard/sellers?page=${1}`}
-                key={category}
-                className={`border border-gray-500  text-black dark:text-gray-100 px-5 py-2 mx-2 text-sm rounded-md ${
-                  selectedCategory === category
-                    ? "bg-gray-800 text-white dark:bg-gray-600  dark:text-white"
-                    : ""
-                }`}
-                onClick={() => handleTabClick(category)}
-              >
-                {category}
-              </Link>
-            ))}
-          </div>
-        </div>
-
         {/* -------------- HEADER -------------- */}
         <div className="header flex justify-between items-center pt-6 mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
@@ -185,84 +196,30 @@ const Sellers = () => {
           </h1>
 
           {/* <!-- search bar --> */}
-          <div className="search_bar flex items-center gap-3 mr-2">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by name"
-                value={search}
-                onChange={handleSearch}
-              />
-            </div>
-          </div>
+          <BillFilters
+            filters={filters}
+            nameOptions={(AllSeller?.sellerNames || []).map((name) => ({
+              value: name,
+              label: name,
+            }))}
+            categoryOptions={sellerCategories.map((category) => ({
+              value: category,
+              label: category,
+            }))}
+            selectedCategory={selectedCategory}
+            statusOptions={accountStatusOptions}
+            showCategoryFilter={true}
+            showStatusFilter={true}
+            showDateFilters={false}
+            namePlaceholder="Seller"
+            onChange={handleFiltersChange}
+            onCategoryChange={handleCategoryFilterChange}
+            onSearch={handleFiltersSearch}
+            onReset={handleResetFilters}
+          />
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
-
-        <div className="tabs flex justify-between items-center my-5">
-          <div className="tabs_button">
-            <button
-              onClick={() => handleStatusClick("All")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === undefined || paymentStatus === "All"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              All
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Paid
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Unpaid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Unpaid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Unpaid
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Advance Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Advance Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Advance Paid
-            </button>
-          </div>
-        </div>
 
         {/* -------------- TABLE -------------- */}
         {loading ? (

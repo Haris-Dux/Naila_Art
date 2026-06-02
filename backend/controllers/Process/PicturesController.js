@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
+import { buildDateRangeQuery } from "../../utils/Common.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -255,19 +256,37 @@ export const updatePictureOrderById = async (req, res, next) => {
 export const getAllPictureAccounts = async (req, res, next) => {
   try {
     const page = req.query.page || 1;
-    const search = req.query.search || "";
+    const name = req.query.name || "";
+    const dateFrom = req.query.dateFrom || "";
+    const dateTo = req.query.dateTo || "";
+    const status = req.query.status || "";
     const limit = 20;
-    let query = {
-      partyName: { $regex: search, $options: "i" },
-    };
-    const processBills = await PicruresAccountModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const totalProcessBills = await PicruresAccountModel.countDocuments(query);
+    let query = {};
+    if (name) {
+      query.partyName = name;
+    }
+    if (status) {
+      query["virtual_account.status"] = status;
+    }
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
+    const namesQuery = { ...query };
+    delete namesQuery.partyName;
+    delete namesQuery.date;
+    const [partyNames, processBills, totalProcessBills] = await Promise.all([
+      PicruresAccountModel.distinct("partyName", namesQuery),
+      PicruresAccountModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      PicruresAccountModel.countDocuments(query),
+    ]);
     const response = {
       totalPages: Math.ceil(totalProcessBills / limit),
       processBills,
+      partyNames,
       page,
       totalProcessBills,
     };

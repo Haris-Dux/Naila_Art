@@ -6,6 +6,19 @@ export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };
 
+export const buildDateRangeQuery = (dateFrom, dateTo) => {
+  if (!dateFrom && !dateTo) return null;
+
+  const from = dateFrom || dateTo;
+  const to = dateTo || dateFrom;
+  const [startDate, endDate] = [from, to].sort();
+
+  return {
+    $gte: startDate,
+    $lte: endDate,
+  };
+};
+
 export const verifyPastDate = (date) => {
   const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
   const now = moment.tz("Asia/Karachi").startOf("day");

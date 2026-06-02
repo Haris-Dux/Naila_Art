@@ -25,21 +25,15 @@ const getSuitsStockToGenerateBillUrl =
 export const getBuyerForBranchAsync = createAsyncThunk(
   "buyers/get",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-    const status =
-      data?.status !== undefined && data?.status !== null
-        ? `&status=${data?.status}`
-        : "";
-    const branchId =
-      data?.branchId !== undefined && data?.branchId !== null
-        ? `&branchId=${data?.branchId}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      name: data.name,
+      status: data.status,
+      branchId: data.branchId,
+    });
     try {
       const response = await axios.post(
-        `${getBuyerForBranch}?&page=${data.page}${searchQuery}${status}${branchId}`,
+        `${getBuyerForBranch}?${query}`,
         { id: data.id }
       );
       return response.data;
@@ -67,10 +61,12 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
   "buyers/BuyerBillsHistory",
   async (data) => {
     const query = buildQueryParams({
-      search: data.search,
+      name: data.name,
       buyerId: data.buyerId,
       id: data.id,
       page: data.page,
+      dateFrom: data.dateFrom,
+      dateTo: data.dateTo,
     });
     try {
       const response = await axios.post(

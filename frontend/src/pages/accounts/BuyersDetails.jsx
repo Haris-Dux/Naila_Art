@@ -5,6 +5,62 @@ import { getBuyerByIdAsync, markAsPaidAsync } from "../../features/BuyerSlice";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import { temporaryAccountUpdateAsync } from "../../features/ProcessBillSlice";
 import Icon from "../../Component/Common/Icons";
+import AccountFilters, {
+  emptyAccountFilters,
+  FilteredAccountTotals,
+} from "../../Component/AccountFilters/Accountfilters";
+
+const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
+
+const getDateOnlyTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+const getDateRange = ({ dateFrom, dateTo }) => {
+  const from = getDateOnlyTime(dateFrom);
+  const to = getDateOnlyTime(dateTo);
+
+  if (from && to) {
+    return {
+      from: Math.min(from, to),
+      to: Math.max(from, to),
+    };
+  }
+
+  if (from || to) {
+    const date = from || to;
+    return { from: date, to: date };
+  }
+
+  return null;
+};
+
+const filterTransactionsByDate = (transactions = [], filters) => {
+  const range = getDateRange(filters);
+  if (!range) return transactions;
+
+  return transactions.filter((transaction) => {
+    const transactionDate = getDateOnlyTime(transaction.date);
+    return (
+      transactionDate !== null &&
+      transactionDate >= range.from &&
+      transactionDate <= range.to
+    );
+  });
+};
+
+const calculateTransactionTotals = (transactions = []) =>
+  transactions.reduce(
+    (totals, transaction) => ({
+      debit: totals.debit + Number(transaction.debit || 0),
+      credit: totals.credit + Number(transaction.credit || 0),
+    }),
+    { debit: 0, credit: 0 },
+  );
 
 const BuyersDetails = () => {
   const { id } = useParams();
@@ -22,6 +78,8 @@ const BuyersDetails = () => {
     category: "buyers",
   });
   const [isEditMode, setIsEditMode] = useState(false)
+  const [filters, setFilters] = useState(emptyAccountFilters);
+  const [appliedFilters, setAppliedFilters] = useState(emptyAccountFilters);
 
   useEffect(() => {
     if (id) {
@@ -73,6 +131,23 @@ const BuyersDetails = () => {
     });
   };
 
+  const transactions = BuyerById?.credit_debit_history || [];
+  const filteredTransactions = filterTransactionsByDate(
+    transactions,
+    appliedFilters,
+  );
+  const filteredTotals = calculateTransactionTotals(filteredTransactions);
+  const isFilterApplied = hasDateFilters(appliedFilters);
+
+  const handleFiltersSearch = () => {
+    setAppliedFilters(filters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(emptyAccountFilters);
+    setAppliedFilters(emptyAccountFilters);
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -99,7 +174,7 @@ const BuyersDetails = () => {
 
         {!isEditMode ? (
           <h3 className="font-medium text-red-500">
-            {BuyerById?.virtual_account?.total_debit}
+            {BuyerById?.virtual_account?.total_debit ?? 0}
           </h3>
         ) : (
           <input
@@ -117,7 +192,7 @@ const BuyersDetails = () => {
         <h3 className="pb-1 font-medium">Total Credit</h3>
 
         {!isEditMode ? (
-          <h3>{BuyerById?.virtual_account?.total_credit}</h3>
+          <h3>{BuyerById?.virtual_account?.total_credit ?? 0}</h3>
         ) : (
           <input
             type="text"
@@ -195,6 +270,21 @@ const BuyersDetails = () => {
       </button>
     </div>
 
+        <div className="mb-4 flex flex-wrap justify-end gap-3">
+          <FilteredAccountTotals
+            show={isFilterApplied}
+            debit={filteredTotals.debit}
+            credit={filteredTotals.credit}
+            count={filteredTransactions.length}
+          />
+          <AccountFilters
+            filters={filters}
+            onChange={setFilters}
+            onSearch={handleFiltersSearch}
+            onReset={handleResetFilters}
+          />
+        </div>
+
         {/* -------------- TABLE -------------- */}
         {loading ? (
           <div className="pt-16 flex justify-center mt-12 items-center">
@@ -230,8 +320,8 @@ const BuyersDetails = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {BuyerById && BuyerById?.credit_debit_history?.length > 0 ? (
-                    BuyerById?.credit_debit_history
+                  {filteredTransactions?.length > 0 ? (
+                    filteredTransactions
                       ?.slice()
                       .reverse()
                       .map((data, index) => (

@@ -8,14 +8,13 @@ import {
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdDeleteOutline } from "react-icons/md";
 
-const BagBoxTable = () => {
+const BagBoxTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory, deleteLoading } = useSelector(
     (state) => state.Seller
   );
 
-  const [search, setSearch] = useState();
   const [showConfirmationModal, setConfirmationModal] = useState();
   const [onConfitmation, setOnConfirmation] = useState(null);
   const [searchParams] = useSearchParams();
@@ -23,9 +22,9 @@ const BagBoxTable = () => {
 
   useEffect(() => {
     dispatch(
-      getAllPurchasingHistoryAsync({ category: "Bag/box", search, page })
+      getAllPurchasingHistoryAsync({ category: "Bag/box", ...filters, page })
     );
-  }, [page, dispatch]);
+  }, [page, dispatch, filters]);
 
   const renderPaginationLinks = () => {
     const totalPages = PurchasingHistory?.totalPages;
@@ -42,7 +41,7 @@ const BagBoxTable = () => {
               dispatch(
                 getAllPurchasingHistoryAsync({
                   category: "Bag/box",
-                  search,
+                  ...filters,
                   page: i,
                 })
               )
@@ -78,7 +77,7 @@ const BagBoxTable = () => {
         if (res.payload.success) {
           closeModal();
           dispatch(
-            getAllPurchasingHistoryAsync({ category: "Bag/box", search, page })
+            getAllPurchasingHistoryAsync({ category: "Bag/box", ...filters, page })
           );
         }
       });
