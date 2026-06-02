@@ -10,6 +10,62 @@ import {
   delteOtherAccountTransactionAsync,
   getOtherAccountDataByIdAsync,
 } from "../../../features/OtherAccountsSlice";
+import AccountFilters, {
+  emptyAccountFilters,
+  FilteredAccountTotals,
+} from "../../../Component/AccountFilters/Accountfilters";
+
+const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
+
+const getDateOnlyTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+const getDateRange = ({ dateFrom, dateTo }) => {
+  const from = getDateOnlyTime(dateFrom);
+  const to = getDateOnlyTime(dateTo);
+
+  if (from && to) {
+    return {
+      from: Math.min(from, to),
+      to: Math.max(from, to),
+    };
+  }
+
+  if (from || to) {
+    const date = from || to;
+    return { from: date, to: date };
+  }
+
+  return null;
+};
+
+const filterTransactionsByDate = (transactions = [], filters) => {
+  const range = getDateRange(filters);
+  if (!range) return transactions;
+
+  return transactions.filter((transaction) => {
+    const transactionDate = getDateOnlyTime(transaction.date);
+    return (
+      transactionDate !== null &&
+      transactionDate >= range.from &&
+      transactionDate <= range.to
+    );
+  });
+};
+
+const calculateTransactionTotals = (transactions = []) =>
+  transactions.reduce(
+    (totals, transaction) => ({
+      debit: totals.debit + Number(transaction.debit || 0),
+      credit: totals.credit + Number(transaction.credit || 0),
+    }),
+    { debit: 0, credit: 0 },
+  );
 
 const OtherAccountsDetails = () => {
   const { id } = useParams();
@@ -20,6 +76,8 @@ const OtherAccountsDetails = () => {
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [afterConfirmation, setAfterConfirmation] = useState(null);
+  const [filters, setFilters] = useState(emptyAccountFilters);
+  const [appliedFilters, setAppliedFilters] = useState(emptyAccountFilters);
 
   const [formData, setFormData] = useState({
     date: "",
@@ -104,6 +162,23 @@ const OtherAccountsDetails = () => {
     setAfterConfirmation(null);
   };
 
+  const transactions = OtherAccount?.transactions || [];
+  const filteredTransactions = filterTransactionsByDate(
+    transactions,
+    appliedFilters,
+  );
+  const filteredTotals = calculateTransactionTotals(filteredTransactions);
+  const isFilterApplied = hasDateFilters(appliedFilters);
+
+  const handleFiltersSearch = () => {
+    setAppliedFilters(filters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(emptyAccountFilters);
+    setAppliedFilters(emptyAccountFilters);
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
@@ -128,26 +203,43 @@ const OtherAccountsDetails = () => {
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
-        <div className="tabs flex justify-start items-center gap-3 my-5">
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={() => openModal("debit")}
-          >
-            <div className="flex items-center gap-2">
-              {" "}
-              <PiHandDeposit />
-              Debit
-            </div>
-          </button>
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={() => openModal("credit")}
-          >
-            <div className="flex items-center gap-2">
-              <PiHandWithdraw />
-              Credit
-            </div>
-          </button>
+        <div className="tabs flex flex-wrap items-center justify-between gap-3 my-5">
+          <div className="flex items-center gap-3">
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={() => openModal("debit")}
+            >
+              <div className="flex items-center gap-2">
+                {" "}
+                <PiHandDeposit />
+                Debit
+              </div>
+            </button>
+            <button
+              className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              onClick={() => openModal("credit")}
+            >
+              <div className="flex items-center gap-2">
+                <PiHandWithdraw />
+                Credit
+              </div>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-3">
+            <FilteredAccountTotals
+              show={isFilterApplied}
+              debit={filteredTotals.debit}
+              credit={filteredTotals.credit}
+              count={filteredTransactions.length}
+            />
+            <AccountFilters
+              filters={filters}
+              onChange={setFilters}
+              onSearch={handleFiltersSearch}
+              onReset={handleResetFilters}
+            />
+          </div>
         </div>
 
         {loading.getById ? (
@@ -189,8 +281,8 @@ const OtherAccountsDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {OtherAccount?.transactions?.length > 0 ? (
-                  OtherAccount?.transactions
+                {filteredTransactions?.length > 0 ? (
+                  filteredTransactions
                     ?.slice()
                     .reverse()
                     .map((data, index) => (

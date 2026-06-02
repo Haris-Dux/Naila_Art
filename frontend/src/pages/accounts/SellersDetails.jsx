@@ -4,6 +4,62 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Icon from '../../Component/Common/Icons';
 import { temporaryAccountUpdateAsync } from '../../features/ProcessBillSlice';
+import AccountFilters, {
+  emptyAccountFilters,
+  FilteredAccountTotals,
+} from '../../Component/AccountFilters/Accountfilters';
+
+const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
+
+const getDateOnlyTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+const getDateRange = ({ dateFrom, dateTo }) => {
+  const from = getDateOnlyTime(dateFrom);
+  const to = getDateOnlyTime(dateTo);
+
+  if (from && to) {
+    return {
+      from: Math.min(from, to),
+      to: Math.max(from, to),
+    };
+  }
+
+  if (from || to) {
+    const date = from || to;
+    return { from: date, to: date };
+  }
+
+  return null;
+};
+
+const filterTransactionsByDate = (transactions = [], filters) => {
+  const range = getDateRange(filters);
+  if (!range) return transactions;
+
+  return transactions.filter((transaction) => {
+    const transactionDate = getDateOnlyTime(transaction.date);
+    return (
+      transactionDate !== null &&
+      transactionDate >= range.from &&
+      transactionDate <= range.to
+    );
+  });
+};
+
+const calculateTransactionTotals = (transactions = []) =>
+  transactions.reduce(
+    (totals, transaction) => ({
+      debit: totals.debit + Number(transaction.debit || 0),
+      credit: totals.credit + Number(transaction.credit || 0),
+    }),
+    { debit: 0, credit: 0 },
+  );
 
 
 const SellersDetails = () => {
@@ -18,6 +74,8 @@ const SellersDetails = () => {
         category: "buyers",
       });
     const [isSellerEditMode, setIsSellerEditMode] = useState(false);
+    const [filters, setFilters] = useState(emptyAccountFilters);
+    const [appliedFilters, setAppliedFilters] = useState(emptyAccountFilters);
 
       const onSellerNumberChange = (key,value) => {
       setEditFormData((prev) => ({ ...prev, [key]: value }))
@@ -39,6 +97,23 @@ const SellersDetails = () => {
         totalBalance: Number(sellerEditFormData.totalBalance || 0),
         category: "sellers"
       };
+
+    const transactions = SellerById?.credit_debit_history || [];
+    const filteredTransactions = filterTransactionsByDate(
+      transactions,
+      appliedFilters,
+    );
+    const filteredTotals = calculateTransactionTotals(filteredTransactions);
+    const isFilterApplied = hasDateFilters(appliedFilters);
+
+    const handleFiltersSearch = () => {
+      setAppliedFilters(filters);
+    };
+
+    const handleResetFilters = () => {
+      setFilters(emptyAccountFilters);
+      setAppliedFilters(emptyAccountFilters);
+    };
         dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
           if (res.payload.success) {
             dispatch(GetSellerByIdAsync({ id }));
@@ -76,7 +151,7 @@ const SellersDetails = () => {
 
     {!isSellerEditMode ? (
       <h3 className="font-medium text-red-500">
-        {SellerById?.virtual_account?.total_debit === null
+        {SellerById?.virtual_account?.total_debit === null || SellerById?.virtual_account?.total_debit === undefined
           ? "0"
           : SellerById?.virtual_account?.total_debit}
       </h3>
@@ -97,7 +172,7 @@ const SellersDetails = () => {
 
     {!isSellerEditMode ? (
       <h3>
-        {SellerById?.virtual_account?.total_credit === null
+        {SellerById?.virtual_account?.total_credit === null || SellerById?.virtual_account?.total_credit === undefined
           ? "0"
           : SellerById?.virtual_account?.total_credit}
       </h3>
@@ -160,6 +235,20 @@ const SellersDetails = () => {
   </div>
 </div>
 
+                <div className="mb-4 flex flex-wrap justify-end gap-3">
+                  <FilteredAccountTotals
+                    show={isFilterApplied}
+                    debit={filteredTotals.debit}
+                    credit={filteredTotals.credit}
+                    count={filteredTransactions.length}
+                  />
+                  <AccountFilters
+                    filters={filters}
+                    onChange={setFilters}
+                    onSearch={handleFiltersSearch}
+                    onReset={handleResetFilters}
+                  />
+                </div>
 
                 {/* -------------- TABLE -------------- */}
                 {loading ? (
@@ -206,8 +295,8 @@ const SellersDetails = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {SellerById && SellerById?.credit_debit_history?.length > 0 ? (
-                                    SellerById?.credit_debit_history?.slice().reverse().map((data, index) => (
+                                {filteredTransactions?.length > 0 ? (
+                                    filteredTransactions?.slice().reverse().map((data, index) => (
                                         <tr key={index} className={` border-b text-md font-semibold "bg-white text-black"`}>
                                             <th className="px-6 py-4 font-medium"
                                                 scope="row"

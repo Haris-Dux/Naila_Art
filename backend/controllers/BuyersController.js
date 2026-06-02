@@ -16,7 +16,7 @@ import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js
 import CustomError from "../config/errors/CustomError.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
-import { canDeleteRecord } from "../utils/Common.js";
+import { buildDateRangeQuery, canDeleteRecord } from "../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -928,6 +928,8 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     const role = req.user_role;
     if (!id) throw new Error("Branch Id Required");
     const name = req.query.search || "";
+    const dateFrom = req.query.dateFrom || "";
+    const dateTo = req.query.dateTo || "";
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
@@ -936,11 +938,19 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
       name: { $regex: name, $options: "i" },
     };
 
-    const totalDocuments = await BuyersBillsModel.countDocuments(query);
-    const docs = await BuyersBillsModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 })
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
+
+    const [buyerNames, totalDocuments, docs] = await Promise.all([
+      BuyersBillsModel.distinct("name", { branchId: id }),
+      BuyersBillsModel.countDocuments(query),
+      BuyersBillsModel.find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
       setMongoose();
 
@@ -958,6 +968,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
 
     const response = {
       data:updatedData,
+      buyerNames,
       page,
       totalPages: Math.ceil(totalDocuments / limit),
     };

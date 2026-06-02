@@ -17,6 +17,7 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
+import { buildDateRangeQuery } from "../../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -629,6 +630,8 @@ export const getAllPurchasingHistory = async (req, res, next) => {
     let limit = 30;
     let search = req.query.search || "";
     let category = req.query.category || "";
+    let dateFrom = req.query.dateFrom || "";
+    let dateTo = req.query.dateTo || "";
 
     let query = {};
 
@@ -640,16 +643,27 @@ export const getAllPurchasingHistory = async (req, res, next) => {
       query.name = { $regex: search, $options: "i" };
     }
 
-    const sellerHistory = await purchasing_History_model.countDocuments(query);
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
 
-    const sellers = await purchasing_History_model
-      .find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const [sellerNames, sellerHistory, sellers] = await Promise.all([
+      purchasing_History_model.distinct(
+        "name",
+        category ? { seller_stock_category: category } : {},
+      ),
+      purchasing_History_model.countDocuments(query),
+      purchasing_History_model
+        .find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       sellerHistory,
+      sellerNames,
       page,
       sellers,
       totalPages: Math.ceil(sellerHistory / limit),

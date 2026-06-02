@@ -71,6 +71,8 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
       buyerId: data.buyerId,
       id: data.id,
       page: data.page,
+      dateFrom: data.dateFrom,
+      dateTo: data.dateTo,
     });
     try {
       const response = await axios.post(

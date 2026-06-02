@@ -5,14 +5,13 @@ import { deleteSelllerBillAsync, getAllPurchasingHistoryAsync } from "../../../f
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdDeleteOutline } from "react-icons/md";
 
-const AccessoriesTable = () => {
+const AccessoriesTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory, deleteLoading } = useSelector(
     (state) => state.Seller
   );
 
-  const [search, setSearch] = useState();
   const [showConfirmationModal, setConfirmationModal] = useState();
   const [onConfitmation, setOnConfirmation] = useState(null);
   const [searchParams] = useSearchParams();
@@ -20,9 +19,9 @@ const AccessoriesTable = () => {
 
   useEffect(() => {
     dispatch(
-      getAllPurchasingHistoryAsync({ category: "Accessories", search, page })
+      getAllPurchasingHistoryAsync({ category: "Accessories", ...filters, page })
     );
-  }, [page, dispatch]);
+  }, [page, dispatch, filters]);
 
   const renderPaginationLinks = () => {
     const totalPages = PurchasingHistory?.totalPages;
@@ -39,7 +38,7 @@ const AccessoriesTable = () => {
               dispatch(
                 getAllPurchasingHistoryAsync({
                   category: "Accessories",
-                  search,
+                  ...filters,
                   page: i,
                 })
               )
@@ -75,7 +74,7 @@ const AccessoriesTable = () => {
         if (res.payload.success) {
           closeModal();
           dispatch(
-            getAllPurchasingHistoryAsync({ category: "Accessories", search, page })
+            getAllPurchasingHistoryAsync({ category: "Accessories", ...filters, page })
           );
         }
       });
@@ -87,7 +86,7 @@ const AccessoriesTable = () => {
     <>
       <section>
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
+          <div className="pt-16 flex justify-center mt-12 min-h-screen  items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
               role="status"

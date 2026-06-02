@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const generateProcessBill = "/api/processBillRouter/generateProcessBill";
@@ -33,17 +34,16 @@ export const GenerateProcessBillAsync = createAsyncThunk(
 export const GetAllProcessBillAsync = createAsyncThunk(
   "getAll/processBills",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-    const category =
-      data?.category !== undefined && data?.category !== null
-        ? `&category=${data?.category}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      search: data.search,
+      category: data.category,
+      dateFrom: data.dateFrom,
+      dateTo: data.dateTo,
+    });
     try {
       const response = await axios.post(
-        `${getAllProcessBill}?&page=${data.page}${searchQuery}${category}`
+        `${getAllProcessBill}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -84,13 +84,15 @@ export const GetAllPictureAccountsAsync = createAsyncThunk(
   async (data) => {
     console.log("pictures being hit");
 
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      search: data.search,
+      dateFrom: data.dateFrom,
+      dateTo: data.dateTo,
+    });
     try {
       const response = await axios.post(
-        `${getAllPictureAccountsURL}?&page=${data.page}${searchQuery}`
+        `${getAllPictureAccountsURL}?${query}`
       );
       return response.data;
     } catch (error) {

@@ -14,6 +14,7 @@ import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { SellersModel } from "../../models/sellers/SellersModel.js";
+import { buildDateRangeQuery } from "../../utils/Common.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -305,6 +306,8 @@ export const getAllProcessBills = async (req, res, next) => {
     let limit = 20;
     let search = req.query.search || "";
     let category = req.query.category || "";
+    let dateFrom = req.query.dateFrom || "";
+    let dateTo = req.query.dateTo || "";
 
     let query = {};
 
@@ -316,16 +319,27 @@ export const getAllProcessBills = async (req, res, next) => {
       query.partyName = { $regex: search, $options: "i" };
     }
 
-    const totalProcessBills = await processBillsModel.countDocuments(query);
+    const dateRangeQuery = buildDateRangeQuery(dateFrom, dateTo);
+    if (dateRangeQuery) {
+      query.date = dateRangeQuery;
+    }
 
-    const processBills = await processBillsModel
-      .find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const [partyNames, totalProcessBills, processBills] = await Promise.all([
+      processBillsModel.distinct(
+        "partyName",
+        category ? { process_Category: category } : {},
+      ),
+      processBillsModel.countDocuments(query),
+      processBillsModel
+        .find(query)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+    ]);
 
     const response = {
       processBills,
+      partyNames,
       page,
       totalProcessBills,
       totalPages: Math.ceil(totalProcessBills / limit),

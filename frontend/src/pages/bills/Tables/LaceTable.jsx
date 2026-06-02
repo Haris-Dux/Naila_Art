@@ -1,26 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { GetAllLace } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { FaEye } from "react-icons/fa";
 import { deleteSelllerBillAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdDeleteOutline } from "react-icons/md";
 
-const LaceTable = () => {
+const LaceTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory , deleteLoading} = useSelector((state) => state.Seller);
 
-  const [search, setSearch] = useState();
    const [showConfirmationModal, setConfirmationModal] = useState();
     const [onConfitmation, setOnConfirmation] = useState(null);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
-    dispatch(getAllPurchasingHistoryAsync({ category: "Lace", search, page }));
-  }, [page, dispatch]);
+    dispatch(getAllPurchasingHistoryAsync({ category: "Lace", ...filters, page }));
+  }, [page, dispatch, filters]);
 
   const renderPaginationLinks = () => {
     const totalPages = PurchasingHistory?.totalPages;
@@ -37,7 +34,7 @@ const LaceTable = () => {
               dispatch(
                 getAllPurchasingHistoryAsync({
                   category: "Lace",
-                  search,
+                  ...filters,
                   page: i,
                 })
               )
@@ -59,7 +56,7 @@ const LaceTable = () => {
         dispatch(deleteSelllerBillAsync(pyaload)).then((res) => {
           if (res.payload.success) {
             closeModal();
-            dispatch(getAllPurchasingHistoryAsync({ category: "Lace", search, page }));
+            dispatch(getAllPurchasingHistoryAsync({ category: "Lace", ...filters, page }));
           }
         });
       };
@@ -85,7 +82,7 @@ const LaceTable = () => {
     <>
       <section>
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
+          <div className="pt-16 flex justify-center mt-12 min-h-screen  items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
               role="status"
