@@ -1,9 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { TfiWrite } from "react-icons/tfi";
 import { getBuyerForBranchAsync } from "../../features/BuyerSlice";
+import BillFilters, {
+  emptyBillFilters,
+} from "../../Component/BillFilters/BillFilters";
+import { buyerStatusOptions } from "../../Utils/Common";
+
+const initialBuyerFilters = {
+  ...emptyBillFilters,
+  status: "Unpaid",
+};
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -20,8 +29,7 @@ const PhoneComponent = ({ phone }) => {
 const Buyers = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [paymentStatus, setPaymentStatus] = useState();
-  const [validateOldBuyer, setValidateOldBuyer] = useState("");
+  const [filters, setFilters] = useState(initialBuyerFilters);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const { user } = useSelector((state) => state.auth);
@@ -29,23 +37,27 @@ const Buyers = () => {
   const { loading, Buyers } = useSelector((state) => state.Buyer);
   const [selectedBranchId, setSelectedBranchId] = useState();
 
+  const getDefaultBranchId = () => user?.user?.branchId || Branches?.[0]?.id;
+
+  const getBuyerPayload = ({
+    branchId = selectedBranchId || getDefaultBranchId(),
+    pageValue = page,
+    filterValues = filters,
+  } = {}) => ({
+    id: user?.user?.id,
+    branchId,
+    page: pageValue,
+    name: filterValues.name || undefined,
+    status: filterValues.status || undefined,
+  });
+
   useEffect(() => {
     if (Branches?.length > 0) {
-      const payload = {
-        id: user?.user?.id,
-        branchId: selectedBranchId
-          ? selectedBranchId
-          : user?.user?.branchId || Branches[0].id,
-        status: paymentStatus !== "All" ? paymentStatus : undefined,
-        page,
-      };
+      const branchId = selectedBranchId || getDefaultBranchId();
+      const payload = getBuyerPayload({ branchId, pageValue: page });
       dispatch(getBuyerForBranchAsync(payload));
 
-      setSelectedBranchId(
-        selectedBranchId
-          ? selectedBranchId
-          : user?.user?.branchId || Branches[0].id
-      );
+      setSelectedBranchId(branchId);
     }
   }, [user, dispatch, Branches, page]);
 
@@ -77,9 +89,7 @@ const Buyers = () => {
             onClick={() =>
               dispatch(
                 getBuyerForBranchAsync({
-                  id: user?.user?.id,
-                  page: i,
-                  branchId: selectedBranchId,
+                  ...getBuyerPayload({ pageValue: i }),
                 })
               )
             }
@@ -108,58 +118,51 @@ const Buyers = () => {
     });
   };
 
-  const searchTimerRef = useRef(null);
-
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setValidateOldBuyer(value);
-
-    const payload = {
-      id: user?.user?.id,
-      page: 1,
-      search: value.length > 0 ? value : undefined,
-      status: paymentStatus !== "All" ? paymentStatus : undefined,
-      branchId: selectedBranchId,
-    };
-
-    if (searchTimerRef.current) {
-      clearTimeout(searchTimerRef.current);
-    }
-
-    if (value.length > 0) {
-      searchTimerRef.current = setTimeout(() => {
-        dispatch(getBuyerForBranchAsync(payload));
-      }, 1000);
-    }
-  };
-
-  const handleStatusClick = (status) => {
-    setPaymentStatus(status);
-
-    const payload = {
-      id: user?.user?.id,
-      page: 1,
-      status: status !== "All" ? status : null,
-      branchId: selectedBranchId,
-      search: validateOldBuyer.length > 0 ? validateOldBuyer : null,
-    };
-
-    dispatch(getBuyerForBranchAsync(payload));
+  const handleFiltersSearch = () => {
+    dispatch(getBuyerForBranchAsync(getBuyerPayload({ pageValue: 1 })));
     navigate(`/dashboard/buyers?page=${1}`);
   };
 
-  const handleBranchClick = (branchId) => {
-    const selectedBranch = branchId === "All" ? "" : branchId;
-    setSelectedBranchId(selectedBranch);
-    setPaymentStatus();
-    setValidateOldBuyer("");
+  const handleFiltersChange = (nextFilters) => {
+    const statusChanged = nextFilters.status !== filters.status;
+    const updatedFilters = statusChanged
+      ? { ...nextFilters, name: "" }
+      : nextFilters;
 
-    const payload = {
-      id: user?.user?.id,
-      branchId: branchId,
-      page: 1,
-    };
+    setFilters(updatedFilters);
+
+    if (statusChanged) {
+      dispatch(
+        getBuyerForBranchAsync(
+          getBuyerPayload({ pageValue: 1, filterValues: updatedFilters }),
+        ),
+      );
+      navigate(`/dashboard/buyers?page=${1}`);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setFilters(initialBuyerFilters);
+    dispatch(
+      getBuyerForBranchAsync(
+        getBuyerPayload({ pageValue: 1, filterValues: initialBuyerFilters }),
+      ),
+    );
+    navigate(`/dashboard/buyers?page=${1}`);
+  };
+
+  const handleBranchFilterChange = (branchId) => {
+    const nextBranchId = branchId || getDefaultBranchId();
+    setSelectedBranchId(nextBranchId);
+    setFilters(initialBuyerFilters);
+
+    const payload = getBuyerPayload({
+      branchId: nextBranchId,
+      pageValue: 1,
+      filterValues: initialBuyerFilters,
+    });
     dispatch(getBuyerForBranchAsync(payload));
+    navigate(`/dashboard/buyers?page=${1}`);
   };
 
   const setStatusColor = (status) => {
@@ -180,46 +183,6 @@ const Buyers = () => {
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
-        {/* UPPER TABS */}
-        <div className="mb-3 upper_tabs flex justify-start items-center">
-          <div className="tabs_button">
-            {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
-            {user?.user?.role === "superadmin" ? (
-              <>
-                {Branches?.map((branch) => (
-                  <Link
-                    to={`/dashboard/buyers?page=${1}`}
-                    key={branch?.id}
-                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                      selectedBranchId === branch?.id
-                        ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                        : "dark:text-white"
-                    }`}
-                    onClick={() => handleBranchClick(branch?.id)}
-                  >
-                    {branch?.branchName}
-                  </Link>
-                ))}
-              </>
-            ) : (
-              <>
-                {/* THIS SHOWS TO ADMIN & USER */}
-                {Branches?.map((branch) => (
-                  <button
-                    className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md cursor-default ${
-                      user?.user?.branchId === branch?.id
-                        ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                        : ""
-                    }`}
-                  >
-                    {branch?.branchName}
-                  </button>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-
         {/* -------------- HEADER -------------- */}
         <div className="header flex justify-between items-center pt-6 mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
@@ -227,96 +190,30 @@ const Buyers = () => {
           </h1>
 
           {/* <!-- search bar --> */}
-          <div className="search_bar flex items-center gap-3 mr-2">
-            <div className="relative mt-4 md:mt-0">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="w-5 h-5 text-gray-800 dark:text-gray-200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
-              </span>
-
-              <input
-                type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                placeholder="Search by name"
-                value={validateOldBuyer}
-                onChange={handleSearch}
-              />
-            </div>
-          </div>
+          <BillFilters
+            filters={filters}
+            nameOptions={(Buyers?.buyerNames || []).map((name) => ({
+              value: name,
+              label: name,
+            }))}
+            branchOptions={(Branches || []).map((branch) => ({
+              value: branch.id,
+              label: branch.branchName,
+            }))}
+            selectedBranch={selectedBranchId}
+            statusOptions={buyerStatusOptions}
+            showBranchFilter={true}
+            showStatusFilter={true}
+            showDateFilters={false}
+            namePlaceholder="Buyer"
+            onChange={handleFiltersChange}
+            onBranchChange={handleBranchFilterChange}
+            onSearch={handleFiltersSearch}
+            onReset={handleResetFilters}
+          />
         </div>
 
         <p className="w-full bg-gray-300 h-px mt-5"></p>
-
-        {/* -------------- TABS -------------- */}
-        <div className="tabs flex justify-between items-center my-5">
-          <div className="tabs_button">
-            <button
-              onClick={() => handleStatusClick("All")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === undefined || paymentStatus === "All"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              All
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Paid
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Unpaid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Unpaid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Unpaid
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Partially Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Partially Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Partially Paid
-            </button>
-
-            <button
-              onClick={() => handleStatusClick("Advance Paid")}
-              className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
-                paymentStatus === "Advance Paid"
-                  ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                  : "dark:text-white"
-              }`}
-            >
-              Advance Paid
-            </button>
-          </div>
-        </div>
 
         {/* -------------- TABLE -------------- */}
 

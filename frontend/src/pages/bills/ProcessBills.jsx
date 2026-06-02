@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
+import { accountStatusOptions } from "../../Utils/Common";
 
 const processCategories = [
   "Embroidery",
@@ -19,13 +20,18 @@ const processCategories = [
   "Pictures",
 ];
 
+const initialProcessBillFilters = {
+  ...emptyBillFilters,
+  status: "Unpaid",
+};
+
 const ProcessBills = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState("Embroidery");
 
-  const [filters, setFilters] = useState(emptyBillFilters);
+  const [filters, setFilters] = useState(initialProcessBillFilters);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
 
@@ -35,6 +41,7 @@ const ProcessBills = () => {
     const payload = {
       page: 1,
       category: selectedCategory || null,
+      status: initialProcessBillFilters.status,
     };
     dispatch(GetAllProcessBillAsync(payload));
   }, [dispatch]);
@@ -46,7 +53,8 @@ const ProcessBills = () => {
   } = {}) => {
     const payload = {
       page: pageValue,
-      search: filterValues.search || undefined,
+      name: filterValues.name || undefined,
+      status: filterValues.status || undefined,
       dateFrom: filterValues.dateFrom || undefined,
       dateTo: filterValues.dateTo || undefined,
     };
@@ -62,11 +70,11 @@ const ProcessBills = () => {
   const handleCategoryFilterChange = (category) => {
     const nextCategory = category || "Embroidery";
     setSelectedCategory(nextCategory);
-    setFilters(emptyBillFilters);
+    setFilters(initialProcessBillFilters);
     fetchProcessBills({
       category: nextCategory,
       pageValue: 1,
-      filterValues: emptyBillFilters,
+      filterValues: initialProcessBillFilters,
     });
     navigate(`/dashboard/processbills?page=1`);
   };
@@ -76,9 +84,26 @@ const ProcessBills = () => {
     navigate(`/dashboard/processbills?page=1`);
   };
 
+  const handleFiltersChange = (nextFilters) => {
+    const statusChanged = nextFilters.status !== filters.status;
+    const updatedFilters = statusChanged
+      ? { ...nextFilters, name: "" }
+      : nextFilters;
+
+    setFilters(updatedFilters);
+
+    if (statusChanged) {
+      fetchProcessBills({ pageValue: 1, filterValues: updatedFilters });
+      navigate(`/dashboard/processbills?page=1`);
+    }
+  };
+
   const handleResetFilters = () => {
-    setFilters(emptyBillFilters);
-    fetchProcessBills({ pageValue: 1, filterValues: emptyBillFilters });
+    setFilters(initialProcessBillFilters);
+    fetchProcessBills({
+      pageValue: 1,
+      filterValues: initialProcessBillFilters,
+    });
     navigate(`/dashboard/processbills?page=1`);
   };
 
@@ -144,10 +169,12 @@ const ProcessBills = () => {
               value: category,
               label: category,
             }))}
+            statusOptions={accountStatusOptions}
             selectedCategory={selectedCategory}
             showCategoryFilter={true}
+            showStatusFilter={true}
             namePlaceholder="Party Name"
-            onChange={setFilters}
+            onChange={handleFiltersChange}
             onCategoryChange={handleCategoryFilterChange}
             onSearch={handleFiltersSearch}
             onReset={handleResetFilters}

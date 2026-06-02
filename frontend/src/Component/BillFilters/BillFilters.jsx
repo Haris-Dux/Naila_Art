@@ -3,7 +3,8 @@ import { GrPowerReset } from "react-icons/gr";
 import AppSelect from "../Common/select/AppSelect";
 
 export const emptyBillFilters = {
-  search: "",
+  name: "",
+  status: "",
   dateFrom: "",
   dateTo: "",
 };
@@ -19,10 +20,13 @@ const BillFilters = ({
   nameOptions = [],
   branchOptions = [],
   categoryOptions = [],
+  statusOptions = [],
   selectedBranch = "",
   selectedCategory = "",
   showBranchFilter = false,
   showCategoryFilter = false,
+  showStatusFilter = false,
+  showDateFilters = true,
   namePlaceholder = "Party Name",
   onChange,
   onBranchChange,
@@ -41,7 +45,14 @@ const BillFilters = ({
   const handleNameChange = (selectedOption) => {
     onChange({
       ...filters,
-      search: selectedOption?.value || "",
+      name: selectedOption?.value || "",
+    });
+  };
+
+  const handleStatusChange = (selectedOption) => {
+    onChange({
+      ...filters,
+      status: selectedOption?.value || "",
     });
   };
 
@@ -75,35 +86,49 @@ const BillFilters = ({
         className="w-[210px]"
         options={nameOptions}
         placeholder={namePlaceholder}
-        value={getSelectedOption(nameOptions, filters.search)}
+        value={getSelectedOption(nameOptions, filters.name)}
         onChange={handleNameChange}
       />
 
-      <div className="relative">
-        <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-300">
-          From
-        </span>
-        <input
-          type="date"
-          name="dateFrom"
-          className={dateInputClass}
-          value={filters.dateFrom}
-          onChange={handleDateChange}
+      {showStatusFilter && (
+        <AppSelect
+          className="w-[160px]"
+          options={statusOptions}
+          placeholder="Status"
+          value={getSelectedOption(statusOptions, filters.status)}
+          onChange={handleStatusChange}
         />
-      </div>
+      )}
 
-      <div className="relative">
-        <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-300">
-          To
-        </span>
-        <input
-          type="date"
-          name="dateTo"
-          className={dateInputClass}
-          value={filters.dateTo}
-          onChange={handleDateChange}
-        />
-      </div>
+      {showDateFilters && (
+        <>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-300">
+              From
+            </span>
+            <input
+              type="date"
+              name="dateFrom"
+              className={dateInputClass}
+              value={filters.dateFrom}
+              onChange={handleDateChange}
+            />
+          </div>
+
+          <div className="relative">
+            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 dark:text-gray-300">
+              To
+            </span>
+            <input
+              type="date"
+              name="dateTo"
+              className={dateInputClass}
+              value={filters.dateTo}
+              onChange={handleDateChange}
+            />
+          </div>
+        </>
+      )}
 
       <button
         type="button"

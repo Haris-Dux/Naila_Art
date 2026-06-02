@@ -50,7 +50,7 @@ const NailaArtsBuyer = () => {
   } = {}) => ({
     id: branchId,
     page: pageValue,
-    search: filterValues.search || undefined,
+    name: filterValues.name || undefined,
     dateFrom: filterValues.dateFrom || undefined,
     dateTo: filterValues.dateTo || undefined,
   });

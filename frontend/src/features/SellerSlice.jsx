@@ -20,21 +20,15 @@ const deleteSellerBillAndReverseStockUrl =
 export const getAllSellerForPurchasingAsync = createAsyncThunk(
   "get/allSellers",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-        const status =
-        data?.status !== undefined && data?.status !== null
-          ? `&status=${data?.status}`
-          : "";
-    const category =
-      data?.category !== undefined && data?.category !== null
-        ? `&category=${data?.category}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      category: data.category,
+      name: data.name,
+      status: data.status,
+    });
     try {
       const response = await axios.post(
-        `${getAllSellerForPurchasingURL}?&page=${data.page}${category}${searchQuery}${status}`
+        `${getAllSellerForPurchasingURL}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -91,7 +85,7 @@ export const getAllPurchasingHistoryAsync = createAsyncThunk(
     const query = buildQueryParams({
       page: data.page,
       category: data.category,
-      search: data.search,
+      name: data.name,
       dateFrom: data.dateFrom,
       dateTo: data.dateTo,
     });
