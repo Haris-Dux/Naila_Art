@@ -816,6 +816,7 @@ export const getBuyersForBranch = async (req, res, next) => {
     let name = req.query.name || "";
     let branchQuery = req.query.branchId || "";
     const status = req.query.status || "";
+    const city = req.query.city || "";
 
     if (!id) throw new Error("User Id Required");
     const user = await UserModel.findById(id);
@@ -837,21 +838,30 @@ export const getBuyersForBranch = async (req, res, next) => {
       query.name = name;
     }
 
+    if (city) {
+      query.city = city;
+    }
+
     const namesQuery = { ...query };
     delete namesQuery.name;
 
-    const [buyerNames, totalBuyers, buyers] = await Promise.all([
+    const citiesQuery = { ...query };
+    delete citiesQuery.city;
+
+    const [buyerNames, buyerCities, totalBuyers, buyers] = await Promise.all([
       BuyersModel.distinct("name", namesQuery),
+      BuyersModel.distinct("city", citiesQuery),
       BuyersModel.countDocuments(query),
       BuyersModel.find(query)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ "virtual_account.status": -1, createdAt: -1 }),
     ]);
 
     const response = {
       buyers,
       buyerNames,
+      buyerCities,
       page,
       totalBuyers,
       totalPages: Math.ceil(totalBuyers / limit),

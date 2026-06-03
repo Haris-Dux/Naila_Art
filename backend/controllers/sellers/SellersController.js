@@ -336,7 +336,7 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
       SellersModel.find(query)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ "virtual_account.status": -1, createdAt: -1 }),
     ]);
 
     const response = {

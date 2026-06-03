@@ -340,7 +340,7 @@ export const getAllProcessBills = async (req, res, next) => {
         .find(query)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ "virtual_account.status": -1, createdAt: -1 }),
     ]);
 
     const response = {
