@@ -5,6 +5,7 @@ import AppSelect from "../Common/select/AppSelect";
 export const emptyBillFilters = {
   name: "",
   status: "",
+  city: "",
   dateFrom: "",
   dateTo: "",
 };
@@ -21,13 +22,16 @@ const BillFilters = ({
   branchOptions = [],
   categoryOptions = [],
   statusOptions = [],
+  cityOptions = [],
   selectedBranch = "",
   selectedCategory = "",
   showBranchFilter = false,
   showCategoryFilter = false,
   showStatusFilter = false,
+  showCityFilter = false,
   showDateFilters = true,
   namePlaceholder = "Party Name",
+  cityPlaceholder = "City",
   onChange,
   onBranchChange,
   onCategoryChange,
@@ -46,6 +50,13 @@ const BillFilters = ({
     onChange({
       ...filters,
       name: selectedOption?.value || "",
+    });
+  };
+
+  const handleCityChange = (selectedOption) => {
+    onChange({
+      ...filters,
+      city: selectedOption?.value || "",
     });
   };
 
@@ -89,6 +100,16 @@ const BillFilters = ({
         value={getSelectedOption(nameOptions, filters.name)}
         onChange={handleNameChange}
       />
+
+      {showCityFilter && (
+        <AppSelect
+          className="w-[160px]"
+          options={cityOptions}
+          placeholder={cityPlaceholder}
+          value={getSelectedOption(cityOptions, filters.city)}
+          onChange={handleCityChange}
+        />
+      )}
 
       {showStatusFilter && (
         <AppSelect

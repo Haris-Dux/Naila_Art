@@ -11,7 +11,7 @@ import { buyerStatusOptions } from "../../Utils/Common";
 
 const initialBuyerFilters = {
   ...emptyBillFilters,
-  status: "Unpaid",
+  status: "",
 };
 
 const PhoneComponent = ({ phone }) => {
@@ -48,6 +48,7 @@ const Buyers = () => {
     branchId,
     page: pageValue,
     name: filterValues.name || undefined,
+    city: filterValues.city || undefined,
     status: filterValues.status || undefined,
   });
 
@@ -196,6 +197,10 @@ const Buyers = () => {
               value: name,
               label: name,
             }))}
+            cityOptions={(Buyers?.buyerCities || []).map((city) => ({
+              value: city,
+              label: city,
+            }))}
             branchOptions={(Branches || []).map((branch) => ({
               value: branch.id,
               label: branch.branchName,
@@ -203,6 +208,7 @@ const Buyers = () => {
             selectedBranch={selectedBranchId}
             statusOptions={buyerStatusOptions}
             showBranchFilter={true}
+            showCityFilter={true}
             showStatusFilter={true}
             showDateFilters={false}
             namePlaceholder="Buyer"

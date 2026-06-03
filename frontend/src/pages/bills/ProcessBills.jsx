@@ -22,7 +22,7 @@ const processCategories = [
 
 const initialProcessBillFilters = {
   ...emptyBillFilters,
-  status: "Unpaid",
+  status: "",
 };
 
 const ProcessBills = () => {

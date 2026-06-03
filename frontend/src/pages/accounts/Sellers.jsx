@@ -13,7 +13,7 @@ const sellerCategories = ["Base", "Lace", "Bag/box", "Accessories"];
 
 const initialSellerFilters = {
   ...emptyBillFilters,
-  status: "Unpaid",
+  status: "",
 };
 
 const PhoneComponent = ({ phone }) => {
