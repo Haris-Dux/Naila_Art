@@ -98,6 +98,21 @@ const SellersDetails = () => {
         category: "sellers"
       };
 
+        dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
+          if (res.payload.success) {
+            dispatch(GetSellerByIdAsync({ id }));
+            setIsSellerEditMode(false);
+            setEditFormData({
+              accountId: "",
+              totalDebit: "",
+              totalCredit: "",
+              totalBalance: "",
+              category: "sellers",
+            });
+          }
+        });
+      };
+
     const transactions = SellerById?.credit_debit_history || [];
     const filteredTransactions = filterTransactionsByDate(
       transactions,
@@ -114,20 +129,6 @@ const SellersDetails = () => {
       setFilters(emptyAccountFilters);
       setAppliedFilters(emptyAccountFilters);
     };
-        dispatch(temporaryAccountUpdateAsync(updatedData)).then((res) => {
-          if (res.payload.success) {
-            dispatch(GetSellerByIdAsync({ id }));
-            setIsSellerEditMode(false);
-            setEditFormData({
-              accountId: "",
-              totalDebit: "",
-              totalCredit: "",
-              totalBalance: "",
-              category: "buyers",
-            });
-          }
-        });
-      };
 
 
     return (
