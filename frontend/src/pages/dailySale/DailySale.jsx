@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getDailySaleAsync } from "../../features/DailySaleSlice";
+import Pagination from "../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const DailySale = () => {
   const dispatch = useDispatch();
@@ -23,6 +25,7 @@ const DailySale = () => {
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const filteredData = searchText
     ? DailySaleHistory?.dailySaleHistory?.filter((item) =>
@@ -38,6 +41,7 @@ const DailySale = () => {
           ? selectedBranchId
           : user?.user?.branchId || Branches[0].id,
         page,
+        limit,
       };
 
       dispatch(getDailySaleAsync(payload));
@@ -48,7 +52,7 @@ const DailySale = () => {
           : user?.user?.branchId || Branches[0].id
       );
     }
-  }, [dispatch, user, Branches, page]);
+  }, [dispatch, user, Branches, page, limit]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -62,44 +66,18 @@ const DailySale = () => {
       date: searchDate || null,
       id: selectedBranchId,
       page: i,
+      limit,
     };
 
     dispatch(getDailySaleAsync(payload));
   };
 
-  const renderPaginationLinks = () => {
-    const totalPages = DailySaleHistory?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/dailySale?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() => handlePaginationClick(i)}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "all" ? "" : branchId;
     setSelectedBranchId(selectedBranch);
     setSearchDate("");
-    dispatch(getDailySaleAsync({ id: branchId, page: 1 }));
+    dispatch(getDailySaleAsync({ id: branchId, page: 1, limit }));
   };
 
   const handleSearch = (e) => {
@@ -109,12 +87,13 @@ const DailySale = () => {
 
     const payload = {
       page: 1,
+      limit,
       date: value,
       id: selectedBranchId,
     };
 
     dispatch(getDailySaleAsync(payload));
-    navigate(`/dashboard/dailySale?page=1`);
+    navigate(`/dashboard/dailySale${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const getBranchNameById = useCallback(
@@ -178,7 +157,7 @@ const DailySale = () => {
               <>
                 {Branches?.map((branch) => (
                   <Link
-                    to={`/dashboard/dailySale?page=${1}`}
+                    to={`/dashboard/dailySale${buildPaginationQuery(searchParams, { page: 1, limit })}`}
                     key={branch?.id}
                     className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
                       selectedBranchId === branch?.id
@@ -291,110 +270,12 @@ const DailySale = () => {
         )}
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      <section className="flex justify-center">
-        <nav aria-label="Page navigation example">
-          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-            <li>
-              {DailySaleHistory?.page > 1 ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/dailySale?page=${page - 1}`}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-            {renderPaginationLinks()}
-            <li>
-              {DailySaleHistory?.totalPages !== page ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/dailySale?page=${page + 1}`}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
-      </section>
+      <Pagination
+        currentPage={page}
+        totalPages={DailySaleHistory?.totalPages}
+        totalRecords={DailySaleHistory?.totalRecords}
+        pageSize={limit}
+      />
 
       {isOpen && (
         <div

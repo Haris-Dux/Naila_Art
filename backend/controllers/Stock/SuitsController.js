@@ -6,6 +6,7 @@ import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import mongoose from "mongoose";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addSuitsInStock = async (req, res, next) => {
   try {
@@ -64,8 +65,7 @@ export const addSuitsInStock = async (req, res, next) => {
 
 export const getAllSuits = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
     let search = parseInt(req.query.search) || "";
     let category = req.query.category || "";
 
@@ -135,7 +135,9 @@ export const getAllSuits = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       Suits: total,
+      totalRecords: total,
       data,
       category_data: aggregatedData[0].category_data,
       total_stock: aggregatedData[0].total_stock[0].total_quantity,

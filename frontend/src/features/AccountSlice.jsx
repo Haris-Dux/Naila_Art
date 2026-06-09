@@ -38,8 +38,12 @@ export const GetEmployeeActive = createAsyncThunk("Employee/GetActiveEmployee", 
     data?.search !== undefined && data?.search !== null
       ? `&search=${data?.search}`
       : "";
+  const limitQuery =
+    data?.limit !== undefined && data?.limit !== null
+      ? `&limit=${data?.limit}`
+      : "";
   try {
-    const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${searchQuery}`);
+    const response = await axios.post(`${ActiveEmployee}?&page=${data.page}${limitQuery}${searchQuery}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response.data.error);
@@ -54,8 +58,12 @@ export const GetEmployeePast = createAsyncThunk(
       data?.search !== undefined && data?.search !== null
         ? `&search=${data?.search}`
         : "";
+    const limitQuery =
+      data?.limit !== undefined && data?.limit !== null
+        ? `&limit=${data?.limit}`
+        : "";
     try {
-      const response = await axios.post(`${PastEmployee}?&page=${data.page}${searchQuery}`);
+      const response = await axios.post(`${PastEmployee}?&page=${data.page}${limitQuery}${searchQuery}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.error);

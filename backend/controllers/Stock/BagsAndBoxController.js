@@ -1,5 +1,6 @@
 import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addBagsAndBoxInStock = async ({billId,name, bill_no, r_Date, quantity,session}) => {
   try {
@@ -71,8 +72,7 @@ export const getAllBagsAndBox = async (req, res, next) => {
   try {
    
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let search = req.query.search || "";
  
     let query = {
@@ -92,7 +92,9 @@ export const getAllBagsAndBox = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       totalBagBox:total,
+      totalRecords: total,
       data
     };
     setMongoose();

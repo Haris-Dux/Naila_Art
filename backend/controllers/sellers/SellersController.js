@@ -17,7 +17,7 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
-import { buildDateRangeQuery } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -307,8 +307,7 @@ export const getSelleForPurchasingById = async (req, res, next) => {
 
 export const getAllSellersForPurchasing = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
     let name = req.query.name || "";
     let category = req.query.category || "";
     const status = req.query.status || "";
@@ -343,7 +342,9 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
       sellers,
       sellerNames,
       page,
+      limit,
       totalSellers,
+      totalRecords: totalSellers,
       totalPages: Math.ceil(totalSellers / limit),
     };
     setMongoose();
@@ -632,8 +633,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
 
 export const getAllPurchasingHistory = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
     let name = req.query.name || "";
     let category = req.query.category || "";
     let dateFrom = req.query.dateFrom || "";
@@ -671,7 +671,9 @@ export const getAllPurchasingHistory = async (req, res, next) => {
       sellerHistory,
       sellerNames,
       page,
+      limit,
       sellers,
+      totalRecords: sellerHistory,
       totalPages: Math.ceil(sellerHistory / limit),
     };
     setMongoose();

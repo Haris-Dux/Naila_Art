@@ -36,6 +36,7 @@ export const GetAllProcessBillAsync = createAsyncThunk(
   async (data) => {
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       name: data.name,
       category: data.category,
       status: data.status,
@@ -87,6 +88,7 @@ export const GetAllPictureAccountsAsync = createAsyncThunk(
 
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       name: data.name,
       status: data.status,
       dateFrom: data.dateFrom,

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getAllReturnsForBranch } from "../../features/ReturnSlice";
+import Pagination from "../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -18,12 +20,14 @@ const PhoneComponent = ({ phone }) => {
 
 const ReturnBills = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState();
   const [suitSaleData, setSuitSaleData] = useState("");
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const { user } = useSelector((state) => state.auth);
   const { loading: branchesLoading, Branches } = useSelector(
@@ -43,6 +47,7 @@ const ReturnBills = () => {
           ? selectedBranchId
           : user?.user?.branchId || Branches[0].id,
         page,
+        limit,
       };
       dispatch(getAllReturnsForBranch(payload));
 
@@ -52,42 +57,9 @@ const ReturnBills = () => {
           : user?.user?.branchId || Branches[0].id
       );
     }
-  }, [user, dispatch, Branches, page]);
+  }, [user, dispatch, Branches, page, limit]);
 
-  const renderPaginationLinks = () => {
-    const totalPages = ReturnsBillHistory?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/naila-arts-return-bills?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() =>
-              dispatch(
-                getAllReturnsForBranch({
-                  id: selectedBranchId,
-                  page: i,
-                })
-              )
-            }
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+ 
 
   const handleBranchClick = (branchId) => {
     const selectedBranch = branchId === "All" ? "" : branchId;
@@ -97,6 +69,7 @@ const ReturnBills = () => {
     const payload = {
       id: branchId,
       page: 1,
+      limit,
     };
     dispatch(getAllReturnsForBranch(payload));
   };
@@ -117,6 +90,8 @@ const ReturnBills = () => {
     setSearch(value);
     const payload = {
       id: selectedBranchId,
+      page: 1,
+      limit,
       search: value.length > 0 ? value : undefined,
     };
     if (searchTimerRef.current) {
@@ -126,7 +101,10 @@ const ReturnBills = () => {
       searchTimerRef.current = setTimeout(() => {
         dispatch(getAllReturnsForBranch(payload));
       }, 1000);
+    } else {
+      dispatch(getAllReturnsForBranch(payload));
     }
+    navigate(`/dashboard/naila-arts-return-bills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   return (
@@ -152,7 +130,7 @@ const ReturnBills = () => {
                   <>
                     {Branches?.map((branch) => (
                       <Link
-                        to={`/dashboard/naila-arts-return-bills?page=${1}`}
+                        to={`/dashboard/naila-arts-return-bills${buildPaginationQuery(searchParams, { page: 1, limit })}`}
                         key={branch?.id}
                         className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
                           selectedBranchId === branch?.id
@@ -300,110 +278,12 @@ const ReturnBills = () => {
             </div>
           </section>
 
-          {/* -------- PAGINATION -------- */}
-          <section className="flex justify-center">
-            <nav aria-label="Page navigation example">
-              <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-                <li>
-                  {ReturnsBillHistory?.page > 1 ? (
-                    <Link
-                      onClick={ToDown}
-                      to={`/dashboard/naila-arts-return-bills?page=${page - 1}`}
-                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                      <span className="sr-only">Previous</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 1 1 5l4 4"
-                        />
-                      </svg>
-                    </Link>
-                  ) : (
-                    <button
-                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-s-lg cursor-not-allowed"
-                      disabled
-                    >
-                      <span className="sr-only">Previous</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 1 1 5l4 4"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-                {renderPaginationLinks()}
-                <li>
-                  {ReturnsBillHistory?.totalPages !== page ? (
-                    <Link
-                      onClick={ToDown}
-                      to={`/dashboard/naila-arts-return-bills?page=${page + 1}`}
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                      <span className="sr-only">Next</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="m1 9 4-4-4-4"
-                        />
-                      </svg>
-                    </Link>
-                  ) : (
-                    <button
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-e-lg cursor-not-allowed"
-                      disabled
-                    >
-                      <span className="sr-only">Next</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="m1 9 4-4-4-4"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-              </ul>
-            </nav>
-          </section>
+          <Pagination
+            currentPage={page}
+            totalPages={ReturnsBillHistory?.totalPages}
+            totalRecords={ReturnsBillHistory?.totalRecords}
+            pageSize={limit}
+          />
         </>
       )}
       ;

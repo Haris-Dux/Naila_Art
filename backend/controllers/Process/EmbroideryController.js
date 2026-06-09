@@ -9,6 +9,7 @@ import { CalenderModel } from "../../models/Process/CalenderModel.js";
 import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import { StoneModel } from "../../models/Process/StoneModel.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -257,12 +258,11 @@ export const addEmbriodery = async (req, res, next) => {
 
 export const getAllEmbroidery = async (req, res, next) => {
   try {
-    const page = req.query.page || 1;
+    const { page, limit } = getPaginationParams(req.query);
     const Manual_No = req.query.Manual_No || "";
     const project_status = req.query.project_status || "";
     const design_no = req.query.design_no || "";
     const partyName = req.query.partyName || "";
-    const limit = 40;
     let query = {};
 
     if (Manual_No) query.Manual_No = Manual_No;
@@ -279,6 +279,8 @@ export const getAllEmbroidery = async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       data,
       page,
+      limit,
+      totalRecords: total,
     };
     setMongoose();
     return res.status(200).json(response);
@@ -895,5 +897,4 @@ export const getProcessFiltersData = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
-
 

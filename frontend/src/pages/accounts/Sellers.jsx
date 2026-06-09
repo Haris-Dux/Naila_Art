@@ -7,7 +7,12 @@ import { getAllSellerForPurchasingAsync } from "../../features/SellerSlice";
 import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
-import { accountStatusOptions } from "../../Utils/Common";
+import Pagination from "../../Component/Common/Pagination";
+import {
+  accountStatusOptions,
+  buildPaginationQuery,
+  getPageLimit,
+} from "../../Utils/Common";
 
 const sellerCategories = ["Base", "Lace", "Bag/box", "Accessories"];
 
@@ -40,6 +45,7 @@ const Sellers = () => {
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const { loading, AllSeller } = useSelector((state) => state.Seller);
 
@@ -49,11 +55,12 @@ const Sellers = () => {
     const payload = {
       category: selectedCategory,
       page,
+      limit,
       name: filters.name || undefined,
       status: filters.status || undefined,
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
-  }, [dispatch, page]);
+  }, [dispatch, page, limit]);
 
   const closeModal = () => {
     setIsOpen(false);
@@ -62,42 +69,7 @@ const Sellers = () => {
     document.body.style.overflow = "auto";
   };
 
-  const renderPaginationLinks = () => {
-    const totalPages = AllSeller?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/sellers?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() =>
-              dispatch(
-                getAllSellerForPurchasingAsync({
-                  category: selectedCategory,
-                  page: i,
-                  name: filters.name || undefined,
-                  status: filters.status || undefined,
-                })
-              )
-            }
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
 
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
 
   const handleValidateOldBuyer = (e) => {
     const value = e.target.value;
@@ -118,10 +90,11 @@ const Sellers = () => {
     const payload = {
       category: nextCategory,
       page: 1,
+      limit,
       status: initialSellerFilters.status,
     };
     dispatch(getAllSellerForPurchasingAsync(payload));
-    navigate(`/dashboard/sellers?page=${1}`);
+    navigate(`/dashboard/sellers${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const setStatusColor = (status) => {
@@ -142,13 +115,14 @@ const Sellers = () => {
   const handleFiltersSearch = () => {
     const payload = {
       page: 1,
+      limit,
       category: selectedCategory,
       name: filters.name || undefined,
       status: filters.status || undefined,
     };
 
     dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
-      navigate(`/dashboard/sellers?page=${payload.page}`);
+      navigate(`/dashboard/sellers${buildPaginationQuery(searchParams, { page: payload.page, limit })}`);
     });
   };
 
@@ -163,12 +137,13 @@ const Sellers = () => {
     if (statusChanged) {
       const payload = {
         page: 1,
+        limit,
         category: selectedCategory,
         status: updatedFilters.status || undefined,
       };
 
       dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
-        navigate(`/dashboard/sellers?page=${payload.page}`);
+        navigate(`/dashboard/sellers${buildPaginationQuery(searchParams, { page: payload.page, limit })}`);
       });
     }
   };
@@ -177,12 +152,13 @@ const Sellers = () => {
     setFilters(initialSellerFilters);
     const payload = {
       page: 1,
+      limit,
       category: selectedCategory,
       status: initialSellerFilters.status,
     };
 
     dispatch(getAllSellerForPurchasingAsync(payload)).then(() => {
-      navigate(`/dashboard/sellers?page=${payload.page}`);
+      navigate(`/dashboard/sellers${buildPaginationQuery(searchParams, { page: payload.page, limit })}`);
     });
   };
 
@@ -314,110 +290,12 @@ const Sellers = () => {
         )}
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      <section className="flex justify-center">
-        <nav aria-label="Page navigation example">
-          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-            <li>
-              {AllSeller?.page > 1 ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/sellers?page=${page - 1}`}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-            {renderPaginationLinks()}
-            <li>
-              {AllSeller?.totalPages !== page ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/sellers?page=${page + 1}`}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
-      </section>
+      <Pagination
+        currentPage={page}
+        totalPages={AllSeller?.totalPages}
+        totalRecords={AllSeller?.totalRecords ?? AllSeller?.totalSellers}
+        pageSize={limit}
+      />
 
       {isOpen && (
         <div

@@ -1,5 +1,6 @@
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addBaseInStock = async (req, res, next) => {
   try {
@@ -40,8 +41,7 @@ export const addBaseInStock = async (req, res, next) => {
 
 export const getAllBases = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let search = req.query.search || "";
     let category = req.query.category || "";
 
@@ -62,7 +62,9 @@ export const getAllBases = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       Base: total,
+      totalRecords: total,
       data,
     };
 
@@ -130,4 +132,3 @@ export const deleteBaseStock = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
-

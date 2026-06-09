@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllaccessories, UpdateUsedAccessories } from "../../../features/InStockSlice";
+import { useSearchParams } from "react-router-dom";
+import { getPageLimit } from "../../../Utils/Common";
 
 const UsedAccessoriesModal = ({ isOpen, closeModal, selectedUsedAccessories }) => {
     const dispatch = useDispatch();
+    const [searchParams] = useSearchParams();
+    const limit = getPageLimit(searchParams);
 
     const { UsedAccessoriesLoading } = useSelector((state) => state.InStock);
 
@@ -36,7 +40,7 @@ const UsedAccessoriesModal = ({ isOpen, closeModal, selectedUsedAccessories }) =
 
         dispatch(UpdateUsedAccessories(modifiedFormData)).then((res) => {
             if (res.payload.message === "Update Successfull") {
-                dispatch(GetAllaccessories({ page: 1 }));
+                dispatch(GetAllaccessories({ page: 1, limit }));
                 setFormData({
                     id: "",
                     note: "",

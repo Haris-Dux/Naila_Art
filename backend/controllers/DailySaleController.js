@@ -7,7 +7,7 @@ import { sendEmail } from "../utils/nodemailer.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
-import { getTodayDate, verifyPastDate } from "../utils/Common.js";
+import { getPaginationParams, getTodayDate, verifyPastDate } from "../utils/Common.js";
 import { updateTotalCashForDateRange } from "../services/DailySaleService.js";
 
 
@@ -34,8 +34,7 @@ export const getDailySaleHistoryForBranch = async (req, res, next) => {
     if (!id) throw new Error("Id Not Found");
     const date = req.query.search || "";
 
-    const page = req.query.page || 1;
-    const limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {
       branchId: id,
@@ -49,6 +48,8 @@ export const getDailySaleHistoryForBranch = async (req, res, next) => {
     const response = {
       dailySaleHistory,
       page,
+      limit,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     setMongoose();
@@ -240,4 +241,3 @@ export const cashOutForBranch = async (req, res, next) => {
     session.endSession(session);
   }
 };
-

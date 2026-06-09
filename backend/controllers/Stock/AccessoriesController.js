@@ -1,5 +1,6 @@
 import { AccssoriesModel } from "../../models/Stock/AccssoriesModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addAccesoriesInStock = async ({billId,serial_No, name, r_Date, quantity,session,category}) => {
   try {
@@ -59,8 +60,7 @@ export const removeAccesoriesFromStock = async ({billId,serial_No, name, r_Date,
 
 export const getAllAccesoriesInStock = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let search = req.query.search || "";
  
     let query = {
@@ -81,7 +81,9 @@ export const getAllAccesoriesInStock = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       totatAccssories:total,
+      totalRecords: total,
       data
     };
     setMongoose();

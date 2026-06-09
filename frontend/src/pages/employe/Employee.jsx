@@ -9,6 +9,8 @@ import {
   GetEmployeePast,
   UpdateEmployee,
 } from "../../features/AccountSlice";
+import Pagination from "../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const categories = ["Active Employee", "Past Employee"];
 
@@ -57,17 +59,18 @@ const Employee = () => {
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const { loading, ActiveEmployees, PastEmployees, employeEditLoading } =
     useSelector((state) => state.Account);
 
   useEffect(() => {
     if (selectedCategory === "Active Employee") {
-      dispatch(GetEmployeeActive({page: page }));
+      dispatch(GetEmployeeActive({ search: search || "", page, limit }));
     } else {
-      dispatch(GetEmployeePast({page: page }));
+      dispatch(GetEmployeePast({ search: search || "", page, limit }));
     }
-  }, [dispatch, page]);
+  }, [dispatch, page, limit, selectedCategory, search]);
 
   const Employees =
     selectedCategory === "Active Employee" ? ActiveEmployees : PastEmployees;
@@ -77,19 +80,7 @@ const Employee = () => {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearch(value);
-
-    const payload = {
-      search: value || "",
-      page: 1,
-    };
-
-    if (selectedCategory === "Active Employee") {
-      dispatch(GetEmployeeActive(payload));
-    } else {
-      dispatch(GetEmployeePast(payload));
-    }
-
-    navigate(`/dashboard/employee?page=1`);
+    navigate(`/dashboard/employee${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleChange = (e) => {
@@ -110,7 +101,7 @@ const Employee = () => {
 
       dispatch(UpdateEmployee(updatedFormData)).then((res) => {
         if (res.payload.success === true) {
-          dispatch(GetEmployeeActive({ search: search || "", page }));
+          dispatch(GetEmployeeActive({ search: search || "", page, limit }));
           closeModal();
           setIsEditing(false);
         }
@@ -119,7 +110,7 @@ const Employee = () => {
       dispatch(CreateEmployee(formData)).then((res) => {
         if (res.payload.success === true) {
           console.log('executing');
-          dispatch(GetEmployeeActive({ search: search || "", page }));
+          dispatch(GetEmployeeActive({ search: search || "", page, limit }));
           closeModal();
         }
       });
@@ -139,7 +130,7 @@ const Employee = () => {
       pastEmploye: true,
     };
     dispatch(UpdateEmployee(data)).then(() => {
-      dispatch(GetEmployeeActive());
+      dispatch(GetEmployeeActive({ search: search || "", page, limit }));
 
       closeConfirmationModal();
     });
@@ -170,65 +161,16 @@ const Employee = () => {
     document.body.style.overflow = "auto";
   };
 
-  const paginationLinkClick = (i) => {
-    const payload = {
-      // search: search.length > 0 ? search : null,
-      page: i,
-    };
 
-    if (selectedCategory === "Active Employee") {
-      dispatch(GetEmployeeActive(payload));
-    } else {
-      dispatch(GetEmployeePast(payload));
-    }
-  };
 
-  const renderPaginationLinks = () => {
-    const totalPages = Employees?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/employee?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() => paginationLinkClick(i)}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
 
   const handleCategoryClick = (category) => {
     if (category !== selectedCategory) {
       setSelectedCategory(category);
       setSearch("");
 
-      const payload = {
-        searchText: search || "",
-        page: 1,
-      };
-
-      if (category === "Active Employee") {
-        dispatch(GetEmployeeActive(payload));
-      } else {
-        dispatch(GetEmployeePast(payload));
-      }
-
-      navigate(`/dashboard/employee?page=1`);
+      navigate(`/dashboard/employee${buildPaginationQuery(searchParams, { page: 1, limit })}`);
     }
-  };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
   };
 
 
@@ -399,110 +341,12 @@ const Employee = () => {
         )}
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      <section className="flex justify-center">
-        <nav aria-label="Page navigation example">
-          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-            <li>
-              {Employees?.page > 1 ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/employee?page=${page - 1}`}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-            {renderPaginationLinks()}
-            <li>
-              {Employees?.totalPages !== page ? (
-                <Link
-                  onClick={ToDown}
-                  to={`/dashboard/employee?page=${page + 1}`}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
-      </section>
+      <Pagination
+        currentPage={page}
+        totalPages={Employees?.totalPages}
+        totalRecords={Employees?.totalRecords}
+        pageSize={limit}
+      />
 
       {/* Modal */}
       {isOpen && (

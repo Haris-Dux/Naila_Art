@@ -3,9 +3,13 @@ import { CeateExpenseAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
+import { useSearchParams } from "react-router-dom";
+import { getPageLimit } from "../../../Utils/Common";
 
 const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory, branchId}) => {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
   const { user } = useSelector((state) => state.auth);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const { expenseLoading } = useSelector((state) => state.PurchaseBills);
@@ -43,7 +47,7 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory,
     dispatch(CeateExpenseAsync(modifiedFormData)).then((res) => {
       if (res.payload.success === true) {
         dispatch(
-          GetAllExpense({ branchId: modifiedFormData.branchId, categoryId:selectedCategory, page: 1 })
+          GetAllExpense({ branchId: modifiedFormData.branchId, categoryId:selectedCategory, page: 1, limit })
         );
         setFormData({
           branchId: "",

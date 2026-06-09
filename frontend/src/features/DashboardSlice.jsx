@@ -87,7 +87,7 @@ export const createTransactionAsync = createAsyncThunk(
 
 export const getTransactionHIstoryAsync = createAsyncThunk(
   "Transaction/TransactionHistory",
-  async ({page,filters}) => {
+  async ({page, limit, filters}) => {
           
     const query = buildQueryParams({
       dateFrom: filters.dateFrom,
@@ -95,6 +95,7 @@ export const getTransactionHIstoryAsync = createAsyncThunk(
       account: filters.account,
       transactionType: filters.transactionType,
       page: page,
+      limit,
     });
     try {
       const response = await axios.post(`${transactionHistoryUrl}?${query}`);

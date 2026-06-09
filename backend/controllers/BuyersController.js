@@ -16,7 +16,7 @@ import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js
 import CustomError from "../config/errors/CustomError.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
-import { buildDateRangeQuery, canDeleteRecord } from "../utils/Common.js";
+import { buildDateRangeQuery, canDeleteRecord, getPaginationParams } from "../utils/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -811,8 +811,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
 export const getBuyersForBranch = async (req, res, next) => {
   try {
     const { id } = req.body;
-    const page = parseInt(req.query.page) || 1;
-    let limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let name = req.query.name || "";
     let branchQuery = req.query.branchId || "";
     const status = req.query.status || "";
@@ -853,7 +852,9 @@ export const getBuyersForBranch = async (req, res, next) => {
       buyers,
       buyerNames,
       page,
+      limit,
       totalBuyers,
+      totalRecords: totalBuyers,
       totalPages: Math.ceil(totalBuyers / limit),
     };
     setMongoose();
@@ -937,8 +938,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     const dateFrom = req.query.dateFrom || "";
     const dateTo = req.query.dateTo || "";
     const city = req.query.city || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {
       branchId: id,
@@ -989,6 +989,8 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
       buyerNames,
       buyerCities,
       page,
+      limit,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     return res.status(200).json(response);

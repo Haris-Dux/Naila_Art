@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { IoAdd } from "react-icons/io5";
 import BaseModals from "./Modals/BaseModals";
 import LaceModal from "./Modals/LaceModal";
@@ -17,12 +17,15 @@ import {
 import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const purchaseCategories = ["Base", "Lace", "Bag/box", "Accessories"];
 
 const PurchaseBills = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
 
   const [validateOldSeller, setValidateOldSeller] = useState("");
   const [sellerDetails, setSellerDetails] = useState("");
@@ -46,7 +49,7 @@ const PurchaseBills = () => {
     setSelectedCategory(nextCategory);
     setFilters(emptyBillFilters);
     setAppliedFilters(emptyBillFilters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const swapModal = () => {
@@ -89,13 +92,13 @@ const PurchaseBills = () => {
 
   const handleFiltersSearch = () => {
     setAppliedFilters(filters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleResetFilters = () => {
     setFilters(emptyBillFilters);
     setAppliedFilters(emptyBillFilters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleChooseSeller = (sellerId) => {

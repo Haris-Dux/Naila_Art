@@ -14,7 +14,7 @@ import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { SellersModel } from "../../models/sellers/SellersModel.js";
-import { buildDateRangeQuery } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -302,8 +302,7 @@ export const getProcessillById = async (req, res, next) => {
 
 export const getAllProcessBills = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let name = req.query.name || "";
     let category = req.query.category || "";
     let dateFrom = req.query.dateFrom || "";
@@ -347,7 +346,9 @@ export const getAllProcessBills = async (req, res, next) => {
       processBills,
       partyNames,
       page,
+      limit,
       totalProcessBills,
+      totalRecords: totalProcessBills,
       totalPages: Math.ceil(totalProcessBills / limit),
     };
 

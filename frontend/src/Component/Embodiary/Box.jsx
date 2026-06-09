@@ -7,12 +7,16 @@ import {
 import { FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
+import { getPageLimit } from "../../Utils/Common";
 
 const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue,D_NO }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
   const {createEmbroideryLoading} = useSelector((state) => state.Embroidery);
 
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [colorOptions, setColorOptions] = useState([]);
   const [colorOptions2, setColorOptions2] = useState([]);
@@ -355,7 +359,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
       };
       dispatch(CreateEmbroidery(meregdata)).then((res) => {
         if (res.payload.success === true) {
-          dispatch(GETEmbroidery({ page: 1 }));
+          dispatch(GETEmbroidery({ page: 1, limit }));
           closeModal();
         }
       });

@@ -20,6 +20,7 @@ import { setMongoose } from "../../utils/Mongoose.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import mongoose from "mongoose";
 import CustomError from "../../config/errors/CustomError.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -811,8 +812,7 @@ export const getTransactionsHistory = async (req, res, next) => {
     const dateTo = req.query.dateTo || "";
     const account = req.query.account || "";
     const transactionType = req.query.transactionType || "";
-    const page = parseInt(req.query.page || 1);
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {};
 
@@ -835,6 +835,8 @@ export const getTransactionsHistory = async (req, res, next) => {
     const response = {
       data: result,
       page,
+      limit,
+      totalRecords: totalDocs,
       totalPages: Math.ceil(totalDocs / limit),
     };
     setMongoose();

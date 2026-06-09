@@ -22,6 +22,7 @@ export const getAllSellerForPurchasingAsync = createAsyncThunk(
   async (data) => {
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       category: data.category,
       name: data.name,
       status: data.status,
@@ -84,6 +85,7 @@ export const getAllPurchasingHistoryAsync = createAsyncThunk(
   async (data) => {
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       category: data.category,
       name: data.name,
       dateFrom: data.dateFrom,
