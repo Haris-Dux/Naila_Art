@@ -51,6 +51,7 @@ const NailaArtsBuyer = () => {
     id: branchId,
     page: pageValue,
     name: filterValues.name || undefined,
+    city: filterValues.city || undefined,
     dateFrom: filterValues.dateFrom || undefined,
     dateTo: filterValues.dateTo || undefined,
   });
@@ -234,12 +235,17 @@ const NailaArtsBuyer = () => {
                     value: name,
                     label: name,
                   }))}
+                  cityOptions={(BuyerBillHistory?.buyerCities || []).map((city) => ({
+                    value: city,
+                    label: city,
+                  }))}
                   branchOptions={(Branches || []).map((branch) => ({
                     value: branch.id,
                     label: branch.branchName,
                   }))}
                   selectedBranch={selectedBranchId}
                   showBranchFilter={true}
+                  showCityFilter={true}
                   namePlaceholder="Buyer"
                   onChange={setFilters}
                   onBranchChange={handleFilterBranchChange}

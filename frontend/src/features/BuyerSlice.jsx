@@ -30,7 +30,6 @@ export const getBuyerForBranchAsync = createAsyncThunk(
       name: data.name,
       status: data.status,
       branchId: data.branchId,
-      city: data.city,
     });
     try {
       const response = await axios.post(
@@ -68,6 +67,7 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
       page: data.page,
       dateFrom: data.dateFrom,
       dateTo: data.dateTo,
+      city: data.city,
     });
     try {
       const response = await axios.post(

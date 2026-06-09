@@ -816,7 +816,6 @@ export const getBuyersForBranch = async (req, res, next) => {
     let name = req.query.name || "";
     let branchQuery = req.query.branchId || "";
     const status = req.query.status || "";
-    const city = req.query.city || "";
 
     if (!id) throw new Error("User Id Required");
     const user = await UserModel.findById(id);
@@ -838,19 +837,11 @@ export const getBuyersForBranch = async (req, res, next) => {
       query.name = name;
     }
 
-    if (city) {
-      query.city = city;
-    }
-
     const namesQuery = { ...query };
     delete namesQuery.name;
 
-    const citiesQuery = { ...query };
-    delete citiesQuery.city;
-
-    const [buyerNames, buyerCities, totalBuyers, buyers] = await Promise.all([
+    const [buyerNames, totalBuyers, buyers] = await Promise.all([
       BuyersModel.distinct("name", namesQuery),
-      BuyersModel.distinct("city", citiesQuery),
       BuyersModel.countDocuments(query),
       BuyersModel.find(query)
         .skip((page - 1) * limit)
@@ -861,7 +852,6 @@ export const getBuyersForBranch = async (req, res, next) => {
     const response = {
       buyers,
       buyerNames,
-      buyerCities,
       page,
       totalBuyers,
       totalPages: Math.ceil(totalBuyers / limit),
@@ -946,6 +936,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     const name = req.query.name || "";
     const dateFrom = req.query.dateFrom || "";
     const dateTo = req.query.dateTo || "";
+    const city = req.query.city || "";
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
@@ -962,8 +953,16 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
       query.date = dateRangeQuery;
     }
 
-    const [buyerNames, totalDocuments, docs] = await Promise.all([
+    if (city) {
+      query.city = city;
+    }
+
+    const citiesQuery = { ...query };
+    delete citiesQuery.city;
+
+    const [buyerNames, buyerCities, totalDocuments, docs] = await Promise.all([
       BuyersBillsModel.distinct("name", { branchId: id }),
+      BuyersBillsModel.distinct("city", citiesQuery),
       BuyersBillsModel.countDocuments(query),
       BuyersBillsModel.find(query)
         .skip((page - 1) * limit)
@@ -988,6 +987,7 @@ export const getBuyerBillHistoryForBranch = async (req, res, next) => {
     const response = {
       data:updatedData,
       buyerNames,
+      buyerCities,
       page,
       totalPages: Math.ceil(totalDocuments / limit),
     };
