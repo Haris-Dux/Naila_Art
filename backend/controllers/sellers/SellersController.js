@@ -358,13 +358,16 @@ export const getAllSellersForPurchasing = async (req, res, next) => {
 export const validateAndGetOldSellerData = async (req, res, next) => {
   try {
     const { name, category } = req.body;
-    if (!name || !category) throw new Error("Missing Required fields");
+    if (!category) throw new Error("Missing Required fields");
     const query = {
-      name: { $regex: name, $options: "i" },
       seller_stock_category: category,
     };
-    const oldSellerData = await SellersModel.find(query);
-    if (!oldSellerData) throw new Error("No Data Found With This Seller Name");
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    const oldSellerData = await SellersModel.find(query).sort({ name: 1 });
     setMongoose();
     return res.status(200).json({ success: true, oldSellerData });
   } catch (error) {
