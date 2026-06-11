@@ -19,6 +19,20 @@ export const buildDateRangeQuery = (dateFrom, dateTo) => {
   };
 };
 
+export const DEFAULT_PAGE_LIMIT = 30;
+
+export const PAGE_LIMIT_OPTIONS = [30, 50, 100];
+
+export const getPaginationParams = (query = {}) => {
+  const page = Math.max(parseInt(query.page, 10) || 1, 1);
+  const requestedLimit = parseInt(query.limit, 10);
+  const limit = PAGE_LIMIT_OPTIONS.includes(requestedLimit)
+    ? requestedLimit
+    : DEFAULT_PAGE_LIMIT;
+
+  return { page, limit };
+};
+
 export const verifyPastDate = (date) => {
   const futureDate = moment.tz(date, "Asia/Karachi").startOf("day");
   const now = moment.tz("Asia/Karachi").startOf("day");

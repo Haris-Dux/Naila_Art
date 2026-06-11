@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const generateOtherBillUrl = `/api/otherSale/generateOtherSaleBill`;
@@ -9,13 +10,14 @@ const getAllOtherSaleBillsUrl = `/api/otherSale/getAllOtherSaleBills`;
 export const getAllOtherSaleBillsAsync = createAsyncThunk(
   "OtherBills/getAllOtherSaleBills",
   async (data) => {
-    const search =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      search: data.search,
+    });
     try {
       const response = await axios.post(
-        `${getAllOtherSaleBillsUrl}?&page=${data.page}${search}`
+        `${getAllOtherSaleBillsUrl}?${query}`
       );
       return response.data;
     } catch (error) {

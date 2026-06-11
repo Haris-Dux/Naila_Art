@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import { AddSuit, deleteProcessSuitStockAsync, GetAllSuit } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { FaBoxOpen, FaEye } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
 import StockForBranch from "../../../Component/InStock/StockForBranch";
 import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
 import Icon from "../../../Component/Common/Icons";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
+import Pagination from "../../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
 const SuitsStock = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -19,6 +23,7 @@ const SuitsStock = () => {
   const [userSelectedCategory, setuserSelectedCategory] = useState("");
   const [search, setSearch] = useState();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const { Suit, GetSuitloading, addSuitLoading, deleteStockLoading } = useSelector(
     (state) => state.InStock
@@ -57,9 +62,9 @@ const SuitsStock = () => {
 
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
-      dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+      dispatch(GetAllSuit({ category: userSelectedCategory, search, page, limit }));
     }
-  }, [page, dispatch, user]);
+  }, [page, limit, dispatch, user]);
 
   // Function to handle changes in form inputs
   const handleChange = (e) => {
@@ -78,7 +83,7 @@ const SuitsStock = () => {
     e.preventDefault();
     dispatch(AddSuit(formData)).then((res) => {
       if (res.payload.message === "Successfully Added") {
-        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page, limit }));
         setFormData({
           category: "",
           color: "",
@@ -113,53 +118,6 @@ const SuitsStock = () => {
     document.body.style.overflow = "auto";
   };
 
-  const renderPaginationLinks = () => {
-    const totalPages = Suit?.totalPages;
-    const paginationLinks = [];
-    const visiblePages = 5;
-    const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + visiblePages - 1);
-
-    if (startPage > 1) {
-      paginationLinks.push(
-        <li key="start-ellipsis" className="text-black my-auto">
-          .....
-        </li>
-      );
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/suits?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() => dispatch(GetAllSuit({ page: i }))}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-
-    if (endPage < totalPages) {
-      paginationLinks.push(
-        <li key="end-ellipsis" className="text-black my-auto">
-          .....
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -168,10 +126,12 @@ const SuitsStock = () => {
     const payload = {
       category: userSelectedCategory,
       page: 1,
+      limit,
       search: value || undefined,
     };
 
     dispatch(GetAllSuit(payload));
+    navigate(`${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleCategoryClick = (category) => {
@@ -180,11 +140,11 @@ const SuitsStock = () => {
 
     // check
     if (category === "all") {
-      dispatch(GetAllSuit({ search, page: 1 }));
+      dispatch(GetAllSuit({ search, page: 1, limit }));
     } else if (search) {
-      dispatch(GetAllSuit({ category, search, page: 1 }));
+      dispatch(GetAllSuit({ category, search, page: 1, limit }));
     } else {
-      dispatch(GetAllSuit({ category, page: 1 }));
+      dispatch(GetAllSuit({ category, page: 1, limit }));
     }
   };
 
@@ -195,7 +155,7 @@ const SuitsStock = () => {
 
   if (user?.user?.role !== "superadmin") {
     return <StockForBranch />;
-  };
+  }
 
   const deleteSuitsStock = (id) => {
     const data = {
@@ -214,7 +174,7 @@ const SuitsStock = () => {
         setIsDeleteModalOpen(false);
          setHistoryModalOpen(false);
         document.body.style.overflow = "auto";
-        dispatch(GetAllSuit({ category: userSelectedCategory, search, page }));
+        dispatch(GetAllSuit({ category: userSelectedCategory, search, page, limit }));
       }
     })
   };
@@ -281,7 +241,7 @@ const SuitsStock = () => {
         <div className="tabs my-5">
           <div className="tabs_button flex justify-start items-center flex-wrap gap-4">
             <Link
-              to={`/dashboard/suits?page=${1}`}
+              to={`/dashboard/suits${buildPaginationQuery(searchParams, { page: 1, limit })}`}
               className={`border border-gray-500 px-5 py-2 text-sm rounded-md ${
                 userSelectedCategory === ""
                   ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
@@ -300,7 +260,7 @@ const SuitsStock = () => {
                     : ""
                 }`}
                 onClick={() => handleCategoryClick(category._id)}
-                to={`/dashboard/suits?page=${1}`}
+                to={`/dashboard/suits${buildPaginationQuery(searchParams, { page: 1, limit })}`}
               >
                 {category._id} ({category.quantity})
               </Link>
@@ -395,112 +355,12 @@ const SuitsStock = () => {
         )}
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      {Suit?.totalPages && Suit?.totalPages !== 1 ? (
-        <section className="flex justify-center">
-          <nav aria-label="Page navigation example">
-            <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-              <li>
-                {Suit?.page > 1 ? (
-                  <Link
-                    onClick={ToDown}
-                    to={`/dashboard/suits?page=${page - 1}`}
-                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 1 1 5l4 4"
-                      />
-                    </svg>
-                  </Link>
-                ) : (
-                  <button
-                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                    disabled
-                  >
-                    <span className="sr-only">Previous</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 1 1 5l4 4"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </li>
-              {renderPaginationLinks()}
-              <li>
-                {Suit?.totalPages !== page ? (
-                  <Link
-                    onClick={ToDown}
-                    to={`/dashboard/suits?page=${page + 1}`}
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="m1 9 4-4-4-4"
-                      />
-                    </svg>
-                  </Link>
-                ) : (
-                  <button
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                    disabled
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="m1 9 4-4-4-4"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </li>
-            </ul>
-          </nav>
-        </section>
-      ) : null}
+      <Pagination
+        currentPage={page}
+        totalPages={Suit?.totalPages}
+        totalRecords={Suit?.totalRecords}
+        pageSize={limit}
+      />
 
       {/* ---------- ADD SUIT MODAL ------------ */}
       {isOpen && (

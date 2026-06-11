@@ -8,6 +8,7 @@ import { setMongoose } from "../utils/Mongoose.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import moment from "moment-timezone";
+import { getPaginationParams } from "../utils/Common.js";
 
 export const generateOtherSaleBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -195,8 +196,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
 export const getAllOtherSaleBills = async (req, res, next) => {
   try {
     const name = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {};
     if (name) {
@@ -210,7 +210,9 @@ export const getAllOtherSaleBills = async (req, res, next) => {
     const response = {
       data,
       page,
+      limit,
       total_Expense: totalDocuments,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     setMongoose();

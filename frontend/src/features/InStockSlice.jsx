@@ -59,9 +59,14 @@ export const AssginStocktoBranch = createAsyncThunk(
 export const AllBranchStockHistoryAsync = createAsyncThunk(
   "StocktoBranch/AllBranchStockHistory",
   async (data) => {
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      branchId: data.branchId,
+    });
     try {
       const response = await axios.post(
-        `${AllSuitsStockHistoryUrl}?page=${data.page}&branchId=${data.branchId}`
+        `${AllSuitsStockHistoryUrl}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -85,18 +90,15 @@ export const approveOrRejectStock = createAsyncThunk(
 );
 
 export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-
-  const category =
-    data?.category !== undefined && data?.category !== null
-      ? `&category=${data?.category}`
-      : "";
+  const query = buildQueryParams({
+    page: data.page,
+    limit: data.limit,
+    category: data.category,
+    search: data.search,
+  });
   try {
     const response = await axios.post(
-      `${getSuits}?&page=${data.page}${category}${searchQuery}`
+      `${getSuits}?${query}`
     );
 
     return response.data;
@@ -108,20 +110,17 @@ export const GetAllSuit = createAsyncThunk("Suit/Get", async (data) => {
 export const GetAllStockForBranch = createAsyncThunk(
   "StockForBranch/Get",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
-
-    const category =
-      data?.category !== undefined && data?.category !== null
-        ? `&category=${data?.category}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      category: data.category,
+      search: data.search,
+    });
 
     try {
       // Make POST request with id and search query in body
       const response = await axios.post(
-        `${getAllSuitsStockForBranch}?&page=${data.page}${category}${searchQuery}`,
+        `${getAllSuitsStockForBranch}?${query}`,
         {
           id: data.id,
         }
@@ -148,18 +147,15 @@ export const GetAllCategoriesForSuits = createAsyncThunk(
 );
 
 export const GetAllBase = createAsyncThunk("Base/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
-
-  const category =
-    data?.category !== undefined && data?.category !== null
-      ? `&category=${data?.category}`
-      : "";
+  const query = buildQueryParams({
+    page: data.page,
+    limit: data.limit,
+    category: data.category,
+    search: data.search,
+  });
   try {
     const response = await axios.post(
-      `${getBase}?&page=${data.page}${category}${searchQuery}`
+      `${getBase}?${query}`
     );
 
     return response.data;
@@ -193,13 +189,14 @@ export const GetAllCategoriesForBase = createAsyncThunk(
 );
 
 export const GetAllLace = createAsyncThunk("Lace/Get", async (data) => {
-  const searchQuery =
-    data?.search !== undefined && data?.search !== null
-      ? `&search=${data?.search}`
-      : "";
+  const query = buildQueryParams({
+    page: data.page,
+    limit: data.limit,
+    search: data.search,
+  });
   try {
     const response = await axios.post(
-      `${getLace}?&page=${data.page}${searchQuery}`
+      `${getLace}?${query}`
     );
 
     return response.data;
@@ -233,13 +230,14 @@ export const GetAllBags = createAsyncThunk("Bags/Get", async () => {
 export const GetAllaccessories = createAsyncThunk(
   "accessories/Get",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      search: data.search,
+    });
     try {
       const response = await axios.post(
-        `${getaccessories}?&page=${data.page}${searchQuery}`
+        `${getaccessories}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -261,17 +259,15 @@ export const UpdateUsedAccessories = createAsyncThunk(
 );
 
 export const GetAllExpense = createAsyncThunk("Expense/Get", async (data) => {
-  const category =
-    data?.categoryId !== undefined && data?.categoryId !== null
-      ? `&category=${data?.categoryId}`
-      : "";
-  const branchId =
-    data?.branchId !== undefined && data?.branchId !== null
-      ? `&branchId=${data?.branchId}`
-      : "";
+  const query = buildQueryParams({
+    page: data.page,
+    limit: data.limit,
+    category: data.categoryId,
+    branchId: data.branchId,
+  });
   try {
     const response = await axios.post(
-      `${getExpense}?&page=${data.page}${branchId}${category}`
+      `${getExpense}?${query}`
     );
 
     return response.data;

@@ -10,6 +10,29 @@ export const buildQueryParams = (params) => {
     .join("&");
 };
 
+export const DEFAULT_PAGE_LIMIT = 30;
+
+export const PAGE_LIMIT_OPTIONS = [30, 50, 100];
+
+export const getPageLimit = (searchParams) => {
+  const limit = parseInt(searchParams.get("limit") || DEFAULT_PAGE_LIMIT, 10);
+  return PAGE_LIMIT_OPTIONS.includes(limit) ? limit : DEFAULT_PAGE_LIMIT;
+};
+
+export const buildPaginationQuery = (searchParams, updates = {}) => {
+  const params = new URLSearchParams(searchParams);
+  const page = updates.page ?? params.get("page") ?? 1;
+  const limit = updates.limit ?? params.get("limit") ?? DEFAULT_PAGE_LIMIT;
+
+  params.set("page", page);
+  params.set(
+    "limit",
+    PAGE_LIMIT_OPTIONS.includes(Number(limit)) ? Number(limit) : DEFAULT_PAGE_LIMIT,
+  );
+
+  return `?${params.toString()}`;
+};
+
 export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };

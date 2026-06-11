@@ -7,9 +7,12 @@ import {
   GetAllBase,
   GetAllCategoriesForBase,
 } from "../../../features/InStockSlice";
+import { getPageLimit } from "../../../Utils/Common";
 
 const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
   const { baseLoading } = useSelector((state) => state.PurchaseBills);
 
   // State variables to hold form data
@@ -39,7 +42,7 @@ const AddBaseModal = ({ addBaseModal, closeBaseModal }) => {
 
     dispatch(createBaseAsync(modifiedFormData)).then((res) => {
       if (res.payload.message === "Successfully Added") {
-        dispatch(GetAllBase({ page: 1 }));
+        dispatch(GetAllBase({ page: 1, limit }));
         dispatch(GetAllCategoriesForBase());
         resetFormData();
         closeBaseModal();

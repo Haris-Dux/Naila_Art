@@ -14,7 +14,7 @@ import {
   CashbookTransactionSource,
   TransactionType,
 } from "../enums/cashbookk.enum.js";
-import { getTodayDate } from "../utils/Common.js";
+import { getPaginationParams, getTodayDate } from "../utils/Common.js";
 import { getPublicHolidaysForMonth } from "../utils/PublicHolidays.js";
 
 export const addEmploye = async (req, res, next) => {
@@ -521,8 +521,7 @@ export const getEmployeDataById = async (req, res, next) => {
 
 export const getAllActiveEmploye = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
     let search = req.query.search || "";
 
     let query = {
@@ -555,7 +554,6 @@ export const getAllActiveEmploye = async (req, res, next) => {
       }
        const lastNonsalaryDocument =
           data.findLast((doc) => !doc.salaryTransaction);
-          console.log('lastNonsalaryDocument', lastNonsalaryDocument)
         const { balance } = lastNonsalaryDocument;
         return {
           balance: balance,
@@ -585,7 +583,9 @@ export const getAllActiveEmploye = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       totalEmploys: total,
+      totalRecords: total,
       employData,
     };
     setMongoose();
@@ -597,8 +597,7 @@ export const getAllActiveEmploye = async (req, res, next) => {
 
 export const getAllPastEmploye = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
     let search = req.query.search || "";
 
     let query = {
@@ -631,7 +630,6 @@ export const getAllPastEmploye = async (req, res, next) => {
       }
        const lastNonsalaryDocument =
           data.findLast((doc) => !doc.salaryTransaction);
-          console.log('lastNonsalaryDocument', lastNonsalaryDocument)
         const { balance } = lastNonsalaryDocument;
         return {
           balance: balance,
@@ -661,7 +659,9 @@ export const getAllPastEmploye = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
       totalEmploys: total,
+      totalRecords: total,
       employData,
     };
     setMongoose();

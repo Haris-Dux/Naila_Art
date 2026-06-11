@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
@@ -6,6 +6,8 @@ import { deleteStoneAsync, GetAllStone } from "../../../features/stoneslice";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
+import Pagination from "../../../Component/Common/Pagination";
+import { getPageLimit } from "../../../Utils/Common";
 
 const Stones = () => {
   const dispatch = useDispatch();
@@ -14,48 +16,16 @@ const Stones = () => {
   );
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-  const page = Stone?.page || "1";
+  const [searchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
   const [filters, setFilters] = useState(null);
 
   useEffect(() => {
-    dispatch(GetAllStone({ filters, page }));
-  }, [dispatch]);
+    dispatch(GetAllStone({ filters, page, limit }));
+  }, [dispatch, filters, page, limit]);
 
   const filteredData = Stone?.data;
-
-  const renderPaginationLinks = () => {
-    const totalPages = Stone?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === Number(page)
-                ? "bg-[#252525] text-white"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => dispatch(GetAllStone({ filters, page: i }))}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
-
-  const ToDown = (value) => {
-    if (value === "+") {
-      dispatch(GetAllStone({ filters, page: parseInt(page) + 1 }));
-    } else if (value === "-") {
-      dispatch(GetAllStone({ filters, page: parseInt(page) - 1 }));
-    }
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
 
   const setStatusColor = (status) => {
     switch (status) {
@@ -80,7 +50,7 @@ const Stones = () => {
   const handleDelete = () => {
     dispatch(deleteStoneAsync({ id: selectedId })).then((res) => {
       if (res.payload.success === true) {
-        dispatch(GetAllStone({ filters, page: page }));
+        dispatch(GetAllStone({ filters, page, limit }));
         closedeleteModal();
       }
     });
@@ -216,108 +186,12 @@ const Stones = () => {
         )}
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      <section className="flex justify-center">
-        <nav aria-label="Page navigation example">
-          <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-            <li>
-              {Stone?.page > 1 ? (
-                <Link
-                   onClick={() => ToDown("-")}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 1 1 5l4 4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-            {renderPaginationLinks()}
-            <li>
-              {Stone?.totalPages !== Number(page) ? (
-                <Link
-                  onClick={() => ToDown("+")}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                  disabled
-                >
-                  <span className="sr-only">Next</span>
-                  <svg
-                    className="w-2.5 h-2.5 rtl:rotate-180"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="m1 9 4-4-4-4"
-                    />
-                  </svg>
-                </button>
-              )}
-            </li>
-          </ul>
-        </nav>
-      </section>
+      <Pagination
+        currentPage={page}
+        totalPages={Stone?.totalPages}
+        totalRecords={Stone?.totalRecords}
+        pageSize={limit}
+      />
       {/* DELETE MODAL */}
       {deleteModal && (
         <DeleteModal

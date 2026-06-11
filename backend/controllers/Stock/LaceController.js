@@ -1,5 +1,6 @@
 import { LaceModel } from "../../models/Stock/Lace.Model.js";
 import { setMongoose } from "../../utils/Mongoose.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 
 export const addLaceInStock = async ({billId,bill_no,name,category,quantity,r_Date,session}) => {
@@ -63,8 +64,7 @@ export const removeLaceFromStock = async ({billId,bill_no,name,category,quantity
 
 export const getAllLaceStock = async (req,res,next) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 20;
+        const { page, limit } = getPaginationParams(req.query);
         let search = req.query.search || "";
      
         let query = {
@@ -84,7 +84,9 @@ export const getAllLaceStock = async (req,res,next) => {
         const response = {
           totalPages: Math.ceil(total / limit),
           page,
+          limit,
           Lace:total,
+          totalRecords: total,
           data
         };
         setMongoose();
@@ -103,4 +105,3 @@ export const getAllLaceForEmbroidery =  async (req,res,next) => {
     return res.status(500).json({error:error.message})
   }
 };
-

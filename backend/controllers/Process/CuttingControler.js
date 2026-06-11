@@ -3,6 +3,7 @@ import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addCutting = async (req, res, next) => {
   try {
@@ -120,12 +121,11 @@ export const updateCutting = async (req, res, next) => {
 
 export const getAllCutting = async (req, res, next) => {
   try {
-    const page = req.query.page || 1;
+    const { page, limit } = getPaginationParams(req.query);
     const Manual_No = req.query.Manual_No || "";
     const project_status = req.query.project_status || "";
     const design_no = req.query.design_no || "";
     const partyName = req.query.partyName || "";
-    const limit = 40;
     let query = {};
 
     if (Manual_No) query.Manual_No = Manual_No;
@@ -142,6 +142,8 @@ export const getAllCutting = async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       data,
       page,
+      limit,
+      totalRecords: total,
     };
     setMongoose();
     return res.status(200).json(response);

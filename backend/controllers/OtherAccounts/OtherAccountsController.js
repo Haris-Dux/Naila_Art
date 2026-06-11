@@ -6,7 +6,7 @@ import {
   OtherAccountsTransactionModel,
 } from "../../models/OtherAccounts/OtherAccountsModel.js";
 import { updateTotalCashForDateRange } from "../../services/DailySaleService.js";
-import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
+import { getPaginationParams, getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { cashBookService } from "../../services/CashbookService.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import mongoose from "mongoose";
@@ -27,8 +27,7 @@ export const createOtherAccount = async (req, res, next) => {
 export const getAllOtherAccounts = async (req, res, next) => {
   try {
     const name = req.query.name || "";
-    const page = Number(req.query.page);
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
     let query = {};
     if (name) {
       query = { name: { $regex: name, $options: "i" } };
@@ -41,6 +40,8 @@ export const getAllOtherAccounts = async (req, res, next) => {
     const response = {
       data,
       page,
+      limit,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     return res.status(200).json(response);

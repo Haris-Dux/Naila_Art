@@ -27,6 +27,8 @@ import moment from "moment-timezone";
 import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { GrPowerReset } from "react-icons/gr";
 import SuitSalesGraph from "./SuitSalesGraph";
+import Pagination from "../../Component/Common/Pagination";
+import { DEFAULT_PAGE_LIMIT } from "../../Utils/Common";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -194,6 +196,7 @@ const DashboardStats = () => {
     document.body.style.overflow = "hidden";
     const data = {
       page: 1,
+      limit: DEFAULT_PAGE_LIMIT,
       filters,
     };
     dispatch(getTransactionHIstoryAsync(data));
@@ -235,6 +238,7 @@ const DashboardStats = () => {
   };
 
   const page = TransactionsHistory?.page;
+  const limit = TransactionsHistory?.limit || DEFAULT_PAGE_LIMIT;
 
   const handleChangeFilters = (e) => {
     const { name, value } = e.target;
@@ -245,7 +249,7 @@ const DashboardStats = () => {
   };
 
   const handleFiltersSearch = () => {
-    dispatch(getTransactionHIstoryAsync({ page: 1, filters }));
+    dispatch(getTransactionHIstoryAsync({ page: 1, limit, filters }));
   };
 
   const handleResetFilters = () => {
@@ -256,60 +260,13 @@ const DashboardStats = () => {
       payment_Method: "",
       account: "",
     });
-    dispatch(getTransactionHIstoryAsync({ page: 1, filters }));
+    dispatch(getTransactionHIstoryAsync({ page: 1, limit, filters }));
   };
 
-  const renderPaginationLinks = () => {
-    const totalPages = TransactionsHistory?.totalPages;
-    const paginationLinks = [];
-    const visiblePages = 5;
-    const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + visiblePages - 1);
-
-    if (startPage > 1) {
-      paginationLinks.push(
-        <li key="start-ellipsis" className="text-black my-auto">
-          .....
-        </li>
-      );
-    }
-    for (let i = startPage; i <= endPage; i++) {
-      paginationLinks.push(
-        <li key={i}>
-          <Link
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-            onClick={() => ToDown(i)}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    };
-
-        if (endPage < totalPages) {
-      paginationLinks.push(
-        <li key="end-ellipsis" className="text-black my-auto">
-          .....
-        </li>
-      );
-    }
-
-    return paginationLinks;
-  };
-
-  const ToDown = (pageValue) => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-    dispatch(getTransactionHIstoryAsync({ page: pageValue, filters }));
-  };
 
   if (hasError) {
     return <SendOTP />;
-  };
+  }
 
   const filterdPaymentAccounts = PaymentData.filter((item) => item.label !== 'cashSale');
 
@@ -1110,108 +1067,25 @@ const DashboardStats = () => {
                 )}
               </div>
             </div>
-            {/* -------- PAGINATION -------- */}
-            <section className="flex justify-center">
-              <nav aria-label="Page navigation example">
-                <ul className="flex items-center -space-x-px h-8 py-2 text-sm">
-                  <li>
-                    {TransactionsHistory?.page > 1 ? (
-                      <Link
-                        onClick={() => ToDown(page - 1)}
-                        className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                      >
-                        <span className="sr-only">Previous</span>
-                        <svg
-                          className="w-2.5 h-2.5 rtl:rotate-180"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 6 10"
-                        >
-                          <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 1 1 5l4 4"
-                          />
-                        </svg>
-                      </Link>
-                    ) : (
-                      <button
-                        className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                        disabled
-                      >
-                        <span className="sr-only">Previous</span>
-                        <svg
-                          className="w-2.5 h-2.5 rtl:rotate-180"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 6 10"
-                        >
-                          <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 1 1 5l4 4"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </li>
-                  {renderPaginationLinks()}
-                  <li>
-                    {TransactionsHistory?.totalPages !== page ? (
-                      <Link
-                        onClick={() => ToDown(page + 1)}
-                        className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                      >
-                        <span className="sr-only">Next</span>
-                        <svg
-                          className="w-2.5 h-2.5 rtl:rotate-180"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 6 10"
-                        >
-                          <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="m1 9 4-4-4-4"
-                          />
-                        </svg>
-                      </Link>
-                    ) : (
-                      <button
-                        className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                        disabled
-                      >
-                        <span className="sr-only">Next</span>
-                        <svg
-                          className="w-2.5 h-2.5 rtl:rotate-180"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 6 10"
-                        >
-                          <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="m1 9 4-4-4-4"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </li>
-                </ul>
-              </nav>
-            </section>
+            <Pagination
+              currentPage={page}
+              totalPages={TransactionsHistory?.totalPages}
+              totalRecords={TransactionsHistory?.totalRecords}
+              pageSize={limit}
+              syncUrl={false}
+              onPageChange={(nextPage) =>
+                dispatch(getTransactionHIstoryAsync({ page: nextPage, limit, filters }))
+              }
+              onPageSizeChange={(nextLimit) =>
+                dispatch(
+                  getTransactionHIstoryAsync({
+                    page: 1,
+                    limit: nextLimit,
+                    filters,
+                  }),
+                )
+              }
+            />
           </div>
         </div>
       )}

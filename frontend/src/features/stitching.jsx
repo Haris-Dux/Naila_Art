@@ -57,6 +57,7 @@ export const GetAllStitching = createAsyncThunk(
            partyName: filters.partyName,
            project_status: filters.project_status,
            page: data.page,
+           limit: data.limit,
          });
     try {
       const response = await axios.post(

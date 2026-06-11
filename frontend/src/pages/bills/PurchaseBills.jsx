@@ -1,5 +1,5 @@
-import { useState } from "react";
-import {  useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { IoAdd } from "react-icons/io5";
 import BaseModals from "./Modals/BaseModals";
 import LaceModal from "./Modals/LaceModal";
@@ -17,20 +17,23 @@ import {
 import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
+import AppSelect from "../../Component/Common/select/AppSelect";
 
 const purchaseCategories = ["Base", "Lace", "Bag/box", "Accessories"];
 
 const PurchaseBills = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
 
-  const [validateOldSeller, setValidateOldSeller] = useState("");
   const [sellerDetails, setSellerDetails] = useState("");
   const [searchUser, setSearchUser] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchModal, setSearchModal] = useState();
 
-  const { loading, validateSeller, PurchasingHistory } = useSelector(
+  const { searchLoading, validateSeller, PurchasingHistory } = useSelector(
     (state) => state.Seller,
   );
 
@@ -46,7 +49,10 @@ const PurchaseBills = () => {
     setSelectedCategory(nextCategory);
     setFilters(emptyBillFilters);
     setAppliedFilters(emptyBillFilters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    setSearchUser(false);
+    setSellerDetails("");
+    dispatch(clearValiDateSeller());
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const swapModal = () => {
@@ -72,41 +78,65 @@ const PurchaseBills = () => {
   const closeSearchModal = () => {
     setSearchModal(false);
     setSearchUser(false);
-    setValidateOldSeller("");
+    dispatch(clearValiDateSeller());
   };
 
-  const handleValidateOldSeller = (e) => {
-    const value = e.target.value;
-    setValidateOldSeller(value);
-
-    if (value.length > 0) {
-      const timer = setTimeout(() => {
-        dispatch(validateOldSellerAsync({ name: value ,category:selectedCategory}));
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
+  const handleOldSellerClick = () => {
+    setSearchUser(true);
+    dispatch(validateOldSellerAsync({ category: selectedCategory }));
   };
 
   const handleFiltersSearch = () => {
     setAppliedFilters(filters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleResetFilters = () => {
     setFilters(emptyBillFilters);
     setAppliedFilters(emptyBillFilters);
-    navigate(`/dashboard/purchasebills?page=1`);
+    navigate(`/dashboard/purchasebills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
-  const handleChooseSeller = (sellerId) => {
-    if (sellerId) {
-      const sellerData = validateSeller?.oldSellerData.find(
-        (data) => data.id === sellerId
-      );
-      setSellerDetails(sellerData);
+  const handleChooseSeller = (selectedOption) => {
+    if (selectedOption?.seller) {
+      setSellerDetails(selectedOption.seller);
       closeSearchModal();
       openModal();
     }
+  };
+
+  const sellerOptions = useMemo(
+    () =>
+      (validateSeller?.oldSellerData || []).map((seller) => ({
+        value: seller.id,
+        label: seller.name,
+        seller,
+      })),
+    [validateSeller],
+  );
+
+  const formatSellerOption = ({ seller }) => {
+    const account = seller?.virtual_account || {};
+
+    return (
+      <div className="grid grid-cols-1 gap-2 text-left sm:grid-cols-[1.2fr_0.9fr]">
+        <div>
+          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+            {seller?.name}
+          </div>
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-300">
+            {seller?.phone || "--"}
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs font-semibold sm:text-right">
+          <span className="text-red-500">D {account.total_debit ?? 0}</span>
+          <span className="text-gray-700 dark:text-gray-200">
+            C {account.total_credit ?? 0}
+          </span>
+          <span className="text-green-600">B {account.total_balance ?? 0}</span>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -194,7 +224,7 @@ const PurchaseBills = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-8 px-3 w-full max-w-2xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
+          <div className="relative py-8 px-4 w-full max-w-3xl max-h-[88vh] bg-white rounded-md shadow dark:bg-gray-700 overflow-visible">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
               <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
@@ -212,7 +242,7 @@ const PurchaseBills = () => {
                   New Seller
                 </button>
                 <button
-                  onClick={() => setSearchUser(!searchUser)}
+                  onClick={handleOldSellerClick}
                   className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
                 >
                   Old Seller
@@ -220,58 +250,35 @@ const PurchaseBills = () => {
               </div>
 
               {searchUser && (
-                <div className="search_user border-t flex justify-center flex-col pt-6 mt-6">
-                  <input
-                    type="text"
-                    className="w-full py-2 pl-6 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
-                    placeholder="Search by name"
-                    value={validateOldSeller}
-                    onChange={handleValidateOldSeller}
-                  />
+                <div className="search_user border-t pt-6 mt-6">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                      Select Existing Seller
+                    </p>
+                  </div>
 
-                  {/* Displaying names below the input */}
-                  {loading ? (
-                    <>
-                      <div className="py-6 flex justify-center items-center">
-                        <div
-                          className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-                          role="status"
-                          aria-label="loading"
-                        >
-                          <span className="sr-only">Loading...</span>
-                        </div>
+                  {searchLoading ? (
+                    <div className="py-6 flex justify-center items-center">
+                      <div
+                        className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+                        role="status"
+                        aria-label="loading"
+                      >
+                        <span className="sr-only">Loading...</span>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      {validateOldSeller.length > 0 &&
-                      validateSeller &&
-                      validateSeller?.oldSellerData &&
-                      validateSeller?.oldSellerData.length > 0 ? (
-                        <ul className="mt-4 max-h-60 overflow-y-auto border rounded-lg">
-                          {validateSeller?.oldSellerData.map((seller) => (
-                            <li key={seller.id}>
-                              <button
-                                onClick={() => handleChooseSeller(seller?.id)}
-                                className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-2"
-                              >
-                                <span className="text-start">
-                                  {seller?.name}
-                                </span>
-                                <span>{seller?.seller_stock_category}</span>
-                                <span className="text-end">
-                                  {seller?.phone}
-                                </span>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="mt-4 text-gray-600 pl-4">
-                          No matching seller found.
-                        </p>
-                      )}
-                    </>
+                    <AppSelect
+                      className="w-full"
+                      options={sellerOptions}
+                      placeholder="Choose seller"
+                      formatOptionLabel={formatSellerOption}
+                      noOptionsMessage={() => "No sellers found for this category"}
+                      menuPortalTarget={null}
+                      menuPosition="absolute"
+                      maxMenuHeight={280}
+                      onChange={handleChooseSeller}
+                    />
                   )}
                 </div>
               )}

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getAllReturnsForBranchUrl = `/api/returns/getAllReturnsForBranch`;
@@ -11,13 +12,14 @@ const createReturn = "/api/returns/createReturn";
 export const getAllReturnsForBranch = createAsyncThunk(
   "ReturnBIlls/ReturnsForBranch",
   async (data) => {
-    const searchQuery =
-      data?.search !== undefined && data?.search !== null
-        ? `&search=${data?.search}`
-        : "";
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      search: data.search,
+    });
     try {
       const response = await axios.post(
-        `${getAllReturnsForBranchUrl}?&page=${data.page}${searchQuery}`,
+        `${getAllReturnsForBranchUrl}?${query}`,
         { id: data.id }
       );
       return response.data;

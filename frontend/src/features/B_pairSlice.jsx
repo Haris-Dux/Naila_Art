@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { buildQueryParams } from "../Utils/Common";
 import toast from "react-hot-toast";
 
 const getbPairUrl = "/api/b_PairRouter/getAllBPairs";
@@ -11,12 +12,14 @@ export const getbPairDataAsync = createAsyncThunk(
   "b_pair/getBpair",
   async (data) => {
     try {
-      const search =
-        data?.search !== undefined && data?.search !== null
-          ? `&search=${data?.search}`
-          : "";
+      const query = buildQueryParams({
+        page: data.page,
+        limit: data.limit,
+        category: data.category,
+        search: data.search,
+      });
       const response = await axios.post(
-        `${getbPairUrl}?page=${data.page}&category=${data?.category}${search}`
+        `${getbPairUrl}?${query}`
       );
       return response.data;
     } catch (error) {

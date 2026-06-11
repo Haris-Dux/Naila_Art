@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import CustomError from "../../config/errors/CustomError.js";
 import { virtualAccountsService } from "../../services/VirtualAccountsService.js";
 import { cashBookService } from "../../services/CashbookService.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const addBPair = async (data, session = null) => {
   try {
@@ -158,10 +159,9 @@ export const saleBPair = async (req, res, next) => {
 
 export const getAllBPairs = async (req, res, next) => {
   try {
-    const limit = 30;
+    const { page, limit } = getPaginationParams(req.query);
     const search = req.query.search;
     const category = req.query.category;
-    const page = parseInt(req.query.page) || 1;
     let query = {};
     if (search) {
       query = {
@@ -184,6 +184,8 @@ export const getAllBPairs = async (req, res, next) => {
     const b_PairData = {
       totalPages: Math.ceil(total / limit),
       page: page,
+      limit,
+      totalRecords: total,
       data,
     };
     setMongoose();

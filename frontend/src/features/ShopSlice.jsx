@@ -59,9 +59,10 @@ export const GetAllShop = createAsyncThunk("Shop/Get", async () => {
 //GET BRANCH CASH OUT HISTORY
 export const getBranchCashoutHistoryAsync = createAsyncThunk(
   "Branch/BranchCashOut",
-  async ({ page }) => {
+  async ({ page, limit }) => {
     const query = buildQueryParams({
       page: page,
+      limit,
     });
     try {
       const response = await axios.post(

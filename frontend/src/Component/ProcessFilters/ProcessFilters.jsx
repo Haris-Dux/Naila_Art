@@ -3,9 +3,10 @@ import { CiSearch } from "react-icons/ci";
 import { GrPowerReset } from "react-icons/gr";
 import { IoFilter } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { getProcessFiltersDataAsync } from "../../features/EmbroiderySlice";
 import AppSelect from "../Common/select/AppSelect";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const initialFilters = {
   Manual_No: "",
@@ -29,9 +30,12 @@ const getRouteCategory = (pathname) => {
 };
 
 const ProcessFilters = ({ handlers }) => {
-  const { dispatchFunction, liftUpFiltersData } = handlers;
+  const { liftUpFiltersData } = handlers;
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const limit = getPageLimit(searchParams);
   const { processFiltersData } = useSelector((state) => state.Embroidery);
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
@@ -84,14 +88,14 @@ const ProcessFilters = ({ handlers }) => {
     options.find((option) => option.value === value) || null;
 
   const handleFiltersSearch = () => {
-    dispatch(dispatchFunction({ filters, page: 1 }));
     liftUpFiltersData(filters);
+    navigate(`${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleResetFilters = () => {
     setFilters(initialFilters);
     liftUpFiltersData(initialFilters);
-    dispatch(dispatchFunction({ page: 1 }));
+    navigate(`${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
 

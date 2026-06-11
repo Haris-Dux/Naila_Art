@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
-import { buildDateRangeQuery } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
 
 // Create a new picture document
 export const createPictureOrder = async (req, res, next) => {
@@ -255,12 +255,11 @@ export const updatePictureOrderById = async (req, res, next) => {
 // Get all picture orders
 export const getAllPictureAccounts = async (req, res, next) => {
   try {
-    const page = req.query.page || 1;
+    const { page, limit } = getPaginationParams(req.query);
     const name = req.query.name || "";
     const dateFrom = req.query.dateFrom || "";
     const dateTo = req.query.dateTo || "";
     const status = req.query.status || "";
-    const limit = 20;
     let query = {};
     if (name) {
       query.partyName = name;
@@ -288,7 +287,9 @@ export const getAllPictureAccounts = async (req, res, next) => {
       processBills,
       partyNames,
       page,
+      limit,
       totalProcessBills,
+      totalRecords: totalProcessBills,
     };
     return res.status(200).json(response);
   } catch (error) {

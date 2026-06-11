@@ -8,7 +8,7 @@ import { BagsAndBoxModel } from "../../models/Stock/BagsAndBoxModel.js";
 import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { PicruresModel } from "../../models/Process/PicturesModel.js";
-import { getTodayDate } from "../../utils/Common.js";
+import { getPaginationParams, getTodayDate } from "../../utils/Common.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -133,12 +133,11 @@ export const addStitching = async (req, res, next) => {
 
 export const getAllStitching = async (req, res, next) => {
   try {
-    const page = req.query.page || 1;
+    const { page, limit } = getPaginationParams(req.query);
     const Manual_No = req.query.Manual_No || "";
     const project_status = req.query.project_status || "";
     const design_no = req.query.design_no || "";
     const partyName = req.query.partyName || "";
-    const limit = 40;
     let query = {};
 
     if (Manual_No) query.Manual_No = Manual_No;
@@ -155,6 +154,8 @@ export const getAllStitching = async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       data,
       page,
+      limit,
+      totalRecords: total,
     };
     setMongoose();
     return res.status(200).json(response);

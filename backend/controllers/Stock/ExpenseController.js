@@ -11,7 +11,7 @@ import { virtualAccountsService } from "../../services/VirtualAccountsService.js
 import { cashBookService } from "../../services/CashbookService.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
-import { getTodayDate, verifyPastDate } from "../../utils/Common.js";
+import { getPaginationParams, getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { updateTotalCashForDateRange } from "../../services/DailySaleService.js";
 import { CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
 
@@ -195,8 +195,7 @@ export const getAllExpenses = async (req, res, next) => {
   try {
     const id = req.query.branchId;
     if (!id) throw new Error("Missing Branch Id");
-    const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
     const categoryId = req.query.category || "";
 
     let query = {
@@ -212,7 +211,9 @@ export const getAllExpenses = async (req, res, next) => {
     const response = {
       data,
       page,
+      limit,
       total_Expense: totalDocuments,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     setMongoose();

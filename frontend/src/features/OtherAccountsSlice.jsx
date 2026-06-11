@@ -30,6 +30,7 @@ export const getAllOtherAccountsAsync = createAsyncThunk(
   async (data) => {
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       name: data.search,
     });
     try {

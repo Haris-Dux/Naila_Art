@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getDailySale = "/api/dailysale/getDailySaleHistoryForBranch";
@@ -9,9 +10,13 @@ const cashOutUrlAsyncUrl = "/api/dailysale/cashOutForBranch";
 
 // GET DAILY SALE HISTORY THUNK
 export const getDailySaleAsync = createAsyncThunk("dailysale/history", async (data) => {
-    const date = data?.date ? `&search=${data.date}` : "";
+    const query = buildQueryParams({
+      page: data.page,
+      limit: data.limit,
+      search: data.date,
+    });
     try {
-        const response = await axios.post(`${getDailySale}?&page=${data.page}${date}`, { id: data.id });
+        const response = await axios.post(`${getDailySale}?${query}`, { id: data.id });
         return response.data;
     } catch (error) {
         throw new Error(error.response.data.error);

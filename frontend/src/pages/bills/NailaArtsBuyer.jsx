@@ -14,6 +14,8 @@ import DeleteModal from "../../Component/Modal/DeleteModal";
 import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
+import Pagination from "../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 
 const NailaArtsBuyer = () => {
   const dispatch = useDispatch();
@@ -31,6 +33,7 @@ const NailaArtsBuyer = () => {
 
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
 
   const { user } = useSelector((state) => state.auth);
   const { loading: branchesLoading, Branches } = useSelector(
@@ -50,7 +53,9 @@ const NailaArtsBuyer = () => {
   } = {}) => ({
     id: branchId,
     page: pageValue,
+    limit,
     name: filterValues.name || undefined,
+    city: filterValues.city || undefined,
     dateFrom: filterValues.dateFrom || undefined,
     dateTo: filterValues.dateTo || undefined,
   });
@@ -70,65 +75,8 @@ const NailaArtsBuyer = () => {
 
       setSelectedBranchId(branchId);
     }
-  }, [user, dispatch, Branches, page]);
+  }, [user, dispatch, Branches, page, limit]);
 
-  const renderPaginationLinks = () => {
-    const totalPages = BuyerBillHistory?.totalPages;
-      const paginationLinks = [];
-      const visiblePages = 5; 
-      const startPage = Math.max(1, page - Math.floor(visiblePages / 2));
-      const endPage = Math.min(totalPages, startPage + visiblePages - 1);
-    
-  
-      if (startPage > 1) {
-        paginationLinks.push(
-          <li key="start-ellipsis" className="text-black my-auto">
-            .....
-          </li>
-        );
-      }
-    
-      
-      for (let i = startPage; i <= endPage; i++) {
-        paginationLinks.push(
-          <li key={i} onClick={ToDown}>
-            <Link
-               to={`/dashboard/naila-arts-buyer?page=${i}`}
-              className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-                i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-              }`}
-              onClick={() =>
-                dispatch(
-                  getBuyerBillsHistoryForBranchAsync(
-                    getBillPayload({ pageValue: i }),
-                  )
-                )
-              }
-            >
-              {i}
-            </Link>
-          </li>
-        );
-      }
-    
-  
-      if (endPage < totalPages) {
-        paginationLinks.push(
-          <li key="end-ellipsis" className="text-black my-auto">
-            .....
-          </li>
-        );
-      }
-    
-      return paginationLinks;
-    };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
 
 
   const openModal = (data) => {
@@ -161,7 +109,7 @@ const NailaArtsBuyer = () => {
 
   const handleFiltersSearch = () => {
     dispatch(getBuyerBillsHistoryForBranchAsync(getBillPayload({ pageValue: 1 })));
-    navigate(`/dashboard/naila-arts-buyer?page=1`);
+    navigate(`/dashboard/naila-arts-buyer${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleResetFilters = () => {
@@ -171,7 +119,7 @@ const NailaArtsBuyer = () => {
         getBillPayload({ pageValue: 1, filterValues: emptyBillFilters }),
       ),
     );
-    navigate(`/dashboard/naila-arts-buyer?page=1`);
+    navigate(`/dashboard/naila-arts-buyer${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const handleFilterBranchChange = (branchId) => {
@@ -187,7 +135,7 @@ const NailaArtsBuyer = () => {
         }),
       ),
     );
-    navigate(`/dashboard/naila-arts-buyer?page=1`);
+    navigate(`/dashboard/naila-arts-buyer${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
   const openDeleteModal = (id) => {
@@ -234,12 +182,17 @@ const NailaArtsBuyer = () => {
                     value: name,
                     label: name,
                   }))}
+                  cityOptions={(BuyerBillHistory?.buyerCities || []).map((city) => ({
+                    value: city,
+                    label: city,
+                  }))}
                   branchOptions={(Branches || []).map((branch) => ({
                     value: branch.id,
                     label: branch.branchName,
                   }))}
                   selectedBranch={selectedBranchId}
                   showBranchFilter={true}
+                  showCityFilter={true}
                   namePlaceholder="Buyer"
                   onChange={setFilters}
                   onBranchChange={handleFilterBranchChange}
@@ -391,124 +344,12 @@ const NailaArtsBuyer = () => {
              )}
           </section>
 
-          {/* -------- PAGINATION -------- */}
-          <section className="flex justify-center">
-            <nav aria-label="Page navigation example">
-              <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-                <li>
-                  {BuyerBillHistory?.page > 1 ? (
-                    <Link
-                      onClick={() => {
-                        ToDown();
-                        dispatch(
-                          getBuyerBillsHistoryForBranchAsync(
-                            getBillPayload({ pageValue: page - 1 }),
-                          ),
-                        );
-                      }}
-                      to={`/dashboard/naila-arts-buyer?page=${page - 1}`}
-                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                      <span className="sr-only">Previous</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 1 1 5l4 4"
-                        />
-                      </svg>
-                    </Link>
-                  ) : (
-                    <button
-                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-s-lg cursor-not-allowed"
-                      disabled
-                    >
-                      <span className="sr-only">Previous</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 1 1 5l4 4"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-                {renderPaginationLinks()}
-                <li>
-                  {BuyerBillHistory?.totalPages !== page ? (
-                    <Link
-                      onClick={() => {
-                        ToDown();
-                        dispatch(
-                          getBuyerBillsHistoryForBranchAsync(
-                            getBillPayload({ pageValue: page + 1 }),
-                          ),
-                        );
-                      }}
-                      to={`/dashboard/naila-arts-buyer?page=${page + 1}`}
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                    >
-                      <span className="sr-only">Next</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="m1 9 4-4-4-4"
-                        />
-                      </svg>
-                    </Link>
-                  ) : (
-                    <button
-                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 dark:bg-gray-700 dark:text-gray-400 rounded-e-lg cursor-not-allowed"
-                      disabled
-                    >
-                      <span className="sr-only">Next</span>
-                      <svg
-                        className="w-2.5 h-2.5 rtl:rotate-180"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 6 10"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="m1 9 4-4-4-4"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </li>
-              </ul>
-            </nav>
-          </section>
+          <Pagination
+            currentPage={page}
+            totalPages={BuyerBillHistory?.totalPages}
+            totalRecords={BuyerBillHistory?.totalRecords}
+            pageSize={limit}
+          />
         </>
      
       {/* Suit Histoty Modal */}

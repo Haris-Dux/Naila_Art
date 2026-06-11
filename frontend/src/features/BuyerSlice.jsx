@@ -27,10 +27,10 @@ export const getBuyerForBranchAsync = createAsyncThunk(
   async (data) => {
     const query = buildQueryParams({
       page: data.page,
+      limit: data.limit,
       name: data.name,
       status: data.status,
       branchId: data.branchId,
-      city: data.city,
     });
     try {
       const response = await axios.post(
@@ -66,8 +66,10 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
       buyerId: data.buyerId,
       id: data.id,
       page: data.page,
+      limit: data.limit,
       dateFrom: data.dateFrom,
       dateTo: data.dateTo,
+      city: data.city,
     });
     try {
       const response = await axios.post(

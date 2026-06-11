@@ -8,6 +8,7 @@ import { cashBookService } from "../../services/CashbookService.js";
 import moment from "moment-timezone";
 import { calculateBuyerAccountBalance } from "../../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
+import { getPaginationParams } from "../../utils/Common.js";
 
 export const createReturn = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -372,9 +373,7 @@ export const getAllReturnsForBranch = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Branch Id Required Found");
     const name = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-
-    const limit = 20;
+    const { page, limit } = getPaginationParams(req.query);
     let query = {
       branchId: id,
     };
@@ -390,6 +389,8 @@ export const getAllReturnsForBranch = async (req, res, next) => {
     const response = {
       data,
       page,
+      limit,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     setMongoose();

@@ -16,6 +16,8 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
 import Select from "react-select";
+import Pagination from "../../../Component/Common/Pagination";
+import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
 
 const Expense = () => {
   const dispatch = useDispatch();
@@ -32,6 +34,7 @@ const Expense = () => {
   } = useSelector((state) => state.InStock);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = getPageLimit(searchParams);
   const [expenseModal, setexpenseModal] = useState(false);
   const [categoriesModal, setCategoriesModal] = useState("");
   const [confirmationModal, setconfirmationModal] = useState(false);
@@ -66,39 +69,13 @@ const Expense = () => {
     if (selectedBranchId && selectedCategory) {
       const payload = {
         page,
+        limit,
         branchId: selectedBranchId,
         categoryId: selectedCategory,
       };
       dispatch(GetAllExpense(payload));
     }
-  }, [dispatch, selectedBranchId, page, selectedCategory]);
-
-  const renderPaginationLinks = () => {
-    const totalPages = Expense?.totalPages;
-    const paginationLinks = [];
-    for (let i = 1; i <= totalPages; i++) {
-      paginationLinks.push(
-        <li key={i} onClick={ToDown}>
-          <Link
-            to={`/dashboard/expense?page=${i}`}
-            className={`flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 ${
-              i === page ? "bg-[#252525] text-white" : "hover:bg-gray-100"
-            }`}
-          >
-            {i}
-          </Link>
-        </li>
-      );
-    }
-    return paginationLinks;
-  };
-
-  const ToDown = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+  }, [dispatch, selectedBranchId, page, limit, selectedCategory]);
 
   const handleBranchClick = (branchId) => {
     setSelectedBranchId(branchId);
@@ -118,7 +95,7 @@ const Expense = () => {
     const confirmDeletion = () => {
       dispatch(DeleteExpenseAsync({ id })).then((res) => {
         if (res.payload.success) {
-          dispatch(GetAllExpense({ branchId: selectedBranchId, page, categoryId: selectedCategory, }));
+          dispatch(GetAllExpense({ branchId: selectedBranchId, page, limit, categoryId: selectedCategory }));
           closeConfirmationModal();
         }
       });
@@ -198,7 +175,7 @@ const Expense = () => {
               <>
                 {Branches?.map((branch) => (
                   <Link
-                    to={`/dashboard/expense?page=${1}`}
+                    to={`/dashboard/expense${buildPaginationQuery(searchParams, { page: 1, limit })}`}
                     key={branch?.id}
                     className={`border border-gray-500 px-5 py-2 mx-2 text-sm rounded-md ${
                       selectedBranchId === branch?.id
@@ -265,7 +242,7 @@ const Expense = () => {
            
               {filterdCategories?.map((category) => (
                 <Link
-                  to={`/dashboard/expense?page=${1}`}
+                  to={`/dashboard/expense${buildPaginationQuery(searchParams, { page: 1, limit })}`}
                   key={category?.id}
                   className={`border border-gray-500 px-5 py-2 my-1 text-sm rounded-md ${
                     selectedCategory === category?.id
@@ -355,112 +332,12 @@ const Expense = () => {
         </>
       </section>
 
-      {/* -------- PAGINATION -------- */}
-      {Expense?.totalPages !== 0 && (
-        <section className="flex justify-center">
-          <nav aria-label="Page navigation example">
-            <ul className="flex items-center -space-x-px h-8 py-10 text-sm">
-              <li>
-                {Expense?.page > 1 ? (
-                  <Link
-                    onClick={ToDown}
-                    to={`/dashboard/expense?page=${page - 1}`}
-                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 1 1 5l4 4"
-                      />
-                    </svg>
-                  </Link>
-                ) : (
-                  <button
-                    className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed"
-                    disabled
-                  >
-                    <span className="sr-only">Previous</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 1 1 5l4 4"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </li>
-              {renderPaginationLinks()}
-              <li>
-                {Expense?.totalPages !== Expense?.page ? (
-                  <Link
-                    onClick={ToDown}
-                    to={`/dashboard/expense?page=${page + 1}`}
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="m1 9 4-4-4-4"
-                      />
-                    </svg>
-                  </Link>
-                ) : (
-                  <button
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg cursor-not-allowed"
-                    disabled
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg
-                      className="w-2.5 h-2.5 rtl:rotate-180"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 6 10"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="m1 9 4-4-4-4"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </li>
-            </ul>
-          </nav>
-        </section>
-      )}
+      <Pagination
+        currentPage={page}
+        totalPages={Expense?.totalPages}
+        totalRecords={Expense?.totalRecords}
+        pageSize={limit}
+      />
 
       {/* ADD EXPENSE */}
       {expenseModal && (

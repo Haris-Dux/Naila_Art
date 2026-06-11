@@ -6,7 +6,7 @@ import { setMongoose } from "../utils/Mongoose.js";
 import moment from "moment-timezone";
 import mongoose from "mongoose";
 import { branchStockHistoryModel } from "../models/BranchStock/BranchStockHistoryModel.js";
-import { getTodayDate } from "../utils/Common.js";
+import { getPaginationParams, getTodayDate } from "../utils/Common.js";
 import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js";
 import { BranchCashOutHistoryModel } from "../models/BranchStock/BranchCashOutHistory.js";
 
@@ -196,8 +196,7 @@ export const getBranchCashoutHistory = async (req, res) => {
   try {
     const branchId = req.branch_id;
     if (!branchId) throw new Error("Branch id required");
-    const page = Number(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {
       branchId: branchId,
@@ -212,6 +211,8 @@ export const getBranchCashoutHistory = async (req, res) => {
     const response = {
       data,
       page,
+      limit,
+      totalRecords: totalDocuments,
       totalPages: Math.ceil(totalDocuments / limit),
     };
     setMongoose();
@@ -224,8 +225,7 @@ export const getBranchCashoutHistory = async (req, res) => {
 export const getAllBranchStockHistory = async (req, res) => {
   try {
     const branchId = req.query.branchId;
-    const page = parseInt(req.query.page) || 1;
-    const limit = 50;
+    const { page, limit } = getPaginationParams(req.query);
 
     let query = {};
     if (branchId) {
@@ -245,6 +245,8 @@ export const getAllBranchStockHistory = async (req, res) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
+      totalRecords: total,
       data,
     };
 
@@ -257,10 +259,9 @@ export const getAllBranchStockHistory = async (req, res) => {
 export const getAllSuitsStockForBranch = async (req, res, next) => {
   try {
     const branchId = req.branch_id;
-    const page = parseInt(req.query.page) || 1;
+    const { page, limit } = getPaginationParams(req.query);
     let d_no = parseInt(req.query.search) || "";
     let category = req.query.category || "";
-    const limit = 50;
 
     let query = {};
 
@@ -336,6 +337,8 @@ export const getAllSuitsStockForBranch = async (req, res, next) => {
     const response = {
       totalPages: Math.ceil(total / limit),
       page,
+      limit,
+      totalRecords: total,
       data: mergedDataWithD_No,
       category_data: aggregatedData[0].category_data,
       total_stock: aggregatedData[0].total_stock[0].total_quantity,
