@@ -18,6 +18,7 @@ import {
   IoRestaurantOutline,
   IoCutOutline,
   IoSettingsOutline,
+  IoStatsChartOutline,
   IoStorefrontOutline,
   IoWalletOutline,
   IoPeople,
@@ -250,6 +251,7 @@ const Dashboard = () => {
       icon: IoBriefcaseOutline,
       allowedRoles: roleGroups.adminAndSuperAdmin,
       matches: [
+        { path: "process-analytics" },
         { path: "embroidery" },
         { path: "calendar" },
         { path: "cutting" },
@@ -257,6 +259,13 @@ const Dashboard = () => {
         { path: "stones" },
       ],
       items: [
+        {
+          label: "Analytics",
+          to: "/dashboard/process-analytics",
+          icon: IoStatsChartOutline,
+          allowedRoles: roleGroups.superAdminOnly,
+          matches: [{ path: "process-analytics" }],
+        },
         {
           label: "Embroidery",
           to: "/dashboard/embroidery",
@@ -300,12 +309,22 @@ const Dashboard = () => {
       icon: IoPeopleOutline,
       allowedRoles: roleGroups.all,
       matches: [
+        { path: "accounts-dashboard" },
         { path: "buyers" },
         { path: "sellers" },
         { path: "generate-bill" },
         { path: "other-accounts" },
+        { path: "processbills" },
+        { path: "process-details" },
       ],
       items: [
+        {
+          label: "Analytics",
+          to: "/dashboard/accounts-dashboard",
+          icon: IoStatsChartOutline,
+          allowedRoles: roleGroups.superAdminOnly,
+          matches: [{ path: "accounts-dashboard" }],
+        },
         {
           label: "Buyers",
           to: "/dashboard/buyers",
@@ -323,6 +342,13 @@ const Dashboard = () => {
           icon: IoPeopleOutline,
           allowedRoles: roleGroups.adminAndSuperAdmin,
           matches: [{ path: "sellers" }],
+        },
+        {
+          label: "Process",
+          to: "/dashboard/processbills",
+          icon: IoBookOutline,
+          allowedRoles: roleGroups.adminAndSuperAdmin,
+          matches: [{ path: "processbills" }, { path: "process-details" }],
         },
         {
           label: "Other Accounts",
@@ -348,7 +374,6 @@ const Dashboard = () => {
       allowedRoles: roleGroups.all,
       matches: [
         { path: "naila-arts-buyer" },
-        { path: "processbills" },
         { path: "purchasebills" },
       ],
       items: [
@@ -358,13 +383,6 @@ const Dashboard = () => {
           icon: IoReceiptOutline,
           allowedRoles: roleGroups.all,
           matches: [{ path: "naila-arts-buyer" }],
-        },
-        {
-          label: "Process Bills",
-          to: "/dashboard/processbills",
-          icon: IoBookOutline,
-          allowedRoles: roleGroups.adminAndSuperAdmin,
-          matches: [{ path: "processbills" }, { path: "process-details" }],
         },
         {
           label: "Purchase Bills",

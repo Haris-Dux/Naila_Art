@@ -21,6 +21,9 @@ import { virtualAccountsService } from "../../services/VirtualAccountsService.js
 import mongoose from "mongoose";
 import CustomError from "../../config/errors/CustomError.js";
 import { getPaginationParams } from "../../utils/Common.js";
+import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
+import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
+
 
 export const getDashBoardDataForBranch = async (req, res, next) => {
   try {
@@ -846,6 +849,62 @@ export const getTransactionsHistory = async (req, res, next) => {
   }
 };
 
+export const getAccountsStats = async (req, res, next) => {
+  try {
+    const [
+      buyersStats,
+      sellersStats,
+      processStats,
+      picturesStats,
+      sellerCategoryStats,
+      processCategoryStats,
+      picturesCategoryStats,
+    ] = await Promise.all([
+      BuyersModel.aggregate(buildAccountStatsPipeline(true)),
+      SellersModel.aggregate(buildAccountStatsPipeline()),
+      processBillsModel.aggregate(buildAccountStatsPipeline()),
+      PicruresAccountModel.aggregate(buildAccountStatsPipeline()),
+      SellersModel.aggregate(
+        buildAccountCategoryStatsPipeline("$seller_stock_category")
+      ),
+      processBillsModel.aggregate(
+        buildAccountCategoryStatsPipeline("$process_Category")
+      ),
+      PicruresAccountModel.aggregate(
+        buildAccountCategoryStatsPipeline("Pictures")
+      ),
+    ]);
+
+    const buyers = normalizeAccountSummary("Buyers", buyersStats[0], true);
+    const sellers = {
+      ...normalizeAccountSummary("Sellers", sellersStats[0]),
+      categoryBreakdown: normalizeCategoryBreakdown(sellerCategoryStats),
+    };
+    const process = combineAccountSummaries("Process", [
+      normalizeAccountSummary("Process Bills", processStats[0]),
+      normalizeAccountSummary("Pictures", picturesStats[0]),
+    ]);
+    process.categoryBreakdown = normalizeCategoryBreakdown([
+      ...processCategoryStats,
+      ...picturesCategoryStats,
+    ]).sort((a, b) => b.totalBalance - a.totalBalance);
+
+    const accountTypes = {
+      buyers,
+      sellers,
+      process,
+    };
+
+    setMongoose();
+    return res.status(200).json({
+      success: true,
+      data: accountTypes,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 export const getSalesData = async (req, res, next) => {
   try {
     const date = req.query.date;
@@ -893,3 +952,174 @@ export const getSalesData = async (req, res, next) => {
     next(error);
   }
 };
+
+const accountStatusLabels = [
+  "Paid",
+  "Unpaid",
+  "Advance Paid",
+  "Partially Paid",
+];
+
+const emptyAccountSummary = (label, includePartiallyPaid = false) => ({
+  label,
+  totalDebit: 0,
+  totalCredit: 0,
+  totalBalance: 0,
+  totalAccounts: 0,
+  statuses: accountStatusLabels.reduce((acc, status) => {
+    if (includePartiallyPaid || status !== "Partially Paid") {
+      acc[status] = 0;
+    }
+    return acc;
+  }, {}),
+});
+
+const buildAccountStatsPipeline = (includePartiallyPaid = false) => [
+  {
+    $group: {
+      _id: null,
+      totalDebit: { $sum: { $ifNull: ["$virtual_account.total_debit", 0] } },
+      totalCredit: { $sum: { $ifNull: ["$virtual_account.total_credit", 0] } },
+      totalBalance: { $sum: { $ifNull: ["$virtual_account.total_balance", 0] } },
+      totalAccounts: { $sum: 1 },
+      paid: {
+        $sum: { $cond: [{ $eq: ["$virtual_account.status", "Paid"] }, 1, 0] },
+      },
+      unpaid: {
+        $sum: { $cond: [{ $eq: ["$virtual_account.status", "Unpaid"] }, 1, 0] },
+      },
+      advancePaid: {
+        $sum: {
+          $cond: [{ $eq: ["$virtual_account.status", "Advance Paid"] }, 1, 0],
+        },
+      },
+      partiallyPaid: {
+        $sum: {
+          $cond: [{ $eq: ["$virtual_account.status", "Partially Paid"] }, 1, 0],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      totalDebit: 1,
+      totalCredit: 1,
+      totalBalance: 1,
+      totalAccounts: 1,
+      statuses: includePartiallyPaid
+        ? {
+            Paid: "$paid",
+            Unpaid: "$unpaid",
+            "Advance Paid": "$advancePaid",
+            "Partially Paid": "$partiallyPaid",
+          }
+        : {
+            Paid: "$paid",
+            Unpaid: "$unpaid",
+            "Advance Paid": "$advancePaid",
+          },
+    },
+  },
+];
+
+const buildAccountCategoryStatsPipeline = (
+  categoryExpression,
+  includePartiallyPaid = false
+) => [
+  {
+    $group: {
+      _id: categoryExpression,
+      totalDebit: { $sum: { $ifNull: ["$virtual_account.total_debit", 0] } },
+      totalCredit: { $sum: { $ifNull: ["$virtual_account.total_credit", 0] } },
+      totalBalance: { $sum: { $ifNull: ["$virtual_account.total_balance", 0] } },
+      totalAccounts: { $sum: 1 },
+      paid: {
+        $sum: { $cond: [{ $eq: ["$virtual_account.status", "Paid"] }, 1, 0] },
+      },
+      unpaid: {
+        $sum: { $cond: [{ $eq: ["$virtual_account.status", "Unpaid"] }, 1, 0] },
+      },
+      advancePaid: {
+        $sum: {
+          $cond: [{ $eq: ["$virtual_account.status", "Advance Paid"] }, 1, 0],
+        },
+      },
+      partiallyPaid: {
+        $sum: {
+          $cond: [{ $eq: ["$virtual_account.status", "Partially Paid"] }, 1, 0],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      category: { $ifNull: ["$_id", "Uncategorized"] },
+      totalDebit: 1,
+      totalCredit: 1,
+      totalBalance: 1,
+      totalAccounts: 1,
+      statuses: includePartiallyPaid
+        ? {
+            Paid: "$paid",
+            Unpaid: "$unpaid",
+            "Advance Paid": "$advancePaid",
+            "Partially Paid": "$partiallyPaid",
+          }
+        : {
+            Paid: "$paid",
+            Unpaid: "$unpaid",
+            "Advance Paid": "$advancePaid",
+          },
+    },
+  },
+  {
+    $sort: {
+      totalBalance: -1,
+      category: 1,
+    },
+  },
+];
+
+const normalizeAccountSummary = (label, stats, includePartiallyPaid = false) => ({
+  ...emptyAccountSummary(label, includePartiallyPaid),
+  ...(stats || {}),
+  label,
+  statuses: {
+    ...emptyAccountSummary(label, includePartiallyPaid).statuses,
+    ...(stats?.statuses || {}),
+  },
+});
+
+const combineAccountSummaries = (label, summaries) => {
+  const combined = emptyAccountSummary(label);
+
+  summaries.forEach((summary) => {
+    combined.totalDebit += summary.totalDebit || 0;
+    combined.totalCredit += summary.totalCredit || 0;
+    combined.totalBalance += summary.totalBalance || 0;
+    combined.totalAccounts += summary.totalAccounts || 0;
+
+    Object.keys(combined.statuses).forEach((status) => {
+      combined.statuses[status] += summary.statuses?.[status] || 0;
+    });
+  });
+
+  return combined;
+};
+
+const normalizeCategoryBreakdown = (items = [], includePartiallyPaid = false) =>
+  items.map((item) => ({
+    category: item.category,
+    totalDebit: item.totalDebit || 0,
+    totalCredit: item.totalCredit || 0,
+    totalBalance: item.totalBalance || 0,
+    totalAccounts: item.totalAccounts || 0,
+    statuses: {
+      ...emptyAccountSummary("", includePartiallyPaid).statuses,
+      ...(item.statuses || {}),
+    },
+  }));
+
+

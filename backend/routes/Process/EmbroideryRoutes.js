@@ -6,13 +6,17 @@ import {
   getAllEmbroidery,
   getEmbroideryById,
   getHeadDataByDesignNo,
+  getProcessAnalytics,
   getProcessFiltersData,
   getPreviousDataBypartyName,
   replaceEmroideryData,
   updateEmbroidery,
   updateVerificationStatus,
 } from "../../controllers/Process/EmbroideryController.js";
-import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
+import {
+  superAdminAndAdminOnly,
+  superAdminOnly,
+} from "../../middleware/Auth.js";
 
 const embrioderyRouter = express.Router();
 
@@ -66,6 +70,11 @@ embrioderyRouter.get(
   "/getProcessFiltersData/:category",
   superAdminAndAdminOnly,
   getProcessFiltersData
+);
+embrioderyRouter.get(
+  "/getProcessAnalytics",
+  superAdminOnly,
+  getProcessAnalytics
 );
 
 export default embrioderyRouter;

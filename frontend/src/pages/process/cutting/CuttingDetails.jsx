@@ -8,6 +8,7 @@ import {
   GetSingleCutting,
   Updatecuttingasync,
 } from "../../../features/CuttingSlice";
+import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import { FiPlus } from "react-icons/fi";
 import {
   createStone,
@@ -19,6 +20,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { MdOutlineDelete } from "react-icons/md";
+import toast from "react-hot-toast";
 
 const CuttingDetails = () => {
   const { id } = useParams();
@@ -34,6 +36,7 @@ const CuttingDetails = () => {
     loading: IsLoading,
     previousDataByPartyName,
   } = useSelector((state) => state.stone);
+  const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -159,6 +162,13 @@ const CuttingDetails = () => {
       dispatch(getColorsForCurrentEmbroidery({ serial_No: data }));
     }
   }, [id, SingleCutting]);
+
+  useEffect(() => {
+    const embroideryId = SingleCutting?.embroidery_Id || embroidery_Id;
+    if (embroideryId) {
+      dispatch(GETEmbroiderySIngle({ id: embroideryId }));
+    }
+  }, [SingleCutting?.embroidery_Id, embroidery_Id, dispatch]);
 
   const handleInputChangeCutting = (e) => {
     const { name, value } = e.target;
@@ -382,6 +392,24 @@ const CuttingDetails = () => {
           },
         });
         break;
+      case value === "Packing":
+        if (SingleCutting.project_status !== "Completed") {
+          return toast.error("Please Complete Project");
+        }
+        if (!SingleEmbroidery?.T_Recieved_Suit === 0) {
+          return toast.error("Invalid Recieved Suit Quantity");
+        }
+        navigate("/dashboard/packing-details/null", {
+          state: {
+            embroidery_Id: SingleCutting.embroidery_Id,
+            design_no: SingleCutting.design_no,
+            Manual_No: SingleCutting.Manual_No,
+            serial_No: SingleCutting.serial_No,
+            from: location.pathname,
+            suits_category: SingleEmbroidery.shirt,
+          },
+        });
+        break;
       default:
         break;
     }
@@ -521,6 +549,7 @@ const CuttingDetails = () => {
               Skip To
             </option>
             <option value="Stitching">Stitching</option>
+            <option value="Packing">Packing</option>
           </select>
         </div>
         {isOpen && (

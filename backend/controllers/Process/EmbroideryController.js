@@ -9,7 +9,8 @@ import { CalenderModel } from "../../models/Process/CalenderModel.js";
 import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import { StoneModel } from "../../models/Process/StoneModel.js";
-import { getPaginationParams } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
+
 
 export const addEmbriodery = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -897,4 +898,224 @@ export const getProcessFiltersData = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
+
+export const getProcessAnalytics = async (req, res, next) => {
+  try {
+    const dateFrom = req.query.dateFrom || "";
+    const dateTo = req.query.dateTo || "";
+    const category = req.query.category || "Embroidery";
+    const analyticsConfig = getProcessAnalyticsConfig(category);
+
+    if (!analyticsConfig) {
+      throw new CustomError("Invalid process analytics category", 400);
+    }
+
+    const dateQuery = getDateQuery({
+      dateFrom,
+      dateTo,
+      isDateType: analyticsConfig.isDateType,
+    });
+    const query = dateQuery ? { date: dateQuery } : {};
+    const records = await analyticsConfig.model.find(query).lean();
+
+    const section = getProcessSummary({
+      label: analyticsConfig.label,
+      records,
+      unit: analyticsConfig.unit,
+      sentLabel: analyticsConfig.sentLabel,
+      receivedLabel: analyticsConfig.receivedLabel,
+      quantityReader: analyticsConfig.quantityReader,
+      extra: analyticsConfig.extra?.(records) || {},
+    });
+
+    setMongoose();
+    return res.status(200).json({
+      success: true,
+      filters: { dateFrom, dateTo, category },
+      data: section,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getProcessAnalyticsConfig = (category) => {
+  const configs = {
+    Embroidery: {
+      label: "Embroidery",
+      model: EmbroideryModel,
+      isDateType: true,
+      unit: "suit",
+      sentLabel: "Sent Suits",
+      receivedLabel: "Received Suits",
+      quantityReader: (record) => ({
+        sent: toNumber(record.T_Suit ?? record.T_Quantity),
+        received: toNumber(record.T_Recieved_Suit ?? record.recieved_suit),
+        sentMeters: toNumber(record.T_Quantity_In_m),
+      }),
+      extra: (records) => ({
+        sentMeters: records.reduce(
+          (sum, record) => sum + toNumber(record.T_Quantity_In_m),
+          0
+        ),
+        packedCompleted: records.filter(
+          (record) =>
+            record.project_status === "Completed" &&
+            record.next_steps?.packing === true
+        ).length,
+      }),
+    },
+    Calender: {
+      label: "Calender",
+      model: CalenderModel,
+      unit: "m",
+      sentLabel: "Sent Meters",
+      receivedLabel: "Received Meters",
+      quantityReader: (record) => ({
+        sent: toNumber(record.T_Quantity),
+        received: toNumber(record.r_quantity),
+      }),
+    },
+    Cutting: {
+      label: "Cutting",
+      model: CuttingModel,
+      isDateType: true,
+      unit: "suit",
+      sentLabel: "Sent Suits",
+      receivedLabel: "Received Suits",
+      quantityReader: (record) => ({
+        sent: toNumber(record.T_Quantity),
+        received: toNumber(record.r_quantity),
+      }),
+    },
+    Stones: {
+      label: "Stones",
+      model: StoneModel,
+      unit: "suit",
+      sentLabel: "Sent Suits",
+      receivedLabel: "Received Suits",
+      quantityReader: (record) => ({
+        sent: getStoneSentQuantity(record),
+        received: toNumber(record.r_quantity),
+      }),
+    },
+    Stitching: {
+      label: "Stitching",
+      model: StitchingModel,
+      unit: "suit",
+      sentLabel: "Sent Suits",
+      receivedLabel: "Received Suits",
+      quantityReader: (record) => ({
+        sent: toNumber(record.Quantity),
+        received: toNumber(record.r_quantity),
+      })
+    },
+  };
+
+  return configs[category];
+};
+
+const toNumber = (value) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const getDateQuery = ({ dateFrom, dateTo, isDateType = false }) => {
+  if (!dateFrom && !dateTo) return null;
+
+  if (!isDateType) {
+    return buildDateRangeQuery(dateFrom, dateTo);
+  }
+
+  const from = dateFrom || dateTo;
+  const to = dateTo || dateFrom;
+  const [startDate, endDate] = [from, to].sort();
+
+  return {
+    $gte: new Date(`${startDate}T00:00:00.000Z`),
+    $lte: new Date(`${endDate}T23:59:59.999Z`),
+  };
+};
+
+const getStatusCounts = (records, statusField) =>
+  records.reduce(
+    (acc, record) => {
+      const status = record[statusField] || "Pending";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    },
+    { Pending: 0, Completed: 0 }
+  );
+
+const getProcessSummary = ({
+  label,
+  records,
+  unit,
+  sentLabel,
+  receivedLabel,
+  quantityReader,
+  extra = {},
+}) => {
+  const totals = records.reduce(
+    (acc, record) => {
+      const quantity = quantityReader(record);
+      acc.sent += quantity.sent;
+      acc.received += quantity.received;
+      return acc;
+    },
+    { sent: 0, received: 0 }
+  );
+
+  return {
+    label,
+    unit,
+    sentLabel,
+    receivedLabel,
+    totalRecords: records.length,
+    statuses: getStatusCounts(records, "project_status"),
+    sent: totals.sent,
+    received: totals.received,
+    parties: getPartyBreakdown(records, quantityReader),
+    ...extra,
+  };
+};
+
+const getPartyBreakdown = (records, quantityReader) => {
+  const partyMap = records.reduce((acc, record) => {
+    const partyName = record.partyName || "Unknown";
+    if (!acc[partyName]) {
+      acc[partyName] = {
+        partyName,
+        records: 0,
+        sent: 0,
+        received: 0,
+        sentMeters: 0,
+        receivedMeters: 0,
+        pending: 0,
+        completed: 0,
+        billsGenerated: 0,
+      };
+    }
+
+    const quantity = quantityReader(record);
+    acc[partyName].records += 1;
+    acc[partyName].sent += quantity.sent || 0;
+    acc[partyName].received += quantity.received || 0;
+    acc[partyName].sentMeters += quantity.sentMeters || 0;
+    acc[partyName].receivedMeters += quantity.receivedMeters || 0;
+    acc[partyName].pending += record.project_status === "Pending" ? 1 : 0;
+    acc[partyName].completed += record.project_status === "Completed" ? 1 : 0;
+    acc[partyName].billsGenerated += record.bill_generated ? 1 : 0;
+    return acc;
+  }, {});
+
+  return Object.values(partyMap).sort((a, b) => b.sent - a.sent);
+};
+
+const getStoneSentQuantity = (record) =>
+  (record.category_quantity || []).reduce(
+    (sum, item) => sum + toNumber(item.quantity),
+    0
+  );
+
 
