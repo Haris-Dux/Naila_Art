@@ -99,7 +99,7 @@ const DailySaleDetail = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 rounded-lg">
         {loading ? (
           <div className="pt-16 flex justify-center mt-12 items-center">
             <div
@@ -114,7 +114,7 @@ const DailySaleDetail = () => {
           <div className="content">
             {/* HEADER */}
             <div className="header pt-3 pb-4 w-full border-b">
-              <h2 className="text-3xl font-medium text-center">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-center">
                 Daily Sale ({DailySaleById?.date})
               </h2>
             </div>
@@ -352,7 +352,7 @@ const DailySaleDetail = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -386,8 +386,8 @@ const DailySaleDetail = () => {
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
               {/* TABLE */}
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className=" px-6 py-3 text-center" scope="col">
                       Date
@@ -413,7 +413,7 @@ const DailySaleDetail = () => {
                     </div>
                   </div>
                 ) : (
-                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <tbody>
                       {BranchcashOutHistory?.data?.length > 0 ? (
                         BranchcashOutHistory?.data?.map((data, index) => (
@@ -427,7 +427,7 @@ const DailySaleDetail = () => {
                             <td className=" px-6 py-3 text-center">
                               {data?.amount}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                               {data?.payment_Method}
                             </td>
                           </tr>

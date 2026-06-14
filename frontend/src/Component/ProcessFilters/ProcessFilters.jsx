@@ -15,7 +15,6 @@ const initialFilters = {
   Design_No: "",
 };
 
-
 const inputClass =
   "h-10 w-[170px] rounded-md border border-gray-300 bg-gray-50 px-2.5 text-sm font-medium text-gray-900 outline-none transition focus:border-gray-500 focus:bg-white focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white";
 
@@ -39,7 +38,6 @@ const ProcessFilters = ({ handlers }) => {
   const { processFiltersData } = useSelector((state) => state.Embroidery);
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
-
 
   const routeCategory = useMemo(
     () => getRouteCategory(location.pathname),
@@ -89,19 +87,21 @@ const ProcessFilters = ({ handlers }) => {
 
   const handleFiltersSearch = () => {
     liftUpFiltersData(filters);
-    navigate(`${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`);
+    navigate(
+      `${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`,
+    );
   };
 
   const handleResetFilters = () => {
     setFilters(initialFilters);
     liftUpFiltersData(initialFilters);
-    navigate(`${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`);
+    navigate(
+      `${location.pathname}${buildPaginationQuery(searchParams, { page: 1, limit })}`,
+    );
   };
-
 
   return (
     <div className="flex min-w-0 items-center justify-end gap-2">
-     
       <div
         className={`overflow-hidden transition-[width,opacity,transform] duration-300 ease-out ${
           isOpen
@@ -110,9 +110,8 @@ const ProcessFilters = ({ handlers }) => {
         }`}
       >
         <div className="flex w-[900px] items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-800">
-          
           <AppSelect
-           options={statusOptions}
+            options={statusOptions}
             placeholder="Status"
             value={getSelectedOption(statusOptions, filters.project_status)}
             onChange={(selectedOption) =>
@@ -120,15 +119,14 @@ const ProcessFilters = ({ handlers }) => {
             }
           />
 
-           <AppSelect
-           options={partyNameOptions}
+          <AppSelect
+            options={partyNameOptions}
             placeholder="Party Name"
             value={getSelectedOption(partyNameOptions, filters.partyName)}
             onChange={(selectedOption) =>
               handleSelectFilter("partyName", selectedOption)
             }
           />
-       
 
           <input
             name="Manual_No"
@@ -139,8 +137,8 @@ const ProcessFilters = ({ handlers }) => {
             onChange={handleChangeFilters}
           />
 
-           <AppSelect
-           options={designNumberOptions}
+          <AppSelect
+            options={designNumberOptions}
             placeholder="Design Number"
             value={getSelectedOption(designNumberOptions, filters.Design_No)}
             onChange={(selectedOption) =>

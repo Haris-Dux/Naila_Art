@@ -85,10 +85,10 @@ const AssignedStockHistory = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Branch Stock History
           </h1>
         </div>
@@ -128,24 +128,24 @@ const AssignedStockHistory = () => {
           ) : (
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       D # No
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Category
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Colors
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Quantity
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Cost Price
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Sales Price
                     </th>
                   </tr>
@@ -155,7 +155,7 @@ const AssignedStockHistory = () => {
                     StockHistory.data.map((dataGroup, i) => (
                       <React.Fragment key={`group-${i}`}>
                         <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
-                          <td colSpan={8} className="px-6 py-4">
+                          <td colSpan={8} className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                              Total Quantity: {getALLBundlesQuantity(dataGroup)?.allBundlesQuantitySum}  | Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
                             {dataGroup.updatedOn} | Status:{" "}
                             <span
@@ -173,7 +173,7 @@ const AssignedStockHistory = () => {
                           <React.Fragment key={`bundle-${i}-${bundleIndex}`}>
                             {/* Bundle Index Row */}
                             <tr className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white font-semibold">
-                              <td colSpan={8} className="px-6 py-3">
+                              <td colSpan={8} className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">
                                 Bundle {bundleIndex + 1} | Quantity : ({getSingleBundlesQuantity(bundleArray)?.singleBundleQuantitySum})
                               </td>
                             </tr>
@@ -184,16 +184,16 @@ const AssignedStockHistory = () => {
                                 className="bg-white border-b text-md font-medium dark:bg-gray-900 dark:border-gray-700 dark:text-white"
                               >
                                 <th
-                                  className="px-6 py-4 font-medium"
+                                  className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm"
                                   scope="row"
                                 >
                                   {item.d_no}
                                 </th>
-                                <td className="px-6 py-4">{item.category}</td>
-                                <td className="px-6 py-4">{item.color}</td>
-                                <td className="px-6 py-4">{item?.quantity}</td>
-                                <td className="px-6 py-4">{item.cost_price}</td>
-                                <td className="px-6 py-4">{item.sale_price}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{item.category}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{item.color}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{item?.quantity}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{item.cost_price}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{item.sale_price}</td>
                               </tr>
                             ))}
                           </React.Fragment>

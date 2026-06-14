@@ -213,7 +213,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative  scrollable-content max-h-[80vh]  py-4 px-3 w-full max-w-5xl bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative  scrollable-content max-h-[80vh]  py-4 px-3 w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -246,7 +246,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
             {/* ACCOUNT DATA */}
             <>
               {sellerDetails && sellerDetails?.virtual_account && (
-                <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                <div className=" px-3 md:px-6 lg:px-8 py-2 flex flex-wrap justify-around items-center gap-2 border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
                   <div className="box text-center">
                     <h3 className="pb-1 font-normal">Total Debit</h3>
                     <h3>{sellerDetails?.virtual_account?.total_debit || 0}</h3>
@@ -276,7 +276,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-x-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* BILL */}
                   <div>
                     <input
@@ -386,7 +386,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-x-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
                   <div>
                     <input

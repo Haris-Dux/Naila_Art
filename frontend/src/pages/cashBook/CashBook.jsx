@@ -83,10 +83,10 @@ const CashBook = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Cash Book
           </h1>
 
@@ -199,36 +199,36 @@ const CashBook = () => {
         <>
           <div className="relative overflow-x-auto mt-5 ">
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Time
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Branch
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Transaction From
                   </th>
                   <th
-                    className="px-6 py-3  font-medium text-center"
+                    className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 font-medium text-center text-xs md:text-sm"
                     scope="col"
                   >
                     Transaction Type
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Payment Method
                   </th>
-                  <th className="px-6 py-3 text-center font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm" scope="col">
                     Amount
                   </th>
-                   <th className="px-6 py-3 text-center font-medium">
+                   <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center font-medium text-xs md:text-sm">
                     Action
                   </th>
                 </tr>
@@ -255,16 +255,16 @@ const CashBook = () => {
                         key={index}
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                       >
-                        <td className="px-6 text-center py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data.transactionTime}
                         </td>
-                        <td className="px-6 text-center py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data?.currentDate } {data?.pastDate}
                         </td>
-                        <td className="px-6 text-center py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data?.branchId?.branchName}
                         </td>
-                        <td className="px-6 text-center py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data.partyName}
                         </td>
                         <td className="px-6  text-center py-4">
@@ -279,12 +279,12 @@ const CashBook = () => {
                         >
                           {data.tranSactionType}
                         </td>
-                        <td className="px-6 text-center py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data.payment_Method}
                         </td>
-                        <td className="px-6 text-center py-4">{data.amount}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">{data.amount}</td>
 
-                         <td className="px-6 text-center py-4">
+                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                            {data?.canDelete ? <Icon name="delete" onClick={() => openDeleteModal(data._id)} size={22} className="cursor-pointer"/> : "-"}
                         </td> 
                       </tr>

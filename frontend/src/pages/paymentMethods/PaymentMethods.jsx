@@ -90,9 +90,9 @@ const PaymentMethods = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Payment Methods
           </h1>
           <button
@@ -193,7 +193,7 @@ const PaymentMethods = () => {
       className="fixed inset-0 bg-gray-800 opacity-75"
       onClick={closeModal}
     ></div>
-    <div className="bg-white w-full max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
+    <div className="bg-white w-[95%] max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -289,7 +289,7 @@ const PaymentMethods = () => {
             className="fixed inset-0 bg-gray-800 opacity-75"
             onClick={closeModal}
           ></div>
-          <div className="bg-white w-full max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
+          <div className="bg-white w-[95%] max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-800 dark:text-white">

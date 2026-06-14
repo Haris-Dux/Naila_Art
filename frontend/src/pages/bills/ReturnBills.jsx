@@ -121,10 +121,10 @@ const ReturnBills = () => {
         </div>
       ) : (
         <>
-          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
             {/* UPPER TABS */}
             <div className="mb-3 upper_tabs flex justify-start items-center">
-              <div className="tabs_button">
+              <div className="tabs_button flex flex-wrap gap-1">
                 {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
                 {user?.user?.role === "superadmin" ? (
                   <>
@@ -163,8 +163,8 @@ const ReturnBills = () => {
             </div>
 
             {/* -------------- HEADER -------------- */}
-            <div className="header flex justify-between items-center pt-6 mx-2">
-              <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+            <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+              <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
                Return Bills
               </h1>
 
@@ -205,27 +205,27 @@ const ReturnBills = () => {
 
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                       <span className="text-red-500">S.N</span>                    
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                       Party Name
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                     T Return Amount
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                     Amount From Balance
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                     Amount From TotalCash
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-4 text-center text-md font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium" scope="col">
                       Suit Details
                     </th>
                   </tr>
@@ -238,30 +238,30 @@ const ReturnBills = () => {
                         key={index}
                         className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                       >
-                        <td className="px-6 py-4 text-center  font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">
                           <span className="text-red-500">
                             {data.serialNumber}
                           </span>
                         </td>
                         <th
-                          className="px-6 py-4 text-center font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-gray-900 whitespace-nowrap dark:text-white text-xs md:text-sm"
                           scope="row"
                         >
                           <p>{data.partyName}</p>
                           <PhoneComponent phone={data.phone} />
                         </th>
-                        <td className="px-6 py-4 text-center font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">
                           {data.T_Return_Amount} Rs
                         </td>
-                        <td className="px-6 py-4 text-center font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">
                           {data.Amount_From_Balance} Rs
                         </td>
-                        <td className="px-6 py-4 text-center font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">
                           {data.Amount_From_TotalCash ?? "0"} Rs
                         </td>
                        
-                        <td className="px-6 py-4 text-center font-medium">{data.date}</td>
-                        <td className="pl-10 py-4 text-center">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">{data.date}</td>
+                        <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 text-center">
                           <button onClick={() => openModal(data.suits_data)}>
                             <FaEye size={20} className="cursor-pointer" />
                           </button>
@@ -292,7 +292,7 @@ const ReturnBills = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -324,8 +324,8 @@ const ReturnBills = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className=" px-6 py-3 text-center" scope="col">
                       D # No
@@ -344,7 +344,7 @@ const ReturnBills = () => {
                 </thead>
               </table>
               <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                   <tbody>
                     {suitSaleData?.map((data, index) => (
                       <tr
@@ -355,7 +355,7 @@ const ReturnBills = () => {
                         <td className=" px-6 py-3 text-center">
                           {data?.category}
                         </td>
-                        <td className="px-6 py-3 text-center">{data?.color}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">{data?.color}</td>
                         <td className=" px-6 py-3 text-center">
                           {data?.quantity}
                         </td>

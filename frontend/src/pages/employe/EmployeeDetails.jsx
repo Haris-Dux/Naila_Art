@@ -229,8 +229,8 @@ const EmployeeDetails = () => {
   
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
-        <div className="px-2 py-2 mb-3 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-3 text-gray-900 dark:text-gray-100">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
+        <div className="px-2 py-2 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-3 text-gray-900 dark:text-gray-100">
           <div className="box">
             <h3 className="pb-1 font-medium">Employee Name</h3>
             <h3>{Employee?.name}</h3>
@@ -334,27 +334,27 @@ const EmployeeDetails = () => {
         ) : (
           <div className="relative overflow-x-auto mt-5">
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Date
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Particular
                   </th>
-                   <th className="px-6 py-4 text-md font-medium" scope="col">
+                   <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Payment Method
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Credit
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Debit
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Balance
                   </th>
-                  <th className="px-6 py-4 text-md font-medium" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Delete
                   </th>
                 </tr>
@@ -373,22 +373,22 @@ const EmployeeDetails = () => {
                             : "bg-white text-black"
                         } border-b text-md font-semibold dark:border-gray-700`}
                       >
-                        <th className="px-6 py-4 font-medium " scope="row">
+                        <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm" scope="row">
                           <p>{data.date}</p>
                         </th>
-                        <td className="px-6 py-4 font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.particular}
                         </td>
-                        <td className="px-6 py-4 font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.payment_Method || "-"}
                         </td>
-                        <td className="px-6 py-4 font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.credit === 0 ? "-" : data.credit}
                         </td>
-                        <td className="px-6 py-4 font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.debit === 0 ? "-" : data.debit}
                         </td>
-                        <td className="px-6 py-4 font-medium">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.balance === 0 ? "-" : data.balance}
                         </td>                     
                           <td className=" px-6 py-4">

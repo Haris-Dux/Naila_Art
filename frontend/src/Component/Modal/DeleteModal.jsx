@@ -6,7 +6,7 @@ const DeleteModal = ({ onClose, onConfirm, message, title, Loading}) => {
       aria-hidden="true"
       className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
     >
-      <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+      <div className="relative py-4 px-3 w-[95%] max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
         <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
           <h3 className="text-xl font-semibold text-red-600">
             {title}

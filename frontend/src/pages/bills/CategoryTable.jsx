@@ -38,34 +38,34 @@ const CategoryTable = ({ category }) => {
                 ) : (
                     <div className="relative overflow-x-auto mt-5 ">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Category
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Colors
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         T. m
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         R. Date
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Recently
@@ -76,19 +76,19 @@ const CategoryTable = ({ category }) => {
                                 {Base && Base?.data?.length > 0 ? (
                                     Base?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium" scope="row">
+                                            <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm" scope="row">
                                                 {data?.category}
                                             </th>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data?.colors}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data?.TYm} m
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data?.recently} m
                                             </td>
                                         </tr>
@@ -116,40 +116,40 @@ const CategoryTable = ({ category }) => {
                 ) : (
                     <div className="relative overflow-x-auto mt-7">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Bill No
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Name
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Cetegory
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Total Quantity
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         R. Date
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Recently
@@ -160,24 +160,24 @@ const CategoryTable = ({ category }) => {
                                 {Lace && Lace?.data?.length > 0 ? (
                                     Lace?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                            <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                                                 scope="row"
                                             >
                                                 {data.bill_no}
                                             </th>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.name}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.category}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.totalQuantity} m
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently} m
                                             </td>
                                         </tr>
@@ -205,34 +205,34 @@ const CategoryTable = ({ category }) => {
                 ) : (
                     <div className="relative overflow-x-auto mt-7">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Bill No
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Name
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Total Quantity
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         R. Date
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Recently
@@ -244,22 +244,22 @@ const CategoryTable = ({ category }) => {
                                 {Bags && Bags?.data?.length > 0 ? (
                                     Bags?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <td className="px-6 py-4"
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm"
                                                 scope="row"
                                             >
                                                 {data.bill_no}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.name}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.totalQuantity} m
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {new Date(data?.r_Date).toLocaleDateString()}
                                             </td>
 
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently} m
                                             </td>
                                         </tr>
@@ -287,34 +287,34 @@ const CategoryTable = ({ category }) => {
                 ) : (
                     <div className="relative overflow-x-auto mt-7 ">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Serial No
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Name
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Total Quantity
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         R. Date
                                     </th>
                                     <th
-                                        className="px-6 py-3"
+                                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                         scope="col"
                                     >
                                         Recently
@@ -325,21 +325,21 @@ const CategoryTable = ({ category }) => {
                                 {accessories && accessories?.data?.length > 0 ? (
                                     accessories?.data?.map((data, index) => (
                                         <tr key={index} className="bg-white border-b font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                            <th className="px-6 py-4 font-medium"
+                                            <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm"
                                                 scope="row"
                                             >
                                                 {data.serial_No}
                                             </th>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.name}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.totalQuantity}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {new Date(data.r_Date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently}
                                             </td>
                                         </tr>
@@ -368,34 +368,34 @@ const CategoryTable = ({ category }) => {
                     <>
                         <div className="relative overflow-x-auto mt-5 ">
                             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                     <tr>
                                         <th
-                                            className="px-6 py-3"
+                                            className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                             scope="col"
                                         >
                                             Serial No
                                         </th>
                                         <th
-                                            className="px-6 py-3"
+                                            className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                             scope="col"
                                         >
                                             Name
                                         </th>
                                         <th
-                                            className="px-6 py-3"
+                                            className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                             scope="col"
                                         >
                                             Reason
                                         </th>
                                         <th
-                                            className="px-6 py-3"
+                                            className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                             scope="col"
                                         >
                                             Rate
                                         </th>
                                         <th
-                                            className="px-6 py-3"
+                                            className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm"
                                             scope="col"
                                         >
                                             Date
@@ -406,28 +406,28 @@ const CategoryTable = ({ category }) => {
                                     {allExpenses?.length > 0 ? (
                                         allExpenses?.data?.map((expense, index) => (
                                             <tr key={index} className="bg-white border-b font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                                <th className="px-6 py-4 font-medium"
+                                                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm"
                                                     scope="row"
                                                 >
                                                     {expense.serial_no}
                                                 </th>
-                                                <td className="px-6 py-4">
+                                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                     {expense.name}
                                                 </td>
-                                                <td onClick={() => openModal(expense.id)} className="px-6 py-4 cursor-pointer">
+                                                <td onClick={() => openModal(expense.id)} className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 cursor-pointer text-xs md:text-sm">
                                                     {expense.reason}
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                     {expense.rate}
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                     {new Date(expense.Date).toLocaleDateString()}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-4 text-center">
+                                            <td colSpan="5" className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm">
                                                 No Data available
                                             </td>
                                         </tr>

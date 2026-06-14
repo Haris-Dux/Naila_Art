@@ -369,7 +369,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
   return (
     <div>
       <div className="box">
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Shirt Colors And Quantity:{" "}
            {formData1.design_no === D_NO && <span className="text-red-500">{DNO_ategory}</span>}
@@ -380,7 +380,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         </div>
         {formData?.shirt?.map((shirt, index) => (
           <div
-            className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+            className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
             key={index}
           >
             <div>
@@ -450,7 +450,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Duppta Colors And Quantity :
           </p>
@@ -460,7 +460,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         </div>
 
         {formData?.duppata?.map((duppata, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -530,7 +530,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             {" "}
             Enter Trousers Colors And Quantity :
@@ -541,7 +541,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         </div>
 
         {formData?.trouser?.map((trouser, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -612,7 +612,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             {" "}
             Enter Tissue Colors And Quantity :
@@ -626,7 +626,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         {formData?.tissue?.map((tissue, index) => (
           <div
             key={index}
-            className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+            className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
           >
             <div>
               <Select

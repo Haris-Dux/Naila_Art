@@ -167,9 +167,9 @@ const Expense = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
         <div className="tabs flex justify-between items-center ">
-          <div className="tabs_button">
+          <div className="tabs_button flex flex-wrap gap-1">
             {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
             {user?.user?.role === "superadmin" ? (
               <>
@@ -203,8 +203,8 @@ const Expense = () => {
             )}
           </div>
         </div>
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Expense
           </h1>
 
@@ -271,24 +271,24 @@ const Expense = () => {
           ) : (
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Serial No
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Payment Method
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Reason
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Amount
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-3" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                       Delete
                     </th>
                   </tr>
@@ -300,16 +300,16 @@ const Expense = () => {
                         key={index}
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                       >
-                        <th className="px-6 py-4 font-medium">
+                        <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {expense?.serial_no}
                         </th>
-                        <td className="px-6 py-4">{expense?.payment_Method}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{expense?.payment_Method}</td>
                         <td className="px-2 py-4 text-xs max-w-48">
                           {expense?.reason}
                         </td>
-                        <td className="px-6 py-4">{expense?.rate}</td>
-                        <td className="px-6 py-4">{expense?.Date}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{expense?.rate}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{expense?.Date}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                           <MdOutlineDelete
                             onClick={() => handleDeleteExpense(expense?.id)}
                             size={20}
@@ -320,7 +320,7 @@ const Expense = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-6 py-4 text-xl text-start">
+                      <td colSpan="5" className="px-3 py-2 md:px-6 md:py-4 text-lg md:text-xl text-start">
                         No Data available
                       </td>
                     </tr>
@@ -367,7 +367,7 @@ const Expense = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex gap-3 items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -411,8 +411,8 @@ const Expense = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className=" px-2 py-3 text-center" scope="col">
                       #
@@ -431,7 +431,7 @@ const Expense = () => {
                 </thead>
               </table>
               <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                   {ExpenseCategoryLoading ? (
                     <tbody>
                       <tr>
@@ -482,7 +482,7 @@ const Expense = () => {
                             </select>
                           </td>
 
-                          <td className="px-6 py-3 text-center">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                             {" "}
                             <button
                               onClick={() =>

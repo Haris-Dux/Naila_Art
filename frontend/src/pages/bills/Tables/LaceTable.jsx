@@ -70,30 +70,30 @@ const LaceTable = ({ filters = {} }) => {
         ) : (
           <div className="relative overflow-x-auto mt-7">
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Name
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Bill No
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Category
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Date
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Quantity
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Rate
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Total
                   </th>
-                  <th className="px-6 py-3" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                     Delete
                   </th>
                 </tr>
@@ -105,18 +105,18 @@ const LaceTable = ({ filters = {} }) => {
                       key={index}
                       className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     >
-                      <td className="px-6 py-4" scope="row">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm" scope="row">
                         {data.name}
                       </td>
-                      <th className="px-6 py-4 font-medium">{data?.bill_no}</th>
-                      <td className="px-6 py-4">{data.category}</td>
-                      <td className="px-6 py-4">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">{data?.bill_no}</th>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.category}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                         {new Date(data.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4">{data.quantity} m</td>
-                      <td className="px-6 py-4">{data.rate}</td>
-                      <td className="px-6 py-4">{data.total}</td>
-                       <td className="px-6 py-4">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.quantity} m</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.rate}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.total}</td>
+                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                               <MdDeleteOutline
                                                 onClick={() => handleDelete(data.id)}
                                                 size={24}

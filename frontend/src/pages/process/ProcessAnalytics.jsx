@@ -389,7 +389,7 @@ const ProcessAnalytics = () => {
     <div className="mt-7 mb-0 min-h-[80vh] rounded-lg border border-gray-200 bg-white px-5 py-6 shadow-sm dark:border-gray-600 dark:bg-gray-800 md:mx-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-white">
             Process Analytics
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
