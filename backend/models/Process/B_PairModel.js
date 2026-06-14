@@ -76,4 +76,10 @@ const B_PairSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+B_PairSchema.index({ b_PairCategory: 1, createdAt: -1 });
+B_PairSchema.index({ status: 1, createdAt: -1 });
+B_PairSchema.index({ design_no: 1, createdAt: -1 });
+B_PairSchema.index({ partyName: 1, createdAt: -1 });
+B_PairSchema.index({ serial_No: 1 });
+
 export const B_PairModel = mongoose.model("B_Pair", B_PairSchema);

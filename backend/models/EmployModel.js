@@ -105,6 +105,7 @@ employeSchema.virtual('attendanceRecords',{
   foreignField: "employee_id"
 });
 
+employeSchema.index({ pastEmploye: 1, createdAt: -1 });
 
 export const EmployeModel = mongoose.model("Employ", employeSchema);
 
@@ -154,6 +155,8 @@ const attendanceSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+attendanceSchema.index({ employee_id: 1, date: -1 });
+
 export const EmployeAttendenceModel = mongoose.model("EmployeAttendence", attendanceSchema);
 
 ///////
@@ -178,5 +181,7 @@ const SalarySchema = new mongoose.Schema({
     required: [true,"Payment date is required"]
   },
 }, { timestamps: true });
+
+SalarySchema.index({ employee_id: 1, for_month: 1 });
 
 export const EmployeSalaryRecordModel = mongoose.model("EmployeSalaryRecord", SalarySchema);

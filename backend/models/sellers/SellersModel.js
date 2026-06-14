@@ -92,4 +92,7 @@ const SellersSchema = new mongoose.Schema({
 },
 {timestamps:true});
 
+SellersSchema.index({ seller_stock_category: 1, "virtual_account.status": -1, createdAt: -1 });
+SellersSchema.index({ seller_stock_category: 1, name: 1 });
+
 export const SellersModel = mongoose.model("Sellers", SellersSchema);

@@ -55,6 +55,12 @@ const calenderSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+calenderSchema.index({ project_status: 1, createdAt: -1 });
+calenderSchema.index({ partyName: 1, createdAt: -1 });
+calenderSchema.index({ date: -1 });
+calenderSchema.index({ embroidery_Id: 1 });
+calenderSchema.index({ design_no: 1, createdAt: -1 });
+calenderSchema.index({ Manual_No: 1, createdAt: -1 });
+calenderSchema.index({ embroidery_Id: 1, design_no: 1 });
+
 export const CalenderModel = mongoose.model('Calender', calenderSchema);
-
-

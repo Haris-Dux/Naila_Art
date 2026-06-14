@@ -227,4 +227,12 @@ const embroiderySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+embroiderySchema.index({ project_status: 1, createdAt: -1 });
+embroiderySchema.index({ partyName: 1, createdAt: -1 });
+embroiderySchema.index({ date: -1 });
+embroiderySchema.index({ design_no: 1 });
+embroiderySchema.index({ serial_No: 1 });
+embroiderySchema.index({ design_no: 1, createdAt: -1 });
+embroiderySchema.index({ Manual_No: 1, createdAt: -1 });
+
 export const EmbroideryModel = mongoose.model("Embroidery", embroiderySchema);

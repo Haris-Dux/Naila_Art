@@ -15,4 +15,6 @@ const paymentMethodSchema = new mongoose.Schema({
 {timestamps:true}
 );
 
+paymentMethodSchema.index({ active: 1, createdAt: -1 });
+
 export const PaymentMethodModel = mongoose.model("PaymentMethods", paymentMethodSchema);

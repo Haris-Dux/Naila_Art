@@ -70,4 +70,7 @@ const returnSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+returnSchema.index({ branchId: 1, createdAt: -1 });
+returnSchema.index({ branchId: 1, partyName: 1, createdAt: -1 });
+
 export const ReturnSuitModel = mongoose.model("Return Bills", returnSchema);

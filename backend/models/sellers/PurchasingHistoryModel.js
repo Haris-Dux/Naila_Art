@@ -38,4 +38,7 @@ const purchasing_History_Schema = new mongoose.Schema({
 },
 {timestamps:true});
 
+purchasing_History_Schema.index({ seller_stock_category: 1, date: -1, createdAt: -1 });
+purchasing_History_Schema.index({ seller_stock_category: 1, name: 1, date: -1 });
+
 export const purchasing_History_model = mongoose.model("Purchasing History", purchasing_History_Schema);

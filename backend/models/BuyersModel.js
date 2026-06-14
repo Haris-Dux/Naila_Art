@@ -132,6 +132,10 @@ const BuyersSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+BuyersSchema.index({ branchId: 1, "virtual_account.status": -1, createdAt: -1 });
+BuyersSchema.index({ branchId: 1, name: 1 });
+BuyersSchema.index({ branchId: 1, city: 1 });
+
 export const BuyersModel = mongoose.model("Buyers", BuyersSchema);
 
 //BUYERS BILLS HISTORY
@@ -259,5 +263,9 @@ const historySchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+historySchema.index({ branchId: 1, date: -1, createdAt: -1 });
+historySchema.index({ branchId: 1, name: 1, date: -1 });
+historySchema.index({ branchId: 1, city: 1, date: -1 });
 
 export const BuyersBillsModel = mongoose.model("Buyers Bills", historySchema);

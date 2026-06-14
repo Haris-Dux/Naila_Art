@@ -83,6 +83,9 @@ const processBillsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+processBillsSchema.index({ process_Category: 1, "virtual_account.status": -1, createdAt: -1 });
+processBillsSchema.index({ process_Category: 1, partyName: 1, date: -1 });
+
 export const processBillsModel = mongoose.model(
   "Process Bills",
   processBillsSchema

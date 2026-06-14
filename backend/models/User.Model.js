@@ -33,5 +33,7 @@ const userSchema = new  mongoose.Schema({
   },
 }, { timestamps: true });
 
-export const UserModel = mongoose.model('User', userSchema);
+userSchema.index({ authenticated: 1, createdAt: -1 });
+userSchema.index({ branchId: 1, createdAt: -1 });
 
+export const UserModel = mongoose.model('User', userSchema);

@@ -60,6 +60,10 @@ const cashBookServiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+cashBookServiceSchema.index({ branchId: 1, currentDate: -1, createdAt: -1 });
+cashBookServiceSchema.index({ branchId: 1, pastDate: -1, createdAt: -1 });
+cashBookServiceSchema.index({ branchId: 1, payment_Method: 1, tranSactionType: 1 });
+
 export const cashBookServiceModel = mongoose.model(
   "Cash Book",
   cashBookServiceSchema

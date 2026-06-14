@@ -60,6 +60,14 @@ const cuttingSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+cuttingSchema.index({ project_status: 1, createdAt: -1 });
+cuttingSchema.index({ partyName: 1, createdAt: -1 });
+cuttingSchema.index({ date: -1 });
+cuttingSchema.index({ embroidery_Id: 1 });
+cuttingSchema.index({ design_no: 1, createdAt: -1 });
+cuttingSchema.index({ Manual_No: 1, createdAt: -1 });
+cuttingSchema.index({ embroidery_Id: 1, design_no: 1 });
+
 export const CuttingModel = mongoose.model('Cutting', cuttingSchema);
 
 

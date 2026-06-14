@@ -43,5 +43,8 @@ const baseSchema = new mongoose.Schema({
   all_Records: [previousDataSchema]
 }, { timestamps: true });
 
-export const BaseModel = mongoose.model('Base', baseSchema);
+baseSchema.index({ category: 1, colors: 1 });
+baseSchema.index({ category: 1, updatedAt: -1 });
+baseSchema.index({ updatedAt: -1 });
 
+export const BaseModel = mongoose.model('Base', baseSchema);

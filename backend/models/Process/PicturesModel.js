@@ -84,6 +84,11 @@ const picturesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+picturesSchema.index({ embroidery_Id: 1 });
+picturesSchema.index({ status: 1, createdAt: -1 });
+picturesSchema.index({ partyName: 1, createdAt: -1 });
+picturesSchema.index({ date: -1 });
+
 picturesSchema.set("toJSON", (doc, ret, options) => {
   const {
     embroidery_Id,
@@ -130,6 +135,9 @@ const picturesAccountsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+picturesAccountsSchema.index({ "virtual_account.status": -1, createdAt: -1 });
+picturesAccountsSchema.index({ partyName: 1, date: -1 });
 
 export const PicruresModel = mongoose.model("EMB Pictures", picturesSchema);
 export const PicruresAccountModel = mongoose.model(

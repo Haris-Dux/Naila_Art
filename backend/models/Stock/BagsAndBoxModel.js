@@ -48,5 +48,7 @@ const bagsSchema = new mongoose.Schema({
   all_Records : [previousDataSchema]
 }, { timestamps: true });
 
-export const BagsAndBoxModel = mongoose.model('Bags', bagsSchema);
+bagsSchema.index({ name: 1 });
+bagsSchema.index({ createdAt: -1 });
 
+export const BagsAndBoxModel = mongoose.model('Bags', bagsSchema);
