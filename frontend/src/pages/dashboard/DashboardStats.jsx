@@ -103,7 +103,7 @@ const DashboardStats = () => {
     Legend,
     BarElement,
     CategoryScale,
-    LinearScale
+    LinearScale,
   );
 
   const getMonthlySalesData = (monthlyGraphData) => {
@@ -263,16 +263,16 @@ const DashboardStats = () => {
     dispatch(getTransactionHIstoryAsync({ page: 1, limit, filters }));
   };
 
-
   if (hasError) {
     return <SendOTP />;
   }
 
-  const filterdPaymentAccounts = PaymentData.filter((item) => item.label !== 'cashSale');
+  const filterdPaymentAccounts = PaymentData.filter(
+    (item) => item.label !== "cashSale",
+  );
 
   return (
     <>
- 
       {dataLoading || loading ? (
         <div className="min-h-[90vh] flex justify-center items-center">
           <div
@@ -283,385 +283,388 @@ const DashboardStats = () => {
             <span className="sr-only">Loading...</span>
           </div>
         </div>
-      ) : (      <section className="bg-white dark:bg-gray-900 mt-7 mb-0 mx-6 px-2 pt-6 pb-16 min-h-screen rounded-lg">
-        {/* ------------ FIRST STATS BAR ------------*/}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-3">
-          {/* FIRST BOX */}
-          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
-            <div className="stat_data">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Daily Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
-                {DashboardData?.dailySale?.today}
-              </h2>
-              <span
-                className={`text-gray-900 ${
-                  DashboardData?.dailySale?.differenceFromYesterday >= 0
-                    ? "bg-green-200"
-                    : "bg-red-200"
-                } px-3 py-1 rounded-lg`}
-              >
-                {DashboardData?.dailySale?.differenceFromYesterday >= 0
-                  ? `+${DashboardData?.dailySale?.differenceFromYesterday}`
-                  : DashboardData?.dailySale?.differenceFromYesterday}
-              </span>
+      ) : (
+        <section className="bg-white dark:bg-gray-900 mt-7 mb-0 mx-6 px-2 pt-6 pb-16 min-h-screen rounded-lg">
+          {/* ------------ FIRST STATS BAR ------------*/}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4 lg:gap-3">
+            {/* FIRST BOX */}
+            <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+              <div className="stat_data">
+                <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                  Daily Sale
+                </h3>
+                <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
+                  {DashboardData?.dailySale?.today}
+                </h2>
+                <span
+                  className={`text-gray-900 ${
+                    DashboardData?.dailySale?.differenceFromYesterday >= 0
+                      ? "bg-green-200"
+                      : "bg-red-200"
+                  } px-3 py-1 rounded-lg`}
+                >
+                  {DashboardData?.dailySale?.differenceFromYesterday >= 0
+                    ? `+${DashboardData?.dailySale?.differenceFromYesterday}`
+                    : DashboardData?.dailySale?.differenceFromYesterday}
+                </span>
+              </div>
+
+              <div className="size-28">
+                <CircularProgressbar
+                  value={Math.abs(DashboardData?.dailySale?.percentage)}
+                  text={`${DashboardData?.dailySale?.percentage}%`}
+                  styles={buildStyles({
+                    rotation: 1,
+                    strokeLinecap: "butt",
+                    textSize: "20px",
+                    pathTransitionDuration: 0.5,
+                    pathColor:
+                      DashboardData?.dailySale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    textColor:
+                      DashboardData?.dailySale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    trailColor: "#d6d6d6",
+                    backgroundColor: "#3e98c7",
+                  })}
+                />
+              </div>
             </div>
 
-            <div className="size-28">
-              <CircularProgressbar
-                value={Math.abs(DashboardData?.dailySale?.percentage)}
-                text={`${DashboardData?.dailySale?.percentage}%`}
-                styles={buildStyles({
-                  rotation: 1,
-                  strokeLinecap: "butt",
-                  textSize: "20px",
-                  pathTransitionDuration: 0.5,
-                  pathColor:
-                    DashboardData?.dailySale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  textColor:
-                    DashboardData?.dailySale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  trailColor: "#d6d6d6",
-                  backgroundColor: "#3e98c7",
-                })}
-              />
+            {/* SECOND BOX */}
+            <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+              <div className="stat_data">
+                <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                  Monthly Sale
+                </h3>
+                <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
+                  {DashboardData?.monthlysale?.currentMonthSale}
+                </h2>
+                <span
+                  className={`text-gray-900 ${
+                    DashboardData?.monthlysale?.differenceFromLastMonth >= 0
+                      ? "bg-green-200"
+                      : "bg-red-200"
+                  } px-3 py-1 rounded-lg`}
+                >
+                  {DashboardData?.monthlysale?.differenceFromLastMonth > 0
+                    ? "+" + DashboardData?.monthlysale?.differenceFromLastMonth
+                    : DashboardData?.monthlysale?.differenceFromLastMonth}
+                </span>
+              </div>
+
+              <div className="size-28">
+                <CircularProgressbar
+                  value={Math.abs(DashboardData?.monthlysale?.percentage)}
+                  text={`${DashboardData?.monthlysale?.percentage}%`}
+                  styles={buildStyles({
+                    // Rotation of path and trail, in number of turns (0-1)
+                    rotation: 1,
+                    strokeLinecap: "butt",
+                    textSize: "20px",
+                    pathTransitionDuration: 0.5,
+                    pathColor:
+                      DashboardData?.monthlysale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    textColor:
+                      DashboardData?.monthlysale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    trailColor: "#d6d6d6",
+                    backgroundColor: "#3e98c7",
+                  })}
+                />
+              </div>
+            </div>
+
+            {/* THIRD BOX */}
+            <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+              <div className="stat_data">
+                <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                  Gross Sale
+                </h3>
+                <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
+                  {DashboardData?.grossSale?.currentyearSale}
+                </h2>
+                <span
+                  className={`text-gray-900 ${
+                    DashboardData?.grossSale?.differenceFromLastYear >= 0
+                      ? "bg-green-200"
+                      : "bg-red-200"
+                  } px-3 py-1 rounded-lg`}
+                >
+                  {DashboardData?.grossSale?.differenceFromLastYear > 0
+                    ? "+" + DashboardData?.grossSale?.differenceFromLastYear
+                    : DashboardData?.grossSale?.differenceFromLastYear}
+                </span>
+              </div>
+
+              <div className="size-28">
+                <CircularProgressbar
+                  value={Math.abs(DashboardData?.grossSale?.percentage)}
+                  text={`${DashboardData?.grossSale?.percentage}%`}
+                  styles={buildStyles({
+                    // Rotation of path and trail, in number of turns (0-1)
+                    rotation: 1,
+                    strokeLinecap: "butt",
+                    textSize: "20px",
+                    pathTransitionDuration: 0.5,
+                    pathColor:
+                      DashboardData?.grossSale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    textColor:
+                      DashboardData?.grossSale?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    trailColor: "#d6d6d6",
+                    backgroundColor: "#3e98c7",
+                  })}
+                />
+              </div>
+            </div>
+
+            {/* FORTH BOX */}
+            <div className="h-40 px-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
+              <div className="stat_data">
+                <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
+                  Gross Profit
+                </h3>
+                <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
+                  {DashboardData?.grossProfit?.currentYearGrossProfit}
+                </h2>
+                <span
+                  className={`text-gray-900 ${
+                    DashboardData?.grossProfit?.differenceFromLastyear >= 0
+                      ? "bg-green-200"
+                      : "bg-red-200"
+                  } px-3 py-1 rounded-lg`}
+                >
+                  {DashboardData?.grossProfit?.differenceFromLastyear > 0
+                    ? "+" + DashboardData?.grossProfit?.differenceFromLastyear
+                    : DashboardData?.grossProfit?.differenceFromLastyear}
+                </span>
+              </div>
+
+              <div className="size-28">
+                <CircularProgressbar
+                  value={Math.abs(DashboardData?.grossProfit?.percentage)}
+                  text={`${DashboardData?.grossProfit?.percentage}%`}
+                  styles={buildStyles({
+                    // Rotation of path and trail, in number of turns (0-1)
+                    rotation: 1,
+                    strokeLinecap: "butt",
+                    textSize: "20px",
+                    pathTransitionDuration: 0.5,
+                    pathColor:
+                      DashboardData?.grossProfit?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    textColor:
+                      DashboardData?.grossProfit?.percentage >= 0
+                        ? "#31C48D"
+                        : "#F60002",
+                    trailColor: "#d6d6d6",
+                    backgroundColor: "#3e98c7",
+                  })}
+                />
+              </div>
             </div>
           </div>
 
-          {/* SECOND BOX */}
-          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
-            <div className="stat_data">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Monthly Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
-                {DashboardData?.monthlysale?.currentMonthSale}
-              </h2>
-              <span
-                className={`text-gray-900 ${
-                  DashboardData?.monthlysale?.differenceFromLastMonth >= 0
-                    ? "bg-green-200"
-                    : "bg-red-200"
-                } px-3 py-1 rounded-lg`}
-              >
-                {DashboardData?.monthlysale?.differenceFromLastMonth > 0
-                  ? "+" + DashboardData?.monthlysale?.differenceFromLastMonth
-                  : DashboardData?.monthlysale?.differenceFromLastMonth}
-              </span>
-            </div>
+          {/* ------------ SECOND STATS BAR ------------*/}
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4">
+            <div className="rounded-lg md:col-span-1 lg:col-span-4 xl:col-span-3">
+              {/* BAR CHARTS */}
+              <div className="h-[22rem] rounded-lg text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 w-full p-4">
+                <Bar
+                  data={barChartData}
+                  options={{ responsive: true, maintainAspectRatio: false }}
+                />
+              </div>
 
-            <div className="size-28">
-              <CircularProgressbar
-                value={Math.abs(DashboardData?.monthlysale?.percentage)}
-                text={`${DashboardData?.monthlysale?.percentage}%`}
-                styles={buildStyles({
-                  // Rotation of path and trail, in number of turns (0-1)
-                  rotation: 1,
-                  strokeLinecap: "butt",
-                  textSize: "20px",
-                  pathTransitionDuration: 0.5,
-                  pathColor:
-                    DashboardData?.monthlysale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  textColor:
-                    DashboardData?.monthlysale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  trailColor: "#d6d6d6",
-                  backgroundColor: "#3e98c7",
-                })}
-              />
-            </div>
-          </div>
-
-          {/* THIRD BOX */}
-          <div className="h-40 px-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
-            <div className="stat_data">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Gross Sale
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
-                {DashboardData?.grossSale?.currentyearSale}
-              </h2>
-              <span
-                className={`text-gray-900 ${
-                  DashboardData?.grossSale?.differenceFromLastYear >= 0
-                    ? "bg-green-200"
-                    : "bg-red-200"
-                } px-3 py-1 rounded-lg`}
-              >
-                {DashboardData?.grossSale?.differenceFromLastYear > 0
-                  ? "+" + DashboardData?.grossSale?.differenceFromLastYear
-                  : DashboardData?.grossSale?.differenceFromLastYear}
-              </span>
-            </div>
-
-            <div className="size-28">
-              <CircularProgressbar
-                value={Math.abs(DashboardData?.grossSale?.percentage)}
-                text={`${DashboardData?.grossSale?.percentage}%`}
-                styles={buildStyles({
-                  // Rotation of path and trail, in number of turns (0-1)
-                  rotation: 1,
-                  strokeLinecap: "butt",
-                  textSize: "20px",
-                  pathTransitionDuration: 0.5,
-                  pathColor:
-                    DashboardData?.grossSale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  textColor:
-                    DashboardData?.grossSale?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  trailColor: "#d6d6d6",
-                  backgroundColor: "#3e98c7",
-                })}
-              />
-            </div>
-          </div>
-
-          {/* FORTH BOX */}
-          <div className="h-40 px-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-between items-center">
-            <div className="stat_data">
-              <h3 className="text-gray-900 dark:text-gray-100 mt-1.5 text-md font-normal">
-                Gross Profit
-              </h3>
-              <h2 className="text-gray-900 dark:text-gray-100 mt-1.5 mb-2 text-2xl font-semibold">
-                {DashboardData?.grossProfit?.currentYearGrossProfit}
-              </h2>
-              <span
-                className={`text-gray-900 ${
-                  DashboardData?.grossProfit?.differenceFromLastyear >= 0
-                    ? "bg-green-200"
-                    : "bg-red-200"
-                } px-3 py-1 rounded-lg`}
-              >
-                {DashboardData?.grossProfit?.differenceFromLastyear > 0
-                  ? "+" + DashboardData?.grossProfit?.differenceFromLastyear
-                  : DashboardData?.grossProfit?.differenceFromLastyear}
-              </span>
-            </div>
-
-            <div className="size-28">
-              <CircularProgressbar
-                value={Math.abs(DashboardData?.grossProfit?.percentage)}
-                text={`${DashboardData?.grossProfit?.percentage}%`}
-                styles={buildStyles({
-                  // Rotation of path and trail, in number of turns (0-1)
-                  rotation: 1,
-                  strokeLinecap: "butt",
-                  textSize: "20px",
-                  pathTransitionDuration: 0.5,
-                  pathColor:
-                    DashboardData?.grossProfit?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  textColor:
-                    DashboardData?.grossProfit?.percentage >= 0
-                      ? "#31C48D"
-                      : "#F60002",
-                  trailColor: "#d6d6d6",
-                  backgroundColor: "#3e98c7",
-                })}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ------------ SECOND STATS BAR ------------*/}
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4">
-          <div className="rounded-lg md:col-span-1 lg:col-span-4 xl:col-span-3">
-            {/* BAR CHARTS */}
-            <div className="h-[22rem] rounded-lg text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 w-full p-4">
-              <Bar
-                data={barChartData}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
-            </div>
-
-            {/* TOTAL SUITES && ACCOUNTS */}
-            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-4 rounded-lg">
-              {/* TOTAL SUITE */}
-              <div className="rounded-lg lg:col-span-3">
-                <div className="min-h-72 px-3 py-4 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
-                  <h2 className="text-lg font-medium mb-3">Total Suits</h2>
-                  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                      <tr>
-                        <th className="px-6 py-3" scope="col">
-                          Category
-                        </th>
-                        <th className="px-6 py-3" scope="col">
-                          Colors
-                        </th>
-                        <th className="px-6 py-3" scope="col">
-                          Quantity
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DashboardData &&
-                      DashboardData?.totalSuits?.length > 0 ? (
-                        DashboardData?.totalSuits
-                          ?.slice(0, 4)
-                          .map((data, index) => (
-                            <tr
-                              key={index}
-                              onClick={handleShowSuits}
-                              className="bg-white border-b cursor-pointer text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                            >
-                              <td className="px-6 py-3">{data.category}</td>
-                              <td className="px-6 py-3">{data.color}</td>
-                              <td className="px-6 py-3">{data.quantity}</td>
-                            </tr>
-                          ))
-                      ) : (
-                        <tr className="w-full flex justify-center items-center">
-                          <td className="text-xl mt-3">No Data Available</td>
+              {/* TOTAL SUITES && ACCOUNTS */}
+              <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-4 rounded-lg">
+                {/* TOTAL SUITE */}
+                <div className="rounded-lg lg:col-span-3">
+                  <div className="min-h-72 px-3 py-4 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
+                    <h2 className="text-lg font-medium mb-3">Total Suits</h2>
+                    <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                      <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                        <tr>
+                          <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
+                            Category
+                          </th>
+                          <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
+                            Colors
+                          </th>
+                          <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
+                            Quantity
+                          </th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  {/* BUTTON */}
-                  {DashboardData?.totalSuits?.length > 0 ? (
-                    <div className="button w-full flex justify-center items-center mt-3">
-                      <Link
-                        to="/dashboard/suits"
-                        onClick={() => window.scrollTo(0, 0)}
-                        className="bg-gray-300 px-6 py-1 rounded-md"
-                      >
-                        View All
-                      </Link>
+                      </thead>
+                      <tbody>
+                        {DashboardData &&
+                        DashboardData?.totalSuits?.length > 0 ? (
+                          DashboardData?.totalSuits
+                            ?.slice(0, 4)
+                            .map((data, index) => (
+                              <tr
+                                key={index}
+                                onClick={handleShowSuits}
+                                className="bg-white border-b cursor-pointer text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                              >
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">{data.category}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">{data.color}</td>
+                                <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">{data.quantity}</td>
+                              </tr>
+                            ))
+                        ) : (
+                          <tr className="w-full flex justify-center items-center">
+                            <td className="text-xl mt-3">No Data Available</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                    {/* BUTTON */}
+                    {DashboardData?.totalSuits?.length > 0 ? (
+                      <div className="button w-full flex justify-center items-center mt-3">
+                        <Link
+                          to="/dashboard/suits"
+                          onClick={() => window.scrollTo(0, 0)}
+                          className="bg-gray-300 px-6 py-1 rounded-md"
+                        >
+                          View All
+                        </Link>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* ACCOUNTS DETAILS */}
+                <div className="lg:col-span-1">
+                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
+                    <div className="stat_data pl-4">
+                      <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
+                        Cash In Hand
+                      </h3>
+                      <h3 className="mt-1 text-gray-900 dark:text-gray-100">
+                        <span className="text-xl font-semibold mr-2">
+                          Rs {DashboardData?.cashInHand}
+                        </span>
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-green-400 dark:border-green-700 flex justify-start items-center">
+                    <div className="stat_data pl-4">
+                      <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
+                        Receivable
+                      </h3>
+                      <h3 className="mt-1 text-gray-900 dark:text-gray-100">
+                        <span className="text-xl font-semibold mr-2">
+                          Rs {DashboardData?.recieveable}
+                        </span>
+                      </h3>
+                    </div>
+                  </div>
+                  {user?.user?.role === "superadmin" ? (
+                    <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-red-400 dark:border-gray-700 flex justify-start items-center">
+                      <div className="stat_data pl-4">
+                        <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
+                          Payable
+                        </h3>
+                        <h3 className="mt-1 text-gray-900 dark:text-gray-100">
+                          <span className="text-xl font-semibold mr-2">
+                            Rs {DashboardData?.payable}
+                          </span>
+                        </h3>
+                      </div>
                     </div>
                   ) : null}
                 </div>
               </div>
+            </div>
 
-              {/* ACCOUNTS DETAILS */}
-              <div className="lg:col-span-1">
-                <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
-                  <div className="stat_data pl-4">
-                    <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
-                      Cash In Hand
-                    </h3>
-                    <h3 className="mt-1 text-gray-900 dark:text-gray-100">
-                      <span className="text-xl font-semibold mr-2">
-                        Rs {DashboardData?.cashInHand}
-                      </span>
-                    </h3>
-                  </div>
+            <div>
+              {/* SALES BY LOCATION */}
+              <div className="h-[22rem] mb-5 px-4 pt-5 lg:col-span-4 xl:col-span-1 pb-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
+                <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-400 dark:border-gray-700 z-10">
+                  <h2 className="font-medium text-lg">Sales By Locations</h2>
                 </div>
-                <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-green-400 dark:border-green-700 flex justify-start items-center">
-                  <div className="stat_data pl-4">
-                    <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
-                      Receivable
-                    </h3>
-                    <h3 className="mt-1 text-gray-900 dark:text-gray-100">
-                      <span className="text-xl font-semibold mr-2">
-                        Rs {DashboardData?.recieveable}
-                      </span>
-                    </h3>
-                  </div>
-                </div>
-                {user?.user?.role === "superadmin" ? (
-                  <div className="mb-3 py-2 rounded-lg bg-white dark:bg-gray-800 border-2 border-red-400 dark:border-gray-700 flex justify-start items-center">
-                    <div className="stat_data pl-4">
-                      <h3 className="text-gray-900 dark:text-gray-100 text-lg font-medium">
-                        Payable
-                      </h3>
-                      <h3 className="mt-1 text-gray-900 dark:text-gray-100">
-                        <span className="text-xl font-semibold mr-2">
-                          Rs {DashboardData?.payable}
-                        </span>
-                      </h3>
+                <div className="scrollable-content auto h-[calc(22rem-4.4rem)]">
+                  {" "}
+                  {DashboardData?.salesBylocation?.map((data, index) => (
+                    <div
+                      key={index}
+                      className="my-4 px-3 city flex justify-between items-center border-b"
+                    >
+                      <span>{data?.city?.name}</span>
+                      <span className="font-semibold">{data?.city?.value}</span>
                     </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            {/* SALES BY LOCATION */}
-            <div className="h-[22rem] mb-5 px-4 pt-5 lg:col-span-4 xl:col-span-1 pb-5 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
-              <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-400 dark:border-gray-700 z-10">
-                <h2 className="font-medium text-lg">Sales By Locations</h2>
-              </div>
-              <div className="scrollable-content auto h-[calc(22rem-4.4rem)]">
-                {" "}
-                {DashboardData?.salesBylocation?.map((data, index) => (
-                  <div
-                    key={index}
-                    className="my-4 px-3 city flex justify-between items-center border-b"
-                  >
-                    <span>{data?.city?.name}</span>
-                    <span className="font-semibold">{data?.city?.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* BANK ACCOUNT */}
-            <div className=" px-4 pt-2 lg:col-span-4 xl:col-span-1 pb-2 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
-              <div className="flex flex-col justify-between h-full">
-                <div className="scrollable-content max-h-[17.5rem] pr-2">
-                  <div className="flex justify-between items-center">
-                    <h2 className="mb-1 font-medium text-lg">Bank Accounts</h2>
-                    {user?.user?.role === "superadmin" && (
-                      <FaHistory
-                        className="cursor-pointer"
-                        onClick={openHistoryModal}
-                        size={18}
-                      />
-                    )}
-                  </div>
-                  {DashboardData?.bankAccountsData &&
-                    DashboardData?.bankAccountsData.map((account, index) => (
-                      <div
-                        key={index}
-                        className="my-3 flex justify-between items-center border-b"
-                      >
-                        <span className="text-sm">{account.name}</span>
-                        <span className="text-sm font-semibold">
-                          {account.value}
-                        </span>
-                      </div>
-                    ))}
+                  ))}
                 </div>
+              </div>
 
-                {user?.user?.role === "superadmin" && (
-                  <div className="flex justify-evenly items-center mt-2">
-                    <button onClick={(e) => opemTransactionMOdal("Deposit")}>
-                      <PiHandDeposit size={32} className="text-green-500 " />
-                    </button>
-                    <button onClick={() => opemTransactionMOdal("WithDraw")}>
-                      <PiHandWithdraw size={32} className="text-red-500" />
-                    </button>
+              {/* BANK ACCOUNT */}
+              <div className=" px-4 pt-2 lg:col-span-4 xl:col-span-1 pb-2 text-gray-900 dark:text-gray-200 rounded-lg border border-gray-400 dark:border-gray-700">
+                <div className="flex flex-col justify-between h-full">
+                  <div className="scrollable-content max-h-[17.5rem] pr-2">
+                    <div className="flex justify-between items-center">
+                      <h2 className="mb-1 font-medium text-lg">
+                        Bank Accounts
+                      </h2>
+                      {user?.user?.role === "superadmin" && (
+                        <FaHistory
+                          className="cursor-pointer"
+                          onClick={openHistoryModal}
+                          size={18}
+                        />
+                      )}
+                    </div>
+                    {DashboardData?.bankAccountsData &&
+                      DashboardData?.bankAccountsData.map((account, index) => (
+                        <div
+                          key={index}
+                          className="my-3 flex justify-between items-center border-b"
+                        >
+                          <span className="text-sm">{account.name}</span>
+                          <span className="text-sm font-semibold">
+                            {account.value}
+                          </span>
+                        </div>
+                      ))}
                   </div>
-                )}
+
+                  {user?.user?.role === "superadmin" && (
+                    <div className="flex justify-evenly items-center mt-2">
+                      <button onClick={(e) => opemTransactionMOdal("Deposit")}>
+                        <PiHandDeposit size={32} className="text-green-500 " />
+                      </button>
+                      <button onClick={() => opemTransactionMOdal("WithDraw")}>
+                        <PiHandWithdraw size={32} className="text-red-500" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-lg p-2 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 grid grid-cols-4 gap-4 col-span-4">
-           <SuitSalesGraph/>
+            <div className="rounded-lg p-2 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-700 grid grid-cols-4 gap-4 col-span-4">
+              <SuitSalesGraph />
+            </div>
           </div>
-        </div>
-      </section>
- )}
+        </section>
+      )}
       {/* TRANSACTION MODAL */}
       {transactionModal && !confirmationModal && (
         <div
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-lg max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -804,7 +807,7 @@ const DashboardStats = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
             <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {transactionType === "Deposit" ? (
@@ -873,7 +876,7 @@ const DashboardStats = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-6xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -986,8 +989,8 @@ const DashboardStats = () => {
                 </button>
               </div>
               {/* TABLE */}
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className=" px-6 py-3 text-center" scope="col">
                       Date
@@ -1022,7 +1025,7 @@ const DashboardStats = () => {
                     </div>
                   </div>
                 ) : (
-                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <tbody>
                       {TransactionsHistory &&
                       TransactionsHistory?.data?.length > 0 ? (
@@ -1046,13 +1049,13 @@ const DashboardStats = () => {
                             <td className=" px-6 py-3 text-center">
                               {data?.amount}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                               {data?.payment_Method}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                               {data?.new_balance}
                             </td>
-                            <td className="px-6 py-3 text-xs text-center">
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs text-center">
                               {data?.note}
                             </td>
                           </tr>
@@ -1074,7 +1077,13 @@ const DashboardStats = () => {
               pageSize={limit}
               syncUrl={false}
               onPageChange={(nextPage) =>
-                dispatch(getTransactionHIstoryAsync({ page: nextPage, limit, filters }))
+                dispatch(
+                  getTransactionHIstoryAsync({
+                    page: nextPage,
+                    limit,
+                    filters,
+                  }),
+                )
               }
               onPageSizeChange={(nextLimit) =>
                 dispatch(

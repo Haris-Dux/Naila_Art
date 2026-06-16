@@ -24,7 +24,7 @@ const CashInOut = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { loading: branchesLoading, Branches } = useSelector(
-    (state) => state.InStock
+    (state) => state.InStock,
   );
 
   const {
@@ -76,8 +76,8 @@ const CashInOut = () => {
           user?.user?.role === "superadmin"
             ? validatePartyNameForMainBranchAsync
             : user?.user?.role === "admin"
-            ? validatePartyNameForAdminAsync
-            : validatePartyNameForOtherBranchAsync;
+              ? validatePartyNameForAdminAsync
+              : validatePartyNameForOtherBranchAsync;
         if (timerRef.current) {
           clearTimeout(timerRef.current);
         }
@@ -87,14 +87,14 @@ const CashInOut = () => {
             validateParty({
               name: value,
               accountCategory: formData?.accountCategory,
-            })
+            }),
           );
         }, 1000);
 
         return () => clearTimeout(timer);
       }
     },
-    [dispatch, user?.user?.role, formData?.accountCategory]
+    [dispatch, user?.user?.role, formData?.accountCategory],
   );
 
   useEffect(() => {
@@ -130,7 +130,7 @@ const CashInOut = () => {
 
   const handleCashIn = () => {
     const isFormValid = Object.values(formData).every(
-      (value) => value !== "" && value !== null
+      (value) => value !== "" && value !== null,
     );
 
     if (!isFormValid) {
@@ -165,7 +165,7 @@ const CashInOut = () => {
 
   const handleCashOut = () => {
     const isFormValid = Object.values(formData).every(
-      (value) => value !== "" && value !== null
+      (value) => value !== "" && value !== null,
     );
     if (!isFormValid) {
       toast.error("All fields must be filled");
@@ -260,7 +260,7 @@ const CashInOut = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
         {loading || branchesLoading ? (
           <div className="min-h-screen flex justify-center items-center">
             <div
@@ -288,7 +288,7 @@ const CashInOut = () => {
               </button>
             </div>
             <div className="my-5 upper_tabs flex justify-start items-center">
-              <div className="tabs_button">
+              <div className="tabs_button flex flex-wrap gap-1">
                 {/* CHECK ONLY SUPERADMIN CAN SEE ALL */}
                 {user?.user?.role === "superadmin" ? (
                   <>
@@ -325,7 +325,7 @@ const CashInOut = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols- gap-4 lg:grid-cols-4  lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               {transactionType === "CashIn" && (
                 <div className="h-28 rounded-lg bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-700 flex justify-start items-center">
                   <div className="stat_data pl-4">
@@ -370,7 +370,7 @@ const CashInOut = () => {
 
               <div className="col-span-2 my-auto">
                 {selectedParty && (
-                  <div className="px-8 py-2  flex justify-around items-center border border-gray-400 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                  <div className="px-3 md:px-6 lg:px-8 py-2 flex flex-wrap justify-around items-center gap-2 border border-gray-400 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
                     <div className="box text-center">
                       <h3 className="pb-1 font-normal">Total Debit</h3>
                       <h3>
@@ -393,7 +393,7 @@ const CashInOut = () => {
                       <h3 className="pb-1 font-normal ">Status</h3>
                       <h3>
                         {setAccountStatusColor(
-                          selectedParty?.virtual_account?.status
+                          selectedParty?.virtual_account?.status,
                         ) || "No Status"}
                       </h3>
                     </div>
@@ -402,8 +402,8 @@ const CashInOut = () => {
               </div>
             </div>
 
-            <div className="mt-4 header flex justify-between items-center  mx-2">
-              <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+            <div className="mt-4 header flex flex-wrap justify-between items-center gap-3 mx-2">
+              <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
                 Cash {`${transactionType === "CashIn" ? "In" : "Out"}`}
               </h1>
             </div>
@@ -411,7 +411,7 @@ const CashInOut = () => {
             <p className="w-full bg-gray-300 h-px mt-5"></p>
 
             <div className="data mt-8">
-              <div className="mb-5 grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="mb-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                 {/* CASH */}
                 <div>
                   <input
@@ -531,19 +531,19 @@ const CashInOut = () => {
                     disabled={!formData.pastTransaction}
                     readOnly={!formData.pastTransaction}
                   />
-                   {user?.user?.role === "superadmin" && (
-                  <div className="flex col-span-1 items-center my-auto justify-center space-x-2">
-                    <label className="text-sm font-bold">
-                      Past Transaction
-                    </label>
-                    <input
-                      type="checkbox"
-                      id="BillType"
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      onChange={handlePastTransaction}
-                    />
-                  </div>
-                )}
+                  {user?.user?.role === "superadmin" && (
+                    <div className="flex col-span-1 items-center my-auto justify-center space-x-2">
+                      <label className="text-sm font-bold">
+                        Past Transaction
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="BillType"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onChange={handlePastTransaction}
+                      />
+                    </div>
+                  )}
                 </div>
                 {/* NOTE */}
                 <div>
@@ -559,7 +559,7 @@ const CashInOut = () => {
                 </div>
               </div>
 
-              <div className="grid items-start grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                 {transactionType === "CashIn" && (
                   <div className="cashIn">
                     {cashInLoading ? (
@@ -612,7 +612,7 @@ const CashInOut = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-8 px-3 w-full max-w-4xl max-h-full bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
+          <div className="relative py-8 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between flex-col p-3 rounded-t dark:border-gray-600">
               <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
@@ -659,8 +659,12 @@ const CashInOut = () => {
                                   className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
                                 >
                                   <p className="w-1/3 truncate">{data?.name}</p>
-                                   <p className="w-1/3 truncate">{data?.city}</p>
-                                   <p className="w-1/3 truncate">{setAccountStatusColor(data?.virtual_account?.status)}</p>                              
+                                  <p className="w-1/3 truncate">{data?.city}</p>
+                                  <p className="w-1/3 truncate">
+                                    {setAccountStatusColor(
+                                      data?.virtual_account?.status,
+                                    )}
+                                  </p>
                                 </button>
                               </li>
                             ))}
@@ -700,9 +704,15 @@ const CashInOut = () => {
                                   onClick={() => handleSelectParty(data)}
                                   className="py-2 px-4 border-b rounded hover:bg-gray-100 w-full flex justify-between"
                                 >
-                                  <p className="w-1/3 truncate">{data?.name || data?.partyName}</p>
-                                   <p className="w-1/3 truncate">{data?.city}</p>
-                                   <p className="w-1/3 truncate">{setAccountStatusColor(data?.virtual_account?.status)}</p>                                                               
+                                  <p className="w-1/3 truncate">
+                                    {data?.name || data?.partyName}
+                                  </p>
+                                  <p className="w-1/3 truncate">{data?.city}</p>
+                                  <p className="w-1/3 truncate">
+                                    {setAccountStatusColor(
+                                      data?.virtual_account?.status,
+                                    )}
+                                  </p>
                                 </button>
                               </li>
                             ))}

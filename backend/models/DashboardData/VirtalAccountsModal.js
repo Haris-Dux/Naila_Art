@@ -35,6 +35,8 @@ const historySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+historySchema.index({ date: -1, payment_Method: 1, transactionType: 1, createdAt: -1 });
+
 export const VA_HistoryModal = mongoose.model(
   "V.A Transactions",
   historySchema

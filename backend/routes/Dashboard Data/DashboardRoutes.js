@@ -5,6 +5,7 @@ import {
   verifyUser,
 } from "../../middleware/Auth.js";
 import {
+  getAccountsStats,
   getDashBoardDataForBranch,
   getDashBoardDataForSuperAdmin,
   getSalesData,
@@ -55,6 +56,13 @@ dashboardRouter.post(
 );
 
 dashboardRouter.get("/getSalesData", verifyUser, getSalesData);
+
+dashboardRouter.get(
+  "/getAccountsStats",
+  superAdminOnly,
+  getAccountsStats
+);
+
 
 
 export default dashboardRouter;

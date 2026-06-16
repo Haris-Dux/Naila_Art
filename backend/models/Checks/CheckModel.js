@@ -42,4 +42,6 @@ const checkSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+checkSchema.index({ buyerId: 1 });
+
 export const CheckModel = mongoose.model("Checks", checkSchema);

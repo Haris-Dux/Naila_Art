@@ -74,9 +74,9 @@ const PendingRequest = () => {
   };
 
   return (
-    <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
-      <div className="header flex justify-between items-center pt-6 mx-2">
-        <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+    <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
+      <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+        <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
           Pending Requests
         </h1>
       </div>
@@ -96,21 +96,21 @@ const PendingRequest = () => {
       ) : pendingRequest && pendingRequest.length > 0 ? (
         <div className="relative overflow-x-auto mt-5">
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
               <tr>
-                <th className="px-6 py-3" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                   Name
                 </th>
-                <th className="px-6 py-3" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                   Email
                 </th>
-                <th className="px-6 py-3" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
                   Authenticated
                 </th>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">
                   Branch
                 </th>
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">
                   Action
                 </th>
               </tr>
@@ -122,13 +122,13 @@ const PendingRequest = () => {
                   className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 >
                   <th
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                     scope="row"
                   >
                     {pendingRequest[index]?.name}
                   </th>
-                  <td className="px-6 py-4">{pendingRequest[index]?.email}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{pendingRequest[index]?.email}</td>
+                  <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                     <select
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                       value={data.authenticated ? "Authorized" : "Unauthorized"}
@@ -153,7 +153,7 @@ const PendingRequest = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                     <button
                       onClick={() => handleUpdateUser(index)}
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

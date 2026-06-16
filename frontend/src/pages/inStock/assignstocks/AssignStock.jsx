@@ -129,8 +129,8 @@ const AssignStock = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-screen rounded-lg">
-        <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
+        <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
           Send Stock To Branch
         </h1>
 
@@ -186,17 +186,17 @@ const AssignStock = () => {
 
         <div className="relative overflow-x-auto mt-5">
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
               <tr>
-                <th className="px-6 text-center py-3">CheckBox</th>
-                <th className="px-6 py-3">D # No</th>
-                <th className="px-6 py-3">Category</th>
-                <th className="px-6 py-3">Colors</th>
-                <th className="px-6 py-3">Quantity</th>
-                <th className="px-6 py-3">Cost Prices</th>
-                <th className="px-6 py-3">Sales Prices</th>
-                <th className="px-6 py-3">Send Quantity</th>
-                <th className="px-6 py-3 text-center">Actions</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-3 text-xs md:text-sm">CheckBox</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">D # No</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Category</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Colors</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Quantity</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Cost Prices</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Sales Prices</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm">Send Quantity</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -206,7 +206,7 @@ const AssignStock = () => {
                     key={index}
                     className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                   >
-                    <td className="px-6 text-center py-4">
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                       <button
                         onClick={() => handleAddInBundle(data)}
                         disabled={data.assignQuantity <= 0}
@@ -220,17 +220,17 @@ const AssignStock = () => {
                         Add In Bundle
                       </button>
                     </td>
-                    <th className="px-6 py-4 font-medium" scope="row">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm" scope="row">
                       {data.d_no}
                     </th>
-                    <td className="px-6 py-4">{data.category}</td>
-                    <td className="px-6 py-4">{data.color}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.category}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.color}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                       {data.quantity}/T-{data.TotalQuantity}
                     </td>
-                    <td className="px-6 py-4">{data.cost_price}</td>
-                    <td className="px-6 py-4">{data.sale_price}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.cost_price}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.sale_price}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                       <input
                         type="number"
                         required
@@ -242,7 +242,7 @@ const AssignStock = () => {
                         className="border border-gray-300 outline-none focus:outline-none focus:ring-0 focus:border-gray-900 rounded-md px-2 py-1 w-20 text-gray-700"
                       />
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm">
                       <button
                         onClick={() => handleRemoveItem(index)}
                         className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-red-500 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"

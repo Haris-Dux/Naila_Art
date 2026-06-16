@@ -62,6 +62,10 @@ const suitsSchema = new mongoose.Schema({
   all_records:[record_data]
 }, { timestamps: true });
 
-export const SuitsModel = mongoose.model('Suit', suitsSchema);
+suitsSchema.index({ d_no: 1 });
+suitsSchema.index({ quantity: -1, createdAt: -1 });
+suitsSchema.index({ category: 1, quantity: -1, createdAt: -1 });
+suitsSchema.index({ d_no: 1, category: 1, color: 1 });
 
+export const SuitsModel = mongoose.model('Suit', suitsSchema);
 

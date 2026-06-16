@@ -18,6 +18,7 @@ import {
   IoRestaurantOutline,
   IoCutOutline,
   IoSettingsOutline,
+  IoStatsChartOutline,
   IoStorefrontOutline,
   IoWalletOutline,
   IoPeople,
@@ -34,7 +35,8 @@ const baseNavItemClass =
   "flex w-full items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors";
 const parentNavItemClass = `${baseNavItemClass} h-10`;
 const childNavItemClass = `${baseNavItemClass} h-9 pl-8`;
-const activeNavItemClass = "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900";
+const activeNavItemClass =
+  "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900";
 const inactiveNavItemClass =
   "text-gray-700 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-200 dark:hover:bg-gray-700";
 const roleGroups = {
@@ -177,7 +179,7 @@ const Dashboard = () => {
     matches.some((match) =>
       match.exact
         ? location.pathname === match.path
-        : location.pathname.includes(match.path)
+        : location.pathname.includes(match.path),
     );
 
   const closeSidebarOnMobile = () => {
@@ -250,6 +252,7 @@ const Dashboard = () => {
       icon: IoBriefcaseOutline,
       allowedRoles: roleGroups.adminAndSuperAdmin,
       matches: [
+        { path: "process-analytics" },
         { path: "embroidery" },
         { path: "calendar" },
         { path: "cutting" },
@@ -257,6 +260,13 @@ const Dashboard = () => {
         { path: "stones" },
       ],
       items: [
+        {
+          label: "Analytics",
+          to: "/dashboard/process-analytics",
+          icon: IoStatsChartOutline,
+          allowedRoles: roleGroups.superAdminOnly,
+          matches: [{ path: "process-analytics" }],
+        },
         {
           label: "Embroidery",
           to: "/dashboard/embroidery",
@@ -300,12 +310,22 @@ const Dashboard = () => {
       icon: IoPeopleOutline,
       allowedRoles: roleGroups.all,
       matches: [
+        { path: "accounts-dashboard" },
         { path: "buyers" },
         { path: "sellers" },
         { path: "generate-bill" },
         { path: "other-accounts" },
+        { path: "processbills" },
+        { path: "process-details" },
       ],
       items: [
+        {
+          label: "Analytics",
+          to: "/dashboard/accounts-dashboard",
+          icon: IoStatsChartOutline,
+          allowedRoles: roleGroups.superAdminOnly,
+          matches: [{ path: "accounts-dashboard" }],
+        },
         {
           label: "Buyers",
           to: "/dashboard/buyers",
@@ -325,6 +345,13 @@ const Dashboard = () => {
           matches: [{ path: "sellers" }],
         },
         {
+          label: "Process",
+          to: "/dashboard/processbills",
+          icon: IoBookOutline,
+          allowedRoles: roleGroups.adminAndSuperAdmin,
+          matches: [{ path: "processbills" }, { path: "process-details" }],
+        },
+        {
           label: "Other Accounts",
           to: "/dashboard/other-accounts",
           icon: IoWalletOutline,
@@ -339,18 +366,14 @@ const Dashboard = () => {
       to: "/dashboard/employee",
       icon: IoPeopleOutline,
       allowedRoles: roleGroups.superAdminOnly,
-      matches: [{ path: "/dashboard/employee", exact: true}]
+      matches: [{ path: "/dashboard/employee", exact: true }],
     },
     {
       key: "bills",
       label: "Bills",
       icon: IoReceiptOutline,
       allowedRoles: roleGroups.all,
-      matches: [
-        { path: "naila-arts-buyer" },
-        { path: "processbills" },
-        { path: "purchasebills" },
-      ],
+      matches: [{ path: "naila-arts-buyer" }, { path: "purchasebills" }],
       items: [
         {
           label: "Buyer Bills",
@@ -358,13 +381,6 @@ const Dashboard = () => {
           icon: IoReceiptOutline,
           allowedRoles: roleGroups.all,
           matches: [{ path: "naila-arts-buyer" }],
-        },
-        {
-          label: "Process Bills",
-          to: "/dashboard/processbills",
-          icon: IoBookOutline,
-          allowedRoles: roleGroups.adminAndSuperAdmin,
-          matches: [{ path: "processbills" }, { path: "process-details" }],
         },
         {
           label: "Purchase Bills",
@@ -427,7 +443,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const activeSection = sidebarSections.find(
-      (section) => section.items && isRouteActive(section.matches)
+      (section) => section.items && isRouteActive(section.matches),
     );
 
     if (activeSection) {
@@ -512,7 +528,6 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
 
             {/* ---------------- NAVBAR - RIGHT ---------------- */}
             <div className="flex items-center gap-2 lg:order-2">
-             
               <Link
                 to="/dashboard/cash-book"
                 className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
@@ -529,22 +544,21 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
               </Link>
               {user && user?.user?.role === Roles.SUPER_ADMIN && (
                 <>
-                <button
-                  onClick={openOtherSaleModal}
-                  className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
-                >
-                  Generate Other Sale
-                </button>
+                  <button
+                    onClick={openOtherSaleModal}
+                    className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                  >
+                    Generate Other Sale
+                  </button>
 
-                <Link
-                to="/dashboard/employee-attendance"
-                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
-              >
-                Attendance
-                <IoPeople size={24} />
-              </Link>
-
-              </>
+                  <Link
+                    to="/dashboard/employee-attendance"
+                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                  >
+                    Attendance
+                    <IoPeople size={24} />
+                  </Link>
+                </>
               )}
               {user && user?.user?.role !== Roles.BRANCH_USER && (
                 <button className="relative mr-2">
@@ -586,7 +600,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                       type="button"
                       onClick={() =>
                         setOpenSection((prev) =>
-                          prev === section.key ? "" : section.key
+                          prev === section.key ? "" : section.key,
                         )
                       }
                       className={`${parentNavItemClass} ${
@@ -615,7 +629,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                       <div className="min-h-0">
                         <div className="mt-1 space-y-1 border-l border-gray-200 pl-2 dark:border-gray-700">
                           {section.items.map((item) =>
-                            renderSidebarLink(item, true)
+                            renderSidebarLink(item, true),
                           )}
                         </div>
                       </div>
@@ -663,7 +677,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-6xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <input
@@ -699,8 +713,8 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-                <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
                     <th className=" px-6 py-3 text-center" scope="col">
                       Name
@@ -725,7 +739,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
               </table>
 
               <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                   <tbody>
                     {CheckNotifications &&
                     CheckNotifications?.data?.length > 0 ? (
@@ -733,7 +747,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                         .filter((data) =>
                           data?.buyerName
                             ?.toLowerCase()
-                            .includes(searchQuery?.toLowerCase())
+                            .includes(searchQuery?.toLowerCase()),
                         )
                         .slice()
                         .reverse()
@@ -745,7 +759,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                             <td className=" px-6 py-3 text-center">
                               {data?.buyerName}
                             </td>
-                            <td className="px-6 py-3 text-center">
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                               {data?.buyerPhone}
                             </td>
                             <td className=" px-6 py-3 text-center" scope="row">
@@ -781,7 +795,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-3xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* Header */}
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">

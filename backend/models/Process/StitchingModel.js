@@ -124,4 +124,12 @@ const stitchingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+stitchingSchema.index({ project_status: 1, createdAt: -1 });
+stitchingSchema.index({ partyName: 1, createdAt: -1 });
+stitchingSchema.index({ date: -1 });
+stitchingSchema.index({ embroidery_Id: 1 });
+stitchingSchema.index({ design_no: 1, createdAt: -1 });
+stitchingSchema.index({ Manual_No: 1, createdAt: -1 });
+stitchingSchema.index({ embroidery_Id: 1, design_no: 1 });
+
 export const StitchingModel = mongoose.model("Stitchings", stitchingSchema);

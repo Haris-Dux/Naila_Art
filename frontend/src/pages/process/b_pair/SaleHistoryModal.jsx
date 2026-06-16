@@ -43,7 +43,7 @@ const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) 
       aria-hidden="true"
       className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
     >
-      <div className="relative py-4 px-3 w-full max-w-5xl max-h-full bg-white rounded-md shadow dark:bg-gray-700">
+      <div className="relative py-4 px-3 w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
         {/* ------------- HEADER ------------- */}
         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -75,8 +75,8 @@ const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) 
 
         {/* ------------- BODY ------------- */}
         <div className="p-4 md:p-5">
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
-            <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
               <tr>
                 <th className=" px-6 py-3 text-center" scope="col">
                   Date
@@ -103,7 +103,7 @@ const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) 
             </thead>
           </table>
           <div className="scrollable-content h-[50vh] overflow-y-auto">
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 table-fixed">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
               <tbody>
                 {data && data?.seller_Details?.length > 0 ? (
                   data?.seller_Details
@@ -120,7 +120,7 @@ const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) 
                           {data?.date}
                         </td>
                         <td className=" px-6 py-3 text-center">{data?.name}</td>
-                        <td className="px-6 py-3 text-center">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
                           {data?.contact}
                         </td>
                         <td className=" px-6 py-3 text-center">

@@ -136,10 +136,10 @@ const Buyers = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Buyers
           </h1>
 
@@ -173,34 +173,34 @@ const Buyers = () => {
 
         <div className="relative overflow-x-auto mt-5 ">
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+            <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
               <tr>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   <span className="text-red-500">S.N</span>-
                   <span className="text-green-600">A.S.N</span>
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Party Name
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   City
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Credit
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Debit
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Balance
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Status
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   Details
                 </th>
-                <th className="px-6 py-4 text-md font-medium" scope="col">
+                <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                   New Bill
                 </th>
               </tr>
@@ -229,7 +229,7 @@ const Buyers = () => {
                       key={index}
                       className="bg-white border-b text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     >
-                      <td className="px-6 py-4  font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         <span className="text-red-500">
                           {" "}
                           {data.serialNumber}
@@ -237,26 +237,26 @@ const Buyers = () => {
                         -<span className="text-green-600">{data.autoSN}</span>
                       </td>
                       <th
-                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                        className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                         scope="row"
                       >
                         <p>{data.name}</p>
                         <PhoneComponent phone={data.phone} />
                       </th>
-                      <td className="px-6 py-4 font-medium">{data.city}</td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">{data.city}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         {data.virtual_account.total_credit} Rs
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         {data.virtual_account.total_debit} Rs
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         {data.virtual_account.total_balance} Rs
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         {setStatusColor(data.virtual_account.status)}
                       </td>
-                      <td className="pl-10 py-4">
+                      <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
                         <Link
                           onClick={() => window.scrollTo(0, 0)}
                           to={`/dashboard/buyers-details/${data.id}`}
@@ -264,7 +264,7 @@ const Buyers = () => {
                           <FaEye size={20} className="cursor-pointer" />
                         </Link>
                       </td>
-                      <td className="px-6 py-4 font-medium">
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                         <Link
                           to={`/dashboard/old-buyer-generate-bill/${data.id}`}
                           onClick={() => window.scrollTo(0, 0)}

@@ -42,10 +42,10 @@ const OtherSaleBills = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[70vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Other Sale Bills
           </h1>
 

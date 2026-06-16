@@ -22,6 +22,8 @@ const OtherAccountsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+OtherAccountsSchema.index({ createdAt: -1 });
+
 export const OtherAccountsModel = mongoose.model(
   "OtherAccounts",
   OtherAccountsSchema
@@ -67,6 +69,8 @@ const TransactionDetailsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+TransactionDetailsSchema.index({ accountId: 1, date: -1 });
 
 export const OtherAccountsTransactionModel = mongoose.model(
   "OtherAccountsTransactions",

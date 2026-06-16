@@ -69,4 +69,8 @@ const accessoriesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+accessoriesSchema.index({ name: 1, createdAt: -1 });
+accessoriesSchema.index({ serial_No: 1 });
+accessoriesSchema.index({ createdAt: -1 });
+
 export const AccssoriesModel = mongoose.model("Accessories", accessoriesSchema);

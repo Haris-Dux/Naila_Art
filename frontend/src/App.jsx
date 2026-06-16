@@ -30,6 +30,7 @@ import OtherSaleBills from "./pages/bills/OtherSaleBills";
 import ReturnBills from "./pages/bills/ReturnBills";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
+import AccountsDashboard from "./pages/accounts/AccountsDashboard";
 import Buyers from "./pages/accounts/Buyers";
 import BuyersDetails from "./pages/accounts/BuyersDetails";
 import BuyersChecks from "./pages/checks/BuyerChecks";
@@ -41,6 +42,7 @@ import CashInOut from "./pages/cash/CashInOut";
 import CashBook from "./pages/cashBook/CashBook";
 import DailySale from "./pages/dailySale/DailySale";
 import DailySaleDetail from "./pages/dailySale/DailySaleDetail";
+import ProcessAnalytics from "./pages/process/ProcessAnalytics";
 import Embroidery from "./pages/process/embroidery/Embroidery";
 import EmbroideryDetails from "./pages/process/embroidery/EmbroideryDetails";
 import UpdateEmbroidery from "./pages/process/embroidery/UpdateEmbroidery";
@@ -130,6 +132,7 @@ function App() {
           <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
           <Route path="other-sale" element={<OtherSaleBills />} />
           <Route path="naila-arts-return-bills" element={<ReturnBills />} />
+          <Route path="accounts-dashboard" element={<AccountsDashboard />} />
           <Route path="buyers" element={<Buyers />} />
           <Route path="buyers-checks/:id" element={<BuyersChecks />} />
           <Route path="buyers-details/:id" element={<BuyersDetails />} />
@@ -142,6 +145,7 @@ function App() {
           <Route path="cash" element={<CashInOut />} />
           <Route path="dailySale" element={<DailySale />} />
           <Route path="dailySale-details/:id" element={<DailySaleDetail />} />
+          <Route path="process-analytics" element={<ProcessAnalytics />} />
           <Route path="embroidery" element={<Embroidery />} />
           <Route path="embroidery-details/:id" element={<EmbroideryDetails />} />
           <Route path="embroidery-update/:id" element={<UpdateEmbroidery />} />

@@ -49,4 +49,6 @@ const DailySaleSchema = new mongoose.Schema(
   { timestamps: true , strict:false}
 );
 
+DailySaleSchema.index({ branchId: 1, date: 1 });
+
 export const DailySaleModel = mongoose.model("Daily Sale", DailySaleSchema);

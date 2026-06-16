@@ -50,4 +50,7 @@ const otherSaleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+otherSaleSchema.index({ createdAt: -1 });
+otherSaleSchema.index({ name: 1, createdAt: -1 });
+
 export const OtherSaleBillModel = mongoose.model("OtherSales", otherSaleSchema);

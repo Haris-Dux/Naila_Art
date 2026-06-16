@@ -57,6 +57,9 @@ const laceSchema = new mongoose.Schema({
   all_Records : [previousDataSchema]
 }, { timestamps: true });
 
-export const LaceModel = mongoose.model('Lace', laceSchema);
+laceSchema.index({ category: 1 });
+laceSchema.index({ createdAt: -1 });
+laceSchema.index({ name: 1, createdAt: -1 });
 
+export const LaceModel = mongoose.model('Lace', laceSchema);
 

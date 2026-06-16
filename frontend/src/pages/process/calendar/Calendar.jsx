@@ -65,10 +65,10 @@ const Calendar = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 min-h-[80vh] rounded-lg">
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[80vh] rounded-lg">
         {/* -------------- HEADER -------------- */}
-        <div className="header flex justify-between items-center mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-3xl font-medium">
+        <div className="header flex flex-wrap justify-between items-center gap-3 mx-2">
+          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
             Calendar
           </h1>
           {/* SEARCH FILTERS */}
@@ -94,28 +94,28 @@ const Calendar = () => {
           <>
             <div className="relative overflow-x-auto mt-5 ">
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-sm text-gray-700  bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       <span className="text-red-500">S.N</span>/
                       <span className="text-green-600">M.N</span>
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Party Name
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Design No
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Date
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Quantity
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Status
                     </th>
-                    <th className="px-6 py-3 font-medium" scope="col">
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Actions
                     </th>
                   </tr>
@@ -128,7 +128,7 @@ const Calendar = () => {
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                       >
                         <th
-                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                           scope="row"
                         >
                           <span className="text-red-500">
@@ -140,14 +140,14 @@ const Calendar = () => {
                             {entry.Manual_No ?? "--"}
                           </span>
                         </th>
-                        <td className="px-6 py-4">{entry.partyName}</td>
-                        <td className="px-6 py-4">{entry.design_no}</td>
-                        <td className="px-6 py-4">{entry.date}</td>
-                        <td className="px-6 py-4">{entry.T_Quantity} m</td>
-                        <td className="px-6 py-4">
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{entry.partyName}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{entry.design_no}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{entry.date}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{entry.T_Quantity} m</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                           {setStatusColor(entry.project_status)}
                         </td>
-                        <td className="pl-10 py-4 flex items-center gap-3">
+                        <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex items-center gap-3">
                           <Link to={`/dashboard/calendar-details/${entry.id}`}>
                             <FaEye size={20} className="cursor-pointer" />
                           </Link>

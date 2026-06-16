@@ -21,7 +21,7 @@ const GenerateBill = () => {
   const { Branches } = useSelector((state) => state.InStock);
   const PackagingData = useSelector((state) => state.InStock?.Bags);
   const { pdfLoading, generateBillloading } = useSelector(
-    (state) => state.BuyerBills
+    (state) => state.BuyerBills,
   );
   const Bags = PackagingData?.data?.filter((item) => item.name !== "Bags");
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -216,11 +216,11 @@ const GenerateBill = () => {
 
     //DATA BY DESIGN NUMBER
     const DataFromDesignNumber = branchStockData.filter(
-      (item) => item.d_no === selectedDesignNumber.value
+      (item) => item.d_no === selectedDesignNumber.value,
     );
     // Extract colors from the filtered items
     const colors = DataFromDesignNumber.map(
-      (item) => `${item.color} (${item.total_quantity})`
+      (item) => `${item.color} (${item.total_quantity})`,
     );
 
     // Update color options for this specific row
@@ -238,7 +238,7 @@ const GenerateBill = () => {
     const selectedDesign = branchStockData.find(
       (design) =>
         design.color === selectedColor &&
-        design.d_no === billData.suits_data[index].d_no
+        design.d_no === billData.suits_data[index].d_no,
     );
 
     setBillData((prevState) => {
@@ -410,10 +410,10 @@ const GenerateBill = () => {
       {showPreview ? (
         <PreviewBill billData={billData} onReturnClick={handleReturnClick} />
       ) : (
-        <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-6 px-5 py-6 overflow-y-auto min-h-screen rounded-lg">
+        <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 overflow-y-auto min-h-screen rounded-lg">
           <div className="content">
             <div className="header pt-3 pb-5 w-full border-b">
-              <h2 className="text-3xl font-medium text-center text-gray-900 dark:text-white">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-center text-gray-900 dark:text-white">
                 Generate Bill
               </h2>
             </div>
@@ -423,7 +423,7 @@ const GenerateBill = () => {
             {/* INPUT FIELDS DETAILS */}
             <div className="fields">
               {/* FIRST ROW */}
-              <div className="mb-5 pt-10 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="mb-5 pt-10 grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
                 <div>
                   <input
                     name="serialNumber"
@@ -471,7 +471,7 @@ const GenerateBill = () => {
               </div>
 
               {/* SECOND ROW */}
-              <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="mb-4 grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
                 <div>
                   <input
                     name="phone"
@@ -572,7 +572,7 @@ const GenerateBill = () => {
               </div>
 
               {/* THIRD ROW */}
-              <div className="mb-4 grid items-start grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="mb-4 grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
                 <div>
                   <select
                     id="packaging"
@@ -778,7 +778,7 @@ const GenerateBill = () => {
             {/* SUIT FIELDS */}
             <div className="fields mt-10">
               {/* header */}
-              <div className="header flex justify-between items-center">
+              <div className="header flex flex-wrap justify-between items-center gap-3">
                 <h3 className="text-xl font-medium text-gray-900 dark:text-white">
                   Enter Suit Details
                 </h3>
@@ -799,16 +799,16 @@ const GenerateBill = () => {
                     key={index}
                     className="flex items-center justify-between gap-x-4"
                   >
-                    <div className="grid items-start grid-cols-1 lg:grid-cols-4 gap-5 w-full">
+                    <div className="grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
                       {/* DESIGN FIELD */}
                       <div>
                         <Select
                           options={Array.from(
                             new Set(
                               branchStockData?.map(
-                                (item) => `${item.d_no}-${item.category}`
-                              )
-                            )
+                                (item) => `${item.d_no}-${item.category}`,
+                              ),
+                            ),
                           ).map((uniqueItem) => {
                             const [d_no, category] = uniqueItem.split("-");
                             return {

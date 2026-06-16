@@ -128,4 +128,13 @@ const stoneSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+stoneSchema.index({ project_status: 1, createdAt: -1 });
+stoneSchema.index({ partyName: 1, createdAt: -1 });
+stoneSchema.index({ date: -1 });
+stoneSchema.index({ embroidery_Id: 1 });
+stoneSchema.index({ design_no: 1, createdAt: -1 });
+stoneSchema.index({ Manual_No: 1, createdAt: -1 });
+stoneSchema.index({ embroidery_Id: 1, design_no: 1 });
+stoneSchema.index({ cuttingId: 1 });
+
 export const StoneModel = mongoose.model("Stone", stoneSchema);

@@ -21,4 +21,6 @@ const cashInOutSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
+cashInOutSchema.index({ branchId: 1, date: 1 });
+
 export const CashInOutModel = mongoose.model('Cash In Out',cashInOutSchema);

@@ -61,4 +61,7 @@ const branchHistorySchema = new mongoose.Schema({
 {timestamps:true}
 );
 
+branchHistorySchema.index({ branchId: 1, createdAt: -1 });
+branchHistorySchema.index({ branchId: 1, bundleStatus: 1, createdAt: -1 });
+
 export const branchStockHistoryModel = mongoose.model("Branch Stock History",branchHistorySchema)

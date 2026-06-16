@@ -138,7 +138,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
         aria-hidden="true"
         className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
       >
-        <div className="relative scrollable-content py-4 px-3 w-full max-w-6xl h-[80vh] bg-white rounded-md shadow dark:bg-gray-700">
+        <div className="relative scrollable-content py-4 px-3 w-[95%] max-w-6xl max-h-[80vh] bg-white rounded-md shadow dark:bg-gray-700">
           {/* Header */}
           <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -217,7 +217,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
               </div>
 
               {/* Return Amounts */}
-              <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+              <div className=" px-3 md:px-6 lg:px-8 py-2 flex flex-wrap justify-around items-center gap-2 border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
                 <div className="box text-center">
                   <h3 className="pb-1 font-normal">Total Return Amount</h3>
                   <h3>{T_Return_Amount}</h3>
@@ -235,29 +235,29 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
               {/* Suits Data Input Table */}
               <div className="relative overflow-x-auto mt-5">
                 <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                  <thead className="text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                  <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                     <tr>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         Category
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         <span className="text-green-500">Quantity</span>/
                         <span className="text-red-500">Returnable</span>
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         Color
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         {" "}
                         Sale Price
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         Enter R.Q
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         Enter R.Price
                       </th>
-                      <th className="px-6 py-4 text-center text-md font-medium">
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center text-xs md:text-sm font-medium">
                         Remove
                       </th>
                     </tr>
@@ -269,10 +269,10 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                           key={index}
                           className="bg-white border-b text-md font-normal dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                         >
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             {data?.category}
                           </td>
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             <span className="text-green-500">
                               {data?.quantity}
                             </span>
@@ -281,13 +281,13 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                               {data?.quantity_for_return}
                             </span>
                           </td>
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             {data?.color}
                           </td>
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             {data?.suitSalePrice}
                           </td>
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             <input
                               type="number"
                               inputMode="numeric"
@@ -300,7 +300,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                               className="border border-gray-300 rounded-md px-2 py-1 w-20 text-gray-600"
                             />
                           </td>
-                          <td className="px-6 text-center py-4">
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                             <input
                               type="number"
                               inputMode="numeric"
@@ -346,7 +346,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-full max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 w-[95%] max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
             <div className="flex items-center justify-center p-4 border-b dark:border-gray-600"></div>
             <div className="p-2">
               <p className="text-gray-700 text-center dark:text-gray-300">

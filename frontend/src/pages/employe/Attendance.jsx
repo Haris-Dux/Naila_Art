@@ -322,7 +322,7 @@ const Attendance = () => {
       {/* MARK ATTENDANCE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
+          <div className="w-[95%] max-w-lg overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-gray-200 bg-gray-50 p-5">
               <div>

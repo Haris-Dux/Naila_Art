@@ -34,6 +34,9 @@ const expenseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+expenseSchema.index({ branchId: 1, categoryId: 1, createdAt: -1 });
+expenseSchema.index({ branchId: 1, createdAt: -1 });
+
 export const ExpenseModel = mongoose.model("Expense", expenseSchema);
 
 const expenseCategorySchema = new mongoose.Schema(
@@ -52,6 +55,8 @@ const expenseCategorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+expenseCategorySchema.index({ createdAt: -1 });
 
 export const ExpenseCategoriesModel = mongoose.model(
   "Expense Categories",

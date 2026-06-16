@@ -439,7 +439,7 @@ const BaseCategorySection = ({
   return (
     <div>
       <div className="box">
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Shirt Colors And Quantity:{" "}
             {designNumberSectionData?.design_no === D_NO && (
@@ -452,7 +452,7 @@ const BaseCategorySection = ({
         </div>
         {formData?.shirt?.map((shirt, index) => (
           <div
-            className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+            className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
             key={index}
           >
             <div>
@@ -523,7 +523,7 @@ const BaseCategorySection = ({
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             Enter Duppta Colors And Quantity :
           </p>
@@ -533,7 +533,7 @@ const BaseCategorySection = ({
         </div>
 
         {formData?.duppata?.map((duppata, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -604,7 +604,7 @@ const BaseCategorySection = ({
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             {" "}
             Enter Trousers Colors And Quantity :
@@ -615,7 +615,7 @@ const BaseCategorySection = ({
         </div>
 
         {formData?.trouser?.map((trouser, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -687,7 +687,7 @@ const BaseCategorySection = ({
           </div>
         ))}
 
-        <div className="header flex justify-between items-center">
+        <div className="header flex flex-wrap justify-between items-center gap-3">
           <p className="mt-3 text-gray-700  dark:text-white">
             {" "}
             Enter Tissue Colors And Quantity :
@@ -701,7 +701,7 @@ const BaseCategorySection = ({
         {formData?.tissue?.map((tissue, index) => (
           <div
             key={index}
-            className="mt-3 grid items-start grid-cols-1 lg:grid-cols-4 gap-5"
+            className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
           >
             <div>
               <Select

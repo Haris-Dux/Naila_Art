@@ -46,9 +46,13 @@ const branchStockSchema = new mongoose.Schema({
 {timestamps:true}
 );
 
+branchStockSchema.index({ branchId: 1, total_quantity: -1 });
+branchStockSchema.index({ branchId: 1, d_no: 1, total_quantity: -1 });
+branchStockSchema.index({ branchId: 1, category: 1, total_quantity: -1 });
+branchStockSchema.index({ branchId: 1, d_no: 1, category: 1, color: 1 });
+
 export const branchStockModel = mongoose.model(
   "Branch Stock",
   branchStockSchema
 );
-
 

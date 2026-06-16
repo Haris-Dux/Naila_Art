@@ -205,7 +205,7 @@ const DesignNumberSection = ({ embroideryData,getData }) => {
   },[formData])
 
   return (
-    <div className="mb-8 grid items-start grid-cols-1 lg:grid-cols-4 gap-5">
+    <div className="mb-8 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       {/* FIRST ROW */}
       <div className="grid items-center h-full grid-cols-4 gap-1">
         <label className="col-span-2 ">

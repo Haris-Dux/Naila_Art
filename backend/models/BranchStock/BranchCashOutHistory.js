@@ -24,4 +24,6 @@ const branchCashOutSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+branchCashOutSchema.index({ branchId: 1, createdAt: -1 });
+
 export const BranchCashOutHistoryModel = mongoose.model("Branch CashOut History", branchCashOutSchema);

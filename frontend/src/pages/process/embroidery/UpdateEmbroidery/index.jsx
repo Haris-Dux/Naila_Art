@@ -77,13 +77,13 @@ const UpdateEmbroidery = () => {
           </div>
           {/* ACCOUNT DATA */}
           {partytype === "oldParty" && accountData === false ? (
-            <div className=" px-8 py-2 flex justify-around items-center border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
+            <div className=" px-3 md:px-6 lg:px-8 py-2 flex flex-wrap justify-around items-center gap-2 border-2 border-red-600 rounded-lg text-green-500 dark:text-green-500  dark:border-red-600">
               <p>Embroidery Data Found But No Bill Generated Yet</p>
             </div>
           ) : (
             <>
               {partytype === "oldParty" && accountData !== null && (
-                <div className=" px-8 py-2 flex justify-around items-center border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
+                <div className=" px-3 md:px-6 lg:px-8 py-2 flex flex-wrap justify-around items-center gap-2 border-2 rounded-lg text-gray-900 dark:text-gray-100  dark:border-gray-600">
                   <div className="box text-center">
                     <h3 className="pb-1 font-normal">Total Debit</h3>
                     <h3>{accountData?.total_debit || 0}</h3>
