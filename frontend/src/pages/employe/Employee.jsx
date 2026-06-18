@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { IoAdd } from "react-icons/io5";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { FaEye, FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEye, FaTrashAlt, FaUndo } from "react-icons/fa";
 import {
   CreateEmployee,
   GetEmployeeActive,
@@ -11,6 +11,8 @@ import {
 } from "../../features/AccountSlice";
 import Pagination from "../../Component/Common/Pagination";
 import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
+import Icon from "../../Component/Common/Icons";
+import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 
 const categories = ["Active Employee", "Past Employee"];
 
@@ -57,6 +59,7 @@ const Employee = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("Active Employee");
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [restoreConfirmationOpen, setRestoreConfirmationOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
@@ -136,6 +139,18 @@ const Employee = () => {
     });
   };
 
+  const handleRestore = (id) => {
+    const data = {
+      id,
+      pastEmploye: false,
+    };
+
+    dispatch(UpdateEmployee(data)).then(() => {
+      dispatch(GetEmployeePast({ search: search || "", page, limit }));
+      closeRestoreConfirmationModal();
+    });
+  };
+
   const openModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
@@ -158,6 +173,18 @@ const Employee = () => {
 
   const closeConfirmationModal = () => {
     setIsConfirmationOpen(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const openRestoreConfirmationModal = (employee) => {
+    setRestoreConfirmationOpen(true);
+    setSelectedEmployee(employee);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeRestoreConfirmationModal = () => {
+    setRestoreConfirmationOpen(false);
+    setSelectedEmployee(null);
     document.body.style.overflow = "auto";
   };
 
@@ -270,11 +297,9 @@ const Employee = () => {
                     <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                       Details
                     </th>
-                    {selectedCategory === "Active Employee" && (
-                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
-                        Actions
-                      </th>
-                    )}
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -310,7 +335,8 @@ const Employee = () => {
                         </td>
                         {selectedCategory === "Active Employee" && (
                           <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex gap-2 mt-2">                          
-                            <FaEdit
+                            <Icon
+                              name="edit"
                               size={20}
                               className="cursor-pointer"
                               onClick={() => handleEdit(employee)}
@@ -319,6 +345,16 @@ const Employee = () => {
                               size={20}
                               className=" text-red-500 cursor-pointer"
                               onClick={() => openConfirmationModal(employee)}
+                            />
+                          </td>
+                        )}
+                        {selectedCategory === "Past Employee" && (
+                          <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
+                            <FaUndo
+                              size={20}
+                              className="cursor-pointer text-green-600"
+                              title="Move to active"
+                              onClick={() => openRestoreConfirmationModal(employee)}
                             />
                           </td>
                         )}
@@ -618,6 +654,16 @@ const Employee = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {restoreConfirmationOpen && (
+        <ConfirmationModal
+          onClose={closeRestoreConfirmationModal}
+          onConfirm={() => handleRestore(selectedEmployee?.id)}
+          message={"Are you sure you want to move this employee back to active?"}
+          title={"Restore Employee"}
+          updateStitchingLoading={employeEditLoading}
+        />
       )}
     </>
   );
