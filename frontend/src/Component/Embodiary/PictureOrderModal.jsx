@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   createPictureOrderAsync,
   getaccountDataForPicturesAsync,
+  GETEmbroiderySIngle,
 } from "../../features/EmbroiderySlice";
 import toast from "react-hot-toast";
 
@@ -99,6 +100,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No, Ma
     dispatch(createPictureOrderAsync(payload)).then((res) => {
         if(res.payload.success === true){
             closeModal();
+            dispatch(GETEmbroiderySIngle({id: embroidery_Id}));
         }
     })
 

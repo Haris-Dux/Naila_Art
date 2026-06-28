@@ -19,6 +19,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import toast from "react-hot-toast";
 import { getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
 import { Button } from "../../../Component/Common/button/Button";
+import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -31,6 +32,8 @@ const EmbroideryDetails = () => {
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
   const [picturesModal, setPicturesMOdal] = useState(false);
+  const [picturesWarningModal, setPicturesWarningModal] = useState(false);
+  const [pendingPicturesAction, setPendingPicturesAction] = useState(null);
 
   const { loading: IsLoading, previousDataByPartyName } = useSelector(
     (state) => state.Calender
@@ -214,9 +217,43 @@ const EmbroideryDetails = () => {
     });
   };
 
-  const openModal = () => {
+  const openCalendarModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
+  };
+
+  const openPicturesWarningModal = (action) => {
+    setPendingPicturesAction(() => action);
+    setPicturesWarningModal(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closePicturesWarningModal = () => {
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleProceedWithoutPicturesOrder = () => {
+    const action = pendingPicturesAction;
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    document.body.style.overflow = "auto";
+    action?.();
+  };
+
+  const handlePlacePicturesOrderFromWarning = () => {
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    setPicturesMOdal(true);
+  };
+
+  const openModal = () => {
+    if (SingleEmbroidery?.pictures_Order === false) {
+      openPicturesWarningModal(openCalendarModal);
+      return;
+    }
+    openCalendarModal();
   };
 
   const closeModal = () => {
@@ -306,6 +343,7 @@ const EmbroideryDetails = () => {
 
   const closeModalForPicturesOrder = () => {
     setPicturesMOdal(false);
+    document.body.style.overflow = "auto";
   };
 
   const handleSelectedRecord = (value) => {
@@ -344,17 +382,12 @@ const EmbroideryDetails = () => {
     };
   });
 
-  const handleSkipStep = (e) => {
-    const value = e.target.value;
-    const receivedSuitQuantity = Number(SingleEmbroidery.T_Recieved_Suit || 0);
-    const sourceAvailability = SingleEmbroidery?.processAvailability;
-    if (receivedSuitQuantity <= 0) {
-      return toast.error("No received quantity available for next step");
-    }
+  const performSkipStep = (value) => {
     const sourceState = {
       source_step: "Embroidery",
       source_id: SingleEmbroidery.id,
     };
+    const sourceAvailability = SingleEmbroidery?.processAvailability;
     switch (true) {
       case value === "Cutting":
         navigate("/dashboard/calendar-details/null", {
@@ -411,6 +444,20 @@ const EmbroideryDetails = () => {
       default:
         break;
     }
+  };
+
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    e.target.value = "";
+    const receivedSuitQuantity = Number(SingleEmbroidery.T_Recieved_Suit || 0);
+    if (receivedSuitQuantity <= 0) {
+      return toast.error("No received quantity available for next step");
+    }
+    if (SingleEmbroidery?.pictures_Order === false) {
+      openPicturesWarningModal(() => performSkipStep(value));
+      return;
+    }
+    performSkipStep(value);
   };
 
 
@@ -1016,6 +1063,14 @@ const EmbroideryDetails = () => {
         )}
 
         {/* PICTURES ORDER MODAL */}
+        {picturesWarningModal && (
+          <PicturesOrderWarningModal
+            onProceed={handleProceedWithoutPicturesOrder}
+            onPlaceOrder={handlePlacePicturesOrderFromWarning}
+            onCancel={closePicturesWarningModal}
+          />
+        )}
+
         {picturesModal && (
           <PictureOrderModal
             closeModal={closeModalForPicturesOrder}
