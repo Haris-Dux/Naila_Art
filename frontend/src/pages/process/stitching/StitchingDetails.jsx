@@ -137,6 +137,7 @@ const StitchingDetails = () => {
     e.preventDefault();
     const formData = {
       ...SingleStitching,
+      date: SingleStitching?.date,
       process_Category: "Stitching",
       Stitching_id: SingleStitching?.id,
       Manual_No: processBillData.Manual_No,
@@ -410,7 +411,6 @@ const StitchingDetails = () => {
 }
 
 export default StitchingDetails;
-
 
 
 

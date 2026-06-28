@@ -263,6 +263,7 @@ const EmbroideryDetails = () => {
     e.preventDefault();
     const formData = {
       ...SingleEmbroidery,
+      date: SingleEmbroidery?.date,
       process_Category: "Embroidery",
       Manual_No: processBillData.Manual_No,
       additionalExpenditure: processBillData.additionalExpenditure,

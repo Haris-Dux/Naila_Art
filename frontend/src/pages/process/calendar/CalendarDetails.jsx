@@ -271,6 +271,7 @@ const CalendarDetails = () => {
     const formData = {
       ...SingleCalender,
       ...billData,
+      date: SingleCalender?.date,
       r_quantity: convertedQuantity,
       process_Category: "Calender",
       Calender_id: SingleCalender.id,

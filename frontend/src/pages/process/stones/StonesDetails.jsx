@@ -493,6 +493,7 @@ const StonesDetails = () => {
     }
     const formData = {
       ...SingleStone,
+      date: SingleStone?.date,
       r_quantity: T_QuantityForBill,
       process_Category: "Stone",
       Stone_id: SingleStone.id,

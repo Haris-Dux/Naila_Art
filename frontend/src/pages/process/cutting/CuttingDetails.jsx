@@ -289,6 +289,7 @@ const CuttingDetails = () => {
     e.preventDefault();
     const formData = {
       ...SingleCutting,
+      date: SingleCutting?.date,
       process_Category: "Cutting",
       Manual_No: processBillData.Manual_No,
       additionalExpenditure: processBillData.additionalExpenditure,
