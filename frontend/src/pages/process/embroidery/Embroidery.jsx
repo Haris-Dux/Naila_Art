@@ -191,7 +191,7 @@ const Embroidery = () => {
         const discountAmount = (Number(formData.discount) / 100) * totalAmount;
         totalAmount = totalAmount - discountAmount;
       }
-      setTotal(Math.floor(totalAmount));
+      setTotal(Number(totalAmount.toFixed(3)));
     }
   }, [formData.rate_per_stitching, formData.discountType, formData.discount]);
 

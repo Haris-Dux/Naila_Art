@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import Select from "react-select";
 import {
   CreateEmbroidery,
@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { getPageLimit } from "../../Utils/Common";
+import { RxCross2 } from "react-icons/rx";
 
 const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValue,D_NO }) => {
   const { loading, BaseforEmroidery } = useSelector((state) => state.InStock);
@@ -85,6 +86,41 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
       [field]: prevState[field].filter((_, idx) => idx !== index),
     }));
   };
+
+  const duplicateRow = (field, index) => {
+    setFormData((prevState) => {
+      const currentRows = prevState[field] || [];
+      const rowToDuplicate = currentRows[index];
+      return {
+        ...prevState,
+        [field]: [
+          ...currentRows.slice(0, index + 1),
+          { ...rowToDuplicate },
+          ...currentRows.slice(index + 1),
+        ],
+      };
+    });
+  };
+
+  const renderRowActions = (field, index) => (
+    <div className="flex items-center">
+      <FiPlus
+        onClick={() => duplicateRow(field, index)}
+        className="text-gray-900 cursor-pointer"
+        size={20}
+      />
+
+      {formData?.[field]?.length > 1 && (
+        <div>
+          <RxCross2
+            onClick={() => deleteRow(field, index)}
+            size={20}
+            className="text-red-500 cursor-pointer"
+          />
+        </div>
+      )}
+    </div>
+  );
 
   const handleInputChange = (e, index, type) => {
     const { name, value } = e.target;
@@ -431,30 +467,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={shirt.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "shirt")}
               />
-              {formData.shirt.length > 1 && (
-                <button
-                  onClick={() => deleteRow("shirt", index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+              {renderRowActions("shirt", index)}
             </div>
           </div>
         ))}
@@ -469,7 +482,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         </div>
 
         {formData?.duppata?.map((duppata, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div key={index} className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -511,30 +524,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={duppata.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "duppata")}
               />
-              {formData?.duppata?.length > 1 && (
-                <button
-                  onClick={() => deleteRow("duppata", index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+              {renderRowActions("duppata", index)}
             </div>
           </div>
         ))}
@@ -550,7 +540,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         </div>
 
         {formData?.trouser?.map((trouser, index) => (
-          <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div key={index} className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
               <Select
                 options={categoryOptions}
@@ -593,30 +583,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 onChange={(e) => handleInputChange(e, index, "trouser")}
               />
 
-              {formData?.trouser?.length > 1 && (
-                <button
-                  onClick={() => deleteRow("trouser", index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+              {renderRowActions("trouser", index)}
             </div>
           </div>
         ))}
@@ -668,30 +635,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
                 value={tissue.quantity_in_m || ""}
                 onChange={(e) => handleInputChange(e, index, "tissue")}
               />
-              {formData?.tissue?.length > 1 && (
-                <button
-                  onClick={() => deleteRow("tissue", index)}
-                  className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    className="w-3 h-3"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span className="sr-only">Close modal</span>
-                </button>
-              )}
+              {renderRowActions("tissue", index)}
             </div>
           </div>
         ))}
