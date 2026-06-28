@@ -2,6 +2,7 @@ import express from "express";
 import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
 import {
   approveOrRejectStock,
+  approveOrRejectReturnedStock,
   assignStockToBranch,
   createBranch,
   deleteBranch,
@@ -10,7 +11,9 @@ import {
   getAllSuitsStockForBranch,
   getBranchCashoutHistory,
   getPendingStockForBranch,
+  getPendingReturnedStock,
   getSuitsStockToGenerateBill,
+  returnStockToMain,
   updateBranch,
 } from "../controllers/Branch.Controller.js";
 
@@ -27,7 +30,10 @@ branchRouter.post("/assignStockToBranch", superAdminOnly, assignStockToBranch);
 branchRouter.post("/getAllBranchStockHistory", superAdminOnly, getAllBranchStockHistory);
 branchRouter.post("/getAllSuitsStockForBranch", verifyUser, getAllSuitsStockForBranch);
 branchRouter.post("/approveOrRejectStock", verifyUser, approveOrRejectStock);
+branchRouter.post("/returnStockToMain", verifyUser, returnStockToMain);
+branchRouter.post("/approveOrRejectReturnedStock", superAdminOnly, approveOrRejectReturnedStock);
 branchRouter.post("/getPendingStockForBranch", verifyUser, getPendingStockForBranch);
+branchRouter.post("/getPendingReturnedStock", superAdminOnly, getPendingReturnedStock);
 branchRouter.post("/getSuitsStockToGenerateBill", verifyUser, getSuitsStockToGenerateBill);
 
 

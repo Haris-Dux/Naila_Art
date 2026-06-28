@@ -192,6 +192,105 @@ export const assignStockToBranch = async (req, res) => {
   }
 };
 
+export const returnStockToMain = async (req, res) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const branchId = req.branch_id;
+      const { bundles, note } = req.body;
+      const requiredFields = ["bundles", "note"];
+      const bundleFields = [
+        "branchStock_Id",
+        "Item_Id",
+        "category",
+        "color",
+        "quantity",
+        "cost_price",
+        "sale_price",
+        "d_no",
+      ];
+      const missingFields = [];
+
+      if (!branchId) {
+        throw new Error("Branch id required");
+      }
+
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          missingFields.push(`${field}`);
+        } else if (field === "bundles" && req.body[field].length === 0) {
+          missingFields.push(`${field} Cannot be empty`);
+        }
+      });
+
+      const structuredArray = bundles?.flat() || [];
+      structuredArray.forEach((obj, index) => {
+        const missingStockFields = [];
+        bundleFields.forEach((item) => {
+          if (!obj[item]) {
+            missingStockFields.push(item);
+          }
+        });
+        if (missingStockFields.length > 0) {
+          missingFields.push(
+            `${missingStockFields} for suit item ${index + 1}`
+          );
+        }
+        if (Number(obj.quantity) <= 0) {
+          missingFields.push(`quantity must be greater than 0 for suit item ${index + 1}`);
+        }
+      });
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing Fields ${missingFields}`);
+      }
+
+      const result = await branchStockModel.bulkWrite(
+        structuredArray.map((item) => ({
+          updateOne: {
+            filter: {
+              _id: item.branchStock_Id,
+              branchId,
+              total_quantity: { $gte: Number(item.quantity) },
+            },
+            update: {
+              $inc: { total_quantity: -Number(item.quantity) },
+              $set: { lastUpdated: getTodayDate() },
+            },
+          },
+        })),
+        { session }
+      );
+
+      if (result.modifiedCount !== structuredArray.length) {
+        throw new Error("One or more items have insufficient branch stock.");
+      }
+
+      await branchStockHistoryModel.create(
+        [
+          {
+            branchId,
+            issueDate: getTodayDate(),
+            note,
+            bundles,
+            transferType: "RETURN_TO_MAIN",
+          },
+        ],
+        { session }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Return request created successfully",
+      });
+    });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
 export const getBranchCashoutHistory = async (req, res) => {
   try {
     const branchId = req.branch_id;
@@ -253,6 +352,19 @@ export const getAllBranchStockHistory = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPendingReturnedStock = async (req, res) => {
+  try {
+    const count = await branchStockHistoryModel.countDocuments({
+        bundleStatus: "Pending",
+        transferType: "RETURN_TO_MAIN",
+      });
+
+    return res.status(200).json({ count });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -420,12 +532,89 @@ export const approveOrRejectStock = async (req, res) => {
   }
 };
 
+export const approveOrRejectReturnedStock = async (req, res) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { stockId, status } = req.body;
+      if (
+        !stockId ||
+        (status !== "Approved" && status !== "Rejected")
+      ) {
+        throw new Error("Invalid Fields");
+      }
+
+      const pendingStockData = await branchStockHistoryModel
+        .findById(stockId)
+        .session(session);
+      if (!pendingStockData) throw new Error("No pending return stock found");
+      if (pendingStockData.transferType !== "RETURN_TO_MAIN") {
+        throw new Error("Invalid return stock request");
+      }
+      if (pendingStockData.bundleStatus !== "Pending") {
+        throw new Error("Error updating stock.Stock is not pending");
+      }
+
+      const structuredArray = pendingStockData.bundles.flat();
+      if (status === "Approved") {
+        const result = await SuitsModel.bulkWrite(
+          structuredArray.map((item) => ({
+            updateOne: {
+              filter: { _id: item.Item_Id },
+              update: { $inc: { quantity: Number(item.quantity) } },
+            },
+          })),
+          { session }
+        );
+
+        if (result.modifiedCount !== structuredArray.length) {
+          throw new Error("Failed to update main stock");
+        }
+      } else if (status === "Rejected") {
+        const result = await branchStockModel.bulkWrite(
+          structuredArray.map((item) => ({
+            updateOne: {
+              filter: {
+                _id: item.branchStock_Id,
+                branchId: pendingStockData.branchId,
+              },
+              update: {
+                $inc: { total_quantity: Number(item.quantity) },
+                $set: { lastUpdated: getTodayDate() },
+              },
+            },
+          })),
+          { session }
+        );
+
+        if (result.modifiedCount !== structuredArray.length) {
+          throw new Error("Failed to restore branch stock");
+        }
+      }
+
+      pendingStockData.bundleStatus = status;
+      pendingStockData.updatedOn = getTodayDate();
+      await pendingStockData.save({ session });
+
+      return res.status(200).json({
+        success: true,
+        message: "Return stock updated successfully",
+      });
+    });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
 export const getPendingStockForBranch = async (req, res) => {
   try {
     const branchId = req.branch_id;
     const data = await branchStockHistoryModel.find({
       branchId: branchId,
       bundleStatus: "Pending",
+      $or: [{ transferType: "TO_BRANCH" }, { transferType: { $exists: false } }],
     });
     return res.status(200).json(data);
   } catch (error) {

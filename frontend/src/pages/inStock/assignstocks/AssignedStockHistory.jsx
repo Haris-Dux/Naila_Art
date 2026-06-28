@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  AllBranchStockHistoryAsync
+  AllBranchStockHistoryAsync,
+  approveOrRejectReturnedStockAsync,
 } from "../../../features/InStockSlice";
 import Pagination from "../../../Component/Common/Pagination";
 import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
@@ -17,6 +18,7 @@ const AssignedStockHistory = () => {
   const { StockHistoryLoading, StockHistory, Branches } = useSelector(
     (state) => state.InStock
   );
+  const { stockLoading } = useSelector((state) => state.InStock);
 
   useEffect(() => {
     if (Branches.length > 0 && !selectedBranch) {
@@ -36,6 +38,16 @@ const AssignedStockHistory = () => {
 
   const handleBranchClick = (branch) => {
     setSelectedBranch(branch);
+  };
+
+  const handleReturnStatusUpdate = (stockId, status) => {
+    dispatch(approveOrRejectReturnedStockAsync({ stockId, status })).then((res) => {
+      if (res.payload?.success && selectedBranch) {
+        dispatch(
+          AllBranchStockHistoryAsync({ branchId: selectedBranch, page, limit })
+        );
+      }
+    });
   };
 
   const setStatusColor = (status) => {
@@ -156,7 +168,15 @@ const AssignedStockHistory = () => {
                       <React.Fragment key={`group-${i}`}>
                         <tr className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white font-semibold">
                           <td colSpan={8} className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                             Total Quantity: {getALLBundlesQuantity(dataGroup)?.allBundlesQuantitySum}  | Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <span>
+                             Total Quantity: {getALLBundlesQuantity(dataGroup)?.allBundlesQuantitySum}  | Direction:{" "}
+                            <span className="font-semibold">
+                              {dataGroup.transferType === "RETURN_TO_MAIN"
+                                ? "Returned to Main"
+                                : "Sent to Branch"}
+                            </span>{" "}
+                            | Issue Date: {dataGroup.issueDate} | Updated Date:{" "}
                             {dataGroup.updatedOn} | Status:{" "}
                             <span
                               className={`text-${setStatusColor(
@@ -166,6 +186,31 @@ const AssignedStockHistory = () => {
                               {dataGroup.bundleStatus}
                             </span>{" "}
                             {`| Note: ${dataGroup.note}`}
+                              </span>
+                              {dataGroup.transferType === "RETURN_TO_MAIN" &&
+                                dataGroup.bundleStatus === "Pending" && (
+                                  <span className="flex items-center gap-2">
+                                    <button
+                                      disabled={stockLoading}
+                                      onClick={() =>
+                                        handleReturnStatusUpdate(dataGroup.id, "Approved")
+                                      }
+                                      className="rounded px-3 py-1.5 text-xs text-green-600 hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      disabled={stockLoading}
+                                      onClick={() =>
+                                        handleReturnStatusUpdate(dataGroup.id, "Rejected")
+                                      }
+                                      className="rounded px-3 py-1.5 text-xs text-red-500 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                      Reject
+                                    </button>
+                                  </span>
+                                )}
+                            </div>
                           </td>
                         </tr>
 

@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AssginStocktoBranch } from "../../../features/InStockSlice";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FaHistory } from "react-icons/fa";
-import moment from "moment-timezone";
 
 const AssignStock = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { Branches, stockLoading } = useSelector((state) => state.InStock);
   const { user } = useSelector((state) => state.auth);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [selectedItems, setSelectedItems] = useState(
     () => JSON.parse(localStorage.getItem("selectedSuits")) || []
   );
@@ -175,13 +172,6 @@ const AssignStock = () => {
               </option>
             ))}
           </select>
-          <Link
-            className="flex items-center justify-center gap-3 px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            to={"/dashboard/AssignedStockHistory"}
-          >
-            Branch Stock Records
-            <FaHistory size={20} className="cursor-pointer" />
-          </Link>
         </div>
 
         <div className="relative overflow-x-auto mt-5">

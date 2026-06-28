@@ -27,8 +27,11 @@ const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
 const AllSuitsStockHistoryUrl = "/api/branches/getAllBranchStockHistory";
 const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock";
+const returnStockToMainUrl = "/api/branches/returnStockToMain";
+const approveOrRejectReturnedStockUrl = "/api/branches/approveOrRejectReturnedStock";
 const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
 const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
+const getPendingReturnedStockUrl = "/api/branches/getPendingReturnedStock";
 const getAllBranches = "/api/branches/getAllBranches";
 
 export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
@@ -80,6 +83,34 @@ export const approveOrRejectStock = createAsyncThunk(
   async (formData) => {
     try {
       const response = await axios.post(approveOrRejectStockUrl, formData);
+      toast.success(response.data.message);
+
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const returnStockToMainAsync = createAsyncThunk(
+  "returnStockToMain/Create",
+  async (formData) => {
+    try {
+      const response = await axios.post(returnStockToMainUrl, formData);
+      toast.success(response.data.message);
+
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const approveOrRejectReturnedStockAsync = createAsyncThunk(
+  "approveOrRejectReturnedStock/Create",
+  async (formData) => {
+    try {
+      const response = await axios.post(approveOrRejectReturnedStockUrl, formData);
       toast.success(response.data.message);
 
       return response.data;
@@ -386,6 +417,19 @@ export const getPendingStockForBranchAsync = createAsyncThunk(
   }
 );
 
+export const getPendingReturnedStockAsync = createAsyncThunk(
+  "Branches/getPendingReturnedStock",
+  async () => {
+    try {
+      const response = await axios.post(getPendingReturnedStockUrl);
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
 export const deleteProcessSuitStockAsync = createAsyncThunk(
   "Suits/deletesuitstock",
   async (data) => {
@@ -426,6 +470,7 @@ const initialState = {
   addSuitLoading: false,
   deleteLodaing: false,
   pendingStock: [],
+  pendingReturnedStockCount: 0,
   ExpenseCategories: [],
   ExpenseStats: [],
   ExpenseCategoryLoading: false,
@@ -454,6 +499,18 @@ const InStockSlic = createSlice({
       .addCase(getPendingStockForBranchAsync.rejected, (state, action) => {
         state.loading = false;
         state.pendingStock = [];
+      })
+
+      .addCase(getPendingReturnedStockAsync.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(getPendingReturnedStockAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pendingReturnedStockCount = action.payload?.count || 0;
+      })
+      .addCase(getPendingReturnedStockAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.pendingReturnedStockCount = 0;
       })
 
       .addCase(GetAllaccessories.pending, (state, action) => {
@@ -644,6 +701,26 @@ const InStockSlic = createSlice({
         state.stockLoading = true;
       })
       .addCase(approveOrRejectStock.fulfilled, (state, action) => {
+        state.stockLoading = false;
+      })
+
+      .addCase(returnStockToMainAsync.pending, (state) => {
+        state.stockLoading = true;
+      })
+      .addCase(returnStockToMainAsync.fulfilled, (state, action) => {
+        state.stockLoading = false;
+      })
+      .addCase(returnStockToMainAsync.rejected, (state, action) => {
+        state.stockLoading = false;
+      })
+
+      .addCase(approveOrRejectReturnedStockAsync.pending, (state) => {
+        state.stockLoading = true;
+      })
+      .addCase(approveOrRejectReturnedStockAsync.fulfilled, (state, action) => {
+        state.stockLoading = false;
+      })
+      .addCase(approveOrRejectReturnedStockAsync.rejected, (state, action) => {
         state.stockLoading = false;
       })
 

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { AddSuit, deleteProcessSuitStockAsync, GetAllSuit } from "../../../features/InStockSlice";
+import { AddSuit, deleteProcessSuitStockAsync, GetAllSuit, getPendingReturnedStockAsync } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { FaBoxOpen, FaEye } from "react-icons/fa";
+import { FaBoxOpen, FaEye, FaHistory } from "react-icons/fa";
 import { IoAdd } from "react-icons/io5";
 import StockForBranch from "../../../Component/InStock/StockForBranch";
 import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
@@ -25,7 +25,7 @@ const SuitsStock = () => {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
 
-  const { Suit, GetSuitloading, addSuitLoading, deleteStockLoading } = useSelector(
+  const { Suit, GetSuitloading, addSuitLoading, deleteStockLoading, pendingReturnedStockCount } = useSelector(
     (state) => state.InStock
   );
   const { user } = useSelector((state) => state.auth);
@@ -63,6 +63,7 @@ const SuitsStock = () => {
   useEffect(() => {
     if (user?.user?.role === "superadmin") {
       dispatch(GetAllSuit({ category: userSelectedCategory, search, page, limit }));
+      dispatch(getPendingReturnedStockAsync());
     }
   }, [page, limit, dispatch, user]);
 
@@ -190,14 +191,6 @@ const SuitsStock = () => {
 
           {/* <!-- search bar --> */}
           <div className="search_bar mr-2 flex justify-center items-center gap-x-3">
-            {user?.user?.role === "superadmin" && (
-              <Link
-                to={"/dashboard/assignstocks"}
-                className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
-              >
-                <FaBoxOpen size={22} className="text-white" />
-              </Link>
-            )}
             {(user?.user?.role === "superadmin" ||
               user?.user?.role === "admin") && (
               <button
@@ -206,6 +199,30 @@ const SuitsStock = () => {
               >
                 <IoAdd size={22} className="text-white" />
               </button>
+            )}
+            {user?.user?.role === "superadmin" && (
+              <>
+              <Link
+                to={"/dashboard/AssignedStockHistory"}
+                className="relative inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+                title="Branch Stock Records"
+              >
+                <FaHistory size={22} className="text-white" />
+                {pendingReturnedStockCount > 0 && (
+                  <span className="absolute top-[-9px] right-[-9px] inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-xs font-semibold text-white animate-blink">
+                    {pendingReturnedStockCount}
+                  </span>
+                )}
+              </Link>
+         
+              <Link
+                to={"/dashboard/assignstocks"}
+                className="inline-block rounded-sm border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
+                title="Send Stock To Branch"
+              >
+                <FaBoxOpen size={22} className="text-white" />
+              </Link>
+              </>
             )}
             <div className="relative mt-4 md:mt-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
