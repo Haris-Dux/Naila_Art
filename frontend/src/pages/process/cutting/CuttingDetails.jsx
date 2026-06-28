@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   generateCuttingBillAsync,
   generateCuttingGatePssPdfAsync,
@@ -12,15 +12,15 @@ import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import { FiPlus } from "react-icons/fi";
 import {
   createStone,
-  getColorsForCurrentEmbroidery,
   getStoneDataBypartyNameAsync,
 } from "../../../features/stoneslice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
-import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
-import { MdOutlineDelete } from "react-icons/md";
 import toast from "react-hot-toast";
+import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
+import { getTodayDate } from "../../../Utils/Common";
+import { RxCross2 } from "react-icons/rx";
 
 const CuttingDetails = () => {
   const { id } = useParams();
@@ -32,7 +32,6 @@ const CuttingDetails = () => {
     CuttingpdfLoading,
   } = useSelector((state) => state.Cutting);
   const {
-    color,
     loading: IsLoading,
     previousDataByPartyName,
   } = useSelector((state) => state.stone);
@@ -50,14 +49,14 @@ const CuttingDetails = () => {
   const [processBillData, setProcessBillData] = useState({});
   const [accountData, setAccountData] = useState(null);
   const [partyValue, setPartyValue] = useState("newParty");
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+  const today = getTodayDate();
 
   const [cuttingData, setcuttingData] = useState({
     id,
     r_quantity: "",
   });
 
-  const initialRow = { category: "", color: "", quantity: "" };
+  const initialRow = { category: "Front", color: "", quantity: "" };
 
   const [formData, setFormData] = useState({
     partyName: "",
@@ -70,7 +69,20 @@ const CuttingDetails = () => {
     cuttingId:""
   });
 
-  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
+  const {
+    embroidery_Id,
+    design_no,
+    serial_No,
+    from,
+    source_step,
+    source_id,
+    source_availability,
+  } = location.state || {};
+
+  const stoneAvailability =
+    id !== "null"
+      ? SingleCutting?.processAvailability
+      : source_availability;
 
   useEffect(() => {
     setFormData({
@@ -81,8 +93,10 @@ const CuttingDetails = () => {
       partyName: "",
       embroidery_Id: SingleCutting?.embroidery_Id || embroidery_Id || "",
       category_quantity: [initialRow],
+      source_step: id !== "null" ? "Cutting" : source_step || "Embroidery",
+      source_id: id !== "null" ? SingleCutting?.id : source_id || embroidery_Id || "",
     });
-  }, [SingleCutting, partyValue]);
+  }, [SingleCutting, partyValue, id, source_step, source_id, embroidery_Id]);
 
   useEffect(() => {
     setcuttingData({
@@ -115,15 +129,6 @@ const CuttingDetails = () => {
     }));
   };
 
-  const handleCategoryChange = (e, index) => {
-    const { value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      category_quantity: prevState.category_quantity?.map((row, i) =>
-        i === index ? { ...row, category: value } : row
-      ),
-    }));
-  };
 
   const handleColorChange = (e, index) => {
     const { value } = e.target;
@@ -156,13 +161,7 @@ const CuttingDetails = () => {
     }
   }, [id, dispatch]);
 
-  useEffect(() => {
-    if ((SingleCutting && SingleCutting?.serial_No) || serial_No) {
-      const data = SingleCutting?.serial_No || serial_No;
-      dispatch(getColorsForCurrentEmbroidery({ serial_No: data }));
-    }
-  }, [id, SingleCutting]);
-
+  
   useEffect(() => {
     const embroideryId = SingleCutting?.embroidery_Id || embroidery_Id;
     if (embroideryId) {
@@ -180,6 +179,27 @@ const CuttingDetails = () => {
 
   const handleSubmitstome = (e) => {
     e.preventDefault();
+    const requestedQuantity = formData.category_quantity.reduce(
+      (total, item) => total + (Number(item.quantity) || 0),
+      0
+    );
+    const availableQuantity =
+      stoneAvailability?.available !== undefined
+        ? Number(stoneAvailability.available || 0)
+        : id !== "null"
+          ? Number(SingleCutting?.r_quantity || 0)
+          : 0;
+
+    if (availableQuantity <= 0) {
+      return toast.error("No available quantity from previous step");
+    }
+
+    if (requestedQuantity > availableQuantity) {
+      return toast.error(
+        `Invalid quantity. Available quantity is ${availableQuantity}`
+      );
+    }
+
     const data = {
       ...formData,
       cuttingId:id
@@ -225,6 +245,9 @@ const CuttingDetails = () => {
   };
 
   const openModal = () => {
+    if (id !== "null" && Number(SingleCutting?.r_quantity || 0) <= 0) {
+      return toast.error("No received quantity available from previous step");
+    }
     setIsOpen(true);
     document.body.style.overflow = "hidden";
   };
@@ -312,22 +335,6 @@ const CuttingDetails = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const setAccountStatusColor = (status) => {
     switch (status) {
       case "Partially Paid":
@@ -381,6 +388,14 @@ const CuttingDetails = () => {
 
   const handleSkipStep = (e) => {
     const value = e.target.value;
+    const receivedQuantity = Number(SingleCutting?.r_quantity || 0);
+    if (receivedQuantity <= 0) {
+      return toast.error("No received quantity available from previous step");
+    }
+    const sourceState = {
+      source_step: "Cutting",
+      source_id: SingleCutting.id,
+    };
     switch (true) {
       case value === "Stitching":
         navigate("/dashboard/stones-details/null", {
@@ -389,6 +404,8 @@ const CuttingDetails = () => {
             design_no: SingleCutting.design_no,
             serial_No: SingleCutting.serial_No,
             from: location.pathname,
+            source_availability: SingleCutting?.processAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -414,6 +431,26 @@ const CuttingDetails = () => {
         break;
     }
   };
+
+  const shirtColors = useMemo(() => {
+    return SingleEmbroidery?.shirt.map((s) => s.color) || [];
+  },[SingleEmbroidery])
+
+   if (loading) {
+    return (
+      <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
+        <div className="pt-16 flex justify-center mt-12 items-center">
+          <div
+            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
+            role="status"
+            aria-label="loading"
+          >
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -463,10 +500,6 @@ const CuttingDetails = () => {
             <div className="box">
               <span className="font-medium">R. Quantity:</span>
               <span> {SingleCutting?.r_quantity}</span>
-            </div>
-            <div className="box">
-              <span className="font-medium">Available Quantity:</span>
-              <span> {SingleCutting?.Available_Quantity}</span>
             </div>
           </div>
         </div>
@@ -535,22 +568,28 @@ const CuttingDetails = () => {
             </button>
           )}
 
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={openModal}
-          >
-            Next Step
-          </button>
-          <select
-            onChange={handleSkipStep}
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-          >
-            <option value="" disabled selected hidden>
-              Skip To
-            </option>
-            <option value="Stitching">Stitching</option>
-            <option value="Packing">Packing</option>
-          </select>
+          {SingleCutting?.project_status === "Completed" && (
+            <>
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openModal}
+              >
+                Next Step
+              </button>
+              <select
+                onChange={handleSkipStep}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                <option value="" disabled selected hidden>
+                  Skip To
+                </option>
+                <option value="Stitching">Stitching</option>
+                {!SingleEmbroidery?.next_steps?.packing && (
+                  <option value="Packing">Packing</option>
+                )}
+              </select>
+            </>
+          )}
         </div>
         {isOpen && (
           <div
@@ -559,10 +598,13 @@ const CuttingDetails = () => {
           >
             <div className="relative scrollable-content max-h-[90vh] py-4 px-3 w-[95%] max-w-4xl bg-white rounded-md shadow dark:bg-gray-700">
               {/* ------------- HEADER ------------- */}
-              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Stone
-                </h3>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Stone
+                  </h3>
+                  <ProcessAvailabilityCard availability={stoneAvailability} />
+                </div>
                 <button
                   onClick={closeModal}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -763,23 +805,17 @@ const CuttingDetails = () => {
 
                   {formData.category_quantity &&
                     formData.category_quantity?.map((row, index) => (
-                      <div className="mb-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                      <div key={index} className="mb-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                         {/* SELECT CATEGORY */}
                         <div>
-                          <select
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            <input
+                            type="text"
+                            placeholder="Enter Quantity"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
                             value={row.category}
-                            onChange={(e) => handleCategoryChange(e, index)}
-                          >
-                            <option selected>Select Category</option>
-                            <option value="Front">Front</option>
-                            <option value="Back">Back</option>
-                            <option value="Bazo">Bazo</option>
-                            <option value="Duppata">Duppata</option>
-                            <option value="Gala">Gala</option>
-                            <option value="Front Patch">Front patch</option>
-                            <option value="Trouser">Trouser</option>
-                          </select>
+                            disabled
+                          />
                         </div>
 
                         {/* SELECTED COLORS */}
@@ -793,8 +829,8 @@ const CuttingDetails = () => {
                             <option value={""} disabled>
                               Select color
                             </option>
-                            {color?.colors?.map((data) => (
-                              <option value={data}>{data}</option>
+                            {shirtColors?.map((data,index) => (
+                              <option key={index} value={data}>{data}</option>
                             ))}
                           </select>
                         </div>
@@ -816,7 +852,7 @@ const CuttingDetails = () => {
                               className=" text-red-500  rounded-lg ms-auto inline-flex justify-center items-center"
                               type="button"
                             >
-                              <MdOutlineDelete
+                               <RxCross2
                                 size={20}
                                 className="cursor-pointer text-red-500"
                               />

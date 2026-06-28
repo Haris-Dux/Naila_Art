@@ -8,7 +8,6 @@ const addStone = "/api/process/stone/addStone";
 const UpdateStone = "/api/process/stone/updateStone";
 const getAllStone = "/api/process/stone/getAllStone";
 const getSingleStone = "/api/process/stone/getStoneById";
-const getColor = '/api/process/stone/getColorsForCurrentEmbroidery'
 const generatePdf = "/api/processBillRouter/generateGatePassPdfFunction";
 const generateProcessBillURL = "/api/processBillRouter/generateProcessBill";
 const deleteStoneURL = "/api/process/stone/deleteStone";
@@ -133,19 +132,6 @@ export const generateStoneBillAsync = createAsyncThunk(
   }
 );
 
-//GET COLORS
-export const getColorsForCurrentEmbroidery = createAsyncThunk(
-  "Stone/GetColor",
-  async (id) => {
-    try {
-      const response = await axios.post(getColor, id);
-      
-      return response.data;
-    } catch (error) {
-      toast.error(error.response.data.error);
-    }
-  }
-);
 
 // DELETE STONE ASYNC THUNK
 export const deleteStoneAsync = createAsyncThunk(
@@ -181,7 +167,6 @@ export const getStoneDataBypartyNameAsync = createAsyncThunk(
 const initialState = {
   Stone: [],
   SingleStone: {},
-  color:[],
   loading: false,
   StonerpdfLoading: false,
   StnoneBillLoading: false,
@@ -230,7 +215,7 @@ const StoneSlice = createSlice({
       state.StonerpdfLoading = false;
     })
 
-      // Shop Add ADD CASE
+      
       .addCase(createStone.pending, (state) => {
         state.loading = true;
       })
@@ -239,7 +224,7 @@ const StoneSlice = createSlice({
 
       })
 
-      // LOGIN ADD CASE
+      
       .addCase(GetAllStone.pending, (state) => {
         state.loading = true;
       })
@@ -255,17 +240,6 @@ const StoneSlice = createSlice({
         state.loading = false;
         state.SingleStone = action.payload
       })
-
-      .addCase(getColorsForCurrentEmbroidery.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getColorsForCurrentEmbroidery.fulfilled, (state, action) => {
-        state.loading = false;
-        state.color = action.payload
-      })
-
-
-
 
   },
 });

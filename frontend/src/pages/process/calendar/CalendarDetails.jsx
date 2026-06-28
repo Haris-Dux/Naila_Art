@@ -15,6 +15,8 @@ import {
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ReactSearchBox from "react-search-box";
 import moment from "moment-timezone";
+import toast from "react-hot-toast";
+import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 
 const CalendarDetails = () => {
   const { id } = useParams();
@@ -72,7 +74,19 @@ const CalendarDetails = () => {
   const [convertedQuantity, setConvertedQuantity] = useState(0);
   const [convertedAmount, setConvertedAmount] = useState(0);
 
-  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
+  const {
+    embroidery_Id,
+    design_no,
+    serial_No,
+    from,
+    source_step,
+    source_id,
+    source_availability,
+  } = location.state || {};
+  const cuttingAvailability =
+    id !== "null"
+      ? SingleCalender?.processAvailability
+      : source_availability;
 
   useEffect(() => {
     if (id === "null") {
@@ -98,8 +112,14 @@ const CalendarDetails = () => {
       date: today,
       partyName: "",
       embroidery_Id: SingleCalender?.embroidery_Id || embroidery_Id || "",
+      source_step:
+        id !== "null" ? "Embroidery" : source_step || "Embroidery",
+      source_id:
+        id !== "null"
+          ? SingleCalender?.embroidery_Id
+          : source_id || embroidery_Id || "",
     });
-  }, [SingleCalender, partyValue, id]);
+  }, [SingleCalender, partyValue, id, source_step, source_id, embroidery_Id]);
 
   useEffect(() => {
     setCalenderData({
@@ -120,6 +140,21 @@ const CalendarDetails = () => {
 
   const handleSubmitCutting = (e) => {
     e.preventDefault();
+    const availableQuantity =
+      cuttingAvailability?.available !== undefined
+        ? Number(cuttingAvailability.available || 0)
+        : 0;
+    const requestedQuantity = Number(CuttingData.T_Quantity || 0);
+
+    if (availableQuantity <= 0) {
+      return toast.error("No available quantity from previous step");
+    }
+
+    if (requestedQuantity > availableQuantity) {
+      return toast.error(
+        `Invalid quantity. Available quantity is ${availableQuantity}`
+      );
+    }
 
     dispatch(createCutting(CuttingData)).then((res) => {
       if (res.payload.success === true) {
@@ -162,6 +197,12 @@ const CalendarDetails = () => {
   };
 
   const openModal = () => {
+    if (
+      id !== "null" &&
+      Number(SingleCalender?.processAvailability?.available || 0) <= 0
+    ) {
+      return toast.error("No available embroidery quantity for next step");
+    }
     setIsOpen(true);
     document.body.style.overflow = "hidden";
   };
@@ -350,6 +391,15 @@ const CalendarDetails = () => {
 
   const handleSkipStep = (e) => {
     const value = e.target.value;
+    const sourceAvailability = SingleCalender?.processAvailability;
+    const availableQuantity = Number(sourceAvailability?.available || 0);
+    if (availableQuantity <= 0) {
+      return toast.error("No available embroidery quantity for next step");
+    }
+    const sourceState = {
+      source_step: "Embroidery",
+      source_id: SingleCalender.embroidery_Id,
+    };
     switch (true) {
       case value === "Stones":
         navigate("/dashboard/cutting-details/null", {
@@ -358,6 +408,8 @@ const CalendarDetails = () => {
             design_no: SingleCalender.design_no,
             serial_No: SingleCalender.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -368,6 +420,8 @@ const CalendarDetails = () => {
               design_no: SingleCalender.design_no,
               serial_No: SingleCalender.serial_No,
               from: location.pathname,
+              source_availability: sourceAvailability,
+              ...sourceState,
             },
           });
           break;
@@ -498,22 +552,26 @@ const CalendarDetails = () => {
               Generate Gate Pass
             </button>
           )}
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={openModal}
-          >
-            Next Step
-          </button>
-          <select
-            onChange={handleSkipStep}
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-          >
-            <option value="" disabled selected hidden>
-              Skip To
-            </option>
-            <option value="Stones">Stones</option>
-            <option value="Stitching">Stitching</option>
-          </select>
+          {SingleCalender?.project_status === "Completed" && (
+            <>
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openModal}
+              >
+                Next Step
+              </button>
+              <select
+                onChange={handleSkipStep}
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+              >
+                <option value="" disabled selected hidden>
+                  Skip To
+                </option>
+                <option value="Stones">Stones</option>
+                <option value="Stitching">Stitching</option>
+              </select>
+            </>
+          )}
         </div>
 
         {isOpen && (
@@ -522,10 +580,13 @@ const CalendarDetails = () => {
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
             <div className="relative py-4 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
-              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Cutting Details
-                </h3>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Cutting Details
+                  </h3>
+                  <ProcessAvailabilityCard availability={cuttingAvailability} />
+                </div>
                 <button
                   onClick={closeModal}
                   className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"

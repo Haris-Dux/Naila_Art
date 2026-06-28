@@ -10,6 +10,10 @@ import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { StitchingModel } from "../../models/Process/StitchingModel.js";
 import { StoneModel } from "../../models/Process/StoneModel.js";
 import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
+import {
+  buildProcessAvailability,
+  ProcessStep,
+} from "../../utils/ProcessQuantity.js";
 
 
 export const addEmbriodery = async (req, res, next) => {
@@ -55,7 +59,8 @@ export const addEmbriodery = async (req, res, next) => {
         "design_no",
         "T_Quantity_In_m",
         "T_Quantity",
-        "rate_per_stitching"
+        "rate_per_stitching",
+        "shirt"
       ];
 
       const optionalFields1 = [
@@ -151,6 +156,21 @@ export const addEmbriodery = async (req, res, next) => {
 
       if (missingFields.length > 0) {
         throw new Error(`Missing fields : ${missingFields}`);
+      }
+
+      if (!Array.isArray(shirt) || shirt.length === 0) {
+        throw new Error("Shirt details required");
+      }
+
+      const hasValidShirt = shirt.some(
+        (item) =>
+          item.category &&
+          item.color &&
+          Number(item.quantity_in_no) > 0 &&
+          Number(item.quantity_in_m) > 0
+      );
+      if (!hasValidShirt) {
+        throw new Error("Shirt details required");
       }
 
       if (!per_suit || isNaN(per_suit) || parseFloat(per_suit) <= 0) {
@@ -295,9 +315,17 @@ export const getEmbroideryById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await EmbroideryModel.findById(id);
+    if (!data) throw new Error("Embroidery not found");
+    const processAvailability = await buildProcessAvailability({
+      sourceStep: ProcessStep.EMBROIDERY,
+      sourceId: id,
+    });
 
     setMongoose();
-    return res.status(200).json(data);
+    return res.status(200).json({
+      ...data.toObject({ virtuals: true }),
+      processAvailability,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -1117,5 +1145,3 @@ const getStoneSentQuantity = (record) =>
     (sum, item) => sum + toNumber(item.quantity),
     0
   );
-
-

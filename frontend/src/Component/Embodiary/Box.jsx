@@ -334,6 +334,13 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
 
     validateData(meregdata);
     validateTissueData(meregdata);
+    const hasValidShirt = meregdata.shirt?.some(
+      (item) =>
+        item.category &&
+        item.color &&
+        Number(item.quantity_in_no) > 0 &&
+        Number(item.quantity_in_m) > 0
+    );
     const suitFields = [meregdata.shirt, meregdata.duppata, meregdata.trouser];
     const stitchFields = [
       meregdata.Front_Stitch,
@@ -345,7 +352,9 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
       meregdata.D_Patch_Stitch,
       meregdata.F_Patch_Stitch,
     ];
-    if (
+    if (!hasValidShirt) {
+      toast.error("Please enter shirt category, color and quantity");
+    } else if (
       suitFields.every((field) => !field) ||
       stitchFields.every((field) => !field)
     ) {

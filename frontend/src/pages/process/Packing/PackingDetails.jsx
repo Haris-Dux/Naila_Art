@@ -207,6 +207,16 @@ const PackingDetails = () => {
   };
 
   const suitMapdata = SingleStitching?.suits_category || suits_category;
+  const stockRows = [
+    ...(formData?.suits_category || []),
+    ...(formData?.dupatta_category || []),
+  ];
+  const isAddInStockDisabled =
+    stockRows.length === 0 ||
+    stockRows.some(
+      (item) => !Number(item?.cost_price) || !Number(item?.sale_price)
+    );
+ 
 
   return (
     <>
@@ -408,7 +418,12 @@ const PackingDetails = () => {
         {/* BUTTONS BAR */}
         <div className="mt-6 flex justify-center items-center gap-x-5">
           <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+            className={`px-4 py-2.5 text-sm rounded text-white dark:text-gray-800 ${
+              isAddInStockDisabled
+                ? "cursor-not-allowed bg-gray-400 dark:bg-gray-500"
+                : "bg-[#252525] dark:bg-gray-200"
+            }`}
+            disabled={isAddInStockDisabled}
             onClick={openConfirmationModal}
           >
             Add In Stock
@@ -421,92 +436,16 @@ const PackingDetails = () => {
             aria-hidden="true"
             className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
           >
-            <div className="relative py-4 px-3 w-[95%] max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
-              <div className="flex items-center justify-center p-4 border-b dark:border-gray-600">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Add In Stock
-                </h3>
-              </div>
-              <div className="p-2">
-                <p className="text-gray-700 text-center dark:text-gray-300">
-                  Are you sure you want this quantity with this price to be
-                  added in stock?
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 my-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 shadow-sm">
-                <CgShoppingBag
-                  size={28}
-                  className={`${
-                    formData?.useBags ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-
-                <div className="flex flex-col leading-tight">
-                  <p
-                    className={`font-semibold text-base ${
-                      formData?.useBags ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {formData?.useBags
-                      ? "Packing Bags Selected"
-                      : "No Packing Bags Selected"}
+            <div className="relative w-[95%] max-w-lg bg-white rounded-md shadow dark:bg-gray-700">
+              <div className="flex items-start justify-between gap-4 p-5 border-b dark:border-gray-600">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Add In Stock
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                    Confirm these packing options before adding stock.
                   </p>
-                 
                 </div>
-              </div>
-
-              <div className="flex items-center justify-center gap-3 my-3 py-2 rounded-md bg-gray-50 dark:bg-gray-800 shadow-sm">
-                <AiOutlinePicture
-                  size={28}
-                  className={`${
-                    SingleEmbroidery?.pictures_Order
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                />
-
-                <div className="flex flex-col leading-tight">
-                  <p
-                    className={`font-semibold text-base ${
-                      SingleEmbroidery?.pictures_Order
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {SingleEmbroidery?.pictures_Order
-                      ? "Order Includes Pictures"
-                      : "No Pictures Added"}
-                  </p>
-                 
-                </div>
-              </div>
-
-              <div className="flex justify-center p-2">
-                <button
-                  onClick={closeConfirmationModal}
-                  className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white mr-2"
-                >
-                  Cancel
-                </button>
-                {addInStockLoading ? (
-                  <button
-                    disabled
-                    className="px-4 py-2.5 cursor-not-allowed text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                  >
-                    Confirm
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleAddInStock}
-                    className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-                  >
-                    Confirm
-                  </button>
-                )}
-              </div>
-
-              <div className="button_box absolute top-6 right-6">
                 <button
                   onClick={closeConfirmationModal}
                   className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -529,6 +468,91 @@ const PackingDetails = () => {
                   </svg>
                   <span className="sr-only">Close modal</span>
                 </button>
+              </div>
+
+              <div className="space-y-4 p-5">
+                <div>
+                  <h4 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
+                    Packing Checks
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-gray-600 dark:bg-gray-800">
+                      <div className="flex items-center gap-3">
+                        <CgShoppingBag
+                          size={22}
+                          className={
+                            formData?.useBags
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }
+                        />
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          Packing Bags
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded px-2.5 py-1 text-xs font-semibold ${
+                          formData?.useBags
+                            ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300"
+                        }`}
+                      >
+                        {formData?.useBags ? "Selected" : "Not selected"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-gray-600 dark:bg-gray-800">
+                      <div className="flex items-center gap-3">
+                        <AiOutlinePicture
+                          size={22}
+                          className={
+                            SingleEmbroidery?.pictures_Order
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }
+                        />
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          Pictures Order
+                        </span>
+                      </div>
+                      <span
+                        className={`rounded px-2.5 py-1 text-xs font-semibold ${
+                          SingleEmbroidery?.pictures_Order
+                            ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300"
+                            : "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300"
+                        }`}
+                      >
+                        {SingleEmbroidery?.pictures_Order
+                          ? "Added"
+                          : "Not added"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t p-4 dark:border-gray-600">
+                <button
+                  onClick={closeConfirmationModal}
+                  className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white"
+                >
+                  Cancel
+                </button>
+                {addInStockLoading ? (
+                  <button
+                    disabled
+                    className="px-4 py-2.5 cursor-not-allowed text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Adding...
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddInStock}
+                    className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                  >
+                    Add In Stock
+                  </button>
+                )}
               </div>
             </div>
           </div>

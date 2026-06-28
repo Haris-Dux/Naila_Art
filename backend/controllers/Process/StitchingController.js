@@ -9,6 +9,12 @@ import { EmbroideryModel } from "../../models/Process/EmbroideryModel.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { PicruresModel } from "../../models/Process/PicturesModel.js";
 import { getPaginationParams, getTodayDate } from "../../utils/Common.js";
+import {
+  assertSourceCanCreateNextStep,
+  buildProcessAvailability,
+  ProcessStep,
+  sumPackingQuantity,
+} from "../../utils/ProcessQuantity.js";
 
 export const addStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -26,7 +32,8 @@ export const addStitching = async (req, res, next) => {
         lace_quantity,
         lace_category,
         suits_category,
-        dupatta_category,
+        source_step,
+        source_id,
       } = req.body;
       const requiredFields = [
         "partytype",
@@ -36,8 +43,6 @@ export const addStitching = async (req, res, next) => {
         "design_no",
         "serial_No",
         "date",
-        "lace_category",
-        "lace_quantity",
         "Quantity",
       ];
 
@@ -46,28 +51,23 @@ export const addStitching = async (req, res, next) => {
         if (req.body[field] === undefined || req.body[field] === null) {
           missingFields.push(field);
         }
-        if (suits_category) {
-          for (let item of suits_category) {
-            if (!item.category || !item.color || !item.quantity_in_no) {
-              throw new Error(
-                "Each suits category item must have category, color, and quantity"
-              );
-            }
-          }
-        }
-        if (dupatta_category) {
-          for (let item of dupatta_category) {
-            if (!item.category || !item.color || !item.quantity_in_no) {
-              throw new Error(
-                "Each dupatta category item must have category, color, and quantity"
-              );
-            }
-          }
-        }
-        if (missingFields.length > 0) {
-          throw new Error(`Missing Fields ${field}`);
-        }
       });
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing Fields ${missingFields.join(", ")}`);
+      }
+
+      if (!Array.isArray(suits_category) || suits_category.length === 0) {
+        throw new Error("Suit category is required");
+      }
+
+      for (let item of suits_category) {
+        if (!item.category || !item.color || !item.quantity_in_no) {
+          throw new Error(
+            "Each suits category item must have category, color, and quantity"
+          );
+        }
+      }
 
       if (partytype === "newParty") {
         const checkExistingStitching = await StitchingModel.findOne({
@@ -78,6 +78,7 @@ export const addStitching = async (req, res, next) => {
         }
       }
 
+      if(lace_quantity && lace_category !== "") {
       const lace = await LaceModel.findOne({ category: lace_category }).session(
         session
       );
@@ -90,16 +91,31 @@ export const addStitching = async (req, res, next) => {
         { category: lace_category },
         { totalQuantity: newLaceTotalQuantity }
       ).session(session);
+      }
 
       //GET MAIN EMBROIDERY DATA
       const mainEmbroidery = await EmbroideryModel.findById(
         embroidery_Id
       ).session(session);
+      if (!mainEmbroidery) throw new Error("Embroidery record not found");
+      const sourceStep = source_step || ProcessStep.EMBROIDERY;
+      const sourceId = source_id || embroidery_Id;
+
+      await assertSourceCanCreateNextStep({
+        sourceStep,
+        sourceId,
+        targetStep: ProcessStep.STITCHING,
+        requestedQuantity: Quantity,
+        payload: { suits_category },
+        session,
+      });
 
       await StitchingModel.create(
         [
           {
             embroidery_Id,
+            source_step: sourceStep,
+            source_id: sourceId,
             Quantity,
             partyName,
             serial_No,
@@ -109,7 +125,6 @@ export const addStitching = async (req, res, next) => {
             lace_quantity,
             lace_category,
             suits_category,
-            dupatta_category,
             Manual_No:mainEmbroidery.Manual_No
           },
         ],
@@ -169,8 +184,16 @@ export const getStitchingById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await StitchingModel.findById(id);
+    if (!data) throw new Error("Stitching not found");
+    const processAvailability = await buildProcessAvailability({
+      sourceStep: ProcessStep.STITCHING,
+      sourceId: id,
+    });
     setMongoose();
-    return res.status(200).json(data);
+    return res.status(200).json({
+      ...data.toObject({ virtuals: true }),
+      processAvailability,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -193,7 +216,7 @@ export const updateStitching = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
-      const { id, suits_category, dupatta_category, project_status } = req.body;
+      const { id, suits_category, project_status } = req.body;
       if (!id) throw new Error("Id not Found");
       const stitching = await StitchingModel.findById(id).session(session);
       if (!stitching) throw new Error("Stitching not Found");
@@ -248,13 +271,8 @@ export const updateStitching = async (req, res, next) => {
         }
       };
 
-      if (suits_category && dupatta_category) {
+      if (suits_category) {
         updateFunction({ suits_category });
-        updateFunction({ dupatta_category }, false);
-      } else if (suits_category) {
-        updateFunction({ suits_category });
-      } else if (dupatta_category) {
-        updateFunction({ dupatta_category });
       }
 
       if (stitching.r_quantity > stitching.Quantity) {
@@ -288,7 +306,7 @@ export const deleteStitching = async (req, res, next) => {
     if (data.packed) {
       throw new Error("Deletion not permitted. This stitching step has already been packed.");
     }
-    if(data.lace_quantity >= 0) {
+    if(data.lace_quantity > 0 && data.lace_category !== null) {
       const lace = await LaceModel.findOne({category:data.lace_category});
       lace.totalQuantity += data.lace_quantity;
       await lace.save();

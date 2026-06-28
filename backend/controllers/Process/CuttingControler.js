@@ -4,6 +4,11 @@ import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 import { getPaginationParams } from "../../utils/Common.js";
+import {
+  assertSourceCanCreateNextStep,
+  buildProcessAvailability,
+  ProcessStep,
+} from "../../utils/ProcessQuantity.js";
 
 export const addCutting = async (req, res, next) => {
   try {
@@ -16,6 +21,8 @@ export const addCutting = async (req, res, next) => {
       T_Quantity,
       date,
       design_no,
+      source_step,
+      source_id,
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
@@ -48,10 +55,22 @@ export const addCutting = async (req, res, next) => {
     }
     //GET MAIN EMBROIDERY DATA
     const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
+    if (!mainEmbroidery) throw new Error("Embroidery record not found");
+    const sourceStep = source_step || ProcessStep.EMBROIDERY;
+    const sourceId = source_id || embroidery_Id;
+
+    await assertSourceCanCreateNextStep({
+      sourceStep,
+      sourceId,
+      targetStep: ProcessStep.CUTTING,
+      requestedQuantity: T_Quantity,
+    });
 
     //ADD CONTROLLER DATA
     await CuttingModel.create({
       embroidery_Id,
+      source_step: sourceStep,
+      source_id: sourceId,
       partyName,
       rate,
       serial_No,
@@ -83,11 +102,9 @@ export const updateCutting = async (req, res, next) => {
       if (r_quantity > cutting.T_Quantity) {
         throw new Error("Invalid Recieved quantity");
       }
-      const Available_Quantity = r_quantity;
       updateQuery = {
         ...updateQuery,
         r_quantity,
-        Available_Quantity,
         updated: true,
       };
     }
@@ -157,8 +174,16 @@ export const getCuttingById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await CuttingModel.findById(id);
+    if (!data) throw new Error("Cutting not found");
+    const processAvailability = await buildProcessAvailability({
+      sourceStep: ProcessStep.CUTTING,
+      sourceId: id,
+    });
     setMongoose();
-    return res.status(200).json(data);
+    return res.status(200).json({
+      ...data.toObject({ virtuals: true }),
+      processAvailability,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

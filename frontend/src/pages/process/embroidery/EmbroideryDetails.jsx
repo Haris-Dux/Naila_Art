@@ -345,6 +345,15 @@ const EmbroideryDetails = () => {
 
   const handleSkipStep = (e) => {
     const value = e.target.value;
+    const receivedSuitQuantity = Number(SingleEmbroidery.T_Recieved_Suit || 0);
+    const sourceAvailability = SingleEmbroidery?.processAvailability;
+    if (receivedSuitQuantity <= 0) {
+      return toast.error("No received quantity available for next step");
+    }
+    const sourceState = {
+      source_step: "Embroidery",
+      source_id: SingleEmbroidery.id,
+    };
     switch (true) {
       case value === "Cutting":
         navigate("/dashboard/calendar-details/null", {
@@ -353,6 +362,8 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -364,6 +375,8 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -375,14 +388,13 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
 
       case value === "Packing":
-        if (SingleEmbroidery.T_Recieved_Suit === 0) {
-          return toast.error("Invalid Recieved Suit Quantity");
-        }
         navigate("/dashboard/packing-details/null", {
           state: {
             embroidery_Id: SingleEmbroidery.id,
@@ -736,7 +748,7 @@ const EmbroideryDetails = () => {
             </button>
           )}
 
-          {!next_steps?.packing && (
+          {project_status === "Completed" && !next_steps?.packing && (
             <>
               {" "}
               <button
@@ -1027,7 +1039,7 @@ const EmbroideryDetails = () => {
           <ConfirmationModal
             UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Complete"
-            message="Are you sure you want to Complete ?"
+            message="Are you sure you want to mark this as complete ?"
             onConfirm={handleCompleted}
             onClose={closeCompletedModal}
           />
