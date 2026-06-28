@@ -22,6 +22,24 @@ import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js"
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
+const normalizeBaseMeasurementData = (measurementData = []) => {
+  if (!Array.isArray(measurementData) || measurementData.length === 0) {
+    throw new Error("Missing base measurement data");
+  }
+
+  return measurementData.map((item) => {
+    const roleQuantity = Number(item.roleQuantity);
+    const measurement = Number(item.measurement);
+    const colour = String(item.colour || "").trim();
+
+    if (!colour || !measurement || !roleQuantity) {
+      throw new Error("Missing base measurement data");
+    }
+
+    return { roleQuantity, measurement, colour };
+  });
+};
+
 export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
   const session = await mongoose.startSession();
   try {
@@ -67,7 +85,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
       });
 
       if (existingSeller) {
-        throw new Error(`The name "${name}" already exists.`);
+        throw new Error(`The seller name "${name}" already exists.`);
       }
 
       //DATA FOR VIRTUAL ACCOUNT
@@ -97,12 +115,11 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
 
       //ADDING BASE DATA IN  SELLER
       if (seller_stock_category === "Base") {
+        const baseMeasurementData = normalizeBaseMeasurementData(measurementData);
         let stockData = [];
         if (toAddinStock === true) {
-          measurementData.forEach((item) => {
+          baseMeasurementData.forEach((item) => {
             let { colour, measurement, roleQuantity } = item;
-            if (!colour || !measurement || !roleQuantity)
-              throw new Error("Missing data for stock");
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -189,6 +206,8 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: baseMeasurementData,
+                toAddinStock: Boolean(toAddinStock),
               },
             ],
             { session }
@@ -448,12 +467,11 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         seller_stock_category === "Base" &&
         oldSellerData.seller_stock_category === "Base"
       ) {
+        const baseMeasurementData = normalizeBaseMeasurementData(measurementData);
         let stockData = [];
         if (toAddinStock === true) {
-          measurementData.forEach((item) => {
+          baseMeasurementData.forEach((item) => {
             let { colour, measurement, roleQuantity } = item;
-            if (!colour || !measurement || !roleQuantity)
-              throw new Error("Missing data for stock");
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -535,6 +553,8 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: baseMeasurementData,
+                toAddinStock: Boolean(toAddinStock),
               },
             ],
             { session }

@@ -1,5 +1,19 @@
 import mongoose from "mongoose";
 
+const base_measurement_details = new mongoose.Schema({
+  roleQuantity: {
+    type: Number,
+    default: 0,
+  },
+  measurement: {
+    type: Number,
+    default: 0,
+  },
+  colour: {
+    type: String,
+    default: "",
+  },
+}, { _id: false });
 
 const purchasing_History_Schema = new mongoose.Schema({
   bill_no: {
@@ -34,6 +48,14 @@ const purchasing_History_Schema = new mongoose.Schema({
   total: {
     type: Number,
     required: [true, "Numnber Value is required"],
+  },
+  measurementData: {
+    type: [base_measurement_details],
+    default: [],
+  },
+  toAddinStock: {
+    type: Boolean,
+    default: false,
   }
 },
 {timestamps:true});

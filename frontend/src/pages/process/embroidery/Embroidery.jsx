@@ -30,6 +30,7 @@ const Embroidery = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const [partyValue, setPartyValue] = useState("newParty");
+  const [selectedColorRecord, setSelectedColorRecord] = useState(null);
   const {
     loading,
     embroidery,
@@ -336,31 +337,22 @@ const Embroidery = () => {
       .flatMap((items) => (Array.isArray(items) ? items : []))
       .filter((item) => item?.category || item?.color);
 
-  const ColorsTooltip = ({ data }) => {
-    const colorItems = getColorItems(data);
+  const openColorDetails = (data) => {
+    setSelectedColorRecord(data);
+  };
+
+  const ColorsToggle = ({ data }) => {
 
     return (
-      <div className="group relative inline-flex items-center">
+      <div className="inline-flex items-center gap-2">
         <button
           type="button"
+          onClick={() => openColorDetails(data)}
           className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
         >
           <IoColorPaletteOutline size={20} />
         </button>
-        <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden min-w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-left text-xs font-medium text-white shadow-lg group-hover:block dark:bg-gray-100 dark:text-gray-900">
-          {colorItems.length > 0 ? (
-            colorItems.map((item, index) => (
-              <div
-                key={`${item.category}-${item.color}-${index}`}
-                className="whitespace-nowrap py-0.5"
-              >
-                {item.category || "--"} - {item.color || "--"}
-              </div>
-            ))
-          ) : (
-            <div className="whitespace-nowrap">No colors</div>
-          )}
-        </div>
+
       </div>
     );
   };
@@ -473,87 +465,94 @@ const Embroidery = () => {
                 <tbody>
                   {filteredData && filteredData.length > 0 ? (
                     filteredData?.map((data, index) => (
-                      <tr
-                        key={index}
-                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                      >
-                        <th
-                          className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                          scope="row"
-                        >
-                          <div className="flex items-center justify-start gap-2">
-                            <span className="text-green-500">
-                              {data?.next_steps?.packing && (
-                                <LuPackageCheck size={20} />
-                              )}
-                            </span>
-                            <div>
+                          <tr
+                            key={data.id || index}
+                            className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                          >
+                            <th
+                              className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                              scope="row"
+                            >
+                              <div className="flex items-center justify-start gap-2">
+                                <span className="text-green-500">
+                                  {data?.next_steps?.packing && (
+                                    <LuPackageCheck size={20} />
+                                  )}
+                                </span>
+                                <div>
+                                  <span className="text-red-500">
+                                    {" "}
+                                    {data?.serial_No}
+                                  </span>
+                                  /
+                                  <span className="text-green-600">
+                                    {data?.Manual_No ?? "--"}
+                                  </span>
+                                </div>
+                              </div>
+                            </th>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              {data.partyName}
+                            </td>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              {data.design_no}
+                            </td>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              {data.per_suit}
+                            </td>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              <ColorsToggle data={data} />
+                            </td>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              {new Date(data.date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 text-center py-4 whitespace-nowrap">
                               <span className="text-red-500">
-                                {" "}
-                                {data?.serial_No}
+                                {data?.T_Quantity_In_m}
                               </span>
                               /
-                              <span className="text-green-600">
-                                {data?.Manual_No ?? "--"}
+                              <span className="text-green-500">
+                                {data?.T_Suit ?? "--"}
                               </span>
-                            </div>
-                          </div>
-                        </th>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {data.partyName}
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {data.design_no}
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {data.per_suit}
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          <ColorsTooltip data={data} />
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {new Date(data.date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 text-center py-4 whitespace-nowrap">
-                          <span className="text-red-500">
-                            {data?.T_Quantity_In_m}
-                          </span>
-                          /
-                          <span className="text-green-500">
-                            {data?.T_Suit ?? "--"}
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          <div className="flex items-center gap-3">
-                            {setStatusColor(data.project_status)}
-                            {data?.is_verified && (
-                              <span>
-                                <Icon name="tick" />
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex items-center  gap-3">
-                          <Link to={`/dashboard/embroidery-details/${data.id}`}>
-                            <FaEye size={20} className="cursor-pointer" />
-                          </Link>
-                          {checkEditableEmroidery(data) && (
-                            <Link
-                              to={`/dashboard/embroidery-update/${data.id}`}
-                            >
-                              <FaRegEdit size={20} className="cursor-pointer" />
-                            </Link>
-                          )}
-                          {!data.bill_generated && (
-                            <button onClick={() => openDeleteModal(data.id)}>
-                              <MdOutlineDelete
-                                size={20}
-                                className="cursor-pointer text-red-500"
-                              />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
+                            </td>
+                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                              <div className="flex items-center gap-3">
+                                {setStatusColor(data.project_status)}
+                                {data?.is_verified && (
+                                  <span>
+                                    <Icon name="tick" />
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex items-center  gap-3">
+                              <Link
+                                to={`/dashboard/embroidery-details/${data.id}`}
+                              >
+                                <FaEye size={20} className="cursor-pointer" />
+                              </Link>
+                              {checkEditableEmroidery(data) && (
+                                <Link
+                                  to={`/dashboard/embroidery-update/${data.id}`}
+                                >
+                                  <FaRegEdit
+                                    size={20}
+                                    className="cursor-pointer"
+                                  />
+                                </Link>
+                              )}
+                              {!data.bill_generated && (
+                                <button
+                                  onClick={() => openDeleteModal(data.id)}
+                                >
+                                  <MdOutlineDelete
+                                    size={20}
+                                    className="cursor-pointer text-red-500"
+                                  />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
                     ))
                   ) : (
                     <tr className="w-full flex justify-center items-center">
@@ -573,6 +572,70 @@ const Embroidery = () => {
         totalRecords={embroidery?.totalRecords}
         pageSize={limit}
       />
+
+      {selectedColorRecord && (
+        <div
+          aria-hidden="true"
+          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+        >
+          <div className="relative py-4 px-3 w-[95%] max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Color Details
+                </h3>
+               
+              </div>
+              <button
+                onClick={() => setSelectedColorRecord(null)}
+                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span className="sr-only">Close modal</span>
+              </button>
+            </div>
+
+            <div className="p-4 md:p-5">
+              {getColorItems(selectedColorRecord).length > 0 ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {getColorItems(selectedColorRecord).map((item, index) => (
+                    <div
+                      key={`${item.category}-${item.color}-${index}`}
+                      className="flex items-center justify-between gap-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-600 dark:bg-gray-800"
+                    >
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {item.category || "--"}
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-300">
+                        {item.color || "--"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-300">
+                  No colors available.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isOpen && (
         <div
