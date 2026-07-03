@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const base_measurement_details = new mongoose.Schema({
+  category: {
+    type: String,
+    default: "",
+  },
   roleQuantity: {
     type: Number,
     default: 0,
@@ -12,6 +16,18 @@ const base_measurement_details = new mongoose.Schema({
   colour: {
     type: String,
     default: "",
+  },
+  rate: {
+    type: Number,
+    default: 0,
+  },
+  rowQuantity: {
+    type: Number,
+    default: 0,
+  },
+  rowTotal: {
+    type: Number,
+    default: 0,
   },
 }, { _id: false });
 

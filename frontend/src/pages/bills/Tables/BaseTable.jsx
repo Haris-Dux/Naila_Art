@@ -11,6 +11,7 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import Pagination from "../../../Component/Common/Pagination";
 import { getPageLimit } from "../../../Utils/Common";
 import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
+import PurchaseBillRowsModal from "../Modals/PurchaseBillRowsModal";
 
 const BaseTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
@@ -161,85 +162,12 @@ const BaseTable = ({ filters = {} }) => {
         pageSize={limit}
       />
 
-      {isOpen && (
-        <div
-          aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
-        >
-          <div className="relative py-4 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700 overflow-y-auto">
-            {/* ------------- HEADER ------------- */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Base Details
-              </h3>
-              <button
-                onClick={closeModal}
-                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-
-            {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-
-              {selectedBaseBill?.measurementData?.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-center text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                      <tr>
-                        <th className="px-3 py-3 text-center">Color</th>
-                        <th className="px-3 py-3 text-center">Qty</th>
-                        <th className="px-3 py-3 text-center">Measurement</th>
-                        <th className="px-3 py-3 text-center">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedBaseBill.measurementData.map((item, index) => (
-                        <tr
-                          key={`${item.colour || "base"}-${index}`}
-                          className="border-b bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                        >
-                          <td className="px-3 py-3 text-center font-medium text-gray-900 dark:text-white">
-                            {item.colour || "--"}
-                          </td>
-                          <td className="px-3 py-3 text-center">{item.roleQuantity || 0}</td>
-                          <td className="px-3 py-3 text-center">{item.measurement || 0}</td>
-                          <td className="px-3 py-3 text-center font-medium text-gray-900 dark:text-white">
-                            {(Number(item.roleQuantity) || 0) *
-                              (Number(item.measurement) || 0)}{" "}
-                            m
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-300">
-                  No base details available.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <PurchaseBillRowsModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        bill={selectedBaseBill}
+        category="Base"
+      />
       {/* CONFIRMATION MODAL */}
       {showConfirmationModal && (
         <ConfirmationModal

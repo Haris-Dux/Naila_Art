@@ -17,13 +17,11 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
-import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams, getTodayDate } from "../../utils/Common.js";
 
-//TODAY
-const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
 const normalizeBaseMeasurementData = (measurementData = []) => {
-  if (!Array.isArray(measurementData) || measurementData.length === 0) {
+  if (!measurementData || !measurementData.length) {
     throw new Error("Missing base measurement data");
   }
 
@@ -31,12 +29,37 @@ const normalizeBaseMeasurementData = (measurementData = []) => {
     const roleQuantity = Number(item.roleQuantity);
     const measurement = Number(item.measurement);
     const colour = String(item.colour || "").trim();
+    const rate = Number(item.rate || 0);
+    const rowQuantity = Number(item.rowQuantity || roleQuantity * measurement);
+    const rowTotal = Number(item.rowTotal || rowQuantity * rate);
 
     if (!colour || !measurement || !roleQuantity) {
       throw new Error("Missing base measurement data");
     }
 
-    return { roleQuantity, measurement, colour };
+    return { roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
+  });
+};
+
+const normalizeMeasurementData = (measurementData = []) => {
+  if (!measurementData || !measurementData.length) {
+    throw new Error("Missing measurement data");
+  }
+
+  return measurementData.map((item) => {
+    const category = String(item.category || "").trim();
+    const roleQuantity = Number(item.roleQuantity ?? item.quantity);
+    const measurement = Number(item.measurement || 1);
+    const colour = String(item.colour || "").trim();
+    const rate = Number(item.rate || 0);
+    const rowQuantity = Number(item.rowQuantity || roleQuantity * measurement);
+    const rowTotal = Number(item.rowTotal || rowQuantity * rate);
+
+    if (!roleQuantity || !measurement || !rate) {
+      throw new Error("Missing measurement data");
+    }
+
+    return { category, roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
   });
 };
 
@@ -216,6 +239,9 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
       ) {
+        const purchaseRows = measurementData && measurementData.length > 0
+          ? normalizeMeasurementData(measurementData)
+          : [];
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (seller_stock_category) {
           case "Lace":
@@ -289,6 +315,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: purchaseRows,
               },
             ],
             { session }
@@ -563,6 +590,9 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
       } else if (
         ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
       ) {
+        const purchaseRows = measurementData && measurementData.length > 0
+          ? normalizeMeasurementData(measurementData)
+          : [];
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (true) {
           case seller_stock_category === "Lace":
@@ -639,6 +669,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: purchaseRows,
               },
             ],
             { session }
@@ -769,6 +800,7 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
         )
       ) {
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
+        const today = getTodayDate()
         switch (true) {
           case billData.seller_stock_category === "Lace":
             const laceResult = await removeLaceFromStock({

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { createBagAsync } from "../../../features/PurchaseBillsSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { GetAllBags } from "../../../features/InStockSlice";
 import { AddOldSellerDetailsFromAsync, AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import moment from "moment-timezone";
+import { RxCross2 } from "react-icons/rx";
+import { FaPlus } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
@@ -13,6 +14,8 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const { addSellerLoading } = useSelector((state) => state.Seller);
+  const initialRow = { category: "", roleQuantity: "", measurement: 1, rate: "" };
+  const [itemRows, setItemRows] = useState([initialRow]);
 
 
   // State variables to hold form data
@@ -51,23 +54,33 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   // Function to handle changes in form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "rate" || name === "category") {
+      setItemRows((prev) =>
+        prev.map((row) => ({
+          ...row,
+          ...(name === "rate" &&
+          (row.rate === "" || Number(row.rate) === Number(formData.rate))
+            ? { rate: value }
+            : {}),
+          ...(name === "category" &&
+          (row.category === "" || row.category === formData.category)
+            ? { category: value }
+            : {}),
+        }))
+      );
+    }
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  // Function to handle branch selection
-  const handleBranchChange = (e) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      name: e.target.value,
-    }));
-  };
+
 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const rowsWithTotals = getRowsWithTotals(itemRows);
 
     const modifiedFormData = {
       ...formData,
@@ -75,11 +88,21 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
       rate: Number(formData.rate),
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
-      seller_stock_category: "Bag/box"
+      seller_stock_category: "Bag/box",
+      measurementData: rowsWithTotals,
     };
 
     if (sellerDetails && sellerDetails?.id) {
       modifiedFormData.sellerId = sellerDetails?.id;
+    }
+
+    if (
+      !areRowsComplete() ||
+      modifiedFormData.quantity === 0 ||
+      modifiedFormData.subTotal === 0 ||
+      modifiedFormData.total === 0
+    ) {
+      return toast.error("Please Fill all required fields");
     }
 
     if (sellerDetails) {
@@ -112,21 +135,39 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
       rate: "",
       total: "",
       subTotal: "",
-    discountType: "RS",
-    discount: "",
+      discountType: "RS",
+      discount: "",
       seller_stock_category: "",
     });
+    setItemRows([initialRow]);
   };
 
   const validateValue = (value) => {
     return value === undefined || value === null || isNaN(value) || value === ""
       ? 0
-      : parseInt(value);
+      : Number(value);
   };
 
+  const getRowsWithTotals = (rows) =>
+    rows.map((row) => {
+      const roleQuantity = validateValue(row.roleQuantity);
+      const measurement = 1;
+      const rate = validateValue(row.rate);
+      const rowQuantity = roleQuantity * measurement;
+      const rowTotal = rowQuantity * rate;
+      return { ...row, roleQuantity, measurement, rate, rowQuantity, rowTotal };
+    });
+
   useEffect(() => {
-    const updatedsubtotal =
-      validateValue(formData.quantity) * validateValue(formData.rate);
+    const rowsWithTotals = getRowsWithTotals(itemRows);
+    const updatedQuantity = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowQuantity,
+      0
+    );
+    const updatedsubtotal = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowTotal,
+      0
+    );
     const discount =
       formData.discountType === "%"
         ? (updatedsubtotal * validateValue(formData.discount)) / 100 || 0
@@ -134,15 +175,52 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
     const total = updatedsubtotal - discount;
     setFormData((prevState) => ({
       ...prevState,
+      quantity: updatedQuantity,
       subTotal: updatedsubtotal,
       total: total,
     }));
   }, [
-    formData.quantity,
-    formData.rate,
+    itemRows,
     formData.discount,
     formData.discountType,
   ]);
+
+  const handleRowChange = (e, index) => {
+    const { name, value } = e.target;
+    setItemRows((prev) => {
+      const updatedRows = [...prev];
+      updatedRows[index] = {
+        ...updatedRows[index],
+        [name]:
+          name === "roleQuantity" || name === "rate"
+            ? value === ""
+              ? ""
+              : Number(value)
+            : value,
+      };
+      return updatedRows;
+    });
+  };
+
+  const addRow = () => {
+    setItemRows((prev) => [
+      ...prev,
+      { ...initialRow, category: formData.category, rate: formData.rate },
+    ]);
+  };
+
+  const deleteRow = (index) => {
+    setItemRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const areRowsComplete = () =>
+    itemRows.length > 0 &&
+    itemRows.every(
+      (row) =>
+        row.category?.trim() &&
+        validateValue(row.roleQuantity) > 0 &&
+        validateValue(row.rate) > 0
+    );
 
   const setAccountStatusColor = (status) => {
     switch (status) {
@@ -243,18 +321,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                     />
                   </div>
 
-                  {/* DATE */}
-                  <div>
-                    <input
-                      name="date"
-                      type="date"
-                      placeholder="Date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                
 
                   {/* PARTY NAME */}
                   <div className=''>
@@ -297,22 +364,8 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                     />
                   </div>
 
-
-                  {/* QUANTITY */}
+                  {/* RATE */}
                   <div>
-                    <input
-                      name="quantity"
-                      type="number"
-                      placeholder="Quantity"
-                      value={formData.quantity}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                 {/* RATE */}
-                 <div>
                     <input
                       name="rate"
                       type="number"
@@ -321,6 +374,87 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       onChange={handleChange}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-12 mb-4 relative py-4 gap-4 border-t border-b">
+                  <button
+                    type="button"
+                    className="absolute -top-7 right-2 text-black"
+                    onClick={addRow}
+                  >
+                    <FaPlus size={18} />
+                  </button>
+
+                  {itemRows.map((row, index) => (
+                    <div key={index} className="grid py-2 grid-cols-3 gap-4">
+                      <input
+                        name="category"
+                        type="text"
+                        placeholder="Category"
+                        value={row.category}
+                        onChange={(e) => handleRowChange(e, index)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
+                      <input
+                        name="roleQuantity"
+                        type="number"
+                        placeholder="Quantity"
+                        value={row.roleQuantity}
+                        onChange={(e) => handleRowChange(e, index)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
+                      <div className="flex items-center justify-center gap-4">
+                        <input
+                          name="rate"
+                          type="number"
+                          placeholder="Price"
+                          value={row.rate}
+                          onChange={(e) => handleRowChange(e, index)}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                        {itemRows.length > 1 && (
+                          <button type="button" onClick={() => deleteRow(index)}>
+                            <RxCross2
+                              size={24}
+                              className="text-red-500 flex-shrink-0"
+                            />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
+
+               {/* DATE */}
+                  <div>
+                    <input
+                      name="date"
+                      type="date"
+                      placeholder="Date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div> 
+
+                  {/* QUANTITY */}
+                  <div>
+                    <input
+                      name="quantity"
+                      type="number"
+                      placeholder="Total Quantity"
+                      value={formData.quantity}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                      readOnly
                     />
                   </div>
 

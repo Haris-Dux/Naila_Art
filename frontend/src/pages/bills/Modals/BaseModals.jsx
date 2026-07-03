@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddOldSellerDetailsFromAsync,
@@ -16,7 +16,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  const initialRow = { roleQuantity: "", measurement: "", colour: "" };
+  const initialRow = { roleQuantity: "", measurement: "", colour: "", rate: "" };
   const [measurementData, setMeasurementData] = useState({
     rowData: [initialRow],
   });
@@ -58,6 +58,18 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "rate") {
+      setMeasurementData((prev) => ({
+        ...prev,
+        rowData: prev.rowData.map((row) => ({
+          ...row,
+          rate:
+            row.rate === "" || Number(row.rate) === Number(formData.rate)
+              ? value
+              : row.rate,
+        })),
+      }));
+    }
     setFormData((prevState) => ({
       ...prevState,
       [name]: name === "quantity" ? Number(value) : value,
@@ -74,7 +86,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
       seller_stock_category: "Base",
-      measurementData: measurementData.rowData,
+      measurementData: getRowsWithTotals(measurementData.rowData),
       toAddinStock: formData.toAddinStock,
     };
 
@@ -139,9 +151,26 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       : Number(value);
   };
 
+  const getRowsWithTotals = (rows) =>
+    rows.map((row) => {
+      const roleQuantity = validateValue(row.roleQuantity);
+      const measurement = validateValue(row.measurement);
+      const rate = validateValue(row.rate);
+      const rowQuantity = roleQuantity * measurement;
+      const rowTotal = rowQuantity * rate;
+      return { ...row, roleQuantity, measurement, rate, rowQuantity, rowTotal };
+    });
+
   useEffect(() => {
-    const updatedsubtotal =
-      validateValue(formData.quantity) * validateValue(formData.rate);
+    const rowsWithTotals = getRowsWithTotals(measurementData.rowData);
+    const updatedQuantity = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowQuantity,
+      0
+    );
+    const updatedsubtotal = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowTotal,
+      0
+    );
     const discount =
       formData.discountType === "%"
         ? (updatedsubtotal * validateValue(formData.discount)) / 100 || 0
@@ -149,12 +178,12 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     const total = updatedsubtotal - discount;
     setFormData((prevState) => ({
       ...prevState,
+      quantity: updatedQuantity,
       subTotal: updatedsubtotal,
       total: total,
     }));
   }, [
-    formData.quantity,
-    formData.rate,
+    measurementData,
     formData.discount,
     formData.discountType,
   ]);
@@ -166,11 +195,12 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       updatedRows[index] = {
         ...updatedRows[index],
         [name]:
-          name === "roleQuantity" || name === "measurement"
-            ? Number(value)
+          name === "roleQuantity" || name === "measurement" || name === "rate"
+            ? value === ""
+              ? ""
+              : Number(value)
             : value,
       };
-      calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
   };
@@ -178,7 +208,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const addRow = () => {
     setMeasurementData((prev) => ({
       ...prev,
-      rowData: [...prev.rowData, initialRow],
+      rowData: [...prev.rowData, { ...initialRow, rate: formData.rate }],
     }));
   };
 
@@ -186,21 +216,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     setMeasurementData((prev) => {
       let updatedRows = [...prev.rowData];
       updatedRows = updatedRows.filter((_, i) => i !== index);
-      calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
-  };
-
-  const calulateTotalQuantity = (updatedRows) => {
-    const totalQuantity = updatedRows.reduce((total, row) => {
-      return (
-        total + validateValue(row.roleQuantity) * validateValue(row.measurement)
-      );
-    }, 0);
-    setFormData((prev) => ({
-      ...prev,
-      quantity: totalQuantity,
-    }));
   };
 
   const setAccountStatusColor = (status) => {
@@ -237,6 +254,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
         (row) =>
           validateValue(row.roleQuantity) > 0 &&
           validateValue(row.measurement) > 0 &&
+          validateValue(row.rate) > 0 &&
           row.colour?.trim()
       );
 
@@ -363,18 +381,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         />
                       </div>
 
-                      {/* DATE */}
-                      <div>
-                        <input
-                          name="date"
-                          type="date"
-                          placeholder="Date"
-                          value={formData.date}
-                          onChange={handleChange}
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          required
-                        />
-                      </div>
+                     
 
                       {/* PARTY NAME */}
                       <div className="">
@@ -416,6 +423,17 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           required
                         />
                       </div>
+                      <div>
+                        <input
+                          name="rate"
+                          type="number"
+                          placeholder="Rate"
+                          value={formData.rate}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </div>
                     </div>
 
                 {/* ROLE_QUANTITY AND MEASUREMENT */}
@@ -430,7 +448,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                   </button>
 
                   {measurementData.rowData.map((data, index) => (
-                    <div key={index} className="grid  py-2 grid-cols-3 gap-4">
+                    <div key={index} className="grid  py-2 grid-cols-4 gap-4">
                       <input
                         name="roleQuantity"
                         type="number"
@@ -449,12 +467,21 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
                       />
+                      <input
+                        name="colour"
+                        type="text"
+                        placeholder="Colour"
+                        value={data.colour}
+                        onChange={(e) => handleMeasurementChange(e, index)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
+                      />
                       <div className="flex items-center justify-center gap-4">
                         <input
-                          name="colour"
-                          type="text"
-                          placeholder="Colour"
-                          value={data.colour}
+                          name="rate"
+                          type="number"
+                          placeholder="Price"
+                          value={data.rate}
                           onChange={(e) => handleMeasurementChange(e, index)}
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
@@ -477,6 +504,19 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
+                     {/* DATE */}
+                      <div>
+                        <input
+                          name="date"
+                          type="date"
+                          placeholder="Date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </div>
+
                   <div>
                     <input
                       name="quantity"
@@ -486,19 +526,6 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       readOnly
-                    />
-                  </div>
-
-                  {/* RATE */}
-                  <div>
-                    <input
-                      name="rate"
-                      type="number"
-                      placeholder="Rate"
-                      value={formData.rate}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                     />
                   </div>
 

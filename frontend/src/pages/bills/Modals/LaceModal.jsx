@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddOldSellerDetailsFromAsync,
@@ -6,17 +6,17 @@ import {
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
-import moment from "moment-timezone";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { getTodayDate } from "../../../Utils/Common";
 
 const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  const initialRow = { roleQuantity: "", measurement: "" };
+  const today = getTodayDate();
+  const initialRow = { roleQuantity: "", measurement: "", rate: "" };
   const [measurementData, setMeasurementData] = useState({
     rowData: [initialRow],
   });
@@ -57,6 +57,18 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   // Function to handle changes in form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "rate") {
+      setMeasurementData((prev) => ({
+        ...prev,
+        rowData: prev.rowData.map((row) => ({
+          ...row,
+          rate:
+            row.rate === "" || Number(row.rate) === Number(formData.rate)
+              ? value
+              : row.rate,
+        })),
+      }));
+    }
     setFormData((prevState) => ({
       ...prevState,
       [name]: name === "quantity" ? Number(value) : value,
@@ -73,6 +85,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
       seller_stock_category: "Lace",
+      measurementData: getRowsWithTotals(measurementData.rowData),
     };
 
     if (sellerDetails && sellerDetails?.id) {
@@ -131,9 +144,26 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
       : Number(value);
   };
 
+  const getRowsWithTotals = (rows) =>
+    rows.map((row) => {
+      const roleQuantity = validateValue(row.roleQuantity);
+      const measurement = validateValue(row.measurement);
+      const rate = validateValue(row.rate);
+      const rowQuantity = roleQuantity * measurement;
+      const rowTotal = rowQuantity * rate;
+      return { ...row, roleQuantity, measurement, rate, rowQuantity, rowTotal };
+    });
+
   useEffect(() => {
-    const updatedsubtotal =
-      validateValue(formData.quantity) * validateValue(formData.rate);
+    const rowsWithTotals = getRowsWithTotals(measurementData.rowData);
+    const updatedQuantity = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowQuantity,
+      0
+    );
+    const updatedsubtotal = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowTotal,
+      0
+    );
     const discount =
       formData.discountType === "%"
         ? (updatedsubtotal * validateValue(formData.discount)) / 100 || 0
@@ -141,12 +171,12 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
     const total = updatedsubtotal - discount;
     setFormData((prevState) => ({
       ...prevState,
+      quantity: updatedQuantity,
       subTotal: updatedsubtotal,
       total: total,
     }));
   }, [
-    formData.quantity,
-    formData.rate,
+    measurementData,
     formData.discount,
     formData.discountType,
   ]);
@@ -156,8 +186,15 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
     const { name, value } = e.target;
     setMeasurementData((prev) => {
       const updatedRows = [...prev.rowData];
-      updatedRows[index] = { ...updatedRows[index], [name]: Number(value) };
-      calulateTotalQuantity(updatedRows);
+      updatedRows[index] = {
+        ...updatedRows[index],
+        [name]:
+          name === "roleQuantity" || name === "measurement" || name === "rate"
+            ? value === ""
+              ? ""
+              : Number(value)
+            : value,
+      };
       return { ...prev, rowData: updatedRows };
     });
   };
@@ -165,7 +202,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
   const addRow = () => {
     setMeasurementData((prev) => ({
       ...prev,
-      rowData: [...prev.rowData, initialRow],
+      rowData: [...prev.rowData, { ...initialRow, rate: formData.rate }],
     }));
   };
 
@@ -173,22 +210,8 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
     setMeasurementData((prev) => {
       let updatedRows = [...prev.rowData];
       updatedRows = updatedRows.filter((_, i) => i !== index);
-      calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
-  };
-
-  const calulateTotalQuantity = (updatedRows) => {
-    const totalQuantity = updatedRows.reduce((total, row) => {
-      return (
-        total + validateValue(row.roleQuantity) * Number(row.measurement)
-      );
-    }, 0);
-    console.log("totalQuantity", totalQuantity);
-    setFormData((prev) => ({
-      ...prev,
-      quantity: totalQuantity,
-    }));
   };
 
   const setAccountStatusColor = (status) => {
@@ -290,18 +313,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                     />
                   </div>
 
-                  {/* DATE */}
-                  <div>
-                    <input
-                      name="date"
-                      type="date"
-                      placeholder="Date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                
 
                   {/* PARTY NAME */}
                   <div className="">
@@ -343,6 +355,17 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                     />
                   </div>
+                  <div>
+                    <input
+                      name="rate"
+                      type="number"
+                      placeholder="Rate"
+                      value={formData.rate}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
                 </div>
                 {/* ROLE_QUANTITY AND MEASUREMENT */}
                 <div className="mt-12 mb-4  relative py-4  gap-4 border-t border-b">
@@ -356,7 +379,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                   </button>
 
                   {measurementData.rowData.map((data, index) => (
-                    <div key={index} className="grid  py-2 grid-cols-2 gap-4">
+                    <div key={index} className="grid  py-2 grid-cols-4 gap-4">
                       <input
                         name="roleQuantity"
                         type="number"
@@ -366,12 +389,21 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         required
                       />
-                      <div className="flex items-center justify-center gap-4">
+                     
                         <input
                           name="measurement"
                           type="number"
                           placeholder="Measurement"
                           value={data.measurement}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                        <input
+                          name="rate"
+                          type="number"
+                          placeholder="Price"
+                          value={data.rate}
                           onChange={(e) => handleMeasurementChange(e, index)}
                           className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
@@ -382,12 +414,25 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                             className="text-red-500 flex-shrink-0"
                           />
                         </button>
-                      </div>
+                     
                     </div>
                   ))}
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
+                    {/* DATE */}
+                  <div>
+                    <input
+                      name="date"
+                      type="date"
+                      placeholder="Date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      required
+                    />
+                  </div>
+
                   <div>
                     <input
                       name="quantity"
@@ -397,19 +442,6 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                       readOnly
-                    />
-                  </div>
-
-                  {/* RATE */}
-                  <div>
-                    <input
-                      name="rate"
-                      type="number"
-                      placeholder="Rate"
-                      value={formData.rate}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
                     />
                   </div>
 

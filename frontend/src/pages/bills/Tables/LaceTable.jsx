@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteSelllerBillAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import Pagination from "../../../Component/Common/Pagination";
 import { getPageLimit } from "../../../Utils/Common";
 import { MdDeleteOutline } from "react-icons/md";
+import { FaEye } from "react-icons/fa";
+import PurchaseBillRowsModal from "../Modals/PurchaseBillRowsModal";
 
 const LaceTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory , deleteLoading} = useSelector((state) => state.Seller);
 
-   const [showConfirmationModal, setConfirmationModal] = useState();
-    const [onConfitmation, setOnConfirmation] = useState(null);
+  const [showConfirmationModal, setConfirmationModal] = useState();
+  const [onConfitmation, setOnConfirmation] = useState(null);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
@@ -51,6 +55,16 @@ const LaceTable = ({ filters = {} }) => {
     setConfirmationModal(false);
     setOnConfirmation(null)
     document.body.style.overflow = "auto";
+  };
+
+  const openDetailsModal = (data) => {
+    setSelectedBill(data);
+    setIsDetailsOpen(true);
+  };
+
+  const closeDetailsModal = () => {
+    setSelectedBill(null);
+    setIsDetailsOpen(false);
   };
 
 
@@ -94,7 +108,7 @@ const LaceTable = ({ filters = {} }) => {
                     Total
                   </th>
                   <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm" scope="col">
-                    Delete
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -116,13 +130,20 @@ const LaceTable = ({ filters = {} }) => {
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.quantity} m</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.rate}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.total}</td>
-                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                              <MdDeleteOutline
-                                                onClick={() => handleDelete(data.id)}
-                                                size={24}
-                                                className="cursor-pointer text-red-500"
-                                              />
-                                            </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        <div className="flex items-center gap-3">
+                          <FaEye
+                            onClick={() => openDetailsModal(data)}
+                            size={20}
+                            className="cursor-pointer text-gray-600 dark:text-gray-200"
+                          />
+                          <MdDeleteOutline
+                            onClick={() => handleDelete(data.id)}
+                            size={24}
+                            className="cursor-pointer text-red-500"
+                          />
+                        </div>
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -141,6 +162,13 @@ const LaceTable = ({ filters = {} }) => {
         totalPages={PurchasingHistory?.totalPages}
         totalRecords={PurchasingHistory?.totalRecords ?? PurchasingHistory?.sellerHistory}
         pageSize={limit}
+      />
+
+      <PurchaseBillRowsModal
+        isOpen={isDetailsOpen}
+        onClose={closeDetailsModal}
+        bill={selectedBill}
+        category="Lace"
       />
 
       {/* CONFIRMATION MODAL */}
