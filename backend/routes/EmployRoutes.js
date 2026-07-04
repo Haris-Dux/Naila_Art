@@ -11,6 +11,7 @@ import {
   getAttendencedata,
   getEmployeDataById,
   reverseSalary,
+  updateBulkAttendanceData,
   updateAttendanceData,
   updateEmploye,
   updateOvertime,
@@ -33,6 +34,7 @@ employRouter.post("/updateOvertime", superAdminOnly, updateOvertime);
 employRouter.post("/reverseSalary", superAdminOnly, reverseSalary);
 employRouter.post("/deleteCreditDebitEntry/:employeId/:recordId", superAdminOnly, deleteCreditDebitEntry);
 employRouter.post("/updateAttendanceData", superAdminOnly, updateAttendanceData);
+employRouter.post("/updateBulkAttendanceData", superAdminOnly, updateBulkAttendanceData);
 employRouter.get("/getAttendencedata", superAdminOnly, getAttendencedata);
 employRouter.post("/calculateSalary", superAdminOnly, calculateSalary);
 

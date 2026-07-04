@@ -982,6 +982,69 @@ export const updateAttendanceData = async (req, res) => {
   }
 };
 
+export const updateBulkAttendanceData = async (req, res) => {
+  try {
+    const { records } = req.body;
+    if (!records || !records.length) {
+      throw new Error("Attendance records are required");
+    }
+
+    const bulkOps = records.map((record) => {
+      const {
+        employee_id,
+        date,
+        status,
+        check_in,
+        check_out,
+        is_weekly_holiday,
+        is_public_holiday,
+        overtime_hours,
+        note,
+      } = record;
+
+      if (!employee_id) {
+        throw new Error("Employee id is required");
+      }
+      if (!date) {
+        throw new Error("Date is required");
+      }
+      if (!["present", "absent", "leave"].includes(status)) {
+        throw new Error("Valid attendance status is required");
+      }
+
+      const isPresent = status === "present";
+      return {
+        updateOne: {
+          filter: {
+            employee_id,
+            date
+          },
+          update: {
+            $set: {
+              status,
+              check_in: isPresent ? check_in : null,
+              check_out: isPresent ? check_out : null,
+              overtime_hours: isPresent ? Number(overtime_hours) || 0 : 0,
+              is_weekly_holiday,
+              is_public_holiday,
+              note: note || null,
+            },
+          },
+          upsert: true,
+        },
+      };
+    });
+
+    await EmployeAttendenceModel.bulkWrite(bulkOps, { ordered: false });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Attendance updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getAttendencedata = async (req, res) => {
   try {
     const month = req.query.month;

@@ -7,6 +7,7 @@ import { buildQueryParams } from "../Utils/Common";
 const getBuyerForBranch = "/api/buyers/getBuyersForBranch";
 const getBuyerById = "/api/buyers/getBuyerById";
 const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
+const applyDiscountOnBuyersAccountUrl = "/api/buyers/applyDiscountOnBuyersAccount";
 const getBuyerBillHistoryForBranchUrl =
   "/api/buyers/getBuyerBillHistoryForBranch";
 const addBuyerCheckUrl = "/api/buyers/checks/addBuyerCheck";
@@ -92,6 +93,20 @@ export const markAsPaidAsync = createAsyncThunk(
       return response.data;
     } catch (error) {
       toast.error(error.response.data);
+    }
+  }
+);
+
+//APPLY DISCOUNT ON BUYER ACCOUNT
+export const applyBuyerDiscountAsync = createAsyncThunk(
+  "Buyers/applyDiscount",
+  async (data) => {
+    try {
+      const response = await axios.post(applyDiscountOnBuyersAccountUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response?.data);
     }
   }
 );
@@ -215,6 +230,7 @@ const initialState = {
   BuyerBillHistory: [],
   billHistoryLoading: true,
   markAsPaidLoading: false,
+  discountLoading: false,
   checkLoading: false,
   getBuyersChecksLoading: false,
   BuyersChecks: [],
@@ -309,6 +325,20 @@ const BuyerSlice = createSlice({
       })
       .addCase(markAsPaidAsync.fulfilled, (state, action) => {
         state.markAsPaidLoading = false;
+      })
+      .addCase(markAsPaidAsync.rejected, (state) => {
+        state.markAsPaidLoading = false;
+      })
+
+      //APPLY DISCOUNT
+      .addCase(applyBuyerDiscountAsync.pending, (state) => {
+        state.discountLoading = true;
+      })
+      .addCase(applyBuyerDiscountAsync.fulfilled, (state) => {
+        state.discountLoading = false;
+      })
+      .addCase(applyBuyerDiscountAsync.rejected, (state) => {
+        state.discountLoading = false;
       })
 
       // GET BUYER FOR BRANCH

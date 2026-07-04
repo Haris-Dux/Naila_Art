@@ -18,6 +18,7 @@ import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { buildDateRangeQuery, getPaginationParams, getTodayDate } from "../../utils/Common.js";
+import { verifyrequiredparams } from "../../middleware/Common.js";
 
 
 const normalizeBaseMeasurementData = (measurementData = []) => {
@@ -865,5 +866,50 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
+  }
+};
+
+export const applyDiscountOnSellerAccount = async (req, res, next) => {
+  try {
+    const { id, amount, reason } = req.body;
+    await verifyrequiredparams(req.body, ["id", "amount"]);
+    const numericAmount = Number(amount);
+    const accountData = await SellersModel.findById(id);
+
+    if (!accountData) throw new CustomError("Account not found", 404);
+
+    if (accountData.virtual_account.total_balance <= 0) {
+      throw new CustomError("Invalid discount request", 400);
+    }
+
+    //UPDATING ACCOUNT STATUS
+
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
+
+    const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+    
+    const historydata = {
+      date: getTodayDate(),
+      particular: `Discount Entry/${reason}`,
+      credit: 0,
+      balance: new_total_balance,
+      orderId: "",
+      debit: amount,
+    };
+
+     (accountData.virtual_account = virtualAccountData),
+      accountData.credit_debit_history.push(historydata);
+
+      await accountData.save();
+
+    return res.status(200).json({ success: true, message: "Discount applied successfully" });
+  } catch (error) {
+    next(error);
   }
 };

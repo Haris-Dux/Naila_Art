@@ -697,7 +697,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
     } else if (category === "Pictures") {
       accountData = await PicruresAccountModel.findById(id);
     } else {
-      throw new Error("Need to Work On Category yet");
+      throw new Error("Invalid category");
     }
 
     if (!accountData) throw new CustomError("Account not found", 404);

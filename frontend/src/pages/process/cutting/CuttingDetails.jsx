@@ -437,6 +437,19 @@ const CuttingDetails = () => {
     return SingleEmbroidery?.shirt.map((s) => s.color) || [];
   },[SingleEmbroidery])
 
+  const getAvailableShirtColors = (currentIndex) => {
+    const currentColor = formData.category_quantity?.[currentIndex]?.color;
+    const selectedColors = new Set(
+      formData.category_quantity
+        ?.map((row, index) => (index === currentIndex ? null : row?.color))
+        ?.filter(Boolean)
+    );
+
+    return shirtColors.filter(
+      (color) => color === currentColor || !selectedColors.has(color)
+    );
+  };
+
    if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
@@ -830,7 +843,7 @@ const CuttingDetails = () => {
                             <option value={""} disabled>
                               Select color
                             </option>
-                            {shirtColors?.map((data,index) => (
+                            {getAvailableShirtColors(index)?.map((data,index) => (
                               <option key={index} value={data}>{data}</option>
                             ))}
                           </select>

@@ -17,6 +17,7 @@ import CustomError from "../config/errors/CustomError.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
 import { buildDateRangeQuery, canDeleteRecord, getPaginationParams } from "../utils/Common.js";
+import { verifyrequiredparams } from "../middleware/Common.js";
 
 //TODAY
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
@@ -1011,7 +1012,7 @@ export const deleteBuyerBill = async (req, res, next) => {
       }
       if (billData.is_return_made) {
         throw new CustomError(
-          "Deletion not permitted. A return entry has already been made for this bill."
+          "Delete not permitted. A return entry has already been made for this bill."
         );
       }
 
@@ -1161,6 +1162,61 @@ export const deleteBuyerBill = async (req, res, next) => {
     session.endSession();
   }
 };
+
+export const applyDiscountOnBuyersAccount = async (req, res, next) => {
+  try {
+    const { id, amount, reason } = req.body;
+    await verifyrequiredparams(req.body, ["id", "amount"]);
+    const numericAmount = Number(amount);
+    const accountData = await BuyersModel.findById(id);
+
+    if (!accountData) throw new CustomError("Account data not found", 404);
+
+    if (accountData.virtual_account.total_balance <= 0) {
+      throw new CustomError("Invalid discount request", 400);
+    }
+
+    //UPDATING ACCOUNT STATUS
+
+    const { total_debit, total_credit, total_balance, status } =
+        calculateBuyerAccountBalance({
+          paid: amount,
+          total: 0,
+          oldAccountData: accountData.virtual_account,
+        });
+        
+        //DATA FOR VIRTUAL ACCOUNT
+
+        const virtualAccountData = {
+          total_debit,
+          total_credit,
+          total_balance,
+          status,
+        };
+
+        //DATA FOR CREDIT DEBIT HISTORY
+        const credit_debit_history_details = {
+          date:today,
+          particular: `Discount Entry/${reason}`,
+          credit: amount,
+          balance: total_balance,
+        };
+
+        //UPDATING USER DATA IN DB
+        accountData.virtual_account = virtualAccountData;
+        accountData.credit_debit_history.push(
+          credit_debit_history_details
+        );
+
+        await accountData.save();
+
+    return res.status(200).json({ success: true, message: "Discount applied successfully" });
+    
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 //COMMON
 const findLastSaleBeforeDate = async (branchId, providedDate, session) => {

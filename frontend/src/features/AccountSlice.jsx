@@ -17,6 +17,7 @@ const reverseSalaryeUrl = '/api/employ/reverseSalary'
 const deleteCreditDebitEntryUrl = '/api/employ/deleteCreditDebitEntry'
 const getAttendencedataUrl = '/api/employ/getAttendencedata';
 const updateAttendanceDataUrl = '/api/employ/updateAttendanceData'
+const updateBulkAttendanceDataUrl = '/api/employ/updateBulkAttendanceData'
 const calculateSalaryUrl = '/api/employ/calculateSalary'
 
 
@@ -200,6 +201,18 @@ export const UpdateAttendencedataAsync = createAsyncThunk("Employee/UpdateAttend
 }
 )
 
+export const UpdateBulkAttendencedataAsync = createAsyncThunk("Employee/UpdateBulkAttendanceData", async (data) => {
+  try {
+    const response = await axios.post(updateBulkAttendanceDataUrl, data);
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    toast.error(error.response?.data?.error || "Unable to update bulk attendance");
+    throw new Error(error.response?.data?.error || "Unable to update bulk attendance");
+  }
+}
+)
+
 export const CalculateSalaryAsync = createAsyncThunk("Employee/CalculateSalary", async (data) => {
   try {
     const response = await axios.post(calculateSalaryUrl, data);
@@ -345,6 +358,16 @@ const AccountSlice = createSlice({
         state.updateAttendanceLoading = false;
       })
       .addCase(UpdateAttendencedataAsync.rejected, (state) => {
+        state.updateAttendanceLoading = false;
+      })
+
+      .addCase(UpdateBulkAttendencedataAsync.pending, (state) => {
+        state.updateAttendanceLoading = true;
+      })
+      .addCase(UpdateBulkAttendencedataAsync.fulfilled, (state) => {
+        state.updateAttendanceLoading = false;
+      })
+      .addCase(UpdateBulkAttendencedataAsync.rejected, (state) => {
         state.updateAttendanceLoading = false;
       })
 

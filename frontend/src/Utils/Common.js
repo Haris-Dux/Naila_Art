@@ -37,6 +37,9 @@ export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };
 
+export const toUtcISOString = (value) => value ? moment(value).toISOString() : value;
+
+
 export const accountStatusOptions = [
   { value: "", label: "All" },
   { value: "Unpaid", label: "Unpaid" },

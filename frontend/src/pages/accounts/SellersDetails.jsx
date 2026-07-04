@@ -1,13 +1,19 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { GetSellerByIdAsync } from '../../features/SellerSlice';
+import {
+  applySellerDiscountAsync,
+  GetSellerByIdAsync,
+} from '../../features/SellerSlice';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Icon from '../../Component/Common/Icons';
 import { temporaryAccountUpdateAsync } from '../../features/ProcessBillSlice';
+import { Button } from '../../Component/Common/button/Button';
+import { MdOutlineDiscount } from 'react-icons/md';
 import AccountFilters, {
   emptyAccountFilters,
   FilteredAccountTotals,
 } from '../../Component/AccountFilters/Accountfilters';
+import AccountDiscountModal from './AccountDiscountModal';
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -74,6 +80,11 @@ const SellersDetails = () => {
         category: "buyers",
       });
     const [isSellerEditMode, setIsSellerEditMode] = useState(false);
+    const [discountModal, setDiscountModal] = useState(false);
+    const [discountFormData, setDiscountFormData] = useState({
+        amount: "",
+        reason: "",
+      });
     const [filters, setFilters] = useState(emptyAccountFilters);
     const [appliedFilters, setAppliedFilters] = useState(emptyAccountFilters);
 
@@ -81,7 +92,7 @@ const SellersDetails = () => {
       setEditFormData((prev) => ({ ...prev, [key]: value }))
       }
 
-    const { loading, SellerById } = useSelector((state) => state.Seller);
+    const { loading, SellerById, discountLoading } = useSelector((state) => state.Seller);
 
     useEffect(() => {
         if (id) {
@@ -90,7 +101,7 @@ const SellersDetails = () => {
     }, [dispatch, id]);
 
       const handleAccountUpdate = () => {
-         const updatedData = {
+      const updatedData = {
         accountId: id,
         totalDebit: Number(sellerEditFormData.totalDebit || 0),
         totalCredit: Number(sellerEditFormData.totalCredit || 0),
@@ -112,6 +123,42 @@ const SellersDetails = () => {
           }
         });
       };
+
+    const openDiscountModal = () => {
+      setDiscountModal(true);
+    };
+
+    const closeDiscountModal = () => {
+      setDiscountModal(false);
+      setDiscountFormData({
+        amount: "",
+        reason: "",
+      });
+    };
+
+    const handleDiscountFormChange = (e) => {
+      const { name, value } = e.target;
+      setDiscountFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    };
+
+    const handleApplyDiscount = (e) => {
+      e.preventDefault();
+      dispatch(
+        applySellerDiscountAsync({
+          id,
+          amount: Number(discountFormData.amount),
+          reason: discountFormData.reason,
+        }),
+      ).then((res) => {
+        if (res.payload?.success) {
+          dispatch(GetSellerByIdAsync({ id }));
+          closeDiscountModal();
+        }
+      });
+    };
 
     const transactions = SellerById?.credit_debit_history || [];
     const filteredTransactions = filterTransactionsByDate(
@@ -235,8 +282,17 @@ const SellersDetails = () => {
     )}
   </div>
 </div>
+              <div className='flex items-center justify-between'>
+             
+    <Button onClick={openDiscountModal} disabled={SellerById?.virtual_account?.status === "Paid"} className="mt-2" size="lg">
+      <span className="flex items-center gap-2">
+        <MdOutlineDiscount />
+        Discount
+      </span>
+    </Button>
 
-                <div className="mb-4 flex flex-wrap justify-end gap-3">
+
+    <div className="mb-4 flex flex-wrap justify-end gap-3">
                   <FilteredAccountTotals
                     show={isFilterApplied}
                     debit={filteredTotals.debit}
@@ -250,6 +306,9 @@ const SellersDetails = () => {
                     onReset={handleResetFilters}
                   />
                 </div>
+              </div>
+
+              
 
                 {/* -------------- TABLE -------------- */}
                 {loading ? (
@@ -327,6 +386,14 @@ const SellersDetails = () => {
                         </table>
                     </div >
                 )}
+                <AccountDiscountModal
+                  isOpen={discountModal}
+                  onClose={closeDiscountModal}
+                  onSubmit={handleApplyDiscount}
+                  formData={discountFormData}
+                  onChange={handleDiscountFormChange}
+                  loading={discountLoading}
+                />
             </section >
         </>
     );
