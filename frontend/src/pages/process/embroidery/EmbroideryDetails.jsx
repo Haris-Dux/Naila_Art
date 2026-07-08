@@ -17,7 +17,7 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import toast from "react-hot-toast";
-import { getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate, getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
 import { Button } from "../../../Component/Common/button/Button";
 import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
 
@@ -485,7 +485,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span>{new Date(date).toLocaleDateString()}</span>
+              <span>{formatReadableDate(date)}</span>
             </div>
             <div className="box">
               <span className="font-medium">Per Suit:</span>

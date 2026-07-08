@@ -6,7 +6,7 @@ import { FaEye } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import UsedAccessoriesModal from './UsedAccessoriesModal';
 import Pagination from "../../../Component/Common/Pagination";
-import { getPageLimit } from "../../../Utils/Common";
+import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 
 
 const Accessories = () => {
@@ -172,7 +172,7 @@ const Accessories = () => {
                                                 {data.totalQuantity}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                {new Date(data.r_Date).toLocaleDateString()}
+                                                {formatReadableDate(data.r_Date)}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently}
@@ -302,7 +302,7 @@ const Accessories = () => {
                                                                 {data.serial_No}
                                                             </th>
                                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                                {new Date(data?.date).toLocaleDateString()}
+                                                                {formatReadableDate(data?.date)}
                                                             </td>
                                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                                 {data.name}
@@ -360,7 +360,7 @@ const Accessories = () => {
                                                     item?.accessoriesUsed_Records?.map((data, subIndex) => (
                                                         <tr key={`${index}-${subIndex}`} className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                                {new Date(data?.date).toLocaleDateString()}
+                                                                {formatReadableDate(data?.date)}
                                                             </td>
                                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                                 {data?.name}

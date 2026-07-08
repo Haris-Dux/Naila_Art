@@ -4,7 +4,7 @@ import { deleteCashBookEntryAsync, getAllCashBookEntriesAsync } from "../../feat
 import { CiSearch } from "react-icons/ci";
 import { GrPowerReset } from "react-icons/gr";
 import Icon from "../../Component/Common/Icons";
-import { getTodayDate } from "../../Utils/Common";
+import { formatReadableDate, getTodayDate } from "../../Utils/Common";
 import { Roles } from "../../constants/Roles";
 import DeleteModal from "../../Component/Modal/DeleteModal";
 
@@ -259,7 +259,10 @@ const CashBook = () => {
                           {data.transactionTime}
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
-                          {data?.currentDate } {data?.pastDate}
+                          {[data?.currentDate, data?.pastDate]
+                            .filter(Boolean)
+                            .map(formatReadableDate)
+                            .join(" ") || "--"}
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 text-center lg:py-4 text-xs md:text-sm">
                           {data?.branchId?.branchName}

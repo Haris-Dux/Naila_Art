@@ -11,7 +11,7 @@ import SaleHistoryModal from "./SaleHistoryModal";
 import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import Pagination from "../../../Component/Common/Pagination";
-import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
+import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../../Utils/Common";
 
 const B_Pair = () => {
   const dispatch = useDispatch();
@@ -245,7 +245,7 @@ const B_Pair = () => {
                       </th>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.partyName}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.design_no}</td>
-                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.date}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{formatReadableDate(data?.date)}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.quantity}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.sold_quantity}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.rate}</td>

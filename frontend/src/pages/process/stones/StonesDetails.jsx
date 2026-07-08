@@ -21,7 +21,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { RxCross2 } from "react-icons/rx";
-import { setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate, setAccountStatusColor } from "../../../Utils/Common";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 import Loading from "../../../Component/Loader/Loading";
 
@@ -813,7 +813,7 @@ const StonesDetails = () => {
                     type="text"
                     className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-black  dark:text-gray-800"
                     readOnly
-                    value={new Date(item?.createdAt).toLocaleDateString()}
+                    value={formatReadableDate(item?.createdAt)}
                   />
                 </div>
               ))}

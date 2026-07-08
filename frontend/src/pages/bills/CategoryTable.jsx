@@ -1,12 +1,10 @@
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useSearchParams } from "react-router-dom";
-import { GetAllExpense } from "../../features/InStockSlice";
-import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import {  useSearchParams } from "react-router-dom";
+
 import Pagination from "../../Component/Common/Pagination";
-import { getPageLimit } from "../../Utils/Common";
+import { formatReadableDate, getPageLimit } from "../../Utils/Common";
 
 const CategoryTable = ({ category }) => {
-    const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
     const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
@@ -86,7 +84,7 @@ const CategoryTable = ({ category }) => {
                                                 {data?.TYm} m
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                {new Date(data?.r_Date).toLocaleDateString()}
+                                                {formatReadableDate(data?.r_Date)}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data?.recently} m
@@ -175,7 +173,7 @@ const CategoryTable = ({ category }) => {
                                                 {data.totalQuantity} m
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                {new Date(data?.r_Date).toLocaleDateString()}
+                                                {formatReadableDate(data?.r_Date)}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently} m
@@ -256,7 +254,7 @@ const CategoryTable = ({ category }) => {
                                                 {data.totalQuantity} m
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                {new Date(data?.r_Date).toLocaleDateString()}
+                                                {formatReadableDate(data?.r_Date)}
                                             </td>
 
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
@@ -337,7 +335,7 @@ const CategoryTable = ({ category }) => {
                                                 {data.totalQuantity}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                {new Date(data.r_Date).toLocaleDateString()}
+                                                {formatReadableDate(data.r_Date)}
                                             </td>
                                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                                 {data.recently}
@@ -421,7 +419,7 @@ const CategoryTable = ({ category }) => {
                                                     {expense.rate}
                                                 </td>
                                                 <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                                    {new Date(expense.Date).toLocaleDateString()}
+                                                    {formatReadableDate(expense.Date)}
                                                 </td>
                                             </tr>
                                         ))

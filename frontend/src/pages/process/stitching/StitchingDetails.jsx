@@ -11,6 +11,7 @@ import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import { formatReadableDate } from "../../../Utils/Common";
 
 const StitchingDetails = () => {
   const { id } = useParams();
@@ -234,7 +235,7 @@ const StitchingDetails = () => {
               <span className="font-medium">Date:</span>
               <span>
                 {" "}
-                {SingleStitching?.date}
+                {formatReadableDate(SingleStitching?.date)}
               </span>
             </div>
             <div className="box">
@@ -411,7 +412,6 @@ const StitchingDetails = () => {
 }
 
 export default StitchingDetails;
-
 
 
 

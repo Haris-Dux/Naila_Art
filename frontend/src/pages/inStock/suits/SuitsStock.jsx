@@ -13,7 +13,7 @@ import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
 import Icon from "../../../Component/Common/Icons";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import Pagination from "../../../Component/Common/Pagination";
-import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
+import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import AppSelect from "../../../Component/Common/select/AppSelect";
 import SuitsModal from "../../bills/Modals/SuitsModal";
 const SuitsStock = () => {
@@ -609,7 +609,7 @@ const SuitsStock = () => {
                             className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                           >
                             <td className="px-3 py-3 text-center" scope="row">
-                              {data?.date}
+                              {formatReadableDate(data?.date)}
                             </td>
                             <td className="px-3 py-3 text-center">
                               {data?.cost_price}

@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getDailySaleAsync } from "../../features/DailySaleSlice";
 import Pagination from "../../Component/Common/Pagination";
-import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
+import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../Utils/Common";
 
 const DailySale = () => {
   const dispatch = useDispatch();
@@ -246,7 +246,7 @@ const DailySale = () => {
                         {expense?.saleData?.totalProfit}
                       </td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                        {new Date(expense.date).toLocaleDateString()}
+                        {formatReadableDate(expense.date)}
                       </td>
                       <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
                         <Link

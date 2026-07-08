@@ -19,7 +19,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import ReactSearchBox from "react-search-box";
 import toast from "react-hot-toast";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
-import { getTodayDate } from "../../../Utils/Common";
+import { formatReadableDate, getTodayDate } from "../../../Utils/Common";
 import { RxCross2 } from "react-icons/rx";
 
 const CuttingDetails = () => {
@@ -575,7 +575,7 @@ const CuttingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span>{new Date(SingleCutting?.date).toLocaleDateString()}</span>
+              <span>{formatReadableDate(SingleCutting?.date)}</span>
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>

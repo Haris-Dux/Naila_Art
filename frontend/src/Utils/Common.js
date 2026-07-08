@@ -39,6 +39,15 @@ export const getTodayDate = () => {
 
 export const toUtcISOString = (value) => value ? moment(value).toISOString() : value;
 
+export const formatReadableDate = (value) => {
+  if (!value) return "--";
+
+  const date = moment(value);
+  if (!date.isValid()) return "--";
+
+  return date.tz("Asia/Karachi").format("ddd, DD MMM YYYY");
+};
+
 
 export const accountStatusOptions = [
   { value: "", label: "All" },

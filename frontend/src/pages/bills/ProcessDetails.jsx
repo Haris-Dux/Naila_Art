@@ -23,6 +23,7 @@ import AccountFilters, {
   emptyAccountFilters,
   FilteredAccountTotals,
 } from "../../Component/AccountFilters/Accountfilters";
+import { formatReadableDate } from "../../Utils/Common";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -462,7 +463,7 @@ const ProcessDetails = () => {
                           className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium whitespace-nowrap dark:text-white text-xs md:text-sm"
                           scope="row"
                         >
-                          <p>{data.date}</p>
+                          <p>{formatReadableDate(data.date)}</p>
                         </th>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.particular}

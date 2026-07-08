@@ -7,7 +7,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 import Pagination from "../../../Component/Common/Pagination";
-import { getPageLimit } from "../../../Utils/Common";
+import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import ColorList from "../../../Component/Common/ColorList";
 
 const Stones = () => {
@@ -155,7 +155,7 @@ const Stones = () => {
                           <ColorList items={data.category_quantity} />
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {new Date(data.date).toLocaleDateString()}
+                          {formatReadableDate(data.date)}
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                           {data.category_quantity.reduce(

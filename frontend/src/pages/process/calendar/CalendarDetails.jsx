@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 import { RxCross2 } from "react-icons/rx";
 import { FiPlus } from "react-icons/fi";
+import { formatReadableDate } from "../../../Utils/Common";
 
 const CalendarDetails = () => {
   const { id } = useParams();
@@ -590,7 +591,7 @@ const CalendarDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span>{new Date(SingleCalender?.date).toLocaleDateString()}</span>
+              <span>{formatReadableDate(SingleCalender?.date)}</span>
             </div>
             <div className="box">
               <span className="font-medium">Quantity:</span>

@@ -16,6 +16,7 @@ import AccountFilters, {
   FilteredAccountTotals,
 } from "../../Component/AccountFilters/Accountfilters";
 import AccountDiscountModal from "./AccountDiscountModal";
+import { formatReadableDate } from "../../Utils/Common";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -403,7 +404,7 @@ const BuyersDetails = () => {
                             className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium whitespace-nowrap text-xs md:text-sm"
                             scope="row"
                           >
-                            <p>{new Date(data.date).toLocaleDateString()}</p>
+                            <p>{formatReadableDate(data.date)}</p>
                           </th>
                           <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                             {data.particular}

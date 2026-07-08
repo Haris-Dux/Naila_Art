@@ -16,7 +16,7 @@ import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdOutlineDelete } from "react-icons/md";
 
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
-import { getTodayDate } from "../../Utils/Common";
+import { formatReadableDate, getTodayDate } from "../../Utils/Common";
 
 
 const EmployeeDetails = () => {
@@ -258,9 +258,7 @@ const EmployeeDetails = () => {
           <div className="box">
             <h3 className="pb-1 font-medium">Joining Date</h3>
             <h3>
-              {Employee?.joininig_date
-                ? new Date(Employee.joininig_date).toLocaleDateString()
-                : "No joining date available"}
+              {formatReadableDate(Employee?.joininig_date)}
             </h3>
           </div>
           <div className="box">
@@ -374,7 +372,7 @@ const EmployeeDetails = () => {
                         } border-b text-md font-semibold dark:border-gray-700`}
                       >
                         <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm" scope="row">
-                          <p>{data.date}</p>
+                          <p>{formatReadableDate(data.date)}</p>
                         </th>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.particular}

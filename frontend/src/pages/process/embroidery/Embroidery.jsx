@@ -22,7 +22,7 @@ import { IoAdd } from "react-icons/io5";
 import Loading from "../../../Component/Loader/Loading";
 import { GetAllBaseforEmroidery } from "../../../features/InStockSlice";
 import Icon from "../../../Component/Common/Icons";
-import { getPageLimit, getTodayDate } from "../../../Utils/Common";
+import { formatReadableDate, getPageLimit, getTodayDate } from "../../../Utils/Common";
 import Pagination from "../../../Component/Common/Pagination";
 import ColorList from "../../../Component/Common/ColorList";
 
@@ -479,7 +479,7 @@ const Embroidery = () => {
                               <ColorList items={data?.shirt} />
                             </td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                              {new Date(data.date).toLocaleDateString()}
+                              {formatReadableDate(data.date)}
                             </td>
                             <td className="px-6 text-center py-4 whitespace-nowrap">
                               <span className="text-red-500">
