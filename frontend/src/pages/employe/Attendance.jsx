@@ -45,7 +45,7 @@ const Attendance = () => {
 
 
     const getDateMeta = (dateValue) => {
-    const selectedDate = moment(dateValue);
+    const selectedDate = moment.parseZone(dateValue);
     const holidayData = publicHolidays?.find(
       (item) => item.date === selectedDate.format("YYYY-MM-DD"),
     );
@@ -102,8 +102,6 @@ const Attendance = () => {
     );
 
     const getCheckin = (isToday,date) => {
-      console.log('isToday', isToday)
-      console.log('date', date)
       return isToday ? moment().format("YYYY-MM-DDTHH:mm") : `${date}T09:00`
     };
 
