@@ -207,7 +207,7 @@ export const updateStone = async (req, res, next) => {
             toUpdate.recieved_Data.r_total = first + total;
           }
 
-          if (second !== undefined && first !== null) {
+          if (second !== undefined && second !== null) {
             let total =
               toUpdate.recieved_Data.r_total -
               toUpdate.recieved_Data.second.quantity;
@@ -216,13 +216,16 @@ export const updateStone = async (req, res, next) => {
             toUpdate.recieved_Data.r_total = second + total;
           }
 
-          if (third !== undefined && first !== null) {
+          if (third !== undefined && third !== null) {
             let total =
               toUpdate.recieved_Data.r_total -
               toUpdate.recieved_Data.third.quantity;
             toUpdate.recieved_Data.third.quantity = third;
             toUpdate.recieved_Data.third.date = date;
             toUpdate.recieved_Data.r_total = third + total;
+          }
+          if (toUpdate.recieved_Data.r_total > Number(toUpdate.quantity || 0)) {
+            throw new Error("Received quantity cannot be greater than sent quantity");
           }
         }
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;

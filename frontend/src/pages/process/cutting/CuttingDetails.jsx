@@ -84,6 +84,27 @@ const CuttingDetails = () => {
       ? SingleCutting?.processAvailability
       : source_availability;
 
+  const getUniqueShirtRows = (rows = []) => {
+    const seenColors = new Set();
+    return rows.filter((item) => {
+      const key = item?.color || `${item?.category || ""}-${seenColors.size}`;
+      if (seenColors.has(key)) return false;
+      seenColors.add(key);
+      return true;
+    });
+  };
+
+  const getInitialStoneRows = () => {
+    const shirtRows = SingleEmbroidery?.shirt
+        ?.map((item) => ({
+          category: "Front",
+          color: item.color,
+          quantity: "",
+        })) || [];
+
+    return shirtRows.length ? shirtRows : [{ ...initialRow }];
+  };
+
   useEffect(() => {
     setFormData({
       serial_No: SingleCutting?.serial_No || serial_No || "",
@@ -92,16 +113,24 @@ const CuttingDetails = () => {
       partyType: partyValue,
       partyName: "",
       embroidery_Id: SingleCutting?.embroidery_Id || embroidery_Id || "",
-      category_quantity: [initialRow],
+      category_quantity: getInitialStoneRows(),
       source_step: id !== "null" ? "Cutting" : source_step || "Embroidery",
       source_id: id !== "null" ? SingleCutting?.id : source_id || embroidery_Id || "",
     });
-  }, [SingleCutting, partyValue, id, source_step, source_id, embroidery_Id]);
+  }, [SingleCutting, SingleEmbroidery, partyValue, id, source_step, source_id, embroidery_Id]);
 
   useEffect(() => {
     setcuttingData({
       id: id,
       r_quantity: SingleCutting?.r_quantity || "",
+      category_quantity:
+        SingleCutting?.category_quantity?.map((item) => ({
+          id: item.id || item._id,
+          category: item.category,
+          color: item.color,
+          quantity: item.quantity,
+          received: item.received ?? "",
+        })) || [],
     });
   }, [SingleCutting]);
 
@@ -177,9 +206,42 @@ const CuttingDetails = () => {
     }));
   };
 
+  const handleCuttingReceivedChange = (e, index) => {
+    const { value } = e.target;
+    const received = Number(value || 0);
+    const sentQuantity = Number(cuttingData.category_quantity?.[index]?.quantity || 0);
+
+    if (received > sentQuantity) {
+      return toast.error("Received quantity cannot be greater than sent quantity");
+    }
+
+    setcuttingData((prevData) => ({
+      ...prevData,
+      category_quantity: prevData.category_quantity?.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, received: value } : row
+      ),
+    }));
+  };
+
   const handleSubmitstome = (e) => {
     e.preventDefault();
-    const requestedQuantity = formData.category_quantity.reduce(
+    const stoneRows = formData.category_quantity?.filter(
+      (item) => item?.category || item?.color || item?.quantity
+    ) || [];
+
+    if (!stoneRows.length) {
+      return toast.error("Please add stone rows");
+    }
+
+    if (
+      stoneRows.some(
+        (item) => !item.category || !item.color || !Number(item.quantity || 0)
+      )
+    ) {
+      return toast.error("Each stone row must have category, color, and quantity");
+    }
+
+    const requestedQuantity = stoneRows.reduce(
       (total, item) => total + (Number(item.quantity) || 0),
       0
     );
@@ -202,6 +264,7 @@ const CuttingDetails = () => {
 
     const data = {
       ...formData,
+      category_quantity: stoneRows,
       cuttingId:id
     };
     dispatch(createStone(data)).then((res) => {
@@ -218,8 +281,15 @@ const CuttingDetails = () => {
     const data = {
       id: id,
     };
+    const hasReceivedRows = cuttingData.category_quantity?.length > 0;
+    const updatePayload = hasReceivedRows
+      ? {
+          id,
+          category_quantity: cuttingData.category_quantity,
+        }
+      : cuttingData;
 
-    dispatch(Updatecuttingasync(cuttingData)).then((res) => {
+    dispatch(Updatecuttingasync(updatePayload)).then((res) => {
       if (res.payload.success) {
         dispatch(GetSingleCutting(data));
         closeUpdateRecievedModal();
@@ -434,7 +504,7 @@ const CuttingDetails = () => {
   };
 
   const shirtColors = useMemo(() => {
-    return SingleEmbroidery?.shirt.map((s) => s.color) || [];
+    return getUniqueShirtRows(SingleEmbroidery?.shirt).map((s) => s.color) || [];
   },[SingleEmbroidery])
 
   const getAvailableShirtColors = (currentIndex) => {
@@ -522,17 +592,58 @@ const CuttingDetails = () => {
           <label htmlFor="received_quantity" className="font-semibold">
             Enter Received Quantity
           </label>
-          <input
-            id="r_quantity"
-            name="r_quantity"
-            type="text"
-            placeholder="Quantity"
-            className="bg-gray-50 mt-2 border max-w-xs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-            required
-            value={cuttingData.r_quantity}
-            onChange={handleInputChangeCutting}
-            disabled={SingleCutting?.project_status === "Completed"}
-          />
+          {cuttingData.category_quantity?.length > 0 ? (
+            <div className="mt-3 space-y-3 max-w-4xl">
+              {cuttingData.category_quantity.map((row, index) => (
+                <div
+                  key={row.id || index}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr] items-center gap-3"
+                >
+                  <input
+                    type="text"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 disabled:opacity-75 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={row.category}
+                    disabled
+                  />
+                  <input
+                    type="text"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 disabled:opacity-75 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={row.color}
+                    disabled
+                  />
+                  <input
+                    type="text"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 disabled:opacity-75 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    value={`Sent: ${row.quantity || 0}`}
+                    disabled
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max={row.quantity || 0}
+                    placeholder="Received"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                    required
+                    value={row.received}
+                    onChange={(e) => handleCuttingReceivedChange(e, index)}
+                    disabled={SingleCutting?.project_status === "Completed"}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <input
+              id="r_quantity"
+              name="r_quantity"
+              type="text"
+              placeholder="Quantity"
+              className="bg-gray-50 mt-2 border max-w-xs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              required
+              value={cuttingData.r_quantity}
+              onChange={handleInputChangeCutting}
+              disabled={SingleCutting?.project_status === "Completed"}
+            />
+          )}
         </div>
         <div className="flex justify-center items-center">
           {SingleCutting?.project_status !== "Completed" && (
@@ -824,7 +935,7 @@ const CuttingDetails = () => {
                         <div>
                             <input
                             type="text"
-                            placeholder="Enter Quantity"
+                            placeholder="Category"
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                             required
                             value={row.category}

@@ -23,6 +23,7 @@ export const addCutting = async (req, res, next) => {
       design_no,
       source_step,
       source_id,
+      category_quantity,
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
@@ -59,11 +60,26 @@ export const addCutting = async (req, res, next) => {
     const sourceStep = source_step || ProcessStep.EMBROIDERY;
     const sourceId = source_id || embroidery_Id;
 
+    const cuttingRows = category_quantity
+      ? category_quantity.filter((item) => item?.category || item?.color || item?.quantity)
+      : [];
+    const totalCuttingQuantity = cuttingRows.length
+      ? cuttingRows.reduce((total, item) => total + Number(item.quantity || 0), 0)
+      : Number(T_Quantity || 0);
+
+    if (cuttingRows.length) {
+      for (const item of cuttingRows) {
+        if (!item.category || !item.color || !Number(item.quantity || 0)) {
+          throw new Error("Each cutting row must have category, color, and quantity");
+        }
+      }
+    }
+
     await assertSourceCanCreateNextStep({
       sourceStep,
       sourceId,
       targetStep: ProcessStep.CUTTING,
-      requestedQuantity: T_Quantity,
+      requestedQuantity: totalCuttingQuantity,
     });
 
     //ADD CONTROLLER DATA
@@ -74,7 +90,8 @@ export const addCutting = async (req, res, next) => {
       partyName,
       rate,
       serial_No,
-      T_Quantity,
+      T_Quantity: totalCuttingQuantity,
+      category_quantity: cuttingRows,
       date,
       design_no,
       Manual_No: mainEmbroidery.Manual_No,
@@ -93,13 +110,42 @@ export const addCutting = async (req, res, next) => {
 
 export const updateCutting = async (req, res, next) => {
   try {
-    const { id, r_quantity, project_status } = req.body;
+    const { id, r_quantity, category_quantity, project_status } = req.body;
     if (!id) throw new Error("Id not Found");
     const cutting = await CuttingModel.findById(id);
     if (!cutting) throw new Error("cutting not Found");
     let updateQuery = {};
-    if (r_quantity) {
-      if (r_quantity > cutting.T_Quantity) {
+
+    if (category_quantity && category_quantity?.length > 0) {
+      const updatedRows = cutting.category_quantity.map((row) => {
+        const incoming = category_quantity.find(
+          (item) => String(item.id || item._id) === String(row._id)
+        );
+        if (!incoming) return row;
+
+        const received = Number(incoming.received || 0);
+        if (received > Number(row.quantity || 0)) {
+          throw new Error("Received quantity cannot be greater than sent quantity");
+        }
+
+        row.received = received;
+        return row;
+      });
+      const updatedReceivedQuantity = updatedRows.reduce(
+        (total, item) => total + Number(item.received || 0),
+        0
+      );
+      if (updatedReceivedQuantity > cutting.T_Quantity) {
+        throw new Error("Invalid Recieved quantity");
+      }
+      updateQuery = {
+        ...updateQuery,
+        category_quantity: updatedRows,
+        r_quantity: updatedReceivedQuantity,
+        updated: true,
+      };
+    } else if (r_quantity !== undefined && r_quantity !== null && r_quantity !== "") {
+      if (Number(r_quantity) > Number(cutting.T_Quantity || 0)) {
         throw new Error("Invalid Recieved quantity");
       }
       updateQuery = {

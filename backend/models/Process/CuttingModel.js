@@ -1,5 +1,26 @@
 import mongoose from 'mongoose';
 
+const categoryQuantitySchema = new mongoose.Schema(
+  {
+    category: {
+      type: String,
+      default: "Front",
+    },
+    color: {
+      type: String,
+    },
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    received: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
 const cuttingSchema = new mongoose.Schema({
     embroidery_Id:{
         type: mongoose.Types.ObjectId,
@@ -44,6 +65,10 @@ const cuttingSchema = new mongoose.Schema({
       r_quantity:{
         type:Number,
         default:null
+      },
+      category_quantity: {
+        type: [categoryQuantitySchema],
+        default: [],
       },
       project_status: {
         type: String,

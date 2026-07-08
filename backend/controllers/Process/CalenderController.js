@@ -85,7 +85,10 @@ export const updateCalender = async (req, res, next) => {
     const calender = await CalenderModel.findById(id);
     if (!calender) throw new Error("Calender not Found");
     let updateQuery = {};
-    if (r_quantity) {
+    if (r_quantity !== undefined && r_quantity !== null && r_quantity !== "") {
+      if (Number(r_quantity) > Number(calender.T_Quantity || 0)) {
+        throw new Error("Invalid Recieved quantity");
+      }
       updateQuery = { ...updateQuery, r_quantity, updated: true };
     }
     if (project_status) {

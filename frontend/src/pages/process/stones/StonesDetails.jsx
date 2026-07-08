@@ -412,12 +412,24 @@ const StonesDetails = () => {
   };
 
   const handlstoneChange = (index, field, value) => {
+    const nextValue = Number(value || 0);
+    const currentRow = StoneData?.category_quantity?.[index] || {};
+    const sentQuantity = Number(SingleStone?.category_quantity?.[index]?.quantity || 0);
+    const nextRowTotal =
+      Number(field === "first" ? nextValue : currentRow.first || 0) +
+      Number(field === "second" ? nextValue : currentRow.second || 0) +
+      Number(field === "third" ? nextValue : currentRow.third || 0);
+
+    if (nextRowTotal > sentQuantity) {
+      return toast.error("Received quantity cannot be greater than sent quantity");
+    }
+
     const updatedCategoryQuantity = StoneData?.category_quantity?.map(
       (item, i) => {
         if (i === index) {
           return {
             ...item,
-            [field]: parseInt(value, 10),
+            [field]: nextValue,
           };
         }
         return item;

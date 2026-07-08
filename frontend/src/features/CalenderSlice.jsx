@@ -213,7 +213,7 @@ const CalenderSlice = createSlice({
         state.CalenderpdfLoading = false;
       })
 
-      // Shop Add ADD CASE
+     
       .addCase(createCalender.pending, (state, action) => {
         state.loading = true;
       })
@@ -221,7 +221,7 @@ const CalenderSlice = createSlice({
         state.loading = false;
       })
 
-      // LOGIN ADD CASE
+    
       .addCase(GetAllCalender.pending, (state, action) => {
         state.loading = true;
       })
@@ -230,13 +230,7 @@ const CalenderSlice = createSlice({
         state.Calender = action.payload;
       })
 
-      // FORGET PASSWORD ADD CASE
-      .addCase(UpdateCalenderAsync.pending, (state, action) => {
-        state.loading = true;
-      })
-      .addCase(UpdateCalenderAsync.fulfilled, (state, action) => {
-        state.loading = false;
-      })
+
 
       .addCase(GetSingleCalender.pending, (state, action) => {
         state.loading = true;
