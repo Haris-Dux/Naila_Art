@@ -1051,8 +1051,8 @@ export const getAttendencedata = async (req, res) => {
     if (!month || !moment(month, "YYYY-MM", true).isValid()) {
       throw new Error("Please select a valid month");
     }
-    const startOfMonth = moment(month, "YYYY-MM").startOf("month").toDate();
-    const endOfMonth = moment(month, "YYYY-MM").endOf("month").toDate();
+const startOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").startOf("month").toDate();
+const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").toDate();
     const [employees, publicHolidays] = await Promise.all([
       EmployeModel.find({ pastEmploye: false })
         .select("name designation")
@@ -1073,7 +1073,7 @@ export const getAttendencedata = async (req, res) => {
       const employeeData = employee;
       const recordsByDate = new Map(
         (employeeData.attendanceRecords || []).map((record) => [
-          moment(record.date).format("YYYY-MM-DD"),
+          moment(record.date).tz("Asia/Karachi").format("YYYY-MM-DD"),
           record,
         ]),
       );
@@ -1138,8 +1138,8 @@ export const calculateSalary = async (req, res) => {
         `Salary for this employee and period ${month} has already been processed`,
       );
     }
-    const startOfMonth = moment(month, "YYYY-MM").startOf("month").toDate();
-    const endOfMonth = moment(month, "YYYY-MM").endOf("month").toDate();
+const startOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").startOf("month").toDate();
+const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").toDate();
     const daysInMonth = moment(month).daysInMonth();
     const attendanceRecords = await EmployeAttendenceModel.find({
       employee_id,
@@ -1159,7 +1159,7 @@ export const calculateSalary = async (req, res) => {
     );
 
     const attendanceDates = new Set(
-      attendanceRecords.map((record) => moment(record.date).format("YYYY-MM-DD"))
+      attendanceRecords.map((record) => moment(record.date).tz("Asia/Karachi").format("YYYY-MM-DD"))
     );
 
     const missingAttendanceDates = [];

@@ -45,7 +45,7 @@ const Attendance = () => {
 
 
     const getDateMeta = (dateValue) => {
-    const selectedDate = moment.parseZone(dateValue);
+    const selectedDate = moment(dateValue);
     const holidayData = publicHolidays?.find(
       (item) => item.date === selectedDate.format("YYYY-MM-DD"),
     );
