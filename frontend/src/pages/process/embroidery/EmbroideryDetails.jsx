@@ -1078,6 +1078,7 @@ const EmbroideryDetails = () => {
             design_no={design_no}
             serial_No={serial_No}
             Manual_No={Manual_No}
+            receivedSuitQuantity={SingleEmbroidery?.T_Recieved_Suit || ""}
           />
         )}
 
