@@ -1,4 +1,5 @@
 import { RxCross2 } from "react-icons/rx";
+import { MdDeleteOutline } from "react-icons/md";
 
 const formatNumber = (value) => {
   const number = Number(value || 0);
@@ -26,6 +27,18 @@ const getColumns = (category) => {
     ];
   }
 
+  if (category === "Suits") {
+    return [
+      { key: "design_no", label: "D# No", render: (row) => row.design_no || "--" },
+      { key: "category", label: "Category", render: (row) => row.category || "--" },
+      { key: "color", label: "Color", render: (row) => row.colour || "--" },
+      { key: "quantity", label: "Qty", render: (row) => formatNumber(row.quantity) },
+      { key: "cost_price", label: "Cost", render: (row) => formatNumber(row.cost_price) },
+      { key: "sale_price", label: "Sale", render: (row) => formatNumber(row.sale_price) },
+      { key: "rowTotal", label: "Total", render: (row) => formatNumber(row.rowTotal) },
+    ];
+  }
+
   return [
     { key: "category", label: "Category", render: (row) => row.category || "--" },
     { key: "roleQuantity", label: "Qty", render: (row) => formatNumber(row.roleQuantity) },
@@ -34,11 +47,16 @@ const getColumns = (category) => {
   ];
 };
 
-const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category }) => {
+const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category, onDeletePart }) => {
   if (!isOpen) return null;
 
   const rows = bill?.measurementData || [];
   const columns = getColumns(category);
+  const suitCategories = [...new Set(rows.map((row) => row.category).filter(Boolean))];
+  const canDeleteSuitParts =
+    category === "Suits" &&
+    onDeletePart &&
+    !(rows.length === 1 && suitCategories.length === 1);
 
   return (
     <div
@@ -68,6 +86,27 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category }) => {
         <div className="p-4 md:p-5">
           {rows.length > 0 ? (
             <div className="overflow-x-auto">
+              {canDeleteSuitParts && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {suitCategories.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() =>
+                        onDeletePart({
+                          billId: bill?.id,
+                          category: item,
+                          scope: "category",
+                        })
+                      }
+                      className="inline-flex items-center gap-2 rounded border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                    >
+                      <MdDeleteOutline size={16} />
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              )}
               <table className="w-full text-sm text-center text-gray-500 dark:text-gray-400">
                 <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
@@ -76,6 +115,9 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category }) => {
                         {column.label}
                       </th>
                     ))}
+                    {canDeleteSuitParts && (
+                      <th className="px-3 py-3 text-center">Action</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -92,6 +134,26 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category }) => {
                           {column.render(row)}
                         </td>
                       ))}
+                      {canDeleteSuitParts && (
+                        <td className="px-3 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onDeletePart({
+                                billId: bill?.id,
+                                rowId: row.id,
+                                scope: "color",
+                              })
+                            }
+                            title="Delete color"
+                          >
+                            <MdDeleteOutline
+                              size={22}
+                              className="cursor-pointer text-red-500"
+                            />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

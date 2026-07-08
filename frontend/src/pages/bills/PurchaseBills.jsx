@@ -5,11 +5,13 @@ import BaseModals from "./Modals/BaseModals";
 import LaceModal from "./Modals/LaceModal";
 import BagModal from "./Modals/BagModal";
 import AccessoriesModal from "./Modals/AccessoriesModal";
+import SuitsModal from "./Modals/SuitsModal";
 import { useDispatch, useSelector } from "react-redux";
 import BaseTable from "./Tables/BaseTable";
 import LaceTable from "./Tables/LaceTable";
 import BagBoxTable from "./Tables/BagBoxTable";
 import AccessoriesTable from "./Tables/AccessoriesTable";
+import SuitsTable from "./Tables/SuitsTable";
 import {
   clearValiDateSeller,
   validateOldSellerAsync,
@@ -20,7 +22,7 @@ import BillFilters, {
 import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
 import AppSelect from "../../Component/Common/select/AppSelect";
 
-const purchaseCategories = ["Base", "Lace", "Bag/box", "Accessories"];
+const purchaseCategories = ["Base", "Lace", "Bag/box", "Accessories", "Suits"];
 
 const PurchaseBills = () => {
   const dispatch = useDispatch();
@@ -186,6 +188,7 @@ const PurchaseBills = () => {
         {selectedCategory === "Accessories" && (
           <AccessoriesTable filters={appliedFilters} />
         )}
+        {selectedCategory === "Suits" && <SuitsTable filters={appliedFilters} />}
       </section>
 
       {/* ALL MODALS  */}
@@ -216,6 +219,13 @@ const PurchaseBills = () => {
           closeModal={closeModal}
           sellerDetails={sellerDetails}
           clearFormData={clearFormData}
+        />
+      )}
+      {selectedCategory === "Suits" && (
+        <SuitsModal
+          isOpen={isOpen}
+          closeModal={closeModal}
+          sellerDetails={sellerDetails}
         />
       )}
 

@@ -19,6 +19,11 @@ import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { buildDateRangeQuery, getPaginationParams, getTodayDate } from "../../utils/Common.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
+import {
+  addSuitsPurchaseInStock,
+  normalizeSuitStockRows,
+  removeSuitPurchaseStockRows,
+} from "../Stock/SuitsController.js";
 
 
 const normalizeBaseMeasurementData = (measurementData = []) => {
@@ -238,11 +243,16 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
           ),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(seller_stock_category)
       ) {
-        const purchaseRows = measurementData && measurementData.length > 0
+        let purchaseRows = [];
+        if(seller_stock_category !== "Suits"){
+         purchaseRows = measurementData && measurementData.length > 0
           ? normalizeMeasurementData(measurementData)
-          : [];
+          : [] 
+        } else {
+          purchaseRows = normalizeSuitStockRows(measurementData);
+        }
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (seller_stock_category) {
           case "Lace":
@@ -281,6 +291,15 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
             break;
+          case "Suits":
+              const suitResult = await addSuitsPurchaseInStock({
+              billId,
+              rows: purchaseRows,
+              r_Date: date,
+              session,
+            });
+             if (suitResult.error) throw new Error(suitResult.error);
+            break;
           default:
             throw new Error("Invalid Category");
         }
@@ -317,6 +336,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 rate,
                 total,
                 measurementData: purchaseRows,
+                ...(seller_stock_category === "Suits" && {toAddinStock: true})
               },
             ],
             { session }
@@ -589,11 +609,17 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
           ),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(seller_stock_category)
       ) {
-        const purchaseRows = measurementData && measurementData.length > 0
+        let purchaseRows = [];
+        if(seller_stock_category !== "Suits") {
+          purchaseRows = measurementData && measurementData.length > 0
           ? normalizeMeasurementData(measurementData)
           : [];
+        } else {
+           purchaseRows = normalizeSuitStockRows(measurementData);
+        }
+
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (true) {
           case seller_stock_category === "Lace":
@@ -632,8 +658,17 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
             break;
+              case seller_stock_category === "Suits":
+              const suitResult = await addSuitsPurchaseInStock({
+              billId,
+              rows: purchaseRows,
+              r_Date: date,
+              session,
+            });
+             if (suitResult.error) throw new Error(suitResult.error);
+            break;
           default:
-            throw new Error("Invalid Category");
+            throw new Error("Invalid seller category");
         }
 
         //ADDING SELLERS DATA
@@ -671,6 +706,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 rate,
                 total,
                 measurementData: purchaseRows,
+                ...(seller_stock_category === "Suits" && {toAddinStock: true})
               },
             ],
             { session }
@@ -745,24 +781,16 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
     await session.withTransaction(async () => {
       const { billId } = req.body;
 
-      //VALIDATING FIELDS
-      const requiredFields = ["billId"];
-      const missingFields = [];
-      requiredFields.forEach((field) => {
-        if (req.body[field] === undefined || req.body[field] === null) {
-          missingFields.push(field);
-        }
-      });
-      if (missingFields.length > 0)
-        throw new Error(`Missing Fields ${missingFields}`);
+      if (!billId)
+        throw new Error('Bill id is missing');
 
       //GETTING BILL DATA
       const billData = await purchasing_History_model.findById({ _id: billId });
-      if (!billData) throw new Error("Bill Not Found");
+      if (!billData) throw new Error("Bill data not found");
 
       //GETTING OLD SELLER DATA
       const oldSellerData = await SellersModel.findOne({ name: billData.name });
-      if (!oldSellerData) throw new Error("Seller Not Found");
+      if (!oldSellerData) throw new Error("Seller data not found");
 
       const sellerId = oldSellerData._id;
       //DATA FOR VIRTUAL ACCOUNT
@@ -796,7 +824,7 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
           purchasing_History_model.findByIdAndDelete(billId).session(session),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(
           billData.seller_stock_category
         )
       ) {
@@ -838,6 +866,14 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
               session,
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
+            break;
+          case billData.seller_stock_category === "Suits":
+             const suitResult = await removeSuitPurchaseStockRows({
+               billId,
+               rows: billData.measurementData,
+               session,
+              });
+               if (suitResult.error) throw new Error(bagBoxResult.error);
             break;
           default:
             throw new Error("Invalid Category");

@@ -21,7 +21,6 @@ const updateExpenseCategoryUrl = "/api/stock/expense/updateExpenseCategory";
 const getExpensesCategoriesUrl = "/api/stock/expense/getExpensesCategories";
 const getExpenseStatsUrl = "/api/stock/expense/getExpenseStats";
 const deleteEXpenseUrl = "/api/stock/expense/deleteExpense";
-const AddSuits = "/api/stock/suits/addBaseInStock";
 const deleteSuitStock = "/api/stock/suits/deleteProcessSuitStock";
 const assignStock = "/api/branches/assignStockToBranch";
 const getAllSuitsStockForBranch = "/api/branches/getAllSuitsStockForBranch";
@@ -33,17 +32,10 @@ const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
 const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
 const getPendingReturnedStockUrl = "/api/branches/getPendingReturnedStock";
 const getAllBranches = "/api/branches/getAllBranches";
+const deleteSuitBillPartAndReverseStockUrl =
+  "/api/stock/suits/deleteSuitBillPartAndReverseStock";
 
-export const AddSuit = createAsyncThunk("Suit/Create", async (formData) => {
-  try {
-    const response = await axios.post(AddSuits, formData);
-    toast.success(response.data.message);
 
-    return response.data;
-  } catch (error) {
-    toast.error(error.response.data.error);
-  }
-});
 
 export const AssginStocktoBranch = createAsyncThunk(
   "AssginStocktoBranch/Create",
@@ -444,6 +436,22 @@ export const deleteProcessSuitStockAsync = createAsyncThunk(
   }
 );
 
+export const deleteSuitBillPartAsync = createAsyncThunk(
+  "Seller/deleteSuitBillPartAsync",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        deleteSuitBillPartAndReverseStockUrl,
+        data
+      );
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const sessionStorageKey = "branches"
 const initialState = {
@@ -690,13 +698,6 @@ const InStockSlic = createSlice({
         state.ExpenseLoading = false;
       })
 
-      .addCase(AddSuit.pending, (state) => {
-        state.addSuitLoading = true;
-      })
-      .addCase(AddSuit.fulfilled, (state, action) => {
-        state.addSuitLoading = false;
-      })
-
       .addCase(approveOrRejectStock.pending, (state) => {
         state.stockLoading = true;
       })
@@ -755,6 +756,16 @@ const InStockSlic = createSlice({
         state.deleteStockLoading = false;
       })
       .addCase(deleteProcessSuitStockAsync.rejected, (state, action) => {
+        state.deleteStockLoading = false;
+      })
+
+      .addCase(deleteSuitBillPartAsync.pending, (state) => {
+        state.deleteStockLoading = true;
+      })
+      .addCase(deleteSuitBillPartAsync.fulfilled, (state) => {
+        state.deleteStockLoading = false;
+      })
+      .addCase(deleteSuitBillPartAsync.rejected, (state) => {
         state.deleteStockLoading = false;
       })
   },

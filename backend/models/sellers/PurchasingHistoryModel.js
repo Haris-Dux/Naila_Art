@@ -1,9 +1,25 @@
 import mongoose from "mongoose";
 
-const base_measurement_details = new mongoose.Schema({
+const measurement_details = new mongoose.Schema({
+  design_no: {
+    type: Number,
+    default: 0,
+  },
   category: {
     type: String,
     default: "",
+  },
+  cost_price: {
+    type: Number,
+    default: 0,
+  },
+  sale_price: {
+    type: Number,
+    default: 0,
+  },
+  quantity: {
+    type: Number,
+    default: 0,
   },
   roleQuantity: {
     type: Number,
@@ -29,7 +45,7 @@ const base_measurement_details = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-}, { _id: false });
+});
 
 const purchasing_History_Schema = new mongoose.Schema({
   bill_no: {
@@ -51,7 +67,7 @@ const purchasing_History_Schema = new mongoose.Schema({
   seller_stock_category : {
     type: String,
     required:[true,'Seller Stock Category Required'],
-    enum:['Base','Lace','Bag/box','Accessories']
+    enum:['Base','Lace','Bag/box','Accessories','Suits']
   },
   quantity: {
     type: Number,
@@ -66,7 +82,7 @@ const purchasing_History_Schema = new mongoose.Schema({
     required: [true, "Numnber Value is required"],
   },
   measurementData: {
-    type: [base_measurement_details],
+    type: [measurement_details],
     default: [],
   },
   toAddinStock: {
