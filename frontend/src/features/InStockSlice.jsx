@@ -34,6 +34,8 @@ const getPendingReturnedStockUrl = "/api/branches/getPendingReturnedStock";
 const getAllBranches = "/api/branches/getAllBranches";
 const deleteSuitBillPartAndReverseStockUrl =
   "/api/stock/suits/deleteSuitBillPartAndReverseStock";
+const partialDeleteSuitBillColorAndReverseStockUrl =
+  "/api/stock/suits/partialDeleteSuitBillColorAndReverseStock";
 
 
 
@@ -452,6 +454,22 @@ export const deleteSuitBillPartAsync = createAsyncThunk(
   }
 );
 
+export const partialDeleteSuitBillColorAsync = createAsyncThunk(
+  "Seller/partialDeleteSuitBillColorAsync",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        partialDeleteSuitBillColorAndReverseStockUrl,
+        data
+      );
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const sessionStorageKey = "branches"
 const initialState = {
@@ -766,6 +784,15 @@ const InStockSlic = createSlice({
         state.deleteStockLoading = false;
       })
       .addCase(deleteSuitBillPartAsync.rejected, (state) => {
+        state.deleteStockLoading = false;
+      })
+      .addCase(partialDeleteSuitBillColorAsync.pending, (state) => {
+        state.deleteStockLoading = true;
+      })
+      .addCase(partialDeleteSuitBillColorAsync.fulfilled, (state) => {
+        state.deleteStockLoading = false;
+      })
+      .addCase(partialDeleteSuitBillColorAsync.rejected, (state) => {
         state.deleteStockLoading = false;
       })
   },
