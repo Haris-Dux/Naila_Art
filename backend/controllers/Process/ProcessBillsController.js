@@ -39,6 +39,7 @@ export const generateProcessBill = async (req, res, next) => {
         Manual_No,
         additionalExpenditure,
         embroidery_Id,
+        date,
       } = req.body;
 
       // Validate required fields
@@ -157,6 +158,8 @@ export const generateProcessBill = async (req, res, next) => {
         }
       };
 
+      const billDate = date?.split('T')[0] || today;
+
       // IF ACCOUNT DOES NOT EXIST, CREATE A NEW ONE
       if (!oldAccountData) {
         //DATA FOR VIRTUAL ACCOUNT
@@ -186,7 +189,7 @@ export const generateProcessBill = async (req, res, next) => {
 
         const credit_debit_history_details = [
           {
-            date: today,
+            date: billDate,
             particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
             credit: amount.toFixed(0),
             balance: amount.toFixed(0),
@@ -199,7 +202,7 @@ export const generateProcessBill = async (req, res, next) => {
             {
               process_Category,
               design_no,
-              date: today,
+              date: billDate,
               Manual_No,
               serial_No,
               partyName,
@@ -244,7 +247,7 @@ export const generateProcessBill = async (req, res, next) => {
         }
 
         const credit_debit_history_details = {
-          date: today,
+          date: billDate,
           particular: `S.N:${serial_No}/M.N:${Manual_No}/D.N:${design_no}`,
           credit: amount,
           balance: new_total_balance,
@@ -253,7 +256,7 @@ export const generateProcessBill = async (req, res, next) => {
 
         //SAVING THE OLD ACCOUNT DATA
         (oldAccountData.design_no = design_no),
-          (oldAccountData.date = today),
+          (oldAccountData.date = billDate),
           (oldAccountData.Manual_No = Manual_No),
           (oldAccountData.serial_No = serial_No),
           (oldAccountData.virtual_account = virtualAccountData),
@@ -694,7 +697,7 @@ export const applyDiscountOnProcessAccount = async (req, res, next) => {
     } else if (category === "Pictures") {
       accountData = await PicruresAccountModel.findById(id);
     } else {
-      throw new Error("Need to Work On Category yet");
+      throw new Error("Invalid category");
     }
 
     if (!accountData) throw new CustomError("Account not found", 404);

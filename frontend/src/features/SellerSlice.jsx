@@ -15,6 +15,8 @@ const getSellerByIdURL = "/api/sellerRouter/getSelleForPurchasingById";
 const validateOldSeller = "/api/sellerRouter/validateAndGetOldSellerData";
 const deleteSellerBillAndReverseStockUrl =
   "/api/sellerRouter/deleteSellerBillAndReverseStock";
+const applyDiscountOnSellerAccountUrl =
+  "/api/sellerRouter/applyDiscountOnSellerAccount";
 
 // GET ALL SELLER FOR PURCHSING THUNK
 export const getAllSellerForPurchasingAsync = createAsyncThunk(
@@ -132,6 +134,20 @@ export const deleteSelllerBillAsync = createAsyncThunk(
   }
 );
 
+// APPLY DISCOUNT ON SELLER ACCOUNT
+export const applySellerDiscountAsync = createAsyncThunk(
+  "Seller/applyDiscount",
+  async (data) => {
+    try {
+      const response = await axios.post(applyDiscountOnSellerAccountUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response?.data?.error);
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   SellerData: [],
@@ -145,6 +161,7 @@ const initialState = {
   searchLoading: false,
   addSellerLoading: false,
   deleteLoading: false,
+  discountLoading: false,
 };
 
 const SellerSlice = createSlice({
@@ -176,6 +193,17 @@ const SellerSlice = createSlice({
       })
       .addCase(deleteSelllerBillAsync.rejected, (state, action) => {
         state.deleteLoading = false;
+      })
+
+      // APPLY DISCOUNT
+      .addCase(applySellerDiscountAsync.pending, (state) => {
+        state.discountLoading = true;
+      })
+      .addCase(applySellerDiscountAsync.fulfilled, (state) => {
+        state.discountLoading = false;
+      })
+      .addCase(applySellerDiscountAsync.rejected, (state) => {
+        state.discountLoading = false;
       })
 
       // GET SELLER BY ID

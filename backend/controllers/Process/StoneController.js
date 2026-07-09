@@ -5,6 +5,11 @@ import { addBPair } from "./B_PairController.js";
 import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { CuttingModel } from "../../models/Process/CuttingModel.js";
 import { getPaginationParams } from "../../utils/Common.js";
+import {
+  assertSourceCanCreateNextStep,
+  buildProcessAvailability,
+  ProcessStep,
+} from "../../utils/ProcessQuantity.js";
 
 export const addStone = async (req, res, next) => {
   try {
@@ -18,6 +23,8 @@ export const addStone = async (req, res, next) => {
       rate,
       category_quantity,
       partyType,
+      source_step,
+      source_id,
     } = req.body;
     const requiredFields = [
       "embroidery_Id",
@@ -59,27 +66,33 @@ export const addStone = async (req, res, next) => {
     let totalQuantityToAdd = 0;
     for (let item of category_quantity) {
       if (item.category || item.color || item.quantity) {
-        totalQuantityToAdd += item.quantity;
+        totalQuantityToAdd += Number(item.quantity) || 0;
       }
     }
-    const cuttingData = await CuttingModel.findOne({
-      embroidery_Id: embroidery_Id,
+    const sourceStep =
+      source_step ||
+      (cuttingId && cuttingId !== "null"
+        ? ProcessStep.CUTTING
+        : ProcessStep.EMBROIDERY);
+    const sourceId =
+      source_id ||
+      (sourceStep === ProcessStep.CUTTING ? cuttingId : embroidery_Id);
+
+    await assertSourceCanCreateNextStep({
+      sourceStep,
+      sourceId,
+      targetStep: ProcessStep.STONE,
+      requestedQuantity: totalQuantityToAdd,
     });
-    if (cuttingData) {
-      const availableQuantity =
-        cuttingData.Available_Quantity - totalQuantityToAdd;
-      if (availableQuantity < 0) {
-        throw new Error("Not Enough Quantity For Stone");
-      }
-      cuttingData.Available_Quantity = availableQuantity;
-      await cuttingData.save();
-    }
     //GET MAIN EMBROIDERY DATA
     const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
+    if (!mainEmbroidery) throw new Error("Embroidery record not found");
 
     //ADD STONES
     await StoneModel.create({
       embroidery_Id,
+      source_step: sourceStep,
+      source_id: sourceId,
       partyName,
       rate,
       serial_No,
@@ -140,8 +153,16 @@ export const getStoneById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await StoneModel.findById(id);
+    if (!data) throw new Error("Stone not found");
+    const processAvailability = await buildProcessAvailability({
+      sourceStep: ProcessStep.STONE,
+      sourceId: id,
+    });
     setMongoose();
-    return res.status(200).json(data);
+    return res.status(200).json({
+      ...data.toObject({ virtuals: true }),
+      processAvailability,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -186,7 +207,7 @@ export const updateStone = async (req, res, next) => {
             toUpdate.recieved_Data.r_total = first + total;
           }
 
-          if (second !== undefined && first !== null) {
+          if (second !== undefined && second !== null) {
             let total =
               toUpdate.recieved_Data.r_total -
               toUpdate.recieved_Data.second.quantity;
@@ -195,13 +216,16 @@ export const updateStone = async (req, res, next) => {
             toUpdate.recieved_Data.r_total = second + total;
           }
 
-          if (third !== undefined && first !== null) {
+          if (third !== undefined && third !== null) {
             let total =
               toUpdate.recieved_Data.r_total -
               toUpdate.recieved_Data.third.quantity;
             toUpdate.recieved_Data.third.quantity = third;
             toUpdate.recieved_Data.third.date = date;
             toUpdate.recieved_Data.r_total = third + total;
+          }
+          if (toUpdate.recieved_Data.r_total > Number(toUpdate.quantity || 0)) {
+            throw new Error("Received quantity cannot be greater than sent quantity");
           }
         }
         stone.r_quantity = new_r_quantity + toUpdate.recieved_Data.r_total;
@@ -237,26 +261,6 @@ export const updateStone = async (req, res, next) => {
   }
 };
 
-export const getColorsForCurrentEmbroidery = async (req, res, next) => {
-  try {
-    const { serial_No } = req.body;
-    if (!serial_No) throw new Error("Serial No required");
-    const embroidery = await EmbroideryModel.findOne({ serial_No });
-    if (embroidery.length == 0)
-      throw new Error("No Data found On This serial Number");
-    const allItems = [
-      ...embroidery.shirt,
-      ...embroidery.duppata,
-      ...embroidery.trouser,
-    ];
-
-    const colors = [...new Set(allItems.map((item) => item.color))];
-    return res.status(200).json({ success: true, colors: colors });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 export const deleteStone = async (req, res, next) => {
   try {
     const { id } = req.body;
@@ -275,17 +279,6 @@ export const deleteStone = async (req, res, next) => {
       await embData.save();
     };
 
-    if (data?.cuttingId !== 'null') {
-      const cuttingData = await CuttingModel.findById(data.cuttingId);
-      if (cuttingData) {
-        const quantity = data.category_quantity.reduce((sum, item) => {
-          return sum + item.quantity;
-        }, 0);
-        cuttingData.Available_Quantity += quantity;
-        await cuttingData.save();
-      }
-    };
- 
     return res
       .status(200)
       .json({ success: true, message: "Deleted successfully" });

@@ -11,7 +11,8 @@ import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { LuPackageCheck } from "react-icons/lu";
 import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 import Pagination from "../../../Component/Common/Pagination";
-import { getPageLimit } from "../../../Utils/Common";
+import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
+import ColorList from "../../../Component/Common/ColorList";
 
 const Stitching = () => {
   const dispatch = useDispatch();
@@ -113,6 +114,12 @@ const Stitching = () => {
                       Design No
                     </th>
                     <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
+                      Rate
+                    </th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
+                      Colors
+                    </th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
                       Date
                     </th>
                     <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs md:text-sm font-medium" scope="col">
@@ -158,8 +165,12 @@ const Stitching = () => {
                         </th>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.partyName}</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.design_no}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.rate}</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                          {new Date(data.date).toLocaleDateString()}
+                          <ColorList items={data.suits_category} />
+                        </td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                          {formatReadableDate(data.date)}
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.Quantity} suit</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">

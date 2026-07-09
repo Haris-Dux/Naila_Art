@@ -13,6 +13,10 @@ const record_data = new mongoose.Schema({
   sale_price:{
     type:Number
   },
+  bill_id: {
+    type: mongoose.Types.ObjectId,
+    default: null
+  },
   embroidery_Id: {
     type: mongoose.Types.ObjectId
   },
@@ -68,4 +72,3 @@ suitsSchema.index({ category: 1, quantity: -1, createdAt: -1 });
 suitsSchema.index({ d_no: 1, category: 1, color: 1 });
 
 export const SuitsModel = mongoose.model('Suit', suitsSchema);
-

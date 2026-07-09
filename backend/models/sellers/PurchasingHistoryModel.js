@@ -1,5 +1,51 @@
 import mongoose from "mongoose";
 
+const measurement_details = new mongoose.Schema({
+  design_no: {
+    type: Number,
+    default: 0,
+  },
+  category: {
+    type: String,
+    default: "",
+  },
+  cost_price: {
+    type: Number,
+    default: 0,
+  },
+  sale_price: {
+    type: Number,
+    default: 0,
+  },
+  quantity: {
+    type: Number,
+    default: 0,
+  },
+  roleQuantity: {
+    type: Number,
+    default: 0,
+  },
+  measurement: {
+    type: Number,
+    default: 0,
+  },
+  colour: {
+    type: String,
+    default: "",
+  },
+  rate: {
+    type: Number,
+    default: 0,
+  },
+  rowQuantity: {
+    type: Number,
+    default: 0,
+  },
+  rowTotal: {
+    type: Number,
+    default: 0,
+  },
+});
 
 const purchasing_History_Schema = new mongoose.Schema({
   bill_no: {
@@ -21,7 +67,7 @@ const purchasing_History_Schema = new mongoose.Schema({
   seller_stock_category : {
     type: String,
     required:[true,'Seller Stock Category Required'],
-    enum:['Base','Lace','Bag/box','Accessories']
+    enum:['Base','Lace','Bag/box','Accessories','Suits']
   },
   quantity: {
     type: Number,
@@ -34,6 +80,14 @@ const purchasing_History_Schema = new mongoose.Schema({
   total: {
     type: Number,
     required: [true, "Numnber Value is required"],
+  },
+  measurementData: {
+    type: [measurement_details],
+    default: [],
+  },
+  toAddinStock: {
+    type: Boolean,
+    default: false,
   }
 },
 {timestamps:true});

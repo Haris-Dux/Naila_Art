@@ -17,10 +17,57 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
-import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
+import { buildDateRangeQuery, getPaginationParams, getTodayDate } from "../../utils/Common.js";
+import { verifyrequiredparams } from "../../middleware/Common.js";
+import {
+  addSuitsPurchaseInStock,
+  normalizeSuitStockRows,
+  removeSuitPurchaseStockRows,
+} from "../Stock/SuitsController.js";
 
-//TODAY
-const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
+const normalizeBaseMeasurementData = (measurementData = []) => {
+  if (!measurementData || !measurementData.length) {
+    throw new Error("Missing base measurement data");
+  }
+
+  return measurementData.map((item) => {
+    const roleQuantity = Number(item.roleQuantity);
+    const measurement = Number(item.measurement);
+    const colour = String(item.colour || "").trim();
+    const rate = Number(item.rate || 0);
+    const rowQuantity = Number(item.rowQuantity || roleQuantity * measurement);
+    const rowTotal = Number(item.rowTotal || rowQuantity * rate);
+
+    if (!colour || !measurement || !roleQuantity) {
+      throw new Error("Missing base measurement data");
+    }
+
+    return { roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
+  });
+};
+
+const normalizeMeasurementData = (measurementData = []) => {
+  if (!measurementData || !measurementData.length) {
+    throw new Error("Missing measurement data");
+  }
+
+  return measurementData.map((item) => {
+    const category = String(item.category || "").trim();
+    const roleQuantity = Number(item.roleQuantity ?? item.quantity);
+    const measurement = Number(item.measurement || 1);
+    const colour = String(item.colour || "").trim();
+    const rate = Number(item.rate || 0);
+    const rowQuantity = Number(item.rowQuantity || roleQuantity * measurement);
+    const rowTotal = Number(item.rowTotal || rowQuantity * rate);
+
+    if (!roleQuantity || !measurement || !rate) {
+      throw new Error("Missing measurement data");
+    }
+
+    return { category, roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
+  });
+};
 
 export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -67,7 +114,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
       });
 
       if (existingSeller) {
-        throw new Error(`The name "${name}" already exists.`);
+        throw new Error(`The seller name "${name}" already exists.`);
       }
 
       //DATA FOR VIRTUAL ACCOUNT
@@ -97,12 +144,11 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
 
       //ADDING BASE DATA IN  SELLER
       if (seller_stock_category === "Base") {
+        const baseMeasurementData = normalizeBaseMeasurementData(measurementData);
         let stockData = [];
         if (toAddinStock === true) {
-          measurementData.forEach((item) => {
+          baseMeasurementData.forEach((item) => {
             let { colour, measurement, roleQuantity } = item;
-            if (!colour || !measurement || !roleQuantity)
-              throw new Error("Missing data for stock");
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -189,14 +235,24 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: baseMeasurementData,
+                toAddinStock: Boolean(toAddinStock),
               },
             ],
             { session }
           ),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(seller_stock_category)
       ) {
+        let purchaseRows = [];
+        if(seller_stock_category !== "Suits"){
+         purchaseRows = measurementData && measurementData.length > 0
+          ? normalizeMeasurementData(measurementData)
+          : [] 
+        } else {
+          purchaseRows = normalizeSuitStockRows(measurementData);
+        }
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (seller_stock_category) {
           case "Lace":
@@ -235,6 +291,15 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
             break;
+          case "Suits":
+              const suitResult = await addSuitsPurchaseInStock({
+              billId,
+              rows: purchaseRows,
+              r_Date: date,
+              session,
+            });
+             if (suitResult.error) throw new Error(suitResult.error);
+            break;
           default:
             throw new Error("Invalid Category");
         }
@@ -270,6 +335,8 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: purchaseRows,
+                ...(seller_stock_category === "Suits" && {toAddinStock: true})
               },
             ],
             { session }
@@ -448,12 +515,11 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         seller_stock_category === "Base" &&
         oldSellerData.seller_stock_category === "Base"
       ) {
+        const baseMeasurementData = normalizeBaseMeasurementData(measurementData);
         let stockData = [];
         if (toAddinStock === true) {
-          measurementData.forEach((item) => {
+          baseMeasurementData.forEach((item) => {
             let { colour, measurement, roleQuantity } = item;
-            if (!colour || !measurement || !roleQuantity)
-              throw new Error("Missing data for stock");
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -535,14 +601,25 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: baseMeasurementData,
+                toAddinStock: Boolean(toAddinStock),
               },
             ],
             { session }
           ),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(seller_stock_category)
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(seller_stock_category)
       ) {
+        let purchaseRows = [];
+        if(seller_stock_category !== "Suits") {
+          purchaseRows = measurementData && measurementData.length > 0
+          ? normalizeMeasurementData(measurementData)
+          : [];
+        } else {
+           purchaseRows = normalizeSuitStockRows(measurementData);
+        }
+
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
         switch (true) {
           case seller_stock_category === "Lace":
@@ -581,8 +658,17 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
             break;
+              case seller_stock_category === "Suits":
+              const suitResult = await addSuitsPurchaseInStock({
+              billId,
+              rows: purchaseRows,
+              r_Date: date,
+              session,
+            });
+             if (suitResult.error) throw new Error(suitResult.error);
+            break;
           default:
-            throw new Error("Invalid Category");
+            throw new Error("Invalid seller category");
         }
 
         //ADDING SELLERS DATA
@@ -619,6 +705,8 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 quantity,
                 rate,
                 total,
+                measurementData: purchaseRows,
+                ...(seller_stock_category === "Suits" && {toAddinStock: true})
               },
             ],
             { session }
@@ -693,24 +781,16 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
     await session.withTransaction(async () => {
       const { billId } = req.body;
 
-      //VALIDATING FIELDS
-      const requiredFields = ["billId"];
-      const missingFields = [];
-      requiredFields.forEach((field) => {
-        if (req.body[field] === undefined || req.body[field] === null) {
-          missingFields.push(field);
-        }
-      });
-      if (missingFields.length > 0)
-        throw new Error(`Missing Fields ${missingFields}`);
+      if (!billId)
+        throw new Error('Bill id is missing');
 
       //GETTING BILL DATA
       const billData = await purchasing_History_model.findById({ _id: billId });
-      if (!billData) throw new Error("Bill Not Found");
+      if (!billData) throw new Error("Bill data not found");
 
       //GETTING OLD SELLER DATA
       const oldSellerData = await SellersModel.findOne({ name: billData.name });
-      if (!oldSellerData) throw new Error("Seller Not Found");
+      if (!oldSellerData) throw new Error("Seller data not found");
 
       const sellerId = oldSellerData._id;
       //DATA FOR VIRTUAL ACCOUNT
@@ -744,11 +824,12 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
           purchasing_History_model.findByIdAndDelete(billId).session(session),
         ]);
       } else if (
-        ["Lace", "Bag/box", "Accessories"].includes(
+        ["Lace", "Bag/box", "Accessories", "Suits"].includes(
           billData.seller_stock_category
         )
       ) {
         //ADDING LACE OR BAG/BOX OR ACCESSORIES DATA IN STOCK
+        const today = getTodayDate()
         switch (true) {
           case billData.seller_stock_category === "Lace":
             const laceResult = await removeLaceFromStock({
@@ -786,6 +867,14 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
             });
             if (bagBoxResult.error) throw new Error(bagBoxResult.error);
             break;
+          case billData.seller_stock_category === "Suits":
+             const suitResult = await removeSuitPurchaseStockRows({
+               billId,
+               rows: billData.measurementData,
+               session,
+              });
+               if (suitResult.error) throw new Error(bagBoxResult.error);
+            break;
           default:
             throw new Error("Invalid Category");
         }
@@ -813,5 +902,50 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   } finally {
     session.endSession();
+  }
+};
+
+export const applyDiscountOnSellerAccount = async (req, res, next) => {
+  try {
+    const { id, amount, reason } = req.body;
+    await verifyrequiredparams(req.body, ["id", "amount"]);
+    const numericAmount = Number(amount);
+    const accountData = await SellersModel.findById(id);
+
+    if (!accountData) throw new CustomError("Account not found", 404);
+
+    if (accountData.virtual_account.total_balance <= 0) {
+      throw new CustomError("Invalid discount request", 400);
+    }
+
+    //UPDATING ACCOUNT STATUS
+
+    const {new_total_debit,new_total_credit,new_total_balance,new_status} = calculateAccountBalance({amount:numericAmount,oldAccountData:accountData,credit:false});
+
+    const virtualAccountData = {
+        total_debit: new_total_debit,
+        total_credit: new_total_credit,
+        total_balance: new_total_balance,
+        status: new_status,
+      };
+
+    
+    const historydata = {
+      date: getTodayDate(),
+      particular: `Discount Entry/${reason}`,
+      credit: 0,
+      balance: new_total_balance,
+      orderId: "",
+      debit: amount,
+    };
+
+     (accountData.virtual_account = virtualAccountData),
+      accountData.credit_debit_history.push(historydata);
+
+      await accountData.save();
+
+    return res.status(200).json({ success: true, message: "Discount applied successfully" });
+  } catch (error) {
+    next(error);
   }
 };

@@ -4,6 +4,10 @@ import { processBillsModel } from "../../models/Process/ProcessBillsModel.js";
 import { setMongoose } from "../../utils/Mongoose.js";
 import { addBPair } from "./B_PairController.js";
 import { getPaginationParams } from "../../utils/Common.js";
+import {
+  buildProcessAvailability,
+  ProcessStep,
+} from "../../utils/ProcessQuantity.js";
 
 export const addCalender = async (req, res, next) => {
   try {
@@ -46,6 +50,10 @@ export const addCalender = async (req, res, next) => {
     }
     //GET EMBROIDERY DATA
     const mainEmbroidery = await EmbroideryModel.findById(embroidery_Id);
+    if (!mainEmbroidery) throw new Error("Embroidery record not found");
+    if (mainEmbroidery.project_status !== "Completed") {
+      throw new Error("Previous step must be completed before creating next step");
+    }
     
     //CREATE CALENDER DATA
     await CalenderModel.create({
@@ -77,7 +85,10 @@ export const updateCalender = async (req, res, next) => {
     const calender = await CalenderModel.findById(id);
     if (!calender) throw new Error("Calender not Found");
     let updateQuery = {};
-    if (r_quantity) {
+    if (r_quantity !== undefined && r_quantity !== null && r_quantity !== "") {
+      if (Number(r_quantity) > Number(calender.T_Quantity || 0)) {
+        throw new Error("Invalid Recieved quantity");
+      }
       updateQuery = { ...updateQuery, r_quantity, updated: true };
     }
     if (project_status) {
@@ -148,8 +159,16 @@ export const getCalenderById = async (req, res, next) => {
     const { id } = req.body;
     if (!id) throw new Error("Id Required");
     const data = await CalenderModel.findById(id);
+    if (!data) throw new Error("Calender not found");
+    const processAvailability = await buildProcessAvailability({
+      sourceStep: ProcessStep.EMBROIDERY,
+      sourceId: data.embroidery_Id,
+    });
     setMongoose();
-    return res.status(200).json(data);
+    return res.status(200).json({
+      ...data.toObject({ virtuals: true }),
+      processAvailability,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

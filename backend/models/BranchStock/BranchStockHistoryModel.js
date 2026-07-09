@@ -11,6 +11,11 @@ const branchHistorySchema = new mongoose.Schema({
     enum: ["Pending", "Approved", "Rejected"],
     default:"Pending"
   },
+  transferType: {
+    type: String,
+    enum: ["TO_BRANCH", "RETURN_TO_MAIN"],
+    default: "TO_BRANCH",
+  },
   issueDate: {
     type: String,
     required: [true, "Issue date is required"],
@@ -63,5 +68,6 @@ const branchHistorySchema = new mongoose.Schema({
 
 branchHistorySchema.index({ branchId: 1, createdAt: -1 });
 branchHistorySchema.index({ branchId: 1, bundleStatus: 1, createdAt: -1 });
+branchHistorySchema.index({ branchId: 1, transferType: 1, bundleStatus: 1, createdAt: -1 });
 
 export const branchStockHistoryModel = mongoose.model("Branch Stock History",branchHistorySchema)

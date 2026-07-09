@@ -12,7 +12,7 @@ import AddBaseModal from "./AddBaseModal";
 import { MdDeleteOutline } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import Pagination from "../../../Component/Common/Pagination";
-import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
+import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../../Utils/Common";
 
 const Base = () => {
   const dispatch = useDispatch();
@@ -249,7 +249,7 @@ const Base = () => {
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.colors}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.TYm} m</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                        {new Date(data.r_Date).toLocaleDateString()}
+                        {formatReadableDate(data.r_Date)}
                       </td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.recently} m</td>
                       <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
@@ -357,7 +357,7 @@ const Base = () => {
                             </th>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.colors}</td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                              {new Date(data?.Date).toLocaleDateString()}
+                              {formatReadableDate(data?.Date)}
                             </td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.quantity} m</td>
                             {data?.quantity?.startsWith("Deleted") ? (

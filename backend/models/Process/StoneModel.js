@@ -4,15 +4,7 @@ const category_schema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, "Category Name Required"],
-    enum: [
-      "Front",
-      "Back",
-      "Bazo",
-      "Duppata",
-      "Gala",
-      "Front Patch",
-      "Trouser",
-    ],
+    enum: ["Front"],
   },
   color: {
     type: String,
@@ -69,6 +61,15 @@ const stoneSchema = new mongoose.Schema(
     embroidery_Id: {
       type: mongoose.Types.ObjectId,
       required: [true, "Embroidery Id required"],
+    },
+    source_step: {
+      type: String,
+      enum: ["Embroidery", "Calender", "Cutting", "Stone", "Stitching"],
+      default: "Cutting",
+    },
+    source_id: {
+      type: mongoose.Types.ObjectId,
+      default: null,
     },
     cuttingId: {
       type:String
@@ -136,5 +137,6 @@ stoneSchema.index({ design_no: 1, createdAt: -1 });
 stoneSchema.index({ Manual_No: 1, createdAt: -1 });
 stoneSchema.index({ embroidery_Id: 1, design_no: 1 });
 stoneSchema.index({ cuttingId: 1 });
+stoneSchema.index({ source_step: 1, source_id: 1, createdAt: -1 });
 
 export const StoneModel = mongoose.model("Stone", stoneSchema);

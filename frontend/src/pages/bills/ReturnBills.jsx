@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { getAllReturnsForBranch } from "../../features/ReturnSlice";
 import Pagination from "../../Component/Common/Pagination";
-import { buildPaginationQuery, getPageLimit } from "../../Utils/Common";
+import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../Utils/Common";
 
 const PhoneComponent = ({ phone }) => {
   const maskPhoneNumber = (phone) => {
@@ -260,7 +260,7 @@ const ReturnBills = () => {
                           {data.Amount_From_TotalCash ?? "0"} Rs
                         </td>
                        
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">{data.date}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-center font-medium text-xs md:text-sm">{formatReadableDate(data.date)}</td>
                         <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 text-center">
                           <button onClick={() => openModal(data.suits_data)}>
                             <FaEye size={20} className="cursor-pointer" />

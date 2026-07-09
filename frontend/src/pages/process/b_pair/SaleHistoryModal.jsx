@@ -3,6 +3,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { DeleteBpairSaleAsync, getbPairDataAsync } from "../../../features/B_pairSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { formatReadableDate } from "../../../Utils/Common";
 
 const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) => {
 
@@ -117,7 +118,7 @@ const SaleHistoryModal = ({ data, closeModal , selectedCategory, page, search}) 
                         } border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white`}
                       >
                         <td className=" px-6 py-3 text-center" scope="row">
-                          {data?.date}
+                          {formatReadableDate(data?.date)}
                         </td>
                         <td className=" px-6 py-3 text-center">{data?.name}</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">

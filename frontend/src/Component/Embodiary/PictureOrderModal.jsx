@@ -5,10 +5,18 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   createPictureOrderAsync,
   getaccountDataForPicturesAsync,
+  GETEmbroiderySIngle,
 } from "../../features/EmbroiderySlice";
 import toast from "react-hot-toast";
 
-const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No, Manual_No }) => {
+const PictureOrderModal = ({
+  closeModal,
+  embroidery_Id,
+  design_no,
+  serial_No,
+  Manual_No,
+  receivedSuitQuantity = "",
+}) => {
   const dispatch = useDispatch();
   const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const [partyValue, setPartyValue] = useState("newParty");
@@ -16,7 +24,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No, Ma
   const { accountDataForPictures,createPictureOrderLoading } = useSelector((state) => state.Embroidery);
   const [formData, setFormData] = useState({
     embroidery_Id: embroidery_Id,
-    T_Quantity: "",
+    T_Quantity: receivedSuitQuantity,
     design_no: design_no,
     date: today,
     partyName: "",
@@ -99,6 +107,7 @@ const PictureOrderModal = ({ closeModal, embroidery_Id, design_no, serial_No, Ma
     dispatch(createPictureOrderAsync(payload)).then((res) => {
         if(res.payload.success === true){
             closeModal();
+            dispatch(GETEmbroiderySIngle({id: embroidery_Id}));
         }
     })
 

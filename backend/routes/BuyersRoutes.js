@@ -1,6 +1,7 @@
 import express from "express";
 import { superAdminOnly, verifyUser } from "../middleware/Auth.js";
 import {
+  applyDiscountOnBuyersAccount,
   deleteBuyerBill,
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
@@ -11,7 +12,6 @@ import {
   validateAndGetOldBuyerData,
   validateD_NoAndGetSuitData,
 } from "../controllers/BuyersController.js";
-import { markAsPaidForBuyers } from "../controllers/CashInOutController.js";
 
 const buyerRouter = express.Router();
 
@@ -44,14 +44,16 @@ buyerRouter.post(
   getBuyerBillHistoryForBranch
 );
 buyerRouter.post(
-  "/markAsPaidForBuyers",
-  verifyUser,
-  markAsPaidForBuyers
-);
-buyerRouter.post(
   "/deleteBuyerBill/:billId",
   superAdminOnly,
   deleteBuyerBill
 );
+buyerRouter.post(
+  "/applyDiscountOnBuyersAccount",
+  verifyUser,
+  applyDiscountOnBuyersAccount
+);
+
+
 
 export default buyerRouter;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import {
   BranchCashOutAsync,
   getDailySaleByIdAsync,
@@ -10,7 +10,7 @@ import { MdHistory } from "react-icons/md";
 import { getBranchCashoutHistoryAsync } from "../../features/ShopSlice";
 import moment from 'moment-timezone'
 import Pagination from "../../Component/Common/Pagination";
-import { DEFAULT_PAGE_LIMIT } from "../../Utils/Common";
+import { DEFAULT_PAGE_LIMIT, formatReadableDate } from "../../Utils/Common";
 
 const DailySaleDetail = () => {
   const { id } = useParams();
@@ -115,7 +115,7 @@ const DailySaleDetail = () => {
             {/* HEADER */}
             <div className="header pt-3 pb-4 w-full border-b">
               <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-center">
-                Daily Sale ({DailySaleById?.date})
+                Daily Sale ({formatReadableDate(DailySaleById?.date)})
               </h2>
             </div>
 
@@ -422,7 +422,7 @@ const DailySaleDetail = () => {
                             className="bg-white border-b text-sm font-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                           >
                             <td className=" px-6 py-3 text-center" scope="row">
-                              {data?.date}
+                              {formatReadableDate(data?.date)}
                             </td>
                             <td className=" px-6 py-3 text-center">
                               {data?.amount}

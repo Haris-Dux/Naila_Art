@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { getAllOtherSaleBillsAsync } from "../../features/OtherSale";
 import Pagination from "../../Component/Common/Pagination";
-import { getPageLimit } from "../../Utils/Common";
+import { formatReadableDate, getPageLimit } from "../../Utils/Common";
 
 const OtherSaleBills = () => {
   const dispatch = useDispatch();
@@ -146,7 +146,7 @@ const OtherSaleBills = () => {
                       <td className="px-2 py-2">{data.city}</td>
                       <td className="px-2 py-2">{data.cargo}</td>
                       <td className="px-2 py-2">{data.phone}</td>
-                      <td className="px-2 py-2">{data.date}</td>
+                      <td className="px-2 py-2">{formatReadableDate(data.date)}</td>
                       <td className="px-2 py-2">{data.bill_by}</td>
                       <td className="px-2 py-2">{data.payment_Method}</td>
                       <td className="px-2 py-2">{data.quantity}</td>

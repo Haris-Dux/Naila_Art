@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { getBuyerByIdAsync, markAsPaidAsync } from "../../features/BuyerSlice";
+import {
+  applyBuyerDiscountAsync,
+  getBuyerByIdAsync,
+  markAsPaidAsync,
+} from "../../features/BuyerSlice";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import { temporaryAccountUpdateAsync } from "../../features/ProcessBillSlice";
 import Icon from "../../Component/Common/Icons";
+import { Button } from "../../Component/Common/button/Button";
+import { MdOutlineDiscount } from "react-icons/md";
 import AccountFilters, {
   emptyAccountFilters,
   FilteredAccountTotals,
 } from "../../Component/AccountFilters/Accountfilters";
+import AccountDiscountModal from "./AccountDiscountModal";
+import { formatReadableDate } from "../../Utils/Common";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -66,10 +74,15 @@ const BuyersDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, BuyerById, markAsPaidLoading } = useSelector(
+  const { loading, BuyerById, markAsPaidLoading, discountLoading } = useSelector(
     (state) => state.Buyer
   );
   const [openCModal, setCModal] = useState(false);
+  const [discountModal, setDiscountModal] = useState(false);
+  const [discountFormData, setDiscountFormData] = useState({
+    amount: "",
+    reason: "",
+  });
   const [editFormData, setEditFormData] = useState({
     accountId: "",
     totalDebit: "",
@@ -93,6 +106,26 @@ const BuyersDetails = () => {
 
   const closeConfirmationModal = () => {
     setCModal(false);
+  };
+
+  const openDiscountModal = () => {
+    setDiscountModal(true);
+  };
+
+  const closeDiscountModal = () => {
+    setDiscountModal(false);
+    setDiscountFormData({
+      amount: "",
+      reason: "",
+    });
+  };
+
+  const handleDiscountFormChange = (e) => {
+    const { name, value } = e.target;
+    setDiscountFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const UpdateAccount = () => {
@@ -131,6 +164,22 @@ const BuyersDetails = () => {
     });
   };
 
+  const handleApplyDiscount = (e) => {
+    e.preventDefault();
+    dispatch(
+      applyBuyerDiscountAsync({
+        id,
+        amount: Number(discountFormData.amount),
+        reason: discountFormData.reason,
+      }),
+    ).then((res) => {
+      if (res.payload?.success) {
+        dispatch(getBuyerByIdAsync({ id }));
+        closeDiscountModal();
+      }
+    });
+  };
+
   const transactions = BuyerById?.credit_debit_history || [];
   const filteredTransactions = filterTransactionsByDate(
     transactions,
@@ -152,137 +201,140 @@ const BuyersDetails = () => {
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
         {/* BUYER DETAILS */}
-          <div className="px-2 py-2 mb-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
-      <div className="box">
-        <h3 className="pb-1 font-medium">Title</h3>
-        <h3>{BuyerById?.name}</h3>
-      </div>
+        <div className="px-2 py-2 mb-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:grid-cols-6 lg:gap-4 text-gray-900 dark:text-gray-100">
+          <div className="box">
+            <h3 className="pb-1 font-medium">Title</h3>
+            <h3>{BuyerById?.name}</h3>
+          </div>
 
-      <div className="box">
-        <h3 className="pb-1 font-medium">Phone Number</h3>
-        <h3>{BuyerById?.phone}</h3>
-      </div>
+          <div className="box">
+            <h3 className="pb-1 font-medium">Phone Number</h3>
+            <h3>{BuyerById?.phone}</h3>
+          </div>
 
-      <div className="box">
-        <h3 className="pb-1 font-medium">Location</h3>
-        <h3>{BuyerById?.city}</h3>
-      </div>
+          <div className="box">
+            <h3 className="pb-1 font-medium">Location</h3>
+            <h3>{BuyerById?.city}</h3>
+          </div>
 
-      {/* Total Debit */}
-      <div className="box">
-        <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
+          {/* Total Debit */}
+          <div className="box">
+            <h3 className="pb-1 font-medium text-red-500">Total Debit</h3>
 
-        {!isEditMode ? (
-          <h3 className="font-medium text-red-500">
-            {BuyerById?.virtual_account?.total_debit ?? 0}
-          </h3>
-        ) : (
-          <input
-            type="text"
-            placeholder="Enter debit"
-            value={editFormData.totalDebit}
-            onChange={(e) => onNumberChange("totalDebit", e.target.value)}
-            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
-          />
-        )}
-      </div>
+            {!isEditMode ? (
+              <h3 className="font-medium text-red-500">
+                {BuyerById?.virtual_account?.total_debit ?? 0}
+              </h3>
+            ) : (
+              <input
+                type="text"
+                placeholder="Enter debit"
+                value={editFormData.totalDebit}
+                onChange={(e) => onNumberChange("totalDebit", e.target.value)}
+                className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+              />
+            )}
+          </div>
 
-      {/* Total Credit */}
-      <div className="box">
-        <h3 className="pb-1 font-medium">Total Credit</h3>
+          {/* Total Credit */}
+          <div className="box">
+            <h3 className="pb-1 font-medium">Total Credit</h3>
 
-        {!isEditMode ? (
-          <h3>{BuyerById?.virtual_account?.total_credit ?? 0}</h3>
-        ) : (
-          <input
-            type="text"
-            placeholder="Enter credit"
-            value={editFormData.totalCredit}
-            onChange={(e) => onNumberChange("totalCredit", e.target.value)}
-            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
-          />
-        )}
-      </div>
+            {!isEditMode ? (
+              <h3>{BuyerById?.virtual_account?.total_credit ?? 0}</h3>
+            ) : (
+              <input
+                type="text"
+                placeholder="Enter credit"
+                value={editFormData.totalCredit}
+                onChange={(e) => onNumberChange("totalCredit", e.target.value)}
+                className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+              />
+            )}
+          </div>
 
-      {/* Total Balance + icons */}
-      <div className="box">
-        <div className="flex items-center gap-2">
-          <h3 className="pb-1 font-medium">Total Balance</h3>
-
-          {!isEditMode ? (
-            <button
-              type="button"
-              onClick={() => setIsEditMode(true)}
-              title="Edit credit/debit/balance"
-            >
-             <Icon name="edit" className="cursor-pointer" />
-            </button>
-          ) : (
+          {/* Total Balance + icons */}
+          <div className="box">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAccountUpdate}
-                title="Submit"
-              >
-              <Icon name="tick" className="cursor-pointer" />
+              <h3 className="pb-1 font-medium">Total Balance</h3>
 
-              </button>
+              {!isEditMode ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditMode(true)}
+                  title="Edit credit/debit/balance"
+                >
+                  <Icon name="edit" className="cursor-pointer" />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAccountUpdate}
+                    title="Submit"
+                  >
+                    <Icon name="tick" className="cursor-pointer" />
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setIsEditMode(false)}
-                title="Cancel"
-              >
-               <Icon name="cross" className="cursor-pointer" />
-
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(false)}
+                    title="Cancel"
+                  >
+                    <Icon name="cross" className="cursor-pointer" />
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {!isEditMode ? (
-          <h3>{BuyerById?.virtual_account?.total_balance}</h3>
-        ) : (
-          <input
-            type="text"
-            placeholder="Enter balance"
-            value={editFormData.totalBalance}
-            onChange={(e) => onNumberChange("totalBalance", e.target.value)}
-            className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
-          />
-        )}
-      </div>
+            {!isEditMode ? (
+              <h3>{BuyerById?.virtual_account?.total_balance}</h3>
+            ) : (
+              <input
+                type="text"
+                placeholder="Enter balance"
+                value={editFormData.totalBalance}
+                onChange={(e) => onNumberChange("totalBalance", e.target.value)}
+                className="w-full px-2 py-1 border rounded bg-white dark:bg-gray-900"
+              />
+            )}
+          </div>
 
-      {BuyerById?.virtual_account?.status !== "Paid" && (
-        <button
-          onClick={openConfirmationModaL}
-          className="bg-red-500 mt-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-        >
-          Mark As Paid
-        </button>
-      )}
-
-      <button
+          {/* <button
         className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
         onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
       >
         Checks
-      </button>
-    </div>
+      </button> */}
+        </div>
 
-        <div className="mb-4 flex flex-wrap justify-end gap-3">
-          <FilteredAccountTotals
-            show={isFilterApplied}
-            debit={filteredTotals.debit}
-            credit={filteredTotals.credit}
-            count={filteredTransactions.length}
-          />
-          <AccountFilters
-            filters={filters}
-            onChange={setFilters}
-            onSearch={handleFiltersSearch}
-            onReset={handleResetFilters}
-          />
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={openDiscountModal}
+            className=""
+            disabled={BuyerById?.virtual_account?.status === "Paid"}
+            size="lg"
+          >
+            <span className="flex items-center gap-2">
+              <MdOutlineDiscount />
+              Discount
+            </span>
+          </Button>
+
+          <div className="mb-4 flex flex-wrap justify-end gap-3">
+            <FilteredAccountTotals
+              show={isFilterApplied}
+              debit={filteredTotals.debit}
+              credit={filteredTotals.credit}
+              count={filteredTransactions.length}
+            />
+            <AccountFilters
+              filters={filters}
+              onChange={setFilters}
+              onSearch={handleFiltersSearch}
+              onReset={handleResetFilters}
+            />
+          </div>
         </div>
 
         {/* -------------- TABLE -------------- */}
@@ -302,19 +354,34 @@ const BuyersDetails = () => {
               <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                   <tr>
-                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
                       Date
                     </th>
-                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
                       Particular
                     </th>
-                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
                       Credit
                     </th>
-                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
                       Debit
                     </th>
-                    <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
                       Balance
                     </th>
                   </tr>
@@ -337,7 +404,7 @@ const BuyersDetails = () => {
                             className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium whitespace-nowrap text-xs md:text-sm"
                             scope="row"
                           >
-                            <p>{new Date(data.date).toLocaleDateString()}</p>
+                            <p>{formatReadableDate(data.date)}</p>
                           </th>
                           <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                             {data.particular}
@@ -378,6 +445,14 @@ const BuyersDetails = () => {
             updateStitchingLoading={markAsPaidLoading}
           />
         )}
+        <AccountDiscountModal
+          isOpen={discountModal}
+          onClose={closeDiscountModal}
+          onSubmit={handleApplyDiscount}
+          formData={discountFormData}
+          onChange={handleDiscountFormChange}
+          loading={discountLoading}
+        />
       </section>
     </>
   );

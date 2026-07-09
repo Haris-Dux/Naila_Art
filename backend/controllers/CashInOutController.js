@@ -693,38 +693,6 @@ export const getTodaysCashInOut = async (req, res, next) => {
   }
 };
 
-export const markAsPaidForBuyers = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Id is Required");
-    const accountData = await BuyersModel.findById(id);
-    if (!accountData) throw new CustomError("Account not found", 404);
-    const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-
-    //UPDATING ACCOUNT STATUS
-    accountData.virtual_account.status = "Paid";
-
-    const historydata = {
-      date: today,
-      particular: `Account Marked As Paid`,
-      credit: accountData.virtual_account.total_balance,
-      balance: 0,
-      debit: 0,
-    };
-
-    //UPDATING ACC CREDIT DEBIT AND BALANCE
-    accountData.virtual_account.total_debit = 0;
-    accountData.virtual_account.total_credit +=
-      accountData.virtual_account.total_balance;
-    accountData.virtual_account.total_balance = 0;
-    //UPDATING CREDIT DEBIT HISTORY
-    accountData.credit_debit_history.push(historydata);
-    await accountData.save();
-    res.status(200).json({ success: true, message: "Account marked as paid" });
-  } catch (error) {
-    next(error);
-  }
-};
 
 
 

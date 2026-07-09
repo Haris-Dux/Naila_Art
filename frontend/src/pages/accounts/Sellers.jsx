@@ -14,7 +14,7 @@ import {
   getPageLimit,
 } from "../../Utils/Common";
 
-const sellerCategories = ["Base", "Lace", "Bag/box", "Accessories"];
+const sellerCategories = ["Base", "Lace", "Bag/box", "Accessories", "Suits"];
 
 const initialSellerFilters = {
   ...emptyBillFilters,

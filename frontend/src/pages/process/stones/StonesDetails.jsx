@@ -21,7 +21,9 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { RxCross2 } from "react-icons/rx";
-import { setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate, setAccountStatusColor } from "../../../Utils/Common";
+import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
+import Loading from "../../../Component/Loader/Loading";
 
 const StonesDetails = () => {
   const { id } = useParams();
@@ -30,7 +32,7 @@ const StonesDetails = () => {
     useSelector((state) => state.stone);
   const { LaceForEmroidery } = useSelector((state) => state.InStock);
 
-  const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
+  const { SingleEmbroidery, loading: embroideryLoading } = useSelector((state) => state.Embroidery);
   const { loading: IsLoading, previousDataByPartyName } = useSelector(
     (state) => state.stitching
   );
@@ -49,7 +51,15 @@ const StonesDetails = () => {
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const { embroidery_Id, design_no, serial_No, from } = location.state || {};
+  const {
+    embroidery_Id,
+    design_no,
+    serial_No,
+    from,
+    source_step,
+    source_id,
+    source_availability,
+  } = location.state || {};
 
   useEffect(() => {
     if (id !== "null") {
@@ -73,6 +83,35 @@ const StonesDetails = () => {
   }, [id, SingleStone]);
 
   const initialRow = { category: "", color: "", quantity_in_no: 0 };
+  const stitchingFieldClass =
+    "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-1 focus:ring-[#252525] focus:border-[#252525] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-300 dark:focus:border-gray-300";
+  const stitchingInputClass =
+    "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-1 focus:ring-[#252525] focus:border-[#252525] block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white";
+  const stitchingOptionClass =
+    "bg-white text-gray-900 hover:bg-[#252525] hover:text-white";
+
+  const getUniqueShirtRows = (rows = []) => {
+    const seenColors = new Set();
+    return rows.filter((item) => {
+      const key = item?.color || `${item?.category || ""}-${seenColors.size}`;
+      if (seenColors.has(key)) return false;
+      seenColors.add(key);
+      return true;
+    });
+  };
+
+  const getInitialSuitRows = () => {
+    const shirtRows =
+      getUniqueShirtRows(SingleEmbroidery?.shirt)
+        ?.filter((item) => item?.category || item?.color)
+        ?.map((item) => ({
+          category: item?.category || "",
+          color: item?.color || "",
+          quantity_in_no: 0,
+        })) || [];
+
+    return shirtRows.length ? shirtRows : [{ ...initialRow }];
+  };
 
   const [formData, setFormData] = useState({
     partyName: "",
@@ -82,7 +121,6 @@ const StonesDetails = () => {
     rate: "",
     embroidery_Id: "",
     suits_category: [initialRow],
-    dupatta_category: [initialRow],
     lace_quantity: "",
     lace_category: "",
     Quantity: "",
@@ -121,18 +159,48 @@ const StonesDetails = () => {
       serial_No: SingleStone?.serial_No || serial_No || "",
       design_no: SingleStone?.design_no || design_no || "",
       embroidery_Id: SingleStone?.embroidery_Id || embroidery_Id || "",
-      suits_category: [initialRow],
-      dupatta_category: [initialRow],
+      suits_category: getInitialSuitRows(),
       lace_category: "",
       date: today,
       partyName: "",
       partytype: partyValue,
+      source_step: id !== "null" ? "Stone" : source_step || "Embroidery",
+      source_id: id !== "null" ? SingleStone?.id : source_id || embroidery_Id || "",
     });
-  }, [SingleStone, partyValue, id]);
+  }, [SingleStone, SingleEmbroidery, partyValue, id, source_step, source_id, embroidery_Id]);
 
   const [suitDataForPacking, setSuitDataForPacking] = useState();
 
   const [isPackingModalOpen, setPackingModalOpen] = useState(false);
+
+  const getStitchingAvailability = () => {
+    if (id === "null") return source_availability;
+    return SingleStone?.processAvailability;
+  };
+  const stitchingAvailability = getStitchingAvailability();
+
+  const getAvailableSuitOptions = (currentIndex) => {
+    const selectedColors = new Set(
+      formData?.suits_category
+        ?.map((row, index) => (index === currentIndex ? null : row?.color))
+        ?.filter(Boolean)
+    );
+
+    return (
+      getUniqueShirtRows(SingleEmbroidery?.shirt)?.filter(
+        (item) => !item?.color || !selectedColors.has(item.color)
+      ) || []
+    );
+  };
+
+  const getAvailableSuitCategoryOptions = (currentIndex) => {
+    const seenCategories = new Set();
+    return getAvailableSuitOptions(currentIndex).filter((item) => {
+      if (!item?.category || seenCategories.has(item.category)) return false;
+      seenCategories.add(item.category);
+      return true;
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -145,7 +213,7 @@ const StonesDetails = () => {
   const addNewRow = (categoryType) => {
     setFormData((prevState) => {
       const updatedCategory = prevState[categoryType] || [];
-      const newCategoryArray = [...updatedCategory, initialRow];
+      const newCategoryArray = [...updatedCategory, { ...initialRow }];
       return {
         ...prevState,
         [categoryType]: newCategoryArray,
@@ -164,9 +232,21 @@ const StonesDetails = () => {
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType]?.map((row, i) =>
-        i === index ? { ...row, category: value } : row
-      ),
+      [categoryType]: prevState[categoryType]?.map((row, i) => {
+        if (i !== index) return row;
+        if (categoryType !== "suits_category") {
+          return { ...row, category: value };
+        }
+
+        const colorStillMatches = SingleEmbroidery?.shirt?.some(
+          (item) => item?.category === value && item?.color === row.color
+        );
+        return {
+          ...row,
+          category: value,
+          color: colorStillMatches ? row.color : "",
+        };
+      }),
     }));
   };
 
@@ -174,11 +254,24 @@ const StonesDetails = () => {
     const { value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [categoryType]: prevState[categoryType]?.map((row, i) =>
-        i === index ? { ...row, color: value } : row
-      ),
+      [categoryType]: prevState[categoryType]?.map((row, i) => {
+        if (i !== index) return row;
+        if (categoryType !== "suits_category") {
+          return { ...row, color: value };
+        }
+
+        const matchingShirt = SingleEmbroidery?.shirt?.find(
+          (item) =>
+            item?.color === value &&
+            (!row.category || item?.category === row.category)
+        );
+        return {
+          ...row,
+          category: matchingShirt?.category || row.category,
+          color: value,
+        };
+      }),
     }));
-    getMaxQuantity(categoryType);
   };
 
   const handleQuantityChange = (e, index, categoryType) => {
@@ -191,38 +284,6 @@ const StonesDetails = () => {
     }));
   };
 
-  const getMaxQuantity = (categoryType) => {
-    if (categoryType === "suits_category") {
-      SingleEmbroidery?.shirt?.forEach((item) => {
-        const { category, color, received } = item;
-        formData?.suits_category.forEach((suit) => {
-          setFormData((prevState) => ({
-            ...prevState,
-            suits_category: prevState.suits_category.map((suit) =>
-              suit.category === category && suit.color === color
-                ? { ...suit, MaxQuantity: received }
-                : suit
-            ),
-          }));
-        });
-      });
-    } else if (categoryType === "dupatta_category") {
-      SingleEmbroidery?.duppata?.forEach((item) => {
-        const { category, color, received } = item;
-        formData?.suits_category.forEach((suit) => {
-          setFormData((prevState) => ({
-            ...prevState,
-            dupatta_category: prevState.dupatta_category.map((dupatta) =>
-              dupatta.category === category && dupatta.color === color
-                ? { ...dupatta, MaxQuantity: received }
-                : dupatta
-            ),
-          }));
-        });
-      });
-    }
-  };
-
   //CALCULAATE TOTAL QUANTITY FOR STITCHING DATA
   const validateValue = (value) => {
     return isNaN(value) || value === undefined || value === null
@@ -232,42 +293,13 @@ const StonesDetails = () => {
 
   const calculateTotalQuantity = () => {
     let totalQuantity = 0;
-    if (formData.suits_category && formData.dupatta_category) {
+    if (formData.suits_category) {
       formData.suits_category.forEach((item) => {
-        totalQuantity += validateValue(item.quantity_in_no);
-      });
-    } else if (formData.suits_category) {
-      formData.suits_category.forEach((item) => {
-        totalQuantity += validateValue(item.quantity_in_no);
-      });
-    } else if (formData.dupatta_category) {
-      formData.dupatta_category.forEach((item) => {
         totalQuantity += validateValue(item.quantity_in_no);
       });
     }
 
     return totalQuantity;
-  };
-
-  //VALIDATE DUPATTA DATA
-  const validateDupattaData = () => {
-    if (formData.dupatta_category && formData.dupatta_category.length >= 0) {
-      formData.dupatta_category = formData.dupatta_category.filter((item) => {
-        return !(
-          item.category === "" &&
-          item.color === "" &&
-          item.quantity_in_no === 0
-        );
-      });
-      if (formData.dupatta_category.length === 0) {
-        delete formData.dupatta_category;
-      }
-    } else if (
-      formData.dupatta_category &&
-      formData.dupatta_category.length === 0
-    ) {
-      delete formData.dupatta_category;
-    }
   };
 
   //VALIDATE SUITS DATA
@@ -293,14 +325,28 @@ const StonesDetails = () => {
 
   const handleSubmitstitching = (e) => {
     e.preventDefault();
-    validateDupattaData();
     validateSuitData();
-    if (!formData.dupatta_category && !formData.suits_category) {
-      toast.error("Please add Duppata or Shirt Data");
+    if (!formData.suits_category) {
+      toast.error("Please add Shirt Data");
     } else {
-      calculateTotalQuantity();
+      const requestedQuantity = calculateTotalQuantity();
+      const availableQuantity =
+        stitchingAvailability?.available !== undefined
+          ? Number(stitchingAvailability.available || 0)
+          : 0;
+
+      if (availableQuantity <= 0) {
+        return toast.error("No available quantity from previous step");
+      }
+
+      if (requestedQuantity > availableQuantity) {
+        return toast.error(
+          `Invalid quantity. Available quantity is ${availableQuantity}`
+        );
+      }
+
       dispatch(
-        createStitching({ ...formData, Quantity: calculateTotalQuantity() })
+        createStitching({ ...formData, Quantity: requestedQuantity })
       ).then((res) => {
         if (res.payload.success === true) {
           closeModal();
@@ -366,12 +412,24 @@ const StonesDetails = () => {
   };
 
   const handlstoneChange = (index, field, value) => {
+    const nextValue = Number(value || 0);
+    const currentRow = StoneData?.category_quantity?.[index] || {};
+    const sentQuantity = Number(SingleStone?.category_quantity?.[index]?.quantity || 0);
+    const nextRowTotal =
+      Number(field === "first" ? nextValue : currentRow.first || 0) +
+      Number(field === "second" ? nextValue : currentRow.second || 0) +
+      Number(field === "third" ? nextValue : currentRow.third || 0);
+
+    if (nextRowTotal > sentQuantity) {
+      return toast.error("Received quantity cannot be greater than sent quantity");
+    }
+
     const updatedCategoryQuantity = StoneData?.category_quantity?.map(
       (item, i) => {
         if (i === index) {
           return {
             ...item,
-            [field]: parseInt(value, 10),
+            [field]: nextValue,
           };
         }
         return item;
@@ -385,6 +443,12 @@ const StonesDetails = () => {
   };
 
   const openModal = () => {
+    if (
+      id !== "null" &&
+      Number(SingleStone?.processAvailability?.capacity || SingleStone?.r_quantity || 0) <= 0
+    ) {
+      return toast.error("No received quantity available from previous step");
+    }
     setIsOpen(true);
     document.body.style.overflow = "hidden";
   };
@@ -441,6 +505,7 @@ const StonesDetails = () => {
     }
     const formData = {
       ...SingleStone,
+      date: SingleStone?.date,
       r_quantity: T_QuantityForBill,
       process_Category: "Stone",
       Stone_id: SingleStone.id,
@@ -546,8 +611,8 @@ const StonesDetails = () => {
 
   const openPackingMOdal = () => {
     const developData = [];
-    if (SingleStone.project_status !== "Completed") {
-      return toast.error("Please Complete Project");
+    if (Number(SingleStone?.processAvailability?.capacity || 0) <= 0) {
+      return toast.error("No received quantity available from previous step");
     }
 
     //PUSH DATA INTO THE PACKING DATA
@@ -570,10 +635,28 @@ const StonesDetails = () => {
     document.body.style.overflow = "auto";
   };
 
-  const handleSkipStep = () => {
-    if (SingleStone.project_status !== "Completed") {
-      return toast.error("Please Complete Project");
+  const handleSkipStep = (e) => {
+    e.preventDefault()
+    const requestedQuantity = suitDataForPacking?.reduce(
+      (total, item) => total + (Number(item.received) || 0),
+      0
+    );
+    const packingAvailability = SingleStone?.processAvailability;
+    const availableQuantity =
+      packingAvailability?.available !== undefined
+        ? Number(packingAvailability.available || 0)
+        : Number(SingleStone?.r_quantity || 0);
+
+    if (availableQuantity <= 0) {
+      return toast.error("No available quantity from previous step");
     }
+
+    if (requestedQuantity > availableQuantity) {
+      return toast.error(
+        `Invalid quantity. Available quantity is ${availableQuantity}`
+      );
+    }    
+
     navigate("/dashboard/packing-details/null", {
       state: {
         embroidery_Id: SingleEmbroidery.id,
@@ -627,7 +710,7 @@ const StonesDetails = () => {
                 {" "}
                 {SingleStone?.category_quantity?.reduce(
                   (total, item) => total + item.quantity,
-                  0
+                  0,
                 )}{" "}
               </span>
             </div>
@@ -655,7 +738,7 @@ const StonesDetails = () => {
             {SingleStone?.category_quantity?.map((item, index) => (
               <div className="box" key={index}>
                 <span className="font-medium">{item.category}:</span>
-                <span> {item.quantity}</span>
+                <span> {item.quantity}-{item.color}</span>
               </div>
             ))}
           </div>
@@ -730,7 +813,7 @@ const StonesDetails = () => {
                     type="text"
                     className="bg-[#EEEEEE] py-1 border-gray-300 px-3 rounded-sm text-black  dark:text-gray-800"
                     readOnly
-                    value={new Date(item?.createdAt).toLocaleDateString()}
+                    value={formatReadableDate(item?.createdAt)}
                   />
                 </div>
               ))}
@@ -784,18 +867,24 @@ const StonesDetails = () => {
               Generate Gate Pass
             </button>
           )}
-          <button
-            className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-            onClick={openModal}
-          >
-            Next Step
-          </button>
-          <button
-            onClick={openPackingMOdal}
-            className="px-4 py-2.5 cursor-pointer text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
-          >
-           Skip To Packing
-          </button>
+          {SingleStone?.project_status === "Completed" && (
+            <>
+              <button
+                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                onClick={openModal}
+              >
+                Next Step
+              </button>
+              {!SingleEmbroidery?.next_steps?.packing && (
+                <button
+                  onClick={openPackingMOdal}
+                  className="px-4 py-2.5 cursor-pointer text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
+                >
+                  Skip To Packing
+                </button>
+              )}
+            </>
+          )}
         </div>
       </section>
 
@@ -804,12 +893,15 @@ const StonesDetails = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative scrollable-content h-[90vh] py-4 px-3 w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative scrollable-content h-[70vh] py-4 px-3 w-[95%] max-w-5xl max-h-[70vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
-                Stitching
-              </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <div className="flex flex-wrap items-center gap-3">
+                <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
+                  Stitching
+                </h3>
+                <ProcessAvailabilityCard availability={stitchingAvailability} />
+              </div>
               <button
                 onClick={closeModal}
                 className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -858,8 +950,11 @@ const StonesDetails = () => {
                     <div className="box text-center">
                       <h3 className="pb-1 font-normal ">Status</h3>
                       <h3>
-                       <span className={setAccountStatusColor(accountData?.status)}>{accountData?.status}</span>
-
+                        <span
+                          className={setAccountStatusColor(accountData?.status)}
+                        >
+                          {accountData?.status}
+                        </span>
                       </h3>
                     </div>
                   </div>
@@ -868,377 +963,318 @@ const StonesDetails = () => {
             )}
 
             {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-              <form className="space-y-4" onSubmit={handleSubmitstitching}>
-                {/* INPUT FIELDS DETAILS */}
-                <div className="mb-8 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                  {/* RADIO BUTTONS */}
-                  <div className="grid grid-cols-2 items-center justify-center gap-1">
-                    <label className="col-span-1 ">
-                      <input
-                        type="radio"
-                        name="partyType"
-                        value="oldParty"
-                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        onChange={togleNameField}
-                        required
-                      />
-                      Old Party
-                    </label>
-                    <label className="col-span-1 ">
-                      <input
-                        type="radio"
-                        name="partyType"
-                        value="newParty"
-                        className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        onChange={togleNameField}
-                        required
-                        defaultChecked
-                      />
-                      New Party
-                    </label>
-                  </div>
+            {embroideryLoading ? (
+              <div className="flex justify-center items-center mt-14">
+                <Loading />
+              </div>
+            ) : (
+              <div className="p-4 md:p-5">
+                <form className="space-y-4" onSubmit={handleSubmitstitching}>
+                  {/* INPUT FIELDS DETAILS */}
+                  <div className="mb-8 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                    {/* RADIO BUTTONS */}
+                    <div className="grid grid-cols-2 items-center justify-center gap-1">
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="oldParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                        />
+                        Old Party
+                      </label>
+                      <label className="col-span-1 ">
+                        <input
+                          type="radio"
+                          name="partyType"
+                          value="newParty"
+                          className="bg-gray-50 cursor-pointer border mr-2 border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          onChange={togleNameField}
+                          required
+                          defaultChecked
+                        />
+                        New Party
+                      </label>
+                    </div>
 
-                  {/* PARTY NAME */}
-                  <div>
-                    {partyValue === "newParty" ? (
+                    {/* PARTY NAME */}
+                    <div>
+                      {partyValue === "newParty" ? (
+                        <input
+                          name="partyName"
+                          type="text"
+                          placeholder="Party Name"
+                          className={stitchingInputClass}
+                          required
+                          value={formData.partyName}
+                          onChange={handleChange}
+                        />
+                      ) : (
+                        <div className="custom-search-box relative">
+                          <ReactSearchBox
+                            key={searchResults?.key}
+                            onSelect={(value) =>
+                              handleSelectedRecord(value?.item?.key)
+                            }
+                            placeholder={
+                              formData.partyName === ""
+                                ? "Search"
+                                : formData.partyName
+                            }
+                            data={searchResults}
+                            onChange={(value) => handleSearchOldData(value)}
+                            inputBorderColor="#D1D5DB"
+                            inputBackgroundColor="#F9FAFB"
+                          />
+                          <style jsx>
+                            {`
+                              .react-search-box-dropdown {
+                                position: absolute;
+                                z-index: 50;
+                                top: 100%;
+                                left: 0;
+                                width: 100%;
+                              }
+                            `}
+                          </style>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SERIAL NO */}
+                    <div>
                       <input
-                        name="partyName"
+                        name="serial_No"
                         type="text"
-                        placeholder="Party Name"
-                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        placeholder="Serial No"
+                        className={stitchingInputClass}
                         required
-                        value={formData.partyName}
+                        value={formData.serial_No}
+                        onChange={handleChange}
+                        readOnly
+                      />
+                    </div>
+
+                    {/* DESIGN NO */}
+                    <div>
+                      <input
+                        name="design_no"
+                        type="text"
+                        placeholder="Design No"
+                        className={stitchingInputClass}
+                        required
+                        value={formData.design_no}
+                        onChange={handleChange}
+                        readOnly
+                      />
+                    </div>
+
+                    {/* DATE */}
+                    <div>
+                      <input
+                        name="date"
+                        type="text"
+                        placeholder="Date"
+                        className={stitchingInputClass}
+                        required
+                        value={formData.date}
+                        readOnly
+                      />
+                    </div>
+
+                    {/* ENTER RATE */}
+                    <div>
+                      <input
+                        name="rate"
+                        type="text"
+                        placeholder="Enter Rate"
+                        className={stitchingInputClass}
+                        required
+                        step="0.01"
+                        value={formData?.rate}
                         onChange={handleChange}
                       />
-                    ) : (
-                      <div className="custom-search-box relative">
-                        <ReactSearchBox
-                          key={searchResults?.key}
-                          onSelect={(value) =>
-                            handleSelectedRecord(value?.item?.key)
-                          }
-                          placeholder={
-                            formData.partyName === ""
-                              ? "Search"
-                              : formData.partyName
-                          }
-                          data={searchResults}
-                          onChange={(value) => handleSearchOldData(value)}
-                          inputBorderColor="#D1D5DB"
-                          inputBackgroundColor="#F9FAFB"
-                        />
-                        <style jsx>
-                          {`
-                            .react-search-box-dropdown {
-                              position: absolute;
-                              z-index: 50;
-                              top: 100%;
-                              left: 0;
-                              width: 100%;
+                    </div>
+
+                    {/* LACE QUANTITY */}
+                    <div>
+                      <input
+                        name="lace_quantity"
+                        type="number"
+                        placeholder="Lace Quantity"
+                        className={stitchingInputClass}
+                        value={formData?.lace_quantity}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    {/* LACE CATEGORY */}
+
+                    <div>
+                      <select
+                        name="lace_category"
+                        className={stitchingFieldClass}
+                        value={formData?.lace_category}
+                        onChange={handleChange}
+                      >
+                        <option className={stitchingOptionClass} value="">
+                          Select Value
+                        </option>
+
+                        {LaceForEmroidery?.map((item, index) => (
+                          <option
+                            className={stitchingOptionClass}
+                            key={index}
+                            value={item.category}
+                          >
+                            {item.category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="box">
+                    <div className="flex justify-between items-center ">
+                      <h2 className="block mb-0 text-sm font-medium text-gray-900 dark:text-white">
+                        Enter Suit Colors And Quantity :
+                      </h2>
+                      <p
+                        onClick={() => addNewRow("suits_category")}
+                        className="cursor-pointer"
+                      >
+                        <FiPlus size={24} className=" dark:text-white" />
+                      </p>
+                    </div>
+
+                    {/* SUITS DATA */}
+
+                    {formData?.suits_category?.map((row, index) => (
+                      <div
+                        key={index}
+                        className="my-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
+                      >
+                        {/* SELECT CATEGORY */}
+                        <div>
+                          <select
+                            className={stitchingFieldClass}
+                            value={row.category}
+                            onChange={(e) =>
+                              handleCategoryChange(e, index, "suits_category")
                             }
-                          `}
-                        </style>
+                          >
+                            <option className={stitchingOptionClass} value="">
+                              Select Value
+                            </option>
+
+                            {getAvailableSuitCategoryOptions(index)?.map(
+                              (item, index) => (
+                                <option
+                                  className={stitchingOptionClass}
+                                  key={`${item?.category}-${item?.color}-${index}`}
+                                  value={item?.category}
+                                >
+                                  {item?.category}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                        </div>
+
+                        {/* SELECTED COLORS */}
+                        <div>
+                          <select
+                            className={stitchingFieldClass}
+                            value={row.color}
+                            onChange={(e) =>
+                              handleColorChange(e, index, "suits_category")
+                            }
+                          >
+                            <option className={stitchingOptionClass} value="">
+                              Select Value
+                            </option>
+
+                            {getAvailableSuitOptions(index)
+                              ?.filter(
+                                (item) =>
+                                  !row.category ||
+                                  item?.category === row.category,
+                              )
+                              ?.map((item, index) => (
+                                <option
+                                  className={stitchingOptionClass}
+                                  key={`${item?.color}-${index}`}
+                                  value={item?.color}
+                                >
+                                  {item?.color}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        {/* ENTER QUANITY */}
+                        <div className="col-span-2 flex gap-3 items-center">
+                          <input
+                            type="text"
+                            placeholder="Enter Quantity In No"
+                            className={stitchingInputClass}
+                            value={row.quantity_in_no || ""}
+                            onChange={(e) =>
+                              handleQuantityChange(e, index, "suits_category")
+                            }
+                          />
+                          {formData?.suits_category?.length > 1 && (
+                            <button
+                              onClick={() => removeRow("suits_category", index)}
+                              className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                              type="button"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                  stroke="currentColor"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                />
+                              </svg>
+                              <span className="sr-only">Close modal</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    {IsLoading ? (
+                      <button
+                        disabled
+                        type="submit"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submiting...
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
+                      >
+                        Submit
+                      </button>
                     )}
                   </div>
-
-                  {/* SERIAL NO */}
-                  <div>
-                    <input
-                      name="serial_No"
-                      type="text"
-                      placeholder="Serial No"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.serial_No}
-                      onChange={handleChange}
-                      readOnly
-                    />
-                  </div>
-
-                  {/* DESIGN NO */}
-                  <div>
-                    <input
-                      name="design_no"
-                      type="text"
-                      placeholder="Design No"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.design_no}
-                      onChange={handleChange}
-                      readOnly
-                    />
-                  </div>
-
-                  {/* DATE */}
-                  <div>
-                    <input
-                      name="date"
-                      type="text"
-                      placeholder="Date"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData.date}
-                      readOnly
-                    />
-                  </div>
-
-                  {/* ENTER RATE */}
-                  <div>
-                    <input
-                      name="rate"
-                      type="text"
-                      placeholder="Enter Rate"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      step="0.01"
-                      value={formData?.rate}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  {/* LACE QUANTITY */}
-                  <div>
-                    <input
-                      name="lace_quantity"
-                      type="number"
-                      placeholder="Lace Quantity"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      value={formData?.lace_quantity}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  {/* LACE CATEGORY */}
-
-                  <div>
-                    <select
-                      name="lace_category"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      value={formData?.lace_category}
-                      onChange={handleChange}
-                    >
-                      <option selected>Select Value</option>
-
-                      {LaceForEmroidery?.map((item, index) => (
-                        <option value={item.category}>{item.category}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="box">
-                  <div className="flex justify-between items-center ">
-                    <h2 className="block mb-0 text-sm font-medium text-gray-900 dark:text-white">
-                      Enter Suit Colors And Quantity :
-                    </h2>
-                    <p
-                      onClick={() => addNewRow("suits_category")}
-                      className="cursor-pointer"
-                    >
-                      <FiPlus size={24} className=" dark:text-white" />
-                    </p>
-                  </div>
-
-                  {/* SUITS DATA */}
-
-                  {formData?.suits_category?.map((row, index) => (
-                    <div className="my-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                      {/* SELECT CATEGORY */}
-                      <div>
-                        <select
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          value={row.category}
-                          onChange={(e) =>
-                            handleCategoryChange(e, index, "suits_category")
-                          }
-                        >
-                          <option selected>Select Value</option>
-
-                          {SingleEmbroidery?.shirt?.map((item, index) => (
-                            <option value={item?.category}>
-                              {item?.category}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* SELECTED COLORS */}
-                      <div>
-                        <select
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          value={row.color}
-                          onChange={(e) =>
-                            handleColorChange(e, index, "suits_category")
-                          }
-                        >
-                          <option selected>Select Value</option>
-
-                          {SingleEmbroidery?.shirt?.map((item, index) => (
-                            <option value={item?.color}>{item?.color}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* ENTER QUANITY */}
-                      <div className="col-span-2 flex gap-3 items-center">
-                        <input
-                          type="text"
-                          placeholder="Enter Quantity In No"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          value={row.quantity_in_no || ""}
-                          onChange={(e) =>
-                            handleQuantityChange(e, index, "suits_category")
-                          }
-                        />
-                        <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                          A.Q : {row.MaxQuantity || 0}
-                        </span>
-                        {formData?.suits_category?.length > 1 && (
-                          <button
-                            onClick={() => removeRow("suits_category", index)}
-                            className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                            type="button"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 14 14"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                            <span className="sr-only">Close modal</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="box">
-                  <div className="flex justify-between items-center ">
-                    <h2 className="block mb-0 text-sm font-medium text-gray-900 dark:text-white">
-                      Enter Dupatta Colors And Quantity :
-                    </h2>
-                    <p
-                      onClick={() => addNewRow("dupatta_category")}
-                      className="cursor-pointer"
-                    >
-                      <FiPlus size={24} className=" dark:text-white" />
-                    </p>
-                  </div>
-
-                  {formData?.dupatta_category?.map((row, index) => (
-                    <div className="my-5 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                      {/* SELECT CATEGORY */}
-                      <div>
-                        <select
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          value={row.category}
-                          onChange={(e) =>
-                            handleCategoryChange(e, index, "dupatta_category")
-                          }
-                        >
-                          <option selected>Select Value</option>
-
-                          {SingleEmbroidery?.duppata?.map((item, index) => (
-                            <option value={item?.category}>
-                              {item?.category}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* SELECTED COLORS */}
-                      <div>
-                        <select
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                          value={row.color}
-                          onChange={(e) =>
-                            handleColorChange(e, index, "dupatta_category")
-                          }
-                        >
-                          <option selected>Select Value</option>
-
-                          {SingleEmbroidery?.duppata?.map((item, index) => (
-                            <option value={item?.color}>{item?.color}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* ENTER QUANITY */}
-                      <div className="col-span-2 gap-3 flex items-center">
-                        <input
-                          type="text"
-                          placeholder="Enter Quantity In No"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                          value={row.quantity_in_no || ""}
-                          onChange={(e) =>
-                            handleQuantityChange(e, index, "dupatta_category")
-                          }
-                        />
-                        <span className="bg-gray-50 border border-gray-300 text-gray-900 text-sm  font-semibold rounded-md focus:ring-0 focus:border-gray-300 block w-28 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                          A.Q : {row.MaxQuantity || 0}
-                        </span>
-                        {formData?.dupatta_category?.length > 1 && (
-                          <button
-                            onClick={() => removeRow("dupatta_category", index)}
-                            className="end-2.5 text-red-500 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                            type="button"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 14 14"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                            <span className="sr-only">Close modal</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-center pt-2">
-                  {IsLoading ? (
-                    <button
-                      disabled
-                      type="submit"
-                      className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                    >
-                      Submiting...
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indgrayigo-500"
-                    >
-                      Submit
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1279,7 +1315,7 @@ const StonesDetails = () => {
           closeModal={closeBillModal}
           Manual_No={SingleStone?.Manual_No}
           processBillAmount={Math.round(
-            SingleStone?.rate * SingleStone?.r_quantity
+            SingleStone?.rate * SingleStone?.r_quantity,
           )}
         />
       )}
@@ -1322,7 +1358,7 @@ const StonesDetails = () => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-2">
-              <h3 className="my-5">
+              <h3 className="mb-2">
                 Category :{" "}
                 <span className="text-red-500 font-bold">
                   {SingleEmbroidery?.shirt[0]?.category}
@@ -1359,31 +1395,33 @@ const StonesDetails = () => {
                     </div>
 
                     <div>
-  <input
-    name="received"
-    type="number"
-    placeholder="Enter Quantity"
-    value={item.received || ""}
-    onChange={(event) => {
-      const value = parseInt(event.target.value, 10) || 0;
-      setSuitDataForPacking((prev) =>
-        prev.map((item, i) =>
-          i === index ? { ...item, received: value } : item
-        )
-      );
-    }}
-    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-    required
-  />
-</div>
-
-                   {item?.length > 1 && <div>
-                      <RxCross2
-                        onClick={() => removeRowForPackingData(index)}
-                        size={24}
-                        className="text-red-500 cursor-pointer"
+                      <input
+                        name="received"
+                        type="number"
+                        placeholder="Enter Quantity"
+                        value={item.received || ""}
+                        onChange={(event) => {
+                          const value = parseInt(event.target.value, 10) || 0;
+                          setSuitDataForPacking((prev) =>
+                            prev.map((item, i) =>
+                              i === index ? { ...item, received: value } : item,
+                            ),
+                          );
+                        }}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        required
                       />
-                    </div>}
+                    </div>
+
+                    {suitDataForPacking?.length > 1 && (
+                      <div>
+                        <RxCross2
+                          onClick={() => removeRowForPackingData(index)}
+                          size={20}
+                          className="text-red-500 cursor-pointer"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
 

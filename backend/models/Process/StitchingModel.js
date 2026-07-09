@@ -52,6 +52,15 @@ const stitchingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       required: [true, "Embroidery Id required"],
     },
+    source_step: {
+      type: String,
+      enum: ["Embroidery", "Calender", "Cutting", "Stone", "Stitching"],
+      default: "Stone",
+    },
+    source_id: {
+      type: mongoose.Types.ObjectId,
+      default: null,
+    },
     serial_No: {
       type: Number,
       required: [true, "Serial No required"],
@@ -81,11 +90,11 @@ const stitchingSchema = new mongoose.Schema(
     },
     lace_quantity: {
       type: Number,
-      required: [true, "Lace Quantity required"],
+      default: 0
     },
     lace_category: {
       type: String,
-      required: [true, "Lace Category required"],
+      default: null
     },
     r_quantity: {
       type: Number,
@@ -131,5 +140,6 @@ stitchingSchema.index({ embroidery_Id: 1 });
 stitchingSchema.index({ design_no: 1, createdAt: -1 });
 stitchingSchema.index({ Manual_No: 1, createdAt: -1 });
 stitchingSchema.index({ embroidery_Id: 1, design_no: 1 });
+stitchingSchema.index({ source_step: 1, source_id: 1, createdAt: -1 });
 
 export const StitchingModel = mongoose.model("Stitchings", stitchingSchema);

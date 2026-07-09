@@ -17,8 +17,9 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import toast from "react-hot-toast";
-import { getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate, getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
 import { Button } from "../../../Component/Common/button/Button";
+import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -31,6 +32,8 @@ const EmbroideryDetails = () => {
   const [isCompletedConfirmOpen, setIsCompletedConfirmOpen] = useState(false);
   const [isGenerateGatePassOpen, setisGenerateGatePassOpen] = useState(false);
   const [picturesModal, setPicturesMOdal] = useState(false);
+  const [picturesWarningModal, setPicturesWarningModal] = useState(false);
+  const [pendingPicturesAction, setPendingPicturesAction] = useState(null);
 
   const { loading: IsLoading, previousDataByPartyName } = useSelector(
     (state) => state.Calender
@@ -100,6 +103,12 @@ const EmbroideryDetails = () => {
 
   const handleInputChange = (category, color, received, index, section) => {
     const validReceived = isNaN(received) || received === "" ? 0 : received;
+    const sentQuantity = Number(formData?.[section]?.[index]?.quantity_in_no || 0);
+
+    if (Number(validReceived) > sentQuantity) {
+      return toast.error("Received quantity cannot be greater than sent quantity");
+    }
+
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
         idx === index
@@ -214,9 +223,43 @@ const EmbroideryDetails = () => {
     });
   };
 
-  const openModal = () => {
+  const openCalendarModal = () => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
+  };
+
+  const openPicturesWarningModal = (action) => {
+    setPendingPicturesAction(() => action);
+    setPicturesWarningModal(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closePicturesWarningModal = () => {
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleProceedWithoutPicturesOrder = () => {
+    const action = pendingPicturesAction;
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    document.body.style.overflow = "auto";
+    action?.();
+  };
+
+  const handlePlacePicturesOrderFromWarning = () => {
+    setPicturesWarningModal(false);
+    setPendingPicturesAction(null);
+    setPicturesMOdal(true);
+  };
+
+  const openModal = () => {
+    if (SingleEmbroidery?.pictures_Order === false) {
+      openPicturesWarningModal(openCalendarModal);
+      return;
+    }
+    openCalendarModal();
   };
 
   const closeModal = () => {
@@ -263,6 +306,7 @@ const EmbroideryDetails = () => {
     e.preventDefault();
     const formData = {
       ...SingleEmbroidery,
+      date: SingleEmbroidery?.date,
       process_Category: "Embroidery",
       Manual_No: processBillData.Manual_No,
       additionalExpenditure: processBillData.additionalExpenditure,
@@ -305,6 +349,7 @@ const EmbroideryDetails = () => {
 
   const closeModalForPicturesOrder = () => {
     setPicturesMOdal(false);
+    document.body.style.overflow = "auto";
   };
 
   const handleSelectedRecord = (value) => {
@@ -343,8 +388,12 @@ const EmbroideryDetails = () => {
     };
   });
 
-  const handleSkipStep = (e) => {
-    const value = e.target.value;
+  const performSkipStep = (value) => {
+    const sourceState = {
+      source_step: "Embroidery",
+      source_id: SingleEmbroidery.id,
+    };
+    const sourceAvailability = SingleEmbroidery?.processAvailability;
     switch (true) {
       case value === "Cutting":
         navigate("/dashboard/calendar-details/null", {
@@ -353,6 +402,8 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -364,6 +415,8 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
@@ -375,14 +428,13 @@ const EmbroideryDetails = () => {
             design_no: SingleEmbroidery.design_no,
             serial_No: SingleEmbroidery.serial_No,
             from: location.pathname,
+            source_availability: sourceAvailability,
+            ...sourceState,
           },
         });
         break;
 
       case value === "Packing":
-        if (SingleEmbroidery.T_Recieved_Suit === 0) {
-          return toast.error("Invalid Recieved Suit Quantity");
-        }
         navigate("/dashboard/packing-details/null", {
           state: {
             embroidery_Id: SingleEmbroidery.id,
@@ -398,6 +450,20 @@ const EmbroideryDetails = () => {
       default:
         break;
     }
+  };
+
+  const handleSkipStep = (e) => {
+    const value = e.target.value;
+    e.target.value = "";
+    const receivedSuitQuantity = Number(SingleEmbroidery.T_Recieved_Suit || 0);
+    if (receivedSuitQuantity <= 0) {
+      return toast.error("No received quantity available for next step");
+    }
+    if (SingleEmbroidery?.pictures_Order === false) {
+      openPicturesWarningModal(() => performSkipStep(value));
+      return;
+    }
+    performSkipStep(value);
   };
 
 
@@ -425,7 +491,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
-              <span>{new Date(date).toLocaleDateString()}</span>
+              <span>{formatReadableDate(date)}</span>
             </div>
             <div className="box">
               <span className="font-medium">Per Suit:</span>
@@ -736,7 +802,7 @@ const EmbroideryDetails = () => {
             </button>
           )}
 
-          {!next_steps?.packing && (
+          {project_status === "Completed" && !next_steps?.packing && (
             <>
               {" "}
               <button
@@ -1003,6 +1069,14 @@ const EmbroideryDetails = () => {
         )}
 
         {/* PICTURES ORDER MODAL */}
+        {picturesWarningModal && (
+          <PicturesOrderWarningModal
+            onProceed={handleProceedWithoutPicturesOrder}
+            onPlaceOrder={handlePlacePicturesOrderFromWarning}
+            onCancel={closePicturesWarningModal}
+          />
+        )}
+
         {picturesModal && (
           <PictureOrderModal
             closeModal={closeModalForPicturesOrder}
@@ -1010,6 +1084,7 @@ const EmbroideryDetails = () => {
             design_no={design_no}
             serial_No={serial_No}
             Manual_No={Manual_No}
+            receivedSuitQuantity={SingleEmbroidery?.T_Recieved_Suit || ""}
           />
         )}
 
@@ -1027,7 +1102,7 @@ const EmbroideryDetails = () => {
           <ConfirmationModal
             UpdatEmbroideryloading={UpdatEmbroideryloading}
             title="Confirm Complete"
-            message="Are you sure you want to Complete ?"
+            message="Are you sure you want to mark this as complete ?"
             onConfirm={handleCompleted}
             onClose={closeCompletedModal}
           />

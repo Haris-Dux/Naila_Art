@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { GetAllBags } from "../../../features/InStockSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaEye } from "react-icons/fa";
+import { formatReadableDate } from "../../../Utils/Common";
 
 const Bag = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -92,7 +93,7 @@ const Bag = () => {
                       </td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.recently} p</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                        {new Date(data?.r_Date).toLocaleDateString()}
+                        {formatReadableDate(data?.r_Date)}
                       </td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.totalQuantity} p</td>
                       <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
@@ -181,7 +182,7 @@ const Bag = () => {
                           >
                             <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm ">{data.bill_no}</th>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                              {new Date(data?.date).toLocaleDateString()}
+                              {formatReadableDate(data?.date)}
                             </td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.name}</td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data.quantity} p</td>

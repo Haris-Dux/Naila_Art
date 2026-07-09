@@ -7,9 +7,12 @@ import {
   GetSingleStitching,
   UpdateStitchingAsync,
 } from "../../../features/stitching";
+import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
+import { formatReadableDate } from "../../../Utils/Common";
+import toast from "react-hot-toast";
 
 const StitchingDetails = () => {
   const { id } = useParams();
@@ -20,6 +23,7 @@ const StitchingDetails = () => {
     StitchingBillLoading,
     StitchingpdfLoading,
   } = useSelector((state) => state.stitching);
+  const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
@@ -31,7 +35,6 @@ const StitchingDetails = () => {
   const [formData, setFormData] = useState({
     id: id,
     suits_category: [],
-    dupatta_category: [],
   });
 
   useEffect(() => {
@@ -47,25 +50,27 @@ const StitchingDetails = () => {
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
             return_quantity: item.recieved,
-            cost_price: item.cost_price,
-            sale_price: item.sale_price,
-            category: item.category,
-            color: item.color,
-          })) || [],
-        dupatta_category:
-          SingleStitching.dupatta_category?.map((item) => ({
-            id: item.id,
-            return_quantity: item.recieved,
+            quantity_in_no: item.quantity_in_no,
             cost_price: item.cost_price,
             sale_price: item.sale_price,
             category: item.category,
             color: item.color,
           })) || [],
       });
+      if (SingleStitching.embroidery_Id) {
+        dispatch(GETEmbroiderySIngle({ id: SingleStitching.embroidery_Id }));
+      }
     }
-  }, [SingleStitching]);
+  }, [SingleStitching, dispatch]);
 
   const handleInputChange = (category, index, field, value) => {
+    if (field === "return_quantity") {
+      const sentQuantity = Number(formData?.[category]?.[index]?.quantity_in_no || 0);
+      if (Number(value || 0) > sentQuantity) {
+        return toast.error("Received quantity cannot be greater than sent quantity");
+      }
+    }
+
     setFormData((prevState) => ({
       ...prevState,
       [category]: prevState[category]?.map((item, i) =>
@@ -77,9 +82,7 @@ const StitchingDetails = () => {
   //REMOVE EMPTY ARRAY
   const removeEmptyCategoryArrays = () => {
     const updatedData = { ...formData };
-    if (updatedData.dupatta_category.length === 0) {
-      delete updatedData.dupatta_category;
-    } else if (updatedData.suits_category.length === 0) {
+    if (updatedData.suits_category.length === 0) {
       delete updatedData.suits_category;
     }
     return updatedData;
@@ -104,7 +107,6 @@ const StitchingDetails = () => {
         project_status: "Completed",
         id: id,
         suits_category: formData.suits_category,
-        dupatta_category: formData.dupatta_category,
         d_no: SingleStitching?.design_no,
       })
     ).then((res) => {
@@ -145,6 +147,7 @@ const StitchingDetails = () => {
     e.preventDefault();
     const formData = {
       ...SingleStitching,
+      date: SingleStitching?.date,
       process_Category: "Stitching",
       Stitching_id: SingleStitching?.id,
       Manual_No: processBillData.Manual_No,
@@ -241,7 +244,7 @@ const StitchingDetails = () => {
               <span className="font-medium">Date:</span>
               <span>
                 {" "}
-                {SingleStitching?.date}
+                {formatReadableDate(SingleStitching?.date)}
               </span>
             </div>
             <div className="box">
@@ -305,40 +308,6 @@ const StitchingDetails = () => {
                   </div>
                 )}
 
-                {SingleStitching?.dupatta_category?.length > 0 && (
-                  <div className="details space-y-2">
-                    <h3 className="mb-4 font-semibold text-lg">
-                      Received Dupatta Colors
-                    </h3>
-                    {SingleStitching?.dupatta_category?.map((data, index) => (
-                      <div
-                        key={data.id}
-                        className="details_box flex items-center gap-x-3"
-                      >
-                        <p className="w-44">
-                          {data.color} ({data.quantity_in_no})
-                        </p>
-                        <input
-                          type="text"
-                          placeholder="R.Q"
-                          className="bg-[#EEEEEE] py-1 border-gray-300 w-[4.5rem] px-1 rounded-sm text-gray-900 dark:text-gray-900"
-                          value={
-                            formData.dupatta_category[index]?.return_quantity ||
-                            ""
-                          }
-                          onChange={(e) =>
-                            handleInputChange(
-                              "dupatta_category",
-                              index,
-                              "return_quantity",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -391,12 +360,14 @@ const StitchingDetails = () => {
               Generate Gate Pass
             </button>
           )}
-          {SingleStitching?.project_status === "Completed" && !SingleStitching?.packed &&
+          {SingleStitching?.project_status === "Completed" &&
+            !SingleStitching?.packed &&
+            !SingleEmbroidery?.next_steps?.packing &&
               <Link
                 className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
                 to={`/dashboard/packing-details/${SingleStitching?.id}`}
               >
-                Packing
+               Move To Packing
               </Link>
             }
         </div>
@@ -450,13 +421,6 @@ const StitchingDetails = () => {
 }
 
 export default StitchingDetails;
-
-
-
-
-
-
-
 
 
 

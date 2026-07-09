@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddOldSellerDetailsFromAsync,
@@ -6,26 +6,34 @@ import {
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
-import moment from "moment-timezone";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+const FieldLabel = ({ label, children }) => (
+  <label className="block w-full">
+    <span className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">
+      {label}
+    </span>
+    {children}
+  </label>
+);
 
 const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  const initialRow = { roleQuantity: "", measurement: "", colour: "" };
+  const initialRow = { roleQuantity: "", measurement: "", colour: "", rate: "" };
   const [measurementData, setMeasurementData] = useState({
     rowData: [initialRow],
   });
+  const [activeStep, setActiveStep] = useState(1);
 
   const { addSellerLoading } = useSelector((state) => state.Seller);
 
   const [formData, setFormData] = useState({
     bill_no: "",
-    date: today,
+    date: "",
     name: "",
     phone: "",
     category: "",
@@ -57,6 +65,18 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "rate") {
+      setMeasurementData((prev) => ({
+        ...prev,
+        rowData: prev.rowData.map((row) => ({
+          ...row,
+          rate:
+            row.rate === "" || Number(row.rate) === Number(formData.rate)
+              ? value
+              : row.rate,
+        })),
+      }));
+    }
     setFormData((prevState) => ({
       ...prevState,
       [name]: name === "quantity" ? Number(value) : value,
@@ -73,7 +93,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       quantity: Number(formData.quantity),
       bill_no: Number(formData.bill_no),
       seller_stock_category: "Base",
-      measurementData: measurementData.rowData,
+      measurementData: getRowsWithTotals(measurementData.rowData),
       toAddinStock: formData.toAddinStock,
     };
 
@@ -84,17 +104,18 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     if (
       modifiedFormData.quantity === 0 ||
       modifiedFormData.subTotal === 0 ||
-      modifiedFormData.total === 0
+      modifiedFormData.total === 0 ||
+      !isFirstStepComplete()
     ) {
       return toast.error("Please Fill all required fields");
     }
-    console.log("modifiedFormData", modifiedFormData);
     if (sellerDetails) {
       dispatch(AddOldSellerDetailsFromAsync(modifiedFormData)).then((res) => {
         if (res.payload.success === true) {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
           setMeasurementData({ rowData: [initialRow] });
+          setActiveStep(1);
           closeModal();
         }
       });
@@ -104,6 +125,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
           dispatch(getAllPurchasingHistoryAsync({ category: "Base", page }));
           resetFormData();
           setMeasurementData({ rowData: [initialRow] });
+          setActiveStep(1);
           closeModal();
         }
       });
@@ -113,7 +135,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const resetFormData = () => {
     setFormData({
       bill_no: "",
-      date: today,
+      date: "",
       name: "",
       phone: "",
       category: "",
@@ -123,8 +145,11 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       subTotal: "",
       discountType: "RS",
       discount: "",
-      seller_stock_category: "",
+      seller_stock_category: "Base",
+      toAddinStock: false,
     });
+    setMeasurementData({ rowData: [initialRow] });
+    setActiveStep(1);
   };
 
   const validateValue = (value) => {
@@ -133,9 +158,26 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       : Number(value);
   };
 
+  const getRowsWithTotals = (rows) =>
+    rows.map((row) => {
+      const roleQuantity = validateValue(row.roleQuantity);
+      const measurement = validateValue(row.measurement);
+      const rate = validateValue(row.rate);
+      const rowQuantity = roleQuantity * measurement;
+      const rowTotal = rowQuantity * rate;
+      return { ...row, roleQuantity, measurement, rate, rowQuantity, rowTotal };
+    });
+
   useEffect(() => {
-    const updatedsubtotal =
-      validateValue(formData.quantity) * validateValue(formData.rate);
+    const rowsWithTotals = getRowsWithTotals(measurementData.rowData);
+    const updatedQuantity = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowQuantity,
+      0
+    );
+    const updatedsubtotal = rowsWithTotals.reduce(
+      (sum, row) => sum + row.rowTotal,
+      0
+    );
     const discount =
       formData.discountType === "%"
         ? (updatedsubtotal * validateValue(formData.discount)) / 100 || 0
@@ -143,12 +185,12 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     const total = updatedsubtotal - discount;
     setFormData((prevState) => ({
       ...prevState,
+      quantity: updatedQuantity,
       subTotal: updatedsubtotal,
       total: total,
     }));
   }, [
-    formData.quantity,
-    formData.rate,
+    measurementData,
     formData.discount,
     formData.discountType,
   ]);
@@ -160,11 +202,12 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       updatedRows[index] = {
         ...updatedRows[index],
         [name]:
-          name === "roleQuantity" || name === "measurement"
-            ? Number(value)
+          name === "roleQuantity" || name === "measurement" || name === "rate"
+            ? value === ""
+              ? ""
+              : Number(value)
             : value,
       };
-      calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
   };
@@ -172,7 +215,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const addRow = () => {
     setMeasurementData((prev) => ({
       ...prev,
-      rowData: [...prev.rowData, initialRow],
+      rowData: [...prev.rowData, { ...initialRow, rate: formData.rate }],
     }));
   };
 
@@ -180,21 +223,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
     setMeasurementData((prev) => {
       let updatedRows = [...prev.rowData];
       updatedRows = updatedRows.filter((_, i) => i !== index);
-      calulateTotalQuantity(updatedRows);
       return { ...prev, rowData: updatedRows };
     });
-  };
-
-  const calulateTotalQuantity = (updatedRows) => {
-    const totalQuantity = updatedRows.reduce((total, row) => {
-      return (
-        total + validateValue(row.roleQuantity) * validateValue(row.measurement)
-      );
-    }, 0);
-    setFormData((prev) => ({
-      ...prev,
-      quantity: totalQuantity,
-    }));
   };
 
   const setAccountStatusColor = (status) => {
@@ -210,6 +240,41 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
       default:
         return "";
     }
+  };
+
+  const isFirstStepComplete = () => {
+    const hasMainData =
+      formData.bill_no &&
+      formData.date &&
+      formData.name &&
+      formData.phone &&
+      formData.category &&
+      formData.discount !== "" &&
+      validateValue(formData.quantity) > 0 &&
+      validateValue(formData.rate) > 0 &&
+      validateValue(formData.subTotal) > 0 &&
+      validateValue(formData.total) > 0;
+
+    const hasMeasurementRows =
+      measurementData.rowData.length > 0 &&
+      measurementData.rowData.every(
+        (row) =>
+          validateValue(row.roleQuantity) > 0 &&
+          validateValue(row.measurement) > 0 &&
+          validateValue(row.rate) > 0 &&
+          row.colour?.trim()
+      );
+
+    return Boolean(hasMainData && hasMeasurementRows);
+  };
+
+  const canMoveToStockStep = isFirstStepComplete();
+
+  const handleNextStep = () => {
+    if (!canMoveToStockStep) {
+      return toast.error("Please Fill all required fields");
+    }
+    setActiveStep(2);
   };
 
   return (
@@ -281,75 +346,102 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
             {/* ------------- BODY ------------- */}
             <div className="p-4 md:p-5">
+              <div className="mb-5 flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-600">
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(1)}
+                  className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+                    activeStep === 1
+                      ? "border-gray-900 text-gray-900 dark:border-gray-100 dark:text-white"
+                      : "border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  }`}
+                >
+                  Bill Details
+                </button>
+                <button
+                  type="button"
+                  disabled={!canMoveToStockStep}
+                  onClick={() => setActiveStep(2)}
+                  className={`px-4 py-2 text-sm font-semibold border-b-2 transition disabled:cursor-not-allowed disabled:text-gray-300 dark:disabled:text-gray-500 ${
+                    activeStep === 2
+                      ? "border-gray-900 text-gray-900 dark:border-gray-100 dark:text-white"
+                      : "border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  }`}
+                >
+                  Stock Decision
+                </button>
+              </div>
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
-                  {/* BILL */}
-                  <div>
-                    <input
-                      name="bill_no"
-                      type="text"
-                      placeholder="Bill No"
-                      value={formData.bill_no}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                {activeStep === 1 && (
+                  <>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
+                      {/* BILL */}
+                      <FieldLabel label="Bill No">
+                        <input
+                          name="bill_no"
+                          type="text"
+                          placeholder="Bill No"
+                          value={formData.bill_no}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
 
-                  {/* DATE */}
-                  <div>
-                    <input
-                      name="date"
-                      type="date"
-                      placeholder="Date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                     
 
-                  {/* PARTY NAME */}
-                  <div className="">
-                    <input
-                      name="name"
-                      type="text"
-                      placeholder="Party Name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      readOnly={!!sellerDetails}
-                    />
-                  </div>
+                      {/* PARTY NAME */}
+                      <FieldLabel label="Party Name">
+                        <input
+                          name="name"
+                          type="text"
+                          placeholder="Party Name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                          readOnly={!!sellerDetails}
+                        />
+                      </FieldLabel>
 
-                  {/* PHONE NUMBER */}
-                  <div className="">
-                    <input
-                      name="phone"
-                      type="number"
-                      placeholder="Phone Number"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                      readOnly={!!sellerDetails}
-                    />
-                  </div>
+                      {/* PHONE NUMBER */}
+                      <FieldLabel label="Phone Number">
+                        <input
+                          name="phone"
+                          type="number"
+                          placeholder="Phone Number"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                          readOnly={!!sellerDetails}
+                        />
+                      </FieldLabel>
 
-                  {/* CATEGORY */}
-                  <div>
-                    <input
-                      name="category"
-                      type="text"
-                      placeholder="Category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
+                      {/* CATEGORY */}
+                      <FieldLabel label="Category">
+                        <input
+                          name="category"
+                          type="text"
+                          placeholder="Category"
+                          value={formData.category}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Rate">
+                        <input
+                          name="rate"
+                          type="number"
+                          placeholder="Rate"
+                          value={formData.rate}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                    </div>
 
                 {/* ROLE_QUANTITY AND MEASUREMENT */}
                 <div className="mt-12 mb-4 relative py-4  gap-4 border-t border-b">
@@ -362,42 +454,31 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                     <FaPlus size={18} />
                   </button>
 
-                  <label htmlFor="checkbox" className="absolute -top-7 left-2 ">
-                    Add In Stock
-                    <input
-                      type="checkbox"
-                      aria-describedby="remember"
-                      className="ml-2 w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-0 dark:bg-gray-700 dark:border-gray-600"
-                      onClick={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          toAddinStock:e.target.checked
-                        }))
-                      }}
-                    />
-                  </label>
-
                   {measurementData.rowData.map((data, index) => (
-                    <div key={index} className="grid  py-2 grid-cols-3 gap-4">
-                      <input
-                        name="roleQuantity"
-                        type="number"
-                        placeholder="Quantity"
-                        value={data.roleQuantity}
-                        onChange={(e) => handleMeasurementChange(e, index)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <input
-                        name="measurement"
-                        type="number"
-                        placeholder="Measurement"
-                        value={data.measurement}
-                        onChange={(e) => handleMeasurementChange(e, index)}
-                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <div className="flex items-center justify-center gap-4">
+                    <div key={index} className="grid  py-2 grid-cols-4 gap-4">
+                      <FieldLabel label="Quantity">
+                        <input
+                          name="roleQuantity"
+                          type="number"
+                          placeholder="Quantity"
+                          value={data.roleQuantity}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Measurement">
+                        <input
+                          name="measurement"
+                          type="number"
+                          placeholder="Measurement"
+                          value={data.measurement}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Colour">
                         <input
                           name="colour"
                           type="text"
@@ -407,6 +488,19 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
+                      </FieldLabel>
+                      <div className="flex items-center justify-center gap-4">
+                        <FieldLabel label="Price">
+                          <input
+                            name="rate"
+                            type="number"
+                            placeholder="Price"
+                            value={data.rate}
+                            onChange={(e) => handleMeasurementChange(e, index)}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                          />
+                        </FieldLabel>
                         {measurementData?.rowData?.length > 1 && (
                           <button
                             type="button"
@@ -425,7 +519,20 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
-                  <div>
+                     {/* DATE */}
+                      <FieldLabel label="Date">
+                        <input
+                          name="date"
+                          type="date"
+                          placeholder="Date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+
+                  <FieldLabel label="Total Quantity">
                     <input
                       name="quantity"
                       type="number"
@@ -435,23 +542,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                       readOnly
                     />
-                  </div>
-
-                  {/* RATE */}
-                  <div>
-                    <input
-                      name="rate"
-                      type="number"
-                      placeholder="Rate"
-                      value={formData.rate}
-                      onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
-                    />
-                  </div>
+                  </FieldLabel>
 
                   {/* SUB-TOTAL */}
-                  <div>
+                  <FieldLabel label="Sub Total">
                     <input
                       name="subTotal"
                       type="number"
@@ -460,10 +554,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* Discount */}
-                  <div className="flex items-center space-x-2">
+                  <FieldLabel label="Discount">
                     <div className="flex-1">
                       <div className="flex">
                         <input
@@ -486,10 +580,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         </select>
                       </div>
                     </div>
-                  </div>
+                  </FieldLabel>
 
                   {/* TOTAL */}
-                  <div>
+                  <FieldLabel label="Total">
                     <input
                       name="total"
                       type="number"
@@ -498,42 +592,108 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
                 </div>
+                  </>
+                )}
 
-                <div className="flex justify-center mt-6">
-                  {addSellerLoading ? (
+                {activeStep === 2 && (
+                  <div className="mx-auto mt-2 max-w-3xl">
+                    <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-800">
+                      <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                        Add this base quantity in stock?
+                      </h4>                   
+                      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              toAddinStock: true,
+                            }))
+                          }
+                          className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+                            formData.toAddinStock
+                              ? "border-gray-900 bg-gray-900 text-white dark:border-gray-100"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                          }`}
+                        >
+                          Add In Stock                       
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              toAddinStock: false,
+                            }))
+                          }
+                          className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+                            !formData.toAddinStock
+                              ? "border-gray-900 bg-gray-900 text-white dark:border-gray-100"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                          }`}
+                        >
+                          Do Not Add                       
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-center gap-3 mt-6">
+                  {activeStep === 1 ? (
                     <button
-                      disabled
                       type="button"
-                      class="text-white border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                      disabled={!canMoveToStockStep}
+                      onClick={handleNextStep}
+                      className="inline-block rounded border border-gray-600 bg-gray-600 px-12 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-300"
                     >
-                      <svg
-                        aria-hidden="true"
-                        role="status"
-                        class="inline mr-3 w-4 h-4 text-white animate-spin"
-                        viewBox="0 0 100 101"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                          fill="#E5E7EB"
-                        ></path>
-                        <path
-                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                          fill="currentColor"
-                        ></path>
-                      </svg>
-                      Submit
+                      Next
                     </button>
                   ) : (
-                    <button
-                      type="submit"
-                      className="inline-block rounded border border-gray-600 bg-gray-600 px-12 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring-0 active:text-indgrayigo-500"
-                    >
-                      Submit
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setActiveStep(1)}
+                        className="inline-block rounded border border-gray-300 bg-white px-10 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-600 hover:text-gray-900 focus:outline-none focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                      >
+                        Back
+                      </button>
+                      {addSellerLoading ? (
+                        <button
+                          disabled
+                          type="button"
+                          className="text-white border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex items-center"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            role="status"
+                            className="inline mr-3 w-4 h-4 text-white animate-spin"
+                            viewBox="0 0 100 101"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                              fill="#E5E7EB"
+                            ></path>
+                            <path
+                              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                              fill="currentColor"
+                            ></path>
+                          </svg>
+                          Submit
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="inline-block rounded border border-gray-600 bg-gray-600 px-12 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring-0 active:text-indgrayigo-500"
+                        >
+                          Submit
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </form>

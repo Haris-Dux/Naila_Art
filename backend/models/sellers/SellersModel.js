@@ -69,7 +69,7 @@ const SellersSchema = new mongoose.Schema({
   seller_stock_category : {
     type: String,
     required:[true,'Seller Stock Category Required'],
-    enum:['Base','Lace','Bag/box','Accessories']
+    enum:['Base','Lace','Bag/box','Accessories','Suits']
   },
   category: {
     type: String,

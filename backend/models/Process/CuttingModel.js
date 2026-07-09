@@ -1,9 +1,39 @@
 import mongoose from 'mongoose';
 
+const categoryQuantitySchema = new mongoose.Schema(
+  {
+    category: {
+      type: String,
+      default: "Front",
+    },
+    color: {
+      type: String,
+    },
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    received: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
+
 const cuttingSchema = new mongoose.Schema({
     embroidery_Id:{
         type: mongoose.Types.ObjectId,
         required: [true, "Embroidery Id required"],
+      },
+      source_step: {
+        type: String,
+        enum: ["Embroidery", "Calender", "Cutting", "Stone", "Stitching"],
+        default: "Embroidery",
+      },
+      source_id: {
+        type: mongoose.Types.ObjectId,
+        default: null,
       },
       serial_No: {
         type: Number,
@@ -36,6 +66,10 @@ const cuttingSchema = new mongoose.Schema({
         type:Number,
         default:null
       },
+      category_quantity: {
+        type: [categoryQuantitySchema],
+        default: [],
+      },
       project_status: {
         type: String,
         enum: ["Pending", "Completed"],
@@ -48,10 +82,6 @@ const cuttingSchema = new mongoose.Schema({
       updated : {
         type: Boolean,
         default: false
-      },
-      Available_Quantity: {
-        type: Number,
-        default:0
       },
       additionalExpenditure: {
         type: Number,
@@ -67,6 +97,7 @@ cuttingSchema.index({ embroidery_Id: 1 });
 cuttingSchema.index({ design_no: 1, createdAt: -1 });
 cuttingSchema.index({ Manual_No: 1, createdAt: -1 });
 cuttingSchema.index({ embroidery_Id: 1, design_no: 1 });
+cuttingSchema.index({ source_step: 1, source_id: 1, createdAt: -1 });
 
 export const CuttingModel = mongoose.model('Cutting', cuttingSchema);
 
