@@ -2,16 +2,23 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AddOldSellerDetailsFromAsync, AddSellerDetailsFromAsync, getAllPurchasingHistoryAsync } from "../../../features/SellerSlice";
-import moment from "moment-timezone";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+const FieldLabel = ({ label, children }) => (
+  <label className="block w-full">
+    <span className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">
+      {label}
+    </span>
+    {children}
+  </label>
+);
 
 const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
   const { addSellerLoading } = useSelector((state) => state.Seller);
   const initialRow = { category: "", roleQuantity: "", measurement: 1, rate: "" };
@@ -21,7 +28,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   // State variables to hold form data
   const [formData, setFormData] = useState({
     bill_no: "",
-    date: today,
+    date: "",
     name: "",
     phone: "",
     category: "",
@@ -127,7 +134,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
   const resetFormData = () => {
     setFormData({
       bill_no: "",
-      date: today,
+      date: "",
       name: "",
       phone: "",
       category: "",
@@ -309,7 +316,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
 
                   {/* BILL */}
-                  <div>
+                  <FieldLabel label="Bill No">
                     <input
                       name="bill_no"
                       type="text"
@@ -319,12 +326,12 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
-                  </div>
+                  </FieldLabel>
 
                 
 
                   {/* PARTY NAME */}
-                  <div className=''>
+                  <FieldLabel label="Party Name">
                     <input
                       name="name"
                       type="text"
@@ -335,10 +342,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                       readOnly={!!sellerDetails}
                     />
-                  </div>
+                  </FieldLabel>
 
                     {/* PHONE NUMBER */}
-                    <div className='c'>
+                    <FieldLabel label="Phone Number">
                     <input
                       name="phone"
                       type="number"
@@ -349,10 +356,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                       readOnly={!!sellerDetails}
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* CATEGORY */}
-                  <div>
+                  <FieldLabel label="Bags / Boxes">
                     <input
                       name="category"
                       type="text"
@@ -362,10 +369,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* RATE */}
-                  <div>
+                  <FieldLabel label="Rate">
                     <input
                       name="rate"
                       type="number"
@@ -375,7 +382,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
-                  </div>
+                  </FieldLabel>
                 </div>
 
                 <div className="mt-12 mb-4 relative py-4 gap-4 border-t border-b">
@@ -389,34 +396,40 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
 
                   {itemRows.map((row, index) => (
                     <div key={index} className="grid py-2 grid-cols-3 gap-4">
-                      <input
-                        name="category"
-                        type="text"
-                        placeholder="Category"
-                        value={row.category}
-                        onChange={(e) => handleRowChange(e, index)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <input
-                        name="roleQuantity"
-                        type="number"
-                        placeholder="Quantity"
-                        value={row.roleQuantity}
-                        onChange={(e) => handleRowChange(e, index)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <div className="flex items-center justify-center gap-4">
+                      <FieldLabel label="Category">
                         <input
-                          name="rate"
-                          type="number"
-                          placeholder="Price"
-                          value={row.rate}
+                          name="category"
+                          type="text"
+                          placeholder="Category"
+                          value={row.category}
                           onChange={(e) => handleRowChange(e, index)}
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
+                      </FieldLabel>
+                      <FieldLabel label="Quantity">
+                        <input
+                          name="roleQuantity"
+                          type="number"
+                          placeholder="Quantity"
+                          value={row.roleQuantity}
+                          onChange={(e) => handleRowChange(e, index)}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <div className="flex items-center justify-center gap-4">
+                        <FieldLabel label="Price">
+                          <input
+                            name="rate"
+                            type="number"
+                            placeholder="Price"
+                            value={row.rate}
+                            onChange={(e) => handleRowChange(e, index)}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                          />
+                        </FieldLabel>
                         {itemRows.length > 1 && (
                           <button type="button" onClick={() => deleteRow(index)}>
                             <RxCross2
@@ -433,7 +446,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
 
                {/* DATE */}
-                  <div>
+                  <FieldLabel label="Date">
                     <input
                       name="date"
                       type="date"
@@ -443,10 +456,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     />
-                  </div> 
+                  </FieldLabel> 
 
                   {/* QUANTITY */}
-                  <div>
+                  <FieldLabel label="Total Quantity">
                     <input
                       name="quantity"
                       type="number"
@@ -456,10 +469,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                       readOnly
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* SUB-TOTAL */}
-                  <div>
+                  <FieldLabel label="Sub Total">
                     <input
                       name="subTotal"
                       type="number"
@@ -468,10 +481,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* Discount */}
-                  <div className="flex items-center space-x-2">
+                  <FieldLabel label="Discount">
                     <div className="flex-1">
                       <div className="flex">
                         <input
@@ -494,10 +507,10 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                         </select>
                       </div>
                     </div>
-                  </div>
+                  </FieldLabel>
 
                   {/* TOTAL */}
-                  <div>
+                  <FieldLabel label="Total">
                     <input
                       name="total"
                       type="number"
@@ -506,7 +519,7 @@ const BagModal = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
                 
 
                 </div>

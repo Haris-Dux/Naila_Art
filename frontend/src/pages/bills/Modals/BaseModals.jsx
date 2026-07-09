@@ -6,16 +6,23 @@ import {
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
 import { useSearchParams } from "react-router-dom";
-import moment from "moment-timezone";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+const FieldLabel = ({ label, children }) => (
+  <label className="block w-full">
+    <span className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">
+      {label}
+    </span>
+    {children}
+  </label>
+);
 
 const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
   const initialRow = { roleQuantity: "", measurement: "", colour: "", rate: "" };
   const [measurementData, setMeasurementData] = useState({
     rowData: [initialRow],
@@ -26,7 +33,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
   const [formData, setFormData] = useState({
     bill_no: "",
-    date: today,
+    date: "",
     name: "",
     phone: "",
     category: "",
@@ -128,7 +135,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
   const resetFormData = () => {
     setFormData({
       bill_no: "",
-      date: today,
+      date: "",
       name: "",
       phone: "",
       category: "",
@@ -369,7 +376,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                   <>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                       {/* BILL */}
-                      <div>
+                      <FieldLabel label="Bill No">
                         <input
                           name="bill_no"
                           type="text"
@@ -379,12 +386,12 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                      </div>
+                      </FieldLabel>
 
                      
 
                       {/* PARTY NAME */}
-                      <div className="">
+                      <FieldLabel label="Party Name">
                         <input
                           name="name"
                           type="text"
@@ -395,10 +402,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           required
                           readOnly={!!sellerDetails}
                         />
-                      </div>
+                      </FieldLabel>
 
                       {/* PHONE NUMBER */}
-                      <div className="">
+                      <FieldLabel label="Phone Number">
                         <input
                           name="phone"
                           type="number"
@@ -409,10 +416,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           required
                           readOnly={!!sellerDetails}
                         />
-                      </div>
+                      </FieldLabel>
 
                       {/* CATEGORY */}
-                      <div>
+                      <FieldLabel label="Category">
                         <input
                           name="category"
                           type="text"
@@ -422,8 +429,8 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                      </div>
-                      <div>
+                      </FieldLabel>
+                      <FieldLabel label="Rate">
                         <input
                           name="rate"
                           type="number"
@@ -433,7 +440,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                      </div>
+                      </FieldLabel>
                     </div>
 
                 {/* ROLE_QUANTITY AND MEASUREMENT */}
@@ -449,43 +456,51 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
 
                   {measurementData.rowData.map((data, index) => (
                     <div key={index} className="grid  py-2 grid-cols-4 gap-4">
-                      <input
-                        name="roleQuantity"
-                        type="number"
-                        placeholder="Quantity"
-                        value={data.roleQuantity}
-                        onChange={(e) => handleMeasurementChange(e, index)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <input
-                        name="measurement"
-                        type="number"
-                        placeholder="Measurement"
-                        value={data.measurement}
-                        onChange={(e) => handleMeasurementChange(e, index)}
-                        className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <input
-                        name="colour"
-                        type="text"
-                        placeholder="Colour"
-                        value={data.colour}
-                        onChange={(e) => handleMeasurementChange(e, index)}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                        required
-                      />
-                      <div className="flex items-center justify-center gap-4">
+                      <FieldLabel label="Quantity">
                         <input
-                          name="rate"
+                          name="roleQuantity"
                           type="number"
-                          placeholder="Price"
-                          value={data.rate}
+                          placeholder="Quantity"
+                          value={data.roleQuantity}
                           onChange={(e) => handleMeasurementChange(e, index)}
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
+                      </FieldLabel>
+                      <FieldLabel label="Measurement">
+                        <input
+                          name="measurement"
+                          type="number"
+                          placeholder="Measurement"
+                          value={data.measurement}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50  border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Colour">
+                        <input
+                          name="colour"
+                          type="text"
+                          placeholder="Colour"
+                          value={data.colour}
+                          onChange={(e) => handleMeasurementChange(e, index)}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          required
+                        />
+                      </FieldLabel>
+                      <div className="flex items-center justify-center gap-4">
+                        <FieldLabel label="Price">
+                          <input
+                            name="rate"
+                            type="number"
+                            placeholder="Price"
+                            value={data.rate}
+                            onChange={(e) => handleMeasurementChange(e, index)}
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            required
+                          />
+                        </FieldLabel>
                         {measurementData?.rowData?.length > 1 && (
                           <button
                             type="button"
@@ -505,7 +520,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 lg:gap-x-4">
                   {/* QUANTITY */}
                      {/* DATE */}
-                      <div>
+                      <FieldLabel label="Date">
                         <input
                           name="date"
                           type="date"
@@ -515,9 +530,9 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                      </div>
+                      </FieldLabel>
 
-                  <div>
+                  <FieldLabel label="Total Quantity">
                     <input
                       name="quantity"
                       type="number"
@@ -527,10 +542,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       required
                       readOnly
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* SUB-TOTAL */}
-                  <div>
+                  <FieldLabel label="Sub Total">
                     <input
                       name="subTotal"
                       type="number"
@@ -539,10 +554,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
 
                   {/* Discount */}
-                  <div className="flex items-center space-x-2">
+                  <FieldLabel label="Discount">
                     <div className="flex-1">
                       <div className="flex">
                         <input
@@ -565,10 +580,10 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                         </select>
                       </div>
                     </div>
-                  </div>
+                  </FieldLabel>
 
                   {/* TOTAL */}
-                  <div>
+                  <FieldLabel label="Total">
                     <input
                       name="total"
                       type="number"
@@ -577,7 +592,7 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       readOnly
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     />
-                  </div>
+                  </FieldLabel>
                 </div>
                   </>
                 )}

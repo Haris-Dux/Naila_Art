@@ -12,6 +12,7 @@ import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import { formatReadableDate } from "../../../Utils/Common";
+import toast from "react-hot-toast";
 
 const StitchingDetails = () => {
   const { id } = useParams();
@@ -49,6 +50,7 @@ const StitchingDetails = () => {
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
             return_quantity: item.recieved,
+            quantity_in_no: item.quantity_in_no,
             cost_price: item.cost_price,
             sale_price: item.sale_price,
             category: item.category,
@@ -62,6 +64,13 @@ const StitchingDetails = () => {
   }, [SingleStitching, dispatch]);
 
   const handleInputChange = (category, index, field, value) => {
+    if (field === "return_quantity") {
+      const sentQuantity = Number(formData?.[category]?.[index]?.quantity_in_no || 0);
+      if (Number(value || 0) > sentQuantity) {
+        return toast.error("Received quantity cannot be greater than sent quantity");
+      }
+    }
+
     setFormData((prevState) => ({
       ...prevState,
       [category]: prevState[category]?.map((item, i) =>
@@ -412,8 +421,6 @@ const StitchingDetails = () => {
 }
 
 export default StitchingDetails;
-
-
 
 
 

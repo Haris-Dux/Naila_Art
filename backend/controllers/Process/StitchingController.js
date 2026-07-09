@@ -257,12 +257,16 @@ export const updateStitching = async (req, res, next) => {
             items.forEach((item) => {
               const { return_quantity, id, sale_price, cost_price } = item;
               let toUpdate = stitching[category].find((obj) => obj._id == id);
-              let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
-              if (toUpdate) {
-                toUpdate.recieved = return_quantity;
-                toUpdate.sale_price = sale_price;
-                toUpdate.cost_price = cost_price;
+              if (!toUpdate) {
+                throw new Error("Stitching row not found");
               }
+              if (Number(return_quantity || 0) > Number(toUpdate.quantity_in_no || 0)) {
+                throw new Error("Received quantity cannot be greater than sent quantity");
+              }
+              let new_r_quantity = stitching.r_quantity - toUpdate.recieved;
+              toUpdate.recieved = return_quantity;
+              toUpdate.sale_price = sale_price;
+              toUpdate.cost_price = cost_price;
               if (updateStitchingRQuantity) {
                 stitching.r_quantity = new_r_quantity + toUpdate.recieved;
                 stitching.updated = true;

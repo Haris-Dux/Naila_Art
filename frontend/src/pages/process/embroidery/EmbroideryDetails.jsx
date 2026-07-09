@@ -103,6 +103,12 @@ const EmbroideryDetails = () => {
 
   const handleInputChange = (category, color, received, index, section) => {
     const validReceived = isNaN(received) || received === "" ? 0 : received;
+    const sentQuantity = Number(formData?.[section]?.[index]?.quantity_in_no || 0);
+
+    if (Number(validReceived) > sentQuantity) {
+      return toast.error("Received quantity cannot be greater than sent quantity");
+    }
+
     setFormData((prevState) => {
       const updatedSection = prevState[section].map((item, idx) =>
         idx === index

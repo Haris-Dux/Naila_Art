@@ -352,6 +352,9 @@ export const updateEmbroidery = async (req, res, next) => {
           (s) =>  s._id.toString() === id
         );
         if (shirtItem) {
+          if (Number(received || 0) > Number(shirtItem.quantity_in_no || 0)) {
+            throw new Error("Received quantity cannot be greater than sent quantity");
+          }
           shirtItem.received = received;
         }
       });
@@ -363,6 +366,9 @@ export const updateEmbroidery = async (req, res, next) => {
           (d) => d._id.toString() === id
         );
         if (dupattaItem) {
+          if (Number(received || 0) > Number(dupattaItem.quantity_in_no || 0)) {
+            throw new Error("Received quantity cannot be greater than sent quantity");
+          }
           dupattaItem.received = received;
         }
       });
@@ -374,6 +380,9 @@ export const updateEmbroidery = async (req, res, next) => {
           (t) => t._id.toString() === id
         );
         if (trouserItem) {
+          if (Number(received || 0) > Number(trouserItem.quantity_in_no || 0)) {
+            throw new Error("Received quantity cannot be greater than sent quantity");
+          }
           trouserItem.received = received;
         }
       });
@@ -386,15 +395,15 @@ export const updateEmbroidery = async (req, res, next) => {
       };
       const calculateTotalRecieved = () => {
         let totalRecieved = 0;
-        totalRecieved += shirt.reduce(
+        totalRecieved += (shirt || []).reduce(
           (received, item) => received + checkInvalidValue(item.received),
           0
         );
-        totalRecieved += trouser.reduce(
+        totalRecieved += (trouser || []).reduce(
           (received, item) => received + checkInvalidValue(item.received),
           0
         );
-        totalRecieved += duppata.reduce(
+        totalRecieved += (duppata || []).reduce(
           (received, item) => received + checkInvalidValue(item.received),
           0
         );
@@ -402,7 +411,7 @@ export const updateEmbroidery = async (req, res, next) => {
       };
       const calculateShirtRecieved = () => {
         let suit_Recieved = 0;
-        suit_Recieved += shirt.reduce(
+        suit_Recieved += (shirt || []).reduce(
           (received, item) => received + checkInvalidValue(item.received),
           0
         );

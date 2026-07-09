@@ -9,7 +9,6 @@ import {
   AddSellerDetailsFromAsync,
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
-import { getTodayDate } from "../../../Utils/Common";
 
 const emptyDesign = {
   design_no: "",
@@ -46,12 +45,11 @@ const SuitsModal = ({ isOpen, closeModal, sellerDetails }) => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const today = getTodayDate();
   const { addSellerLoading } = useSelector((state) => state.Seller);
 
   const [formData, setFormData] = useState({
     bill_no: "",
-    date: today,
+    date: "",
     name: "",
     phone: "",
     quantity: 0,
@@ -119,7 +117,7 @@ const SuitsModal = ({ isOpen, closeModal, sellerDetails }) => {
   const resetForm = () => {
     setFormData({
       bill_no: "",
-      date: today,
+      date: "",
       name: "",
       phone: "",
       quantity: 0,
