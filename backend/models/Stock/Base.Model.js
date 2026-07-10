@@ -15,6 +15,10 @@ const previousDataSchema = new mongoose.Schema({
   quantity: {
     type: String,
     required: [true,"Recently quantity required"],
+  },
+  isDirectEntry: {
+    type: Boolean,
+    default: false
   }
 })
 

@@ -65,10 +65,20 @@ const PurchaseBillRowsModal = ({
   const rows = bill?.measurementData || [];
   const columns = getColumns(category);
   const suitCategories = [...new Set(rows.map((row) => row.category).filter(Boolean))];
+  const canDeleteColorRows =
+    ["Suits", "Base"].includes(category) &&
+    onDeletePart &&
+    onPartialDeleteColor &&
+    rows.length > 1;
   const canDeleteSuitParts =
     category === "Suits" &&
     onDeletePart &&
     !(rows.length === 1 && suitCategories.length === 1);
+  const selectedRowQuantity = Number(
+    category === "Base"
+      ? colorDeleteRow?.roleQuantity
+      : colorDeleteRow?.quantity || 0
+  );
 
   const openColorDeleteModal = (row) => {
     setColorDeleteRow(row);
@@ -82,7 +92,7 @@ const PurchaseBillRowsModal = ({
     setPartialQuantity("");
   };
 
-  const isPartialDeleteQuantityValid = Number(partialQuantity || 0) < Number(colorDeleteRow?.quantity || 0);
+  const isPartialDeleteQuantityValid = Number(partialQuantity || 0) < selectedRowQuantity;
 
   const confirmColorDelete = (event) => {
     event.preventDefault();
@@ -173,7 +183,7 @@ const PurchaseBillRowsModal = ({
                         {column.label}
                       </th>
                     ))}
-                    {canDeleteSuitParts && (
+                    {canDeleteColorRows && (
                       <th className="px-3 py-3 text-center">Action</th>
                     )}
                   </tr>
@@ -192,7 +202,7 @@ const PurchaseBillRowsModal = ({
                           {column.render(row)}
                         </td>
                       ))}
-                      {canDeleteSuitParts && (
+                      {canDeleteColorRows && (
                         <td className="px-3 py-3 text-center">
                           <button
                             type="button"
@@ -227,10 +237,10 @@ const PurchaseBillRowsModal = ({
             <div className="flex items-start justify-between border-b pb-3 dark:border-gray-600">
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Delete Suit Color
+                  Delete {category} Color
                 </h4>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                  {colorDeleteRow.colour || "--"} - Available {formatNumber(colorDeleteRow.quantity)}
+                  {colorDeleteRow.colour || "--"} - Available Qty {formatNumber(selectedRowQuantity)}
                 </p>
               </div>
               <button
@@ -258,7 +268,7 @@ const PurchaseBillRowsModal = ({
                 Full Delete
               </button>
               <button
-                disabled={colorDeleteRow?.quantity === 1}
+                disabled={selectedRowQuantity <= 1}
                 type="button"
                 onClick={() => setColorDeleteMode("partial")}
                 className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
@@ -274,12 +284,13 @@ const PurchaseBillRowsModal = ({
             {colorDeleteMode === "partial" && (
               <label className="mt-4 block">
                 <span className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">
-                  Quantity To Delete
+                  {category === "Base" ? "Qty To Delete" : "Quantity To Delete"}
                 </span>
                 <input
                   type="number"
-                  min="1"
-                  max={Number(colorDeleteRow.quantity || 0)}
+                  min={category === "Base" ? "0.001" : "1"}
+                  step={category === "Base" ? "any" : "1"}
+                  max={selectedRowQuantity}
                   value={partialQuantity}
                   onChange={(event) => setPartialQuantity(event.target.value)}
                   className="block w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-gray-300 focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white"

@@ -12,11 +12,16 @@ import Pagination from "../../../Component/Common/Pagination";
 import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import BooleanIndicator from "../../../Component/Common/BooleanIndicator";
 import PurchaseBillRowsModal from "../Modals/PurchaseBillRowsModal";
+import {
+  deleteBaseBillColorAsync,
+  partialDeleteBaseBillColorAsync,
+} from "../../../features/InStockSlice";
 
 const BaseTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
 
   const { loading, PurchasingHistory,deleteLoading } = useSelector((state) => state.Seller);
+  const { deleteStockLoading } = useSelector((state) => state.InStock);
 
   const [showConfirmationModal, setConfirmationModal] = useState();
   const [onConfitmation, setOnConfirmation] = useState(null);
@@ -58,6 +63,39 @@ const BaseTable = ({ filters = {} }) => {
       });
     };
     setOnConfirmation(() => deleteBill)
+  };
+
+  const refresh = () => {
+    dispatch(getAllPurchasingHistoryAsync({ category: "Base", ...filters, page, limit }));
+  };
+
+  const handleDeleteColor = (payload) => {
+    setConfirmationModal(true);
+    document.body.style.overflow = "hidden";
+    setOnConfirmation(() => () => {
+      dispatch(deleteBaseBillColorAsync({
+        billId: payload.billId,
+        rowId: payload.rowId,
+      })).then((res) => {
+        if (res.payload?.success) {
+          closeModal();
+          refresh();
+        }
+      });
+    });
+  };
+
+  const handlePartialDeleteColor = (payload) => {
+    setConfirmationModal(true);
+    document.body.style.overflow = "hidden";
+    setOnConfirmation(() => () => {
+      dispatch(partialDeleteBaseBillColorAsync(payload)).then((res) => {
+        if (res.payload?.success) {
+          closeModal();
+          refresh();
+        }
+      });
+    });
   };
 
   return (
@@ -167,6 +205,8 @@ const BaseTable = ({ filters = {} }) => {
         onClose={closeModal}
         bill={selectedBaseBill}
         category="Base"
+        onDeletePart={handleDeleteColor}
+        onPartialDeleteColor={handlePartialDeleteColor}
       />
       {/* CONFIRMATION MODAL */}
       {showConfirmationModal && (
@@ -177,7 +217,7 @@ const BaseTable = ({ filters = {} }) => {
             "Are you sure you want to Delete this bill ?"
           }
           title={"Delete Base Bill"}
-          updateStitchingLoading={deleteLoading}
+          updateStitchingLoading={deleteLoading || deleteStockLoading}
         />
       )}
     </>

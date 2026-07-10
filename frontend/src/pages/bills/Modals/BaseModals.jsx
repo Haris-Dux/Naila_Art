@@ -481,10 +481,14 @@ const BaseModals = ({ isOpen, closeModal, sellerDetails }) => {
                       <FieldLabel label="Colour">
                         <input
                           name="colour"
-                          type="text"
+                          type="text"                         
                           placeholder="Colour"
                           value={data.colour}
-                          onChange={(e) => handleMeasurementChange(e, index)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            e.target.value = value.charAt(0).toLocaleUpperCase() + value.slice(1)
+                            handleMeasurementChange(e, index)
+                          }}
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />

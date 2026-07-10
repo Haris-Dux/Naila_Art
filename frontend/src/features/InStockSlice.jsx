@@ -29,6 +29,10 @@ const approveOrRejectStockUrl = "/api/branches/approveOrRejectStock";
 const returnStockToMainUrl = "/api/branches/returnStockToMain";
 const approveOrRejectReturnedStockUrl = "/api/branches/approveOrRejectReturnedStock";
 const deleteBaseStockUrl = "/api/stock/base/deleteBaseStock";
+const deleteBaseBillColorAndReverseStockUrl =
+  "/api/stock/base/deleteBaseBillColorAndReverseStock";
+const partialDeleteBaseBillColorAndReverseStockUrl =
+  "/api/stock/base/partialDeleteBaseBillColorAndReverseStock";
 const getPendingStockForBranchUrl = "/api/branches/getPendingStockForBranch";
 const getPendingReturnedStockUrl = "/api/branches/getPendingReturnedStock";
 const getAllBranches = "/api/branches/getAllBranches";
@@ -398,6 +402,35 @@ export const DeleteBaseStockAsync = createAsyncThunk(
   }
 );
 
+export const deleteBaseBillColorAsync = createAsyncThunk(
+  "Base/deleteBaseBillColorAsync",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteBaseBillColorAndReverseStockUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+export const partialDeleteBaseBillColorAsync = createAsyncThunk(
+  "Base/partialDeleteBaseBillColorAsync",
+  async (data) => {
+    try {
+      const response = await axios.post(
+        partialDeleteBaseBillColorAndReverseStockUrl,
+        data
+      );
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
 export const getPendingStockForBranchAsync = createAsyncThunk(
   "Branches/getAllPendingStock",
   async () => {
@@ -614,6 +647,30 @@ const InStockSlic = createSlice({
         state.deleteLodaing = false;
       })
       .addCase(DeleteBaseStockAsync.rejected, (state, action) => {
+        state.deleteLodaing = false;
+      })
+      .addCase(deleteBaseBillColorAsync.pending, (state) => {
+        state.deleteStockLoading = true;
+        state.deleteLodaing = true;
+      })
+      .addCase(deleteBaseBillColorAsync.fulfilled, (state) => {
+        state.deleteStockLoading = false;
+        state.deleteLodaing = false;
+      })
+      .addCase(deleteBaseBillColorAsync.rejected, (state) => {
+        state.deleteStockLoading = false;
+        state.deleteLodaing = false;
+      })
+      .addCase(partialDeleteBaseBillColorAsync.pending, (state) => {
+        state.deleteStockLoading = true;
+        state.deleteLodaing = true;
+      })
+      .addCase(partialDeleteBaseBillColorAsync.fulfilled, (state) => {
+        state.deleteStockLoading = false;
+        state.deleteLodaing = false;
+      })
+      .addCase(partialDeleteBaseBillColorAsync.rejected, (state) => {
+        state.deleteStockLoading = false;
         state.deleteLodaing = false;
       })
 
