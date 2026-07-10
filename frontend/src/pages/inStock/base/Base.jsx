@@ -360,19 +360,15 @@ const Base = () => {
                               {formatReadableDate(data?.Date)}
                             </td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.quantity} m</td>
-                            {data?.quantity?.startsWith("Deleted") ? (
-                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                                --
-                            </td>
-                            ) : (
-                              <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+
+                             {data?.isDirectEntry && <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                                 <MdDeleteOutline
                                   onClick={() => handleDelete(data.id)}
                                   size={24}
                                   className="cursor-pointer text-red-500"
                                 />
-                              </td>
-                            )}
+                              </td> }
+                            
                           </tr>
                         ))
                     )
@@ -393,7 +389,7 @@ const Base = () => {
           onClose={closeModal}
           onConfirm={onConfitmation}
           message={
-            "Are you sure you want to Delete this? Note: The stock associated with this will be deleted as well."
+            "Are you sure you want to Delete this?"
           }
           title={"Delete Base Bill"}
           updateStitchingLoading={deleteLodaing}

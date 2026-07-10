@@ -24,6 +24,7 @@ import {
   normalizeSuitStockRows,
   removeSuitPurchaseStockRows,
 } from "../Stock/SuitsController.js";
+import { reduceBaseStockQuantity } from "../Stock/BaseController.js";
 
 
 const normalizeBaseMeasurementData = (measurementData = []) => {
@@ -38,12 +39,14 @@ const normalizeBaseMeasurementData = (measurementData = []) => {
     const rate = Number(item.rate || 0);
     const rowQuantity = Number(item.rowQuantity || roleQuantity * measurement);
     const rowTotal = Number(item.rowTotal || rowQuantity * rate);
+    const rowId = new mongoose.Types.ObjectId();
+
 
     if (!colour || !measurement || !roleQuantity) {
       throw new Error("Missing base measurement data");
     }
 
-    return { roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
+    return { _id:rowId, roleQuantity, measurement, colour, rate, rowQuantity, rowTotal };
   });
 };
 
@@ -148,7 +151,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
         let stockData = [];
         if (toAddinStock === true) {
           baseMeasurementData.forEach((item) => {
-            let { colour, measurement, roleQuantity } = item;
+            let { colour, measurement, roleQuantity, _id } = item;
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -163,6 +166,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 formattedColour,
                 totalQuantity,
                 formattedCategory,
+                _id
               });
             } else {
               duplicate.totalQuantity += totalQuantity;
@@ -179,6 +183,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
               colors: stock.formattedColour,
               Date: date,
               quantity: stock.totalQuantity,
+              _id: stock._id
             };
             if (checkExistingStock) {
               const updatedTYm = checkExistingStock.TYm + stock.totalQuantity;
@@ -519,7 +524,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
         let stockData = [];
         if (toAddinStock === true) {
           baseMeasurementData.forEach((item) => {
-            let { colour, measurement, roleQuantity } = item;
+            let { colour, measurement, roleQuantity, _id } = item;
             const totalQuantity = item.roleQuantity * item.measurement;
             const formattedCategory =
               category.charAt(0).toUpperCase() +
@@ -534,6 +539,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 formattedColour,
                 totalQuantity,
                 formattedCategory,
+                _id
               });
             } else {
               duplicate.totalQuantity += totalQuantity;
@@ -549,6 +555,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
               colors: stock.formattedColour,
               Date:date,
               quantity: stock.totalQuantity,
+              _id: stock._id
             };
             if (checkExistingStock) {
               const updatedTYm = checkExistingStock.TYm + stock.totalQuantity;
@@ -810,6 +817,19 @@ export const deleteSellerBillAndReverseStock = async (req, res, next) => {
 
       //ADDING BASE DATA IN  SEELER
       if (billData.seller_stock_category === "Base") {
+        if(billData.toAddinStock) {
+          const billRows = billData.measurementData || [];
+          for (const row of billRows) {
+            const {colour, rowQuantity, _id} = row;
+            await reduceBaseStockQuantity({
+               category: billData.category,
+               colour,
+               quantity:rowQuantity,
+               session,
+               rowId:_id,
+            })
+          } 
+        }
         await Promise.all([
           SellersModel.findByIdAndUpdate(
             sellerId,

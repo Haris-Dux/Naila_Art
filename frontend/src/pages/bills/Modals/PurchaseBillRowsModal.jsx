@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { MdDeleteOutline } from "react-icons/md";
 
@@ -47,16 +48,83 @@ const getColumns = (category) => {
   ];
 };
 
-const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category, onDeletePart }) => {
+const PurchaseBillRowsModal = ({
+  isOpen,
+  onClose,
+  bill,
+  category,
+  onDeletePart,
+  onPartialDeleteColor,
+}) => {
+  const [colorDeleteRow, setColorDeleteRow] = useState(null);
+  const [colorDeleteMode, setColorDeleteMode] = useState("full");
+  const [partialQuantity, setPartialQuantity] = useState("");
+
   if (!isOpen) return null;
 
   const rows = bill?.measurementData || [];
   const columns = getColumns(category);
   const suitCategories = [...new Set(rows.map((row) => row.category).filter(Boolean))];
+  const canDeleteColorRows =
+    ["Suits", "Base"].includes(category) &&
+    onDeletePart &&
+    onPartialDeleteColor &&
+    rows.length > 1;
   const canDeleteSuitParts =
     category === "Suits" &&
     onDeletePart &&
     !(rows.length === 1 && suitCategories.length === 1);
+  const selectedRowQuantity = Number(
+    category === "Base"
+      ? colorDeleteRow?.roleQuantity
+      : colorDeleteRow?.quantity || 0
+  );
+
+  const openColorDeleteModal = (row) => {
+    setColorDeleteRow(row);
+    setColorDeleteMode("full");
+    setPartialQuantity("");
+  };
+
+  const closeColorDeleteModal = () => {
+    setColorDeleteRow(null);
+    setColorDeleteMode("full");
+    setPartialQuantity("");
+  };
+
+  const isPartialDeleteQuantityValid = Number(partialQuantity || 0) < selectedRowQuantity;
+
+  const confirmColorDelete = (event) => {
+    event.preventDefault();
+    if (!colorDeleteRow) return;
+
+    const payload = {
+      billId: bill?.id,
+      rowId: colorDeleteRow.id,
+      scope: "color",
+    };
+
+    if (colorDeleteMode === "partial") {
+      const deleteQuantity = Number(partialQuantity);
+      if (!deleteQuantity || deleteQuantity <= 0) return;
+      if (!isPartialDeleteQuantityValid) return;
+      closeColorDeleteModal();
+      onPartialDeleteColor({
+        billId: bill?.id,
+        rowId: colorDeleteRow.id,
+        quantity: deleteQuantity,
+      });
+      return;
+    }
+
+    closeColorDeleteModal();
+    onDeletePart(payload);
+  };
+
+  const isSubmitDisabled = colorDeleteMode === "partial" &&
+                  (!Number(partialQuantity) ||
+                    Number(partialQuantity) <= 0 ||
+                    !isPartialDeleteQuantityValid);
 
   return (
     <div
@@ -115,7 +183,7 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category, onDeletePart }
                         {column.label}
                       </th>
                     ))}
-                    {canDeleteSuitParts && (
+                    {canDeleteColorRows && (
                       <th className="px-3 py-3 text-center">Action</th>
                     )}
                   </tr>
@@ -134,17 +202,11 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category, onDeletePart }
                           {column.render(row)}
                         </td>
                       ))}
-                      {canDeleteSuitParts && (
+                      {canDeleteColorRows && (
                         <td className="px-3 py-3 text-center">
                           <button
                             type="button"
-                            onClick={() =>
-                              onDeletePart({
-                                billId: bill?.id,
-                                rowId: row.id,
-                                scope: "color",
-                              })
-                            }
+                            onClick={() => openColorDeleteModal(row)}
                             title="Delete color"
                           >
                             <MdDeleteOutline
@@ -166,6 +228,103 @@ const PurchaseBillRowsModal = ({ isOpen, onClose, bill, category, onDeletePart }
           )}
         </div>
       </div>
+      {colorDeleteRow && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900 bg-opacity-50 px-4">
+          <form
+            onSubmit={confirmColorDelete}
+            className="w-full max-w-md rounded-md bg-white p-5 shadow-lg dark:bg-gray-700"
+          >
+            <div className="flex items-start justify-between border-b pb-3 dark:border-gray-600">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Delete {category} Color
+                </h4>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+                  {colorDeleteRow.colour || "--"} - Available Qty {formatNumber(selectedRowQuantity)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeColorDeleteModal}
+                className="text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <RxCross2 size={20} />
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setColorDeleteMode("full");
+                  setPartialQuantity("");
+                }}
+                className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+                  colorDeleteMode === "full"
+                    ? "border-gray-900 bg-gray-900 text-white dark:border-gray-100"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                }`}
+              >
+                Full Delete
+              </button>
+              <button
+                disabled={selectedRowQuantity <= 1}
+                type="button"
+                onClick={() => setColorDeleteMode("partial")}
+                className={`rounded-md border px-4 py-3 text-left text-sm font-semibold transition ${
+                  colorDeleteMode === "partial"
+                    ? "border-gray-900 bg-gray-900 text-white dark:border-gray-100"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                }`}
+              >
+                Partial Delete
+              </button>
+            </div>
+
+            {colorDeleteMode === "partial" && (
+              <label className="mt-4 block">
+                <span className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">
+                  {category === "Base" ? "Qty To Delete" : "Quantity To Delete"}
+                </span>
+                <input
+                  type="number"
+                  min={category === "Base" ? "0.001" : "1"}
+                  step={category === "Base" ? "any" : "1"}
+                  max={selectedRowQuantity}
+                  value={partialQuantity}
+                  onChange={(event) => setPartialQuantity(event.target.value)}
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-gray-300 focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
+                  required
+                />
+              </label>
+            )}
+
+            {colorDeleteMode === "partial" &&
+              !isPartialDeleteQuantityValid && (
+                <p className="mt-2 text-xs font-semibold text-red-500">
+                  Invalid quantity.
+                </p>
+              )}
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeColorDeleteModal}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitDisabled}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

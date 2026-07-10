@@ -11,7 +11,10 @@ import {
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
 import PurchaseBillRowsModal from "../Modals/PurchaseBillRowsModal";
-import { deleteSuitBillPartAsync } from "../../../features/InStockSlice";
+import {
+  deleteSuitBillPartAsync,
+  partialDeleteSuitBillColorAsync,
+} from "../../../features/InStockSlice";
 
 const SuitsTable = ({ filters = {} }) => {
   const dispatch = useDispatch();
@@ -64,6 +67,20 @@ const SuitsTable = ({ filters = {} }) => {
     document.body.style.overflow = "hidden";
     setOnConfirmation(() => () => {
       dispatch(deleteSuitBillPartAsync(payload)).then((res) => {
+        if (res.payload?.success) {
+          closeModal();
+          setIsDetailsOpen(false);
+          refresh();
+        }
+      });
+    });
+  };
+
+  const handlePartialDeleteColor = (payload) => {
+    setConfirmationModal(true);
+    document.body.style.overflow = "hidden";
+    setOnConfirmation(() => () => {
+      dispatch(partialDeleteSuitBillColorAsync(payload)).then((res) => {
         if (res.payload?.success) {
           closeModal();
           setIsDetailsOpen(false);
@@ -166,6 +183,7 @@ const SuitsTable = ({ filters = {} }) => {
         bill={selectedBill}
         category="Suits"
         onDeletePart={handleDeletePart}
+        onPartialDeleteColor={handlePartialDeleteColor}
       />
 
       {showConfirmationModal && (

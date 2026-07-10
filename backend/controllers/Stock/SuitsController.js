@@ -285,6 +285,77 @@ export const deleteSuitBillPartAndReverseStock = async (req, res, next) => {
   }
 };
 
+export const partialDeleteSuitBillColorAndReverseStock = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { billId, rowId, quantity } = req.body;
+      await verifyrequiredparams(req.body, ["billId", "rowId", "quantity"]);
+
+      const quantityToDelete = Number(quantity);
+      if (!quantityToDelete || quantityToDelete <= 0) {
+        throw new Error("Please enter a valid delete quantity");
+      }
+
+      const billData = await purchasing_History_model
+        .findById(billId)
+        .session(session);
+      if (!billData) throw new Error("Bill data not found");
+      if (billData.seller_stock_category !== "Suits") {
+        throw new Error("Invalid bill category");
+      }
+
+      const rows = billData.measurementData || [];
+
+      const suitRow = rows.find(
+        (row) => row._id.toString() === rowId
+      );
+      if (!suitRow) throw new Error("No matching suit color row found");
+
+      const existingQuantity = suitRow.quantity;
+      if (quantityToDelete >= existingQuantity) {
+        throw new Error("Use full color delete to delete the complete color quantity");
+      }
+
+      await reduceSuitPurchaseStockRowQuantity({
+        row: suitRow,
+        quantity: quantityToDelete,
+        session,
+      });
+
+      const removedTotal = quantityToDelete * suitRow.cost_price;
+      const oldSellerData = await SellersModel.findOne({
+        name: billData.name,
+      }).session(session);
+      if (!oldSellerData) throw new Error("Seller data not found");
+
+      const sellerUpdate = await updateSellerAfterBillReduction({
+        seller: oldSellerData,
+        billId,
+        amount: removedTotal,
+        session,
+        billNo: billData.bill_no,
+        removeBillHistory: false,
+      });
+      if (sellerUpdate.error) throw new Error(sellerUpdate.error);
+
+      suitRow.quantity = existingQuantity - quantityToDelete;
+      suitRow.rowTotal = suitRow.quantity * suitRow.cost_price;
+      billData.quantity = billData.quantity - quantityToDelete;
+      billData.total = billData.total  - removedTotal;
+      await billData.save({ session });
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Successfully Deleted" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
 const updateSellerAfterBillReduction = async ({
   seller,
   billId,
@@ -326,7 +397,6 @@ const updateSellerAfterBillReduction = async ({
          date: getTodayDate(),
          particular: `Partial stock delete adjustment for Bill No:${billNo}`,
          credit: - amount,
-         debit: new_total_debit,
          balance: new_total_balance,
          bill_id: billId,
        };
@@ -437,6 +507,38 @@ export const addSuitsPurchaseInStock = async ({ billId, rows, r_Date, session })
   } catch (error) {
      throw error;
   }
+};
+
+export const reduceSuitPurchaseStockRowQuantity = async ({ row, quantity, session }) => {
+  const {category, colour, design_no } = row;
+  const suitStock = await SuitsModel.findOne({
+    d_no: design_no,
+    category: { $regex: new RegExp(`^${category}$`, "i") },
+    color: { $regex: new RegExp(`^${colour}$`, "i") },
+  }).session(session);
+
+  if (!suitStock) {
+    throw new Error(`Suit stock not found for D# ${design_no}, ${category}, ${colour}`);
+  }
+
+  const quantityToDelete = quantity;
+  const updatedQuantity = suitStock.quantity - quantityToDelete;
+  if (updatedQuantity < 0) {
+    throw new Error(`Not enough suit stock for D# ${design_no}, ${category}, ${colour}`);
+  }
+
+  const stockRecord = suitStock.all_records.find(
+    (record) => record._id.toString() === row._id.toString()
+  );
+  if (!stockRecord) {
+    throw new Error(`Suit stock record not found for D# ${design_no}, ${category}, ${colour}`);
+  }
+
+  suitStock.quantity = updatedQuantity;
+  stockRecord.quantity = stockRecord.quantity  - quantityToDelete;
+
+  await suitStock.save({ session });
+  return { message: "Successfully deleted" };
 };
 
 export const removeSuitPurchaseStockRows = async ({ billId, rows, session }) => {

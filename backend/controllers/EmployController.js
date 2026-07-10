@@ -1193,9 +1193,8 @@ const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").to
           weeklyHolidayWorked++;
         } 
 
-        if (record.overtime_hours > 0) {
-          overtimeHours += record.overtime_hours;
-        }
+        overtimeHours += record.overtime_hours;
+        
         if(status === "leave") {
           leavesDays++;
         }
@@ -1214,7 +1213,7 @@ const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").to
 
     const response = {
       totalSalary: total,
-      oveerTime: overtimeHours,
+      overTime: overtimeHours,
       absents: absentDays,
       leaves: leavesDays,
       weeklyHolidayWorked: weeklyHolidayWorked,
