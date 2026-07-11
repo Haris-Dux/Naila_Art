@@ -492,10 +492,7 @@ const StonesDetails = () => {
     closeGatepassModal();
   };
 
-  const Front_category = SingleStone?.category_quantity?.find(
-    (item) => item.category === "Front"
-  );
-  const T_QuantityForBill = Front_category?.recieved_Data?.r_total;
+  const T_QuantityForBill = SingleStone?.r_quantity;
 
   const generateBill = (e) => {
     e.preventDefault();
