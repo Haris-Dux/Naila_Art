@@ -1186,7 +1186,7 @@ const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").to
 
     attendanceRecords.forEach((record) => {
       const {status} = record;
-      if (status === "present" || status === "leave") {
+      if (status === "present") {
         if (record.is_public_holiday) {
           publicHolidayWorked++;
         } else if (record.is_weekly_holiday) {
@@ -1195,11 +1195,10 @@ const endOfMonth = moment.tz(month, "YYYY-MM", "Asia/Karachi").endOf("month").to
 
         overtimeHours += record.overtime_hours;
         
-        if(status === "leave") {
+      } else if (status === "leave" && !record.is_public_holiday && !record.is_weekly_holiday) {
           leavesDays++;
-        }
       } else if(status === "absent"){
-        absentDays++;
+          absentDays++;
       };
     });
 
