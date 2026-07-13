@@ -1,13 +1,57 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createPaymentMethodAsync,
   getAllPaymentMetodsAsync,
   updatePaymentMethodAsync,
 } from "../../features/PaymentMethodsSlice";
-import { IoPencilOutline } from "react-icons/io5";
+import {
+  IoAdd,
+  IoCardOutline,
+  IoCheckmarkCircleOutline,
+  IoClose,
+  IoCloseCircleOutline,
+} from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { useNavigate } from "react-router-dom";
+import Icon from "../../Component/Common/Icons";
+
+const StatusBadge = ({ active }) => (
+  <span
+    className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ${
+      active
+        ? "bg-emerald-50 text-[#009970] dark:bg-emerald-950/30"
+        : "bg-red-50 text-red-600 dark:bg-red-950/30"
+    }`}
+  >
+    <span
+      className={`h-2 w-2 rounded-full ${
+        active ? "bg-[#009970]" : "bg-red-500"
+      }`}
+    />
+    {active ? "Active" : "Inactive"}
+  </span>
+);
+
+const SummaryCard = ({ label, value, icon: Icon, tone }) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-300">
+          {label}
+        </p>
+        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+          {value}
+        </p>
+      </div>
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${tone}`}
+      >
+        <Icon size={20} />
+      </span>
+    </div>
+  </div>
+);
 
 const PaymentMethods = () => {
   const dispatch = useDispatch();
@@ -21,10 +65,14 @@ const PaymentMethods = () => {
     id:""
   });
 
-  const { loading,updateLoading, AllPaymentMethods,PaymentData } = useSelector(
+  const { loading,updateLoading, AllPaymentMethods } = useSelector(
     (state) => state.PaymentMethods ,
   );
 
+  const totalMethods = AllPaymentMethods?.length || 0;
+  const activeMethods =
+    AllPaymentMethods?.filter((method) => method?.active).length || 0;
+  const inactiveMethods = totalMethods - activeMethods;
 
   useEffect(() => {
     dispatch(getAllPaymentMetodsAsync());
@@ -61,21 +109,16 @@ const PaymentMethods = () => {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-  
     const updatedFields = {};
     Object.keys(formData).forEach((key) => {
       if (formData[key] !== selectedPaymentMethod[key]) {
         updatedFields[key] = formData[key];
       }
     });
-  
     if (Object.keys(updatedFields).length === 0) {
       return;
     }
-  
-  
     updatedFields.id = formData.id;
-  
     dispatch(updatePaymentMethodAsync(updatedFields)).then((res) => {
       if (res.payload?.success) {
         dispatch(logoutUserAsync()).then((res) => {
@@ -92,16 +135,23 @@ const PaymentMethods = () => {
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
         <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
-          <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
-            Payment Methods
-          </h1>
+          <div>
+            <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
+              Payment Methods
+            </h1>
+            <p className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Manage payment accounts available across sales and expenses
+            </p>
+          </div>
           <button
+            type="button"
             onClick={() => {
               setOpenModal("create");
             }}
-            className="custom-button inline-block rounded border border-gray-600 bg-gray-600 px-4 py-2.5 mx-2 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none active:text-gray-100"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none active:text-gray-100"
           >
-            Add New Payment Method
+            <IoAdd size={18} />
+            New Payment Method
           </button>
         </div>
 
@@ -118,191 +168,267 @@ const PaymentMethods = () => {
             </div>
           </div>
         ) : (
-          <>
-            <div className="request_list px-3">
-              <div className="overflow-x-auto">
-                <table className="min-w-full overflow-hidden rounded-md shadow-md">
-                  <thead className="bg-gray-100 dark:bg-gray-800">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                      >
-                        <button className="flex items-center gap-x-3 focus:outline-none">
-                          <span>Full Name</span>
-                        </button>
-                      </th>
+          <div className="space-y-5 px-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <SummaryCard
+                label="Total Methods"
+                value={totalMethods}
+                icon={IoCardOutline}
+                tone="bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+              />
+              <SummaryCard
+                label="Active"
+                value={activeMethods}
+                icon={IoCheckmarkCircleOutline}
+                tone="bg-emerald-50 text-[#009970] dark:bg-emerald-950/30"
+              />
+              <SummaryCard
+                label="Inactive"
+                value={inactiveMethods}
+                icon={IoCloseCircleOutline}
+                tone="bg-red-50 text-red-600 dark:bg-red-950/30"
+              />
+            </div>
 
-                      <th
-                        scope="col"
-                        className="px-12 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                      >
-                        Status
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-900 dark:text-gray-200"
-                      >
-                        Edit
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
-                    {AllPaymentMethods && AllPaymentMethods.length > 0 ? (
-                      AllPaymentMethods?.map((data, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
+            {AllPaymentMethods && AllPaymentMethods.length > 0 ? (
+              <>
+                <div className="hidden overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 md:block">
+                  <table className="min-w-full text-left text-sm text-gray-500 dark:text-gray-400">
+                    <thead className="bg-gray-50 text-xs font-semibold uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+                      <tr>
+                        <th scope="col" className="whitespace-nowrap px-4 py-3">
+                          Payment Method
+                        </th>
+                        <th scope="col" className="whitespace-nowrap px-4 py-3">
+                          Status
+                        </th>
+                        <th
+                          scope="col"
+                          className="w-24 whitespace-nowrap px-4 py-3 text-right"
+                        >
+                          Edit
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-900">
+                      {AllPaymentMethods?.map((data, index) => (
+                        <tr
+                          key={data?.id || index}
+                          className="font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                        >
+                          <td className="whitespace-nowrap px-4 py-4 font-semibold text-gray-900 dark:text-white">
                             {data?.name}
                           </td>
-                          <td
-                            className={`px-4  py-4 text-sm whitespace-nowrap ${
-                              data?.active ? "text-green-500" : "text-red-500"
-                            } `}
-                          >
-                            {data?.active ? "Active" : "Inactive"}
+                          <td className="whitespace-nowrap px-4 py-4">
+                            <StatusBadge active={data?.active} />
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                            <IoPencilOutline
-                              size={22}
-                              className="text-black cursor-pointer  rounded-md"
+                          <td className="whitespace-nowrap px-4 py-4 text-right">
+                            <button
+                              type="button"
                               onClick={() => handleEdit(data)}
-                            />
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                              aria-label={`Edit ${data?.name}`}
+                            >
+                              <Icon name="edit" size={20} />
+                            </button>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr className="flex justify-center items-center mt-4">
-                        <td className="text-lg font-semibold text-gray-600 text-center dark:text-gray-300">
-                          No Data Found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="space-y-3 md:hidden">
+                  {AllPaymentMethods?.map((data, index) => (
+                    <div
+                      key={data?.id || index}
+                      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold uppercase text-gray-400">
+                            Payment Method
+                          </p>
+                          <h3 className="mt-1 truncate text-base font-semibold text-gray-900 dark:text-white">
+                            {data?.name}
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(data)}
+                          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                          aria-label={`Edit ${data?.name}`}
+                        >
+                          <Icon name="edit" size={20} />
+                        </button>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-300">
+                          Status
+                        </span>
+                        <StatusBadge active={data?.active} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="flex min-h-[45vh] flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 px-4 text-center dark:border-gray-700">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                  <IoCardOutline size={22} />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-white">
+                  No payment methods found
+                </h3>
+                <p className="mt-2 max-w-sm text-sm font-medium text-gray-500 dark:text-gray-300">
+                  Add a payment method to make it available in billing and
+                  expense workflows.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenModal("create");
+                  }}
+                  className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none"
+                >
+                  <IoAdd size={18} />
+                  Add Payment Method
+                </button>
               </div>
-            </div>
-          </>
+            )}
+          </div>
         )}
       </section>
 
-      {/* UPDATE MODAL */}
-
       {openModal === "update" && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    <div
-      className="fixed inset-0 bg-gray-800 opacity-75"
-      onClick={closeModal}
-    ></div>
-    <div className="bg-white w-[95%] max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-          Update Payment Method
-        </h2>
-      </div>
-
-      {/* Form */}
-      <form
-        onSubmit={handleUpdate}
-      >
-        {/* Name input */}
-        <div className="mb-4">
-          <label
-            htmlFor="updateName"
-            className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            name="updateName"
-            placeholder="Enter payment method name"
-            value={formData.name}
-            onChange={(e) =>
-              setFormData({ ...formData, name: e.target.value })
-            }
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-            required
-          />
-        </div>
-
-        {/* Status select */}
-        <div className="mb-4">
-          <label
-            htmlFor="status"
-            className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
-          >
-            Status
-          </label>
-          <select
-            value={formData.active}
-            onChange={(e) =>
-              setFormData({ ...formData, active: e.target.value === "true" })
-            }
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-          >
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            disabled={updateLoading}
-            onClick={closeModal}
-            className={`px-4 py-2 rounded-md text-white 
-              ${
-                updateLoading
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-gray-500 hover:bg-gray-600 cursor-pointer"
-              }`}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            disabled={updateLoading}
-            className={`px-4 py-2 rounded-md text-white 
-              ${
-                updateLoading
-                  ? "bg-blue-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
-              }`}
-          >
-            Update
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
-
-    
-
-      {openModal === "create" && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3">
           <div
             className="fixed inset-0 bg-gray-800 opacity-75"
             onClick={closeModal}
           ></div>
-          <div className="bg-white w-[95%] max-w-lg p-6 rounded-lg z-50 dark:bg-gray-700">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Add New Payment Method
-              </h2>
+          <div className="relative z-50 w-full max-w-lg rounded-lg bg-white p-5 shadow-xl dark:bg-gray-800 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Update Payment Method
+                </h2>
+                <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-300">
+                  Edit name or status for this payment method.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                <IoClose size={20} />
+              </button>
             </div>
 
-            {/* Form */}
+            <form onSubmit={handleUpdate}>
+              <div className="mb-4">
+                <label
+                  htmlFor="updateName"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-white"
+                >
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="updateName"
+                  placeholder="Enter payment method name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-gray-300 focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400"
+                  required
+                />
+              </div>
+
+              <div className="mb-5">
+                <label
+                  htmlFor="status"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-white"
+                >
+                  Status
+                </label>
+                <select
+                  value={formData.active}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      active: e.target.value === "true",
+                    })
+                  }
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-gray-300 focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400"
+                >
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  disabled={updateLoading}
+                  onClick={closeModal}
+                  className={`h-10 rounded-md px-4 text-sm font-medium ${
+                    updateLoading
+                      ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                      : "cursor-pointer bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                  }`}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={updateLoading}
+                  className={`h-10 rounded-md px-4 text-sm font-medium text-white ${
+                    updateLoading
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "cursor-pointer bg-gray-900 hover:bg-[#3a3a3a]"
+                  }`}
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {openModal === "create" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3">
+          <div
+            className="fixed inset-0 bg-gray-800 opacity-75"
+            onClick={closeModal}
+          ></div>
+          <div className="relative z-50 w-full max-w-lg rounded-lg bg-white p-5 shadow-xl dark:bg-gray-800 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Add New Payment Method
+                </h2>
+                <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-300">
+                  New payment methods require users to sign in again.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                <IoClose size={20} />
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
                   htmlFor="branchName"
-                  className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-white"
                 >
                   Name
                 </label>
@@ -314,30 +440,25 @@ const PaymentMethods = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                  className="block w-full rounded-md border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-gray-300 focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400"
                   required
                 />
               </div>
 
-              {/* Warning with icon */}
-              <div className="my-2 flex items-center text-yellow-600 text-sm">
-                <span>
-                  <strong>Warning:</strong> You will be logged out.
-                </span>
+              <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                Warning: You will be logged out.
               </div>
 
-              {/* Buttons */}
-              <div className="flex justify-end space-x-2">
+              <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
                 <button
                   type="button"
                   disabled={updateLoading}
                   onClick={closeModal}
-                  className={`px-4 py-2 rounded-md text-white 
-                 ${
-                   updateLoading
-                     ? "bg-gray-300 cursor-not-allowed"
-                     : "bg-gray-500 hover:bg-gray-600 cursor-pointer"
-                 }`}
+                  className={`h-10 rounded-md px-4 text-sm font-medium ${
+                    updateLoading
+                      ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                      : "cursor-pointer bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                  }`}
                 >
                   Cancel
                 </button>
@@ -345,12 +466,11 @@ const PaymentMethods = () => {
                 <button
                   type="submit"
                   disabled={updateLoading}
-                  className={`px-4 py-2 rounded-md text-white 
-                     ${
-                       updateLoading
-                         ? "bg-blue-300 cursor-not-allowed"
-                         : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
-                     }`}
+                  className={`h-10 rounded-md px-4 text-sm font-medium text-white ${
+                    updateLoading
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "cursor-pointer bg-gray-900 hover:bg-[#3a3a3a]"
+                  }`}
                 >
                   Add
                 </button>
