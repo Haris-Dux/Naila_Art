@@ -7,7 +7,7 @@ import { formatReadableDate, getPageLimit } from "../../Utils/Common";
 
 const OtherSaleBills = () => {
   const dispatch = useDispatch();
-  const [search, setSearch] = useState();
+  const [search, setSearch] = useState("");
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
@@ -70,7 +70,7 @@ const OtherSaleBills = () => {
 
               <input
                 type="text"
-                className="md:w-64 lg:w-72 py-2 pl-10 pr-4 text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
+                className="w-full md:w-64 lg:w-72 py-2 pl-10 pr-4 text-sm text-gray-800 dark:text-gray-200 bg-transparent border border-[#D9D9D9] rounded-lg focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-opacity-40 focus:ring-[#D9D9D9] placeholder:text-sm dark:placeholder:text-gray-300"
                 placeholder="Search by name"
                 value={search}
                 onChange={(e) => handleSearch(e)}
@@ -84,7 +84,7 @@ const OtherSaleBills = () => {
         {/* -------------- TABLE -------------- */}
 
         {otherSaleBillsLoading ? (
-          <div className="min-h-[90vh] flex justify-center items-center">
+          <div className="pt-16 flex justify-center mt-12 items-center">
             <div
               className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
               role="status"
@@ -95,40 +95,40 @@ const OtherSaleBills = () => {
           </div>
         ) : (
           <div className="relative overflow-x-auto mt-5 ">
-            <table className="w-full text-xs text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Sr.
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Party Name
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Amount
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     City
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Cargo
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Phone
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Date
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Bill By
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Payment Method
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Quantity
                   </th>
-                  <th className="px-2 text-base py-2" scope="col">
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Note
                   </th>
                 </tr>
@@ -138,24 +138,48 @@ const OtherSaleBills = () => {
                   otherSaleBills?.data?.map((data, index) => (
                     <tr
                       key={index}
-                      className="bg-white border-b text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                      className="bg-white border-b text-md font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     >
-                      <td className="px-2 py-2">{index + 1}</td>
-                      <td className="px-2 py-2">{data.name}</td>
-                      <td className="px-2 py-2">{data.amount} Rs</td>
-                      <td className="px-2 py-2">{data.city}</td>
-                      <td className="px-2 py-2">{data.cargo}</td>
-                      <td className="px-2 py-2">{data.phone}</td>
-                      <td className="px-2 py-2">{formatReadableDate(data.date)}</td>
-                      <td className="px-2 py-2">{data.bill_by}</td>
-                      <td className="px-2 py-2">{data.payment_Method}</td>
-                      <td className="px-2 py-2">{data.quantity}</td>
-                      <td className="px-2 py-2 max-w-[200px] ">{data.note}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {index + 1}
+                      </td>
+                      <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-gray-900 dark:text-white text-xs md:text-sm">
+                        {data.name}
+                      </th>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.amount} Rs
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.city ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.cargo ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.phone ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {formatReadableDate(data.date)}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.bill_by ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.payment_Method ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        {data.quantity ?? "--"}
+                      </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 max-w-[220px] text-xs md:text-sm whitespace-normal">
+                        {data.note ?? "--"}
+                      </td>
                     </tr>
                   ))
                 ) : (
-                  <tr className="w-full flex justify-center items-center">
-                    <td className="text-sm mt-3">No Data Available</td>
+                  <tr>
+                    <td className="text-xl text-center py-6" colSpan={11}>
+                      No Data Available
+                    </td>
                   </tr>
                 )}
               </tbody>

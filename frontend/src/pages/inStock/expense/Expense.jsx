@@ -161,6 +161,33 @@ const Expense = () => {
     value: branch.id,
   }));
 
+  const getBranchName = (branchId) =>
+    Branches?.find((branch) => branch.id === branchId)?.branchName || "Unknown";
+
+  const renderBranchChips = (branches = []) => {
+    if (!branches.length) {
+      return (
+        <span className="inline-flex rounded-md bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+          No branches
+        </span>
+      );
+    }
+
+    return (
+      <div className="flex flex-wrap justify-start gap-1.5 md:justify-center">
+        {branches.map((branchId) => (
+          <span
+            key={branchId}
+            className="inline-flex max-w-[118px] items-center truncate rounded-md bg-gray-100 px-2.5 py-1 text-[11px] font-semibold leading-4 text-gray-700 dark:bg-gray-800 dark:text-gray-200 lg:max-w-[140px]"
+            title={getBranchName(branchId)}
+          >
+            {getBranchName(branchId)}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   const filterdCategories = ExpenseCategories.filter((item) =>
     item?.branches?.includes(selectedBranchId)
   ).sort((a,b) => a.name.localeCompare(b.name));
@@ -365,146 +392,185 @@ const Expense = () => {
       {categoriesModal === "ViewCategories" && (
         <div
           aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
+          className="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-gray-800 bg-opacity-50 p-3"
         >
-          <div className="relative py-4 px-3 w-[95%] max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative flex max-h-[70vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-gray-900">
             {/* ------------- HEADER ------------- */}
-            <div className="flex gap-3 items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Expense Categories
-              </h3>
-              {user?.user?.role === "superadmin" && (
+            <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-gray-700 md:flex-row md:items-center md:justify-between md:p-5">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Expense Categories
+                </h3>
+                <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-300">
+                  Manage category names and assigned branches
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 md:justify-end">
+                {user?.user?.role === "superadmin" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openCategoryModal({ type: "AddExpenseCategory" })
+                    }
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-700 px-3 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-0"
+                  >
+                    <IoAdd size={18} className="text-white" />
+                    New Category
+                  </button>
+                )}
                 <button
+                  onClick={closeCategoryModal}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
                   type="button"
-                  onClick={() =>
-                    openCategoryModal({ type: "AddExpenseCategory" })
-                  }
-                  className="flex items-center text-sm justify-center gap-1 text-white rounded border border-gray-700 bg-gray-600 p-1.5 hover:bg-gray-800 focus:outline-none focus:ring-0"
                 >
-                  <IoAdd size={18} className="text-white" />
-                  New Category
+                  <svg
+                    aria-hidden="true"
+                    className="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
                 </button>
-              )}
-              <button
-                onClick={closeCategoryModal}
-                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
+              </div>
             </div>
 
             {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                  <tr>
-                    <th className=" px-2 py-3 text-center" scope="col">
-                      #
-                    </th>
-                    <th className=" px-2 py-3 text-center" scope="col">
-                      Name
-                    </th>
-                    <th className=" px-2 py-3 text-center" scope="col">
-                      Branches
-                    </th>
-
-                    <th className=" px-2 py-3 text-center" scope="col">
-                      Update
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                  {ExpenseCategoryLoading ? (
-                    <tbody>
-                      <tr>
-                        <td colSpan={8}>
-                          <div className="min-h-[50vh] flex justify-center items-center">
-                            <div
-                              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-                              role="status"
-                              aria-label="loading"
-                            >
-                              <span className="sr-only">Loading...</span>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {ExpenseCategories?.map((data, index) => (
-                        <tr
-                          key={index}
-                          className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                          <td className=" px-6 py-3 text-center">
-                            {index + 1}
-                          </td>
-                          <td className=" px-6 py-3 text-center">
-                            {data?.name}
-                          </td>
-
-                          <td className=" px-6 py-3 text-center">
-                            <select
-                              defaultValue=""
-                              className="bg-gray-50 border border-gray-300 w-40 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                            >
-                              <option value="" disabled>
-                                View Branches
-                              </option>
-                              {data?.branches?.map((branchId, i) => (
-                                <option disabled key={i}>
-                                  {
-                                    Branches?.find(
-                                      (option) => option.id === branchId
-                                    ).branchName
-                                  }
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-
-                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
-                            {" "}
-                            <button
-                              onClick={() =>
-                                openCategoryModal({
-                                  type: "EditExpense",
-                                  category: data,
-                                })
-                              }
-                              className="px-4 py-2.5 text-sm rounded"
-                            >
-                              <MdOutlineModeEdit
-                                className="cursor-pointer"
-                                size={20}
-                              />
-                            </button>
-                          </td>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-5">
+              {ExpenseCategoryLoading ? (
+                <div className="flex min-h-[45vh] items-center justify-center">
+                  <div
+                    className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100"
+                    role="status"
+                    aria-label="loading"
+                  >
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                </div>
+              ) : ExpenseCategories?.length > 0 ? (
+                <>
+                  <div className="hidden overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 md:block">
+                    <table className="min-w-full text-left text-sm text-gray-500 dark:text-gray-400">
+                      <thead className="sticky top-0 z-10 bg-gray-50 text-xs font-semibold uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+                        <tr>
+                          <th className="w-16 whitespace-nowrap px-4 py-3">
+                            #
+                          </th>
+                          <th className="whitespace-nowrap px-4 py-3">Name</th>
+                          <th className="whitespace-nowrap px-3 py-3 text-center">
+                            Branches
+                          </th>
+                          <th className="w-24 whitespace-nowrap px-4 py-3 text-right">
+                            Update
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {ExpenseCategories?.map((data, index) => (
+                          <tr
+                            key={data?.id || index}
+                            className="bg-white font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                          >
+                            <td className="whitespace-nowrap px-4 py-4">
+                              {index + 1}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-4 font-semibold text-gray-900 dark:text-white">
+                              {data?.name}
+                            </td>
+                            <td className="px-3 py-3">
+                              {renderBranchChips(data?.branches)}
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openCategoryModal({
+                                    type: "EditExpense",
+                                    category: data,
+                                  })
+                                }
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                                aria-label={`Edit ${data?.name}`}
+                              >
+                                <MdOutlineModeEdit size={20} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="space-y-3 md:hidden">
+                    {ExpenseCategories?.map((data, index) => (
+                      <div
+                        key={data?.id || index}
+                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase text-gray-400">
+                              Category #{index + 1}
+                            </p>
+                            <h4 className="mt-1 truncate text-base font-semibold text-gray-900 dark:text-white">
+                              {data?.name}
+                            </h4>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openCategoryModal({
+                                type: "EditExpense",
+                                category: data,
+                              })
+                            }
+                            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                            aria-label={`Edit ${data?.name}`}
+                          >
+                            <MdOutlineModeEdit size={20} />
+                          </button>
+                        </div>
+                        <div className="mt-4">
+                          <p className="mb-2 text-xs font-semibold uppercase text-gray-400">
+                            Branches
+                          </p>
+                          {renderBranchChips(data?.branches)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex min-h-[45vh] flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 px-4 text-center dark:border-gray-700">
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                    No expense categories found
+                  </h4>
+                  <p className="mt-2 max-w-sm text-sm font-medium text-gray-500 dark:text-gray-300">
+                    Create a category to start organizing expense records by branch.
+                  </p>
+                  {user?.user?.role === "superadmin" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openCategoryModal({ type: "AddExpenseCategory" })
+                      }
+                      className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-700 bg-gray-700 px-4 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-0"
+                    >
+                      <IoAdd size={18} />
+                      New Category
+                    </button>
                   )}
-                </table>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -513,9 +579,9 @@ const Expense = () => {
       {/* ADD OR UPDATE CATEGORIES */}
       {(categoriesModal === "AddExpenseCategory" ||
         categoriesModal === "EditExpense") && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-[90%] max-w-md">
-            <h2 className="text-xl font-semibold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-3">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl dark:bg-gray-800 sm:p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               {categoriesModal === "AddExpenseCategory"
                 ? "Add Expense Category"
                 : "Edit Category"}
@@ -532,14 +598,14 @@ const Expense = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
               placeholder="Enter category name"
             />
-            <div className="mt-2 custom-reactSelect">
+            <div className="mt-3 custom-reactSelect">
               <Select
                 isMulti
                 options={branchOptions}
                 styles={{
                   control: (baseStyles, state) => ({
                     ...baseStyles,
-                    borderRadius: 4,
+                    borderRadius: 6,
                     borderColor: "#D1D5DB",
                     boxShadow: state.isFocused ? "none" : "none",
                     "&:hover": {
@@ -549,7 +615,7 @@ const Expense = () => {
                   }),
                 }}
                 placeholder="Select branch for category"
-                className="bg-gray-50   text-gray-900 rounded-md"
+                className="bg-gray-50 text-gray-900 rounded-md"
                 onChange={(selectedOptions) => {
                   setExpenseCategoryData((prev) => ({
                     ...prev,
@@ -561,17 +627,17 @@ const Expense = () => {
                 )}
               />
             </div>
-            <div className="flex justify-end mt-4 gap-2">
+            <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row">
               <button
                 onClick={closeCategoryModal}
-                className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white mr-2"
+                className="h-10 rounded-md bg-gray-100 px-4 text-sm font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 disabled={ExpenseUpdateLoading}
                 onClick={handleCreateCategory}
-                className={`px-4 py-2.5 text-sm rounded text-white dark:text-gray-800 transition 
+                className={`h-10 rounded-md px-4 text-sm font-medium text-white transition dark:text-gray-800 
     ${
       ExpenseUpdateLoading
         ? "bg-gray-400 dark:bg-gray-300 cursor-not-allowed"
