@@ -191,6 +191,9 @@ const Expense = () => {
   const filterdCategories = ExpenseCategories.filter((item) =>
     item?.branches?.includes(selectedBranchId)
   ).sort((a,b) => a.name.localeCompare(b.name));
+  const selectedCategoryName =
+    filterdCategories.find((category) => category?.id === selectedCategory)
+      ?.name || "None";
 
   return (
     <>
@@ -265,23 +268,30 @@ const Expense = () => {
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
         <>
-          <div className="flex flex-wrap items-center pt-3 gap-2 rounded-md">
-           
-              {filterdCategories?.map((category) => (
-                <Link
-                  to={`/dashboard/expense${buildPaginationQuery(searchParams, { page: 1, limit })}`}
-                  key={category?.id}
-                  className={`border border-gray-500 px-5 py-2 my-1 text-sm rounded-md ${
-                    selectedCategory === category?.id
-                      ? "dark:bg-white bg-gray-700 dark:text-black text-gray-100"
-                      : ""
-                  }`}
-                  onClick={() => setSelectedCategory(category?.id)}
-                >
-                  {category?.name}
-                </Link>
-              ))}
-          
+          <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/60">
+
+            {filterdCategories?.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-1 rounded-md">
+                  {filterdCategories?.map((category) => (
+                    <Link
+                      to={`/dashboard/expense${buildPaginationQuery(searchParams, { page: 1, limit })}`}
+                      key={category?.id}
+                      className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors md:text-sm ${
+                        selectedCategory === category?.id
+                          ? "border-gray-700 bg-gray-700 text-gray-100 dark:bg-white dark:text-black"
+                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                      onClick={() => setSelectedCategory(category?.id)}
+                    >
+                      {category?.name}
+                    </Link>
+                  ))}
+              </div>
+            ) : (
+              <div className="rounded-md border border-dashed border-gray-200 bg-white px-3 py-4 text-sm font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                No categories available for this branch
+              </div>
+            )}
           </div>
 
           {/* -------------- TABLE -------------- */}
