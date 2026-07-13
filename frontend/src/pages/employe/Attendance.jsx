@@ -12,6 +12,8 @@ import toast from "react-hot-toast";
 import { Button } from "../../Component/Common/button/Button";
 import { getTodayDate, toUtcISOString } from "../../Utils/Common";
 
+const ATTENDANCE_STATUSES = ["present", "absent", "leave"];
+
 const Attendance = () => {
   const today = getTodayDate();
   const dispatch = useDispatch();
@@ -119,8 +121,12 @@ const Attendance = () => {
     if (record) {
       return {
         status: record.status,
-        check_in: moment(record.check_in).format("YYYY-MM-DDTHH:mm"),
-        check_out: moment(record.check_out).format("YYYY-MM-DDTHH:mm"),
+        check_in: record.check_in
+          ? moment(record.check_in).format("YYYY-MM-DDTHH:mm")
+          : getCheckin(isToday, dateKey),
+        check_out: record.check_out
+          ? moment(record.check_out).format("YYYY-MM-DDTHH:mm")
+          : getCheckout(isToday, dateKey),
         overtime_hours: record.overtime_hours || "0",
         employee_id: employee.id,
         employee_name: employee.name,
@@ -578,9 +584,7 @@ const Attendance = () => {
                   Attendance Status
                 </label>
                 <div className="flex gap-2">
-                  {["present", "absent", "leave"]
-                    .filter((s) => !(s === "absent" && (formData.is_weekly_holiday || formData.is_public_holiday)))
-                    .map((s) => (
+                  {ATTENDANCE_STATUSES.map((s) => (
                     <button
                       key={s}
                       onClick={() => setFormData({ ...formData, status: s })}
@@ -731,9 +735,6 @@ const Attendance = () => {
               {selectedBulkEmployees.map((employee) => {
                 const employeeForm = bulkForms[employee.id];
                 if (!employeeForm) return null;
-                const isHoliday =
-                  employeeForm.is_weekly_holiday ||
-                  employeeForm.is_public_holiday;
 
                 return (
                   <div
@@ -750,30 +751,28 @@ const Attendance = () => {
                         </p>
                       </div>
                       <div className="flex min-w-[260px] gap-2">
-                        {["present", "absent", "leave"]
-                          .filter((status) => !(status === "absent" && isHoliday))
-                          .map((status) => (
-                            <button
-                              key={`${employee.id}-${status}`}
-                              type="button"
-                              onClick={() =>
-                                handleBulkFormChange(employee.id, {
-                                  target: { name: "status", value: status },
-                                })
-                              }
-                              className={`flex-1 rounded-md border px-3 py-2 text-sm font-semibold transition-all ${
-                                employeeForm.status === status
-                                  ? status === "present"
-                                    ? "border-green-600 bg-green-600 text-white"
-                                    : status === "absent"
-                                      ? "border-red-600 bg-red-600 text-white"
-                                      : "border-yellow-500 bg-yellow-500 text-white"
-                                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                              }`}
-                            >
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </button>
-                          ))}
+                        {ATTENDANCE_STATUSES.map((status) => (
+                          <button
+                            key={`${employee.id}-${status}`}
+                            type="button"
+                            onClick={() =>
+                              handleBulkFormChange(employee.id, {
+                                target: { name: "status", value: status },
+                              })
+                            }
+                            className={`flex-1 rounded-md border px-3 py-2 text-sm font-semibold transition-all ${
+                              employeeForm.status === status
+                                ? status === "present"
+                                  ? "border-green-600 bg-green-600 text-white"
+                                  : status === "absent"
+                                    ? "border-red-600 bg-red-600 text-white"
+                                    : "border-yellow-500 bg-yellow-500 text-white"
+                                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
