@@ -30,12 +30,14 @@ export const createuserAsync = createAsyncThunk(
 // lOGIN ASYNC THUNK
 export const loginuserAsync = createAsyncThunk(
   "user/login",
-  async (formData) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(loginUrl, formData);
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.error);
+      const message = error.response?.data?.error;
+      toast.error(message);
+      return rejectWithValue(message);
     }
   }
 );
