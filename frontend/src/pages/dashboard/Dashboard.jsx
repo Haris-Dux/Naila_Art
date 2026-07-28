@@ -25,11 +25,15 @@ import {
 } from "react-icons/io5";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
-import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
-import moment from "moment-timezone";
+import {
+  clearBillFlowBuyers,
+  getAllBuyersForBillFlowAsync,
+  showNotificationsForChecksAsync,
+} from "../../features/BuyerSlice";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
 import { FaBookOpen } from "react-icons/fa";
 import { Roles } from "../../constants/Roles";
+import { getTodayDate } from "../../Utils/Common";
 
 const baseNavItemClass =
   "flex w-full items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors";
@@ -49,14 +53,17 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
-  // STATES
+  const today = getTodayDate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [checkNotifications, setChecksNotifications] = useState(false);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [openSection, setOpenSection] = useState("");
   const [othersaleModal, setOtherSaleModal] = useState(false);
+  const [buyerBillTypeModal, setBuyerBillTypeModal] = useState(false);
+  const [buyerBillMode, setBuyerBillMode] = useState("new");
+  const [oldBuyerBranchId, setOldBuyerBranchId] = useState("");
+  const [oldBuyerSearch, setOldBuyerSearch] = useState("");
 
   const [formData, setFormData] = useState({
     cash: "",
@@ -85,7 +92,9 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
   const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
-  const { CheckNotifications } = useSelector((state) => state.Buyer);
+  const { CheckNotifications, billFlowBuyers, billFlowBuyersLoading } =
+    useSelector((state) => state.Buyer);
+  const { Branches } = useSelector((state) => state.InStock);
 
   useEffect(() => {
     if (user && user?.user?.role !== Roles.BRANCH_USER) {
@@ -124,6 +133,10 @@ const Dashboard = () => {
     document.body.style.overflow = "auto";
     setChecksNotifications(false);
     setOtherSaleModal(false);
+    setBuyerBillTypeModal(false);
+    setBuyerBillMode("new");
+    setOldBuyerSearch("");
+    dispatch(clearBillFlowBuyers());
     setFormData({
       cash: "",
       amount: "",
@@ -147,7 +160,87 @@ const Dashboard = () => {
     document.body.style.overflow = "hidden";
   };
 
+  const openBuyerBillTypeModal = () => {
+    setBuyerBillTypeModal(true);
+    setBuyerBillMode("new");
+    setOldBuyerSearch("");
+    dispatch(clearBillFlowBuyers());
+    document.body.style.overflow = "hidden";
+  };
+
+  const fetchOldBuyerAccounts = async (branchId) => {
+    if (!branchId) return;
+
+    dispatch(
+      getAllBuyersForBillFlowAsync({
+        branchId,
+      }),
+    );
+  };
+
+  const selectBuyerBillMode = (mode) => {
+    setBuyerBillMode(mode);
+    setOldBuyerSearch("");
+
+    if (mode !== "old") {
+      dispatch(clearBillFlowBuyers());
+      return;
+    }
+
+    if (user?.user?.role === Roles.SUPER_ADMIN) {
+      setOldBuyerBranchId("");
+      dispatch(clearBillFlowBuyers());
+      return;
+    }
+
+    if (user?.user?.role !== Roles.SUPER_ADMIN) {
+      const branchId = user?.user?.branchId || Branches?.[0]?.id;
+      setOldBuyerBranchId(branchId || "");
+      dispatch(clearBillFlowBuyers());
+      fetchOldBuyerAccounts(branchId);
+    }
+  };
+
+  const handleOldBuyerBranchChange = (event) => {
+    const branchId = event.target.value;
+    setOldBuyerBranchId(branchId);
+    setOldBuyerSearch("");
+    dispatch(clearBillFlowBuyers());
+    if (!branchId) {
+      return;
+    }
+    fetchOldBuyerAccounts(branchId);
+  };
+
+  const handleOldBuyerSelection = (buyerId) => {
+    closeModal();
+    handleMoveTop();
+    navigate(`/dashboard/old-buyer-generate-bill/${buyerId}`);
+  };
+
   const notificationValue = CheckNotifications?.data?.length || 0;
+  const oldBuyerAccounts = billFlowBuyers?.buyers || [];
+  const oldBuyerSearchValue = oldBuyerSearch.trim().toLowerCase();
+  const filteredOldBuyerAccounts = oldBuyerSearchValue
+    ? oldBuyerAccounts.filter((buyer) =>
+        buyer?.name?.toLowerCase().includes(oldBuyerSearchValue),
+      )
+    : oldBuyerAccounts;
+
+  const setBuyerStatusColor = (status) => {
+    switch (status) {
+      case "Partially Paid":
+        return <span className="text-[#FFC107]">{status}</span>;
+      case "Paid":
+        return <span className="text-[#2ECC40]">{status}</span>;
+      case "Unpaid":
+        return <span className="text-red-700">{status}</span>;
+      case "Advance Paid":
+        return <span className="text-blue-700">{status}</span>;
+      default:
+        return <span>{status || "--"}</span>;
+    }
+  };
 
   const handleGenerateOtherSale = (e) => {
     e.preventDefault();
@@ -536,12 +629,13 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                 <FaBookOpen size={24} />
               </Link>
 
-              <Link
-                to="/dashboard/generate-bill"
+              <button
+                type="button"
+                onClick={openBuyerBillTypeModal}
                 className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Generate Buyer Bill
-              </Link>
+              </button>
               {user && user?.user?.role === Roles.SUPER_ADMIN && (
                 <>
                   <button
@@ -670,6 +764,177 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
           <Outlet />
         </main>
       </div>
+
+      {buyerBillTypeModal && (
+        <div className="fixed inset-0 z-50 flex h-screen w-full items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="relative max-h-[90vh] w-[95%] max-w-3xl overflow-y-auto rounded-md bg-white px-4 py-8 shadow dark:bg-gray-700">
+            <div className="flex flex-col items-center justify-between p-3">
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white">
+                Generate Bill
+              </h3>
+            </div>
+
+            <div className="space-y-4 p-3">
+              <div className="mx-auto grid max-w-md grid-cols-2 rounded-lg border border-gray-300 bg-gray-50 p-1 dark:border-gray-600 dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => selectBuyerBillMode("new")}
+                  className={`h-10 rounded-md text-sm font-medium transition ${
+                    buyerBillMode === "new"
+                      ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
+                      : "text-gray-700 hover:bg-white dark:text-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  New Buyer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectBuyerBillMode("old")}
+                  className={`h-10 rounded-md text-sm font-medium transition ${
+                    buyerBillMode === "old"
+                      ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
+                      : "text-gray-700 hover:bg-white dark:text-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Old Buyer
+                </button>
+              </div>
+
+              {buyerBillMode === "new" ? (
+                <div className="flex justify-center py-4">
+                  <Link
+                    to="/dashboard/generate-bill"
+                    onClick={closeModal}
+                    className="inline-flex h-10 min-w-40 items-center justify-center rounded border border-gray-600 bg-gray-600 px-8 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100"
+                  >
+                    Open Bill Form
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  {user?.user?.role === Roles.SUPER_ADMIN && (
+                    <div>
+                      <label
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        htmlFor="old-buyer-branch"
+                      >
+                        Branch
+                      </label>
+                      <select
+                        id="old-buyer-branch"
+                        className="w-full rounded-lg border border-[#D9D9D9] bg-transparent px-4 py-2 text-gray-800 focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-[#D9D9D9] focus:ring-opacity-40 dark:text-gray-200"
+                        value={oldBuyerBranchId}
+                        onChange={handleOldBuyerBranchChange}
+                      >
+                        <option value="">Select Branch</option>
+                        {Branches?.map((branch) => (
+                          <option key={branch.id} value={branch.id}>
+                            {branch.branchName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border border-[#D9D9D9] bg-transparent py-2 pl-6 pr-4 text-gray-800 placeholder:text-sm focus:border-[#D9D9D9] focus:outline-none focus:ring focus:ring-[#D9D9D9] focus:ring-opacity-40 dark:text-gray-200 dark:placeholder:text-gray-300"
+                    placeholder="Search buyer by name"
+                    value={oldBuyerSearch}
+                    onChange={(event) => setOldBuyerSearch(event.target.value)}
+                    disabled={
+                      user?.user?.role === Roles.SUPER_ADMIN &&
+                      !oldBuyerBranchId
+                    }
+                  />
+
+                  {user?.user?.role === Roles.SUPER_ADMIN &&
+                  !oldBuyerBranchId ? (
+                    <p className="pl-2 text-sm text-gray-600 dark:text-gray-200">
+                      Select a branch to view buyer accounts.
+                    </p>
+                  ) : billFlowBuyersLoading && oldBuyerAccounts.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div
+                        className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100"
+                        role="status"
+                        aria-label="loading"
+                      >
+                        <span className="sr-only">Loading...</span>
+                      </div>
+                    </div>
+                  ) : filteredOldBuyerAccounts.length > 0 ? (
+                    <>
+                      <div className="max-h-[425px] overflow-y-auto rounded-lg border">
+                        <div className="hidden grid-cols-1 gap-2 border-b bg-gray-100 px-4 py-2 text-xs font-semibold uppercase text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 md:grid md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
+                          <span>Name</span>
+                          <span>City</span>
+                          <span>Phone</span>
+                          <span>Status</span>
+                          <span>Balance</span>
+                        </div>
+                        {filteredOldBuyerAccounts.map((buyer) => (
+                          <button
+                            key={buyer.id}
+                            type="button"
+                            onClick={() => handleOldBuyerSelection(buyer.id)}
+                            className="grid w-full grid-cols-1 gap-2 border-b px-4 py-3 text-left transition hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]"
+                          >
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {buyer.name}
+                            </span>
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
+                              {buyer.city || "--"}
+                            </span>
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
+                              {buyer.phone || "--"}
+                            </span>
+                            <span className="text-sm font-medium">
+                              {setBuyerStatusColor(
+                                buyer.virtual_account?.status,
+                              )}
+                            </span>
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
+                              {buyer.virtual_account?.total_balance ?? 0} Rs
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="pl-2 text-sm text-gray-600 dark:text-gray-200">
+                      No matching buyers found.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={closeModal}
+              className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-3 w-3"
+                fill="none"
+                viewBox="0 0 14 14"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                />
+              </svg>
+              <span className="sr-only">Close modal</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* CHECKS MODAL */}
       {checkNotifications && (
