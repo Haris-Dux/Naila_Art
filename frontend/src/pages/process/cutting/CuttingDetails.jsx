@@ -95,11 +95,22 @@ const CuttingDetails = () => {
   };
 
   const getInitialStoneRows = () => {
+    const cuttingRows =
+      SingleCutting?.category_quantity
+        ?.filter((item) => item?.color)
+        ?.map((item) => ({
+          category: "Front",
+          color: item.color,
+          quantity: item.received || "",
+        })) || [];
+
+    if (cuttingRows.length) return cuttingRows;
+
     const shirtRows = SingleEmbroidery?.shirt
         ?.map((item) => ({
           category: "Front",
           color: item.color,
-          quantity: "",
+          quantity: item.received || "",
         })) || [];
 
     return shirtRows.length ? shirtRows : [{ ...initialRow }];
@@ -129,7 +140,7 @@ const CuttingDetails = () => {
           category: item.category,
           color: item.color,
           quantity: item.quantity,
-          received: item.received ?? "",
+          received: item.received || item.quantity || "",
         })) || [],
     });
   }, [SingleCutting]);

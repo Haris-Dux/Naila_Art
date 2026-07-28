@@ -610,7 +610,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                 className="hidden sm:flex items-center justify-between mr-4"
               >
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                  NAILA ARTS{" "}
+                  {/* NAILA ARTS{" "} */}
                   {enviroment === "dev" ? (
                     <span>( DEV ENVIROMENT )</span>
                   ) : null}

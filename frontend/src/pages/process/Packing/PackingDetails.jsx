@@ -31,6 +31,10 @@ const PackingDetails = () => {
     Manual_No: null,
     serial_No: null,
   });
+  const [defaultPrices, setDefaultPrices] = useState({
+    cost_price: "",
+    sale_price: "",
+  });
 
   const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
   const { embroidery_Id, design_no, serial_No, Manual_No, suits_category } =
@@ -172,6 +176,24 @@ const PackingDetails = () => {
     }));
   };
 
+  const handleDefaultPriceChange = (field, value) => {
+    setDefaultPrices((prevState) => ({
+      ...prevState,
+      [field]: value,
+    }));
+    setFormData((prevState) => ({
+      ...prevState,
+      suits_category: prevState.suits_category?.map((item) => ({
+        ...item,
+        [field]: value,
+      })),
+      dupatta_category: prevState.dupatta_category?.map((item) => ({
+        ...item,
+        [field]: value,
+      })),
+    }));
+  };
+
   const handleAddInStock = (e) => {
     e.preventDefault();
     dispatch(addInStockFromPackagingAsync(formData)).then((res) => {
@@ -282,6 +304,37 @@ const PackingDetails = () => {
         {/* RECEIVED STOCK SECTION */}
 
         <div className="details mx-2 mt-8 px-3 text-gray-800 dark:text-gray-200 py-5">
+          <div className="mb-6 grid max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Default Cost Price
+              </label>
+              <input
+                type="number"
+                placeholder="C.P"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                value={defaultPrices.cost_price}
+                onChange={(e) =>
+                  handleDefaultPriceChange("cost_price", e.target.value)
+                }
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                Default Sale Price
+              </label>
+              <input
+                type="number"
+                placeholder="S.P"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                value={defaultPrices.sale_price}
+                onChange={(e) =>
+                  handleDefaultPriceChange("sale_price", e.target.value)
+                }
+              />
+            </div>
+          </div>
+
           <div className="grid items-start grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-4 gap-y-5 text-sm">
             <div className="box_1">
               <div className="flex items-center gap-40">

@@ -49,7 +49,7 @@ const StitchingDetails = () => {
         suits_category:
           SingleStitching.suits_category?.map((item) => ({
             id: item.id,
-            return_quantity: item.recieved,
+            return_quantity: item.recieved || item.quantity_in_no,
             quantity_in_no: item.quantity_in_no,
             cost_price: item.cost_price,
             sale_price: item.sale_price,
@@ -186,7 +186,7 @@ const StitchingDetails = () => {
         </div>
       </section>
     );
-  };
+  }
 
   const handleOpenGatePassModal = () => {
     setisGenerateGatePassOpen(true);
@@ -421,7 +421,3 @@ const StitchingDetails = () => {
 }
 
 export default StitchingDetails;
-
-
-
-

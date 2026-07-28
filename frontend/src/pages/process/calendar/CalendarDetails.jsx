@@ -133,7 +133,7 @@ const CalendarDetails = () => {
         ?.map((item) => ({
           category: "Front",
           color: item.color,
-          quantity: "",
+          quantity: item.received || "",
         })) || [];
 
     return shirtRows.length ? shirtRows : [{ ...initialCuttingRow }];
@@ -174,7 +174,7 @@ const CalendarDetails = () => {
   useEffect(() => {
     setCalenderData({
       id: id,
-      r_quantity: SingleCalender?.r_quantity || "",
+      r_quantity: SingleCalender?.r_quantity || SingleCalender?.T_Quantity || "",
     });
     setConvertedQuantity(SingleCalender?.r_quantity);
     setConvertedAmount(SingleCalender?.r_quantity * SingleCalender?.rate);
