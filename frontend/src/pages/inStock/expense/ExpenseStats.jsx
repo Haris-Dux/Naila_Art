@@ -56,7 +56,46 @@ const chartOptions = {
   },
 };
 
-const MetricCard = ({ label, value, icon: Icon, tone }) => (
+const stackedChartOptions = {
+  ...chartOptions,
+  plugins: {
+    ...chartOptions.plugins,
+    legend: {
+      display: true,
+      position: "bottom",
+      labels: {
+        boxWidth: 12,
+        color: "#4B5563",
+        font: { family: "Poppins" },
+      },
+    },
+  },
+  scales: {
+    x: {
+      ...chartOptions.scales.x,
+      stacked: true,
+    },
+    y: {
+      ...chartOptions.scales.y,
+      stacked: true,
+    },
+  },
+};
+
+const categoryColors = [
+  "#111827",
+  "#009970",
+  "#2563EB",
+  "#F59E0B",
+  "#DC2626",
+  "#7C3AED",
+  "#0891B2",
+  "#65A30D",
+  "#DB2777",
+  "#4B5563",
+];
+
+const renderMetricCard = ({ label, value, icon: Icon, tone }) => (
   <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
@@ -76,7 +115,7 @@ const MetricCard = ({ label, value, icon: Icon, tone }) => (
   </div>
 );
 
-const EmptyChart = ({ message }) => (
+const renderEmptyChart = (message) => (
   <div className="flex h-full items-center justify-center rounded-md border border-dashed border-gray-200 text-center text-sm font-medium text-gray-400 dark:border-gray-700 dark:text-gray-500">
     {message}
   </div>
@@ -116,6 +155,7 @@ const ExpenseStats = () => {
 
   const monthlyExpense = ExpenseStats?.monthly_expense || [];
   const categoryExpense = ExpenseStats?.category_expense || [];
+  const monthlyCategoryExpense = ExpenseStats?.monthly_category_expense || [];
   const yearlyExpense = Number(ExpenseStats?.yearly_expense) || 0;
   const activeMonths = monthlyExpense.filter(
     (item) => Number(item?.total_expense) > 0
@@ -149,6 +189,32 @@ const ExpenseStats = () => {
         maxBarThickness: 46,
       },
     ],
+  };
+
+  const monthlyCategoryMonths = monthlyExpense.map((item) => ({
+    monthNumber: item.monthNumber,
+    month: item.month,
+  }));
+  const monthlyCategoryNames = [
+    ...new Set(monthlyCategoryExpense.map((item) => item.categoryName)),
+  ];
+  const monthlyCategoryChartData = {
+    labels: monthlyCategoryMonths.map((item) => item.month),
+    datasets: monthlyCategoryNames.map((categoryName, index) => ({
+      label: categoryName,
+      data: monthlyCategoryMonths.map((monthItem) => {
+        const record = monthlyCategoryExpense.find(
+          (item) =>
+            item.categoryName === categoryName &&
+            Number(item.monthNumber) === Number(monthItem.monthNumber)
+        );
+        return record?.total_expense || 0;
+      }),
+      backgroundColor: categoryColors[index % categoryColors.length],
+      borderRadius: 6,
+      borderSkipped: false,
+      maxBarThickness: 46,
+    })),
   };
 
   const getYears = () => {
@@ -244,18 +310,18 @@ const ExpenseStats = () => {
           ) : (
             <div className="space-y-5">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <MetricCard
-                  label={`${selectedYear} Expense`}
-                  value={formatCurrency(yearlyExpense)}
-                  icon={IoCashOutline}
-                  tone="bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                />            
-                <MetricCard
-                  label="Monthly Average"
-                  value={formatCurrency(averageMonthlyExpense)}
-                  icon={IoBarChartOutline}
-                  tone="bg-blue-50 text-blue-600 dark:bg-blue-950/30"
-                />
+                {renderMetricCard({
+                  label: `${selectedYear} Expense`,
+                  value: formatCurrency(yearlyExpense),
+                  icon: IoCashOutline,
+                  tone: "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white",
+                })}
+                {renderMetricCard({
+                  label: "Monthly Average",
+                  value: formatCurrency(averageMonthlyExpense),
+                  icon: IoBarChartOutline,
+                  tone: "bg-blue-50 text-blue-600 dark:bg-blue-950/30",
+                })}
               
               </div>
 
@@ -279,7 +345,7 @@ const ExpenseStats = () => {
                     {monthlyExpense.length ? (
                       <Bar data={monthlyBarChartData} options={chartOptions} />
                     ) : (
-                      <EmptyChart message="No monthly expense data available" />
+                      renderEmptyChart("No monthly expense data available")
                     )}
                   </div>
                 </div>
@@ -303,7 +369,36 @@ const ExpenseStats = () => {
                     {categoryExpense.length ? (
                       <Bar data={expenseBarChartData} options={chartOptions} />
                     ) : (
-                      <EmptyChart message="No category expense data available" />
+                      renderEmptyChart("No category expense data available")
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Monthly Category Expense
+                      </h2>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Category spend split across {selectedYear}
+                      </p>
+                    </div>
+                    <span className="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                      {monthlyCategoryNames.length || 0} categories
+                    </span>
+                  </div>
+
+                  <div className="h-[24rem]">
+                    {monthlyCategoryExpense.length ? (
+                      <Bar
+                        data={monthlyCategoryChartData}
+                        options={stackedChartOptions}
+                      />
+                    ) : (
+                      renderEmptyChart(
+                        "No monthly category expense data available"
+                      )
                     )}
                   </div>
                 </div>
