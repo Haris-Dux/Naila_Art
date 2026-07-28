@@ -866,6 +866,36 @@ export const getBuyersForBranch = async (req, res, next) => {
   }
 };
 
+export const getAllBuyersForBillFlow = async (req, res, next) => {
+  try {
+    const role = req.user_role;
+    const userBranchId = req.branch_id;
+    const branchQuery = req.query.branchId || "";
+    const query = {};
+
+    if (role === "superadmin") {
+      if (!branchQuery) throw new Error("Branch Id Required");
+      query.branchId = branchQuery;
+    } else {
+      query.branchId = userBranchId;
+    }
+
+    const buyers = await BuyersModel.find(query).sort({
+      "virtual_account.status": -1,
+      createdAt: -1,
+    });
+
+    setMongoose();
+    return res.status(200).json({
+      buyers,
+      totalBuyers: buyers.length,
+      totalRecords: buyers.length,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 export const getBuyerById = async (req, res, next) => {
   try {
     const { id } = req.body;

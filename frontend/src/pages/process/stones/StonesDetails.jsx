@@ -101,13 +101,34 @@ const StonesDetails = () => {
   };
 
   const getInitialSuitRows = () => {
+    const stoneRows =
+      SingleStone?.category_quantity
+        ?.filter((item) => item?.color)
+        ?.map((item) => {
+          const receivedQuantity =
+            Number(item.recieved_Data?.first?.quantity || 0) +
+            Number(item.recieved_Data?.second?.quantity || 0) +
+            Number(item.recieved_Data?.third?.quantity || 0);
+          const matchingShirt = SingleEmbroidery?.shirt?.find(
+            (shirt) => shirt?.color === item.color
+          );
+
+          return {
+            category: matchingShirt?.category || "",
+            color: item?.color || "",
+            quantity_in_no: receivedQuantity || item.quantity || 0,
+          };
+        }) || [];
+
+    if (stoneRows.length) return stoneRows;
+
     const shirtRows =
       getUniqueShirtRows(SingleEmbroidery?.shirt)
         ?.filter((item) => item?.category || item?.color)
         ?.map((item) => ({
           category: item?.category || "",
           color: item?.color || "",
-          quantity_in_no: 0,
+          quantity_in_no: item?.received || 0,
         })) || [];
 
     return shirtRows.length ? shirtRows : [{ ...initialRow }];
@@ -558,7 +579,7 @@ const StonesDetails = () => {
 
   const closeBillModal = () => {
     setProcessBillModal(false);
-    setBilldata({
+    setProcessBillData({
       Manual_No: "",
       additionalExpenditure: "",
     });

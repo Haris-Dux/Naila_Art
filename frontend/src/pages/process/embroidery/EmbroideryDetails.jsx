@@ -86,14 +86,22 @@ const EmbroideryDetails = () => {
 
   useEffect(() => {
     if (SingleEmbroidery) {
+      const autofillReceived = (rows = []) =>
+        rows?.length
+          ? rows.map((item) => ({
+              ...item,
+              received: item.received || item.quantity_in_no || 0,
+            }))
+          : null;
+
       setFormData({
-        shirt: SingleEmbroidery.shirt || [
+        shirt: autofillReceived(SingleEmbroidery.shirt) || [
           { category: "", color: "", received: 0 },
         ],
-        duppata: SingleEmbroidery.duppata || [
+        duppata: autofillReceived(SingleEmbroidery.duppata) || [
           { category: "", color: "", received: 0 },
         ],
-        trouser: SingleEmbroidery.trouser || [
+        trouser: autofillReceived(SingleEmbroidery.trouser) || [
           { category: "", color: "", received: 0 },
         ],
         id: id,

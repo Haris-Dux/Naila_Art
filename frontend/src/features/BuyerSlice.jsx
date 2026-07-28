@@ -5,6 +5,7 @@ import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getBuyerForBranch = "/api/buyers/getBuyersForBranch";
+const getAllBuyersForBillFlowUrl = "/api/buyers/getAllBuyersForBillFlow";
 const getBuyerById = "/api/buyers/getBuyerById";
 const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
 const applyDiscountOnBuyersAccountUrl = "/api/buyers/applyDiscountOnBuyersAccount";
@@ -37,6 +38,24 @@ export const getBuyerForBranchAsync = createAsyncThunk(
       const response = await axios.post(
         `${getBuyerForBranch}?${query}`,
         { id: data.id }
+      );
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  }
+);
+
+// GET ALL BUYERS FOR BILL GENERATION FLOW
+export const getAllBuyersForBillFlowAsync = createAsyncThunk(
+  "buyers/getAllForBillFlow",
+  async (data) => {
+    const query = buildQueryParams({
+      branchId: data.branchId,
+    });
+    try {
+      const response = await axios.post(
+        `${getAllBuyersForBillFlowUrl}?${query}`
       );
       return response.data;
     } catch (error) {
@@ -239,12 +258,20 @@ const initialState = {
   getReturnBillLoading: false,
   StockToGenerateBill: [],
   stockLoading:false,
-  deleteBillLoading: false
+  deleteBillLoading: false,
+  billFlowBuyers: [],
+  billFlowBuyersLoading: false,
 };
 
 const BuyerSlice = createSlice({
   name: "BuyerSlice",
   initialState,
+  reducers: {
+    clearBillFlowBuyers: (state) => {
+      state.billFlowBuyers = [];
+      state.billFlowBuyersLoading = false;
+    },
+  },
   extraReducers: (builder) => {
     builder
 
@@ -350,6 +377,19 @@ const BuyerSlice = createSlice({
         state.Buyers = action.payload;
       })
 
+      // GET ALL BUYERS FOR BILL GENERATION FLOW
+      .addCase(getAllBuyersForBillFlowAsync.pending, (state) => {
+        state.billFlowBuyersLoading = true;
+      })
+      .addCase(getAllBuyersForBillFlowAsync.fulfilled, (state, action) => {
+        state.billFlowBuyersLoading = false;
+        state.billFlowBuyers = action.payload;
+      })
+      .addCase(getAllBuyersForBillFlowAsync.rejected, (state) => {
+        state.billFlowBuyersLoading = false;
+        state.billFlowBuyers = [];
+      })
+
       // GET BUYER FOR BRANCH
       .addCase(getBuyerByIdAsync.pending, (state) => {
         state.loading = true;
@@ -383,5 +423,7 @@ const BuyerSlice = createSlice({
       })
   },
 });
+
+export const { clearBillFlowBuyers } = BuyerSlice.actions;
 
 export default BuyerSlice.reducer;

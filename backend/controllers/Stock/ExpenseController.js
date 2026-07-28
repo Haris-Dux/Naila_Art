@@ -358,14 +358,21 @@ export const getExpenseStats = async (req, res, next) => {
   try {
     let branchId = req.query.branchId;
     const currentYear = req.query.year;
-    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+    if (!branchId) throw new Error("Missing Branch Id");
+    if (!currentYear) throw new Error("Missing Year");
+
+    const startOfYear = `${currentYear}-01-01`;
+    const endOfYear = `${currentYear}-12-31`;
+    const branchObjectId = Types.ObjectId.createFromHexString(branchId);
+    const expenseMonthExpression = {
+      $toInt: { $substrBytes: ["$Date", 5, 2] },
+    };
 
     const data = await ExpenseModel.aggregate([
       {
         $match: {
           branchId: branchId,
-          createdAt: {
+          Date: {
             $gte: startOfYear,
             $lte: endOfYear,
           },
@@ -384,7 +391,7 @@ export const getExpenseStats = async (req, res, next) => {
           total_monthly_expense: [
             {
               $group: {
-                _id: { $month: "$createdAt" },
+                _id: expenseMonthExpression,
                 total_expense: { $sum: "$rate" },
               },
             },
@@ -413,8 +420,7 @@ export const getExpenseStats = async (req, res, next) => {
             },
             {
               $match: {
-                "category.branches":
-                  Types.ObjectId.createFromHexString(branchId),
+                "category.branches": branchObjectId,
               },
             },
             {
@@ -425,13 +431,65 @@ export const getExpenseStats = async (req, res, next) => {
                 total_expense: 1,
               },
             },
+            {
+              $sort: {
+                total_expense: -1,
+                categoryName: 1,
+              },
+            },
+          ],
+          category_monthly_expense: [
+            {
+              $group: {
+                _id: {
+                  month: expenseMonthExpression,
+                  categoryId: "$categoryId",
+                },
+                total_expense: { $sum: "$rate" },
+              },
+            },
+            {
+              $lookup: {
+                from: "expense categories",
+                localField: "_id.categoryId",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            {
+              $unwind: "$category",
+            },
+            {
+              $match: {
+                "category.branches": branchObjectId,
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                monthNumber: "$_id.month",
+                categoryId: "$_id.categoryId",
+                categoryName: "$category.name",
+                total_expense: 1,
+              },
+            },
+            {
+              $sort: {
+                monthNumber: 1,
+                categoryName: 1,
+              },
+            },
           ],
         },
       },
     ]);
 
-    const { total_year_expense, total_monthly_expense, category_expense } =
-      data[0];
+    const {
+      total_year_expense,
+      total_monthly_expense,
+      category_expense,
+      category_monthly_expense,
+    } = data[0];
 
     const months = [
       "Jan",
@@ -451,13 +509,19 @@ export const getExpenseStats = async (req, res, next) => {
     const yearly_expense = total_year_expense[0]?.total_expense || 0;
 
     const monthly_expense = total_monthly_expense.map((item) => ({
+      monthNumber: item._id,
       month: months[item._id - 1],
       total_expense: item.total_expense,
+    }));
+    const monthly_category_expense = category_monthly_expense.map((item) => ({
+      ...item,
+      month: months[item.monthNumber - 1],
     }));
     const response = {
       yearly_expense,
       monthly_expense,
       category_expense,
+      monthly_category_expense,
     };
     return res.status(200).json(response);
   } catch (error) {

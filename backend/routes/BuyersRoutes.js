@@ -6,6 +6,7 @@ import {
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
   generatePdfFunction,
+  getAllBuyersForBillFlow,
   getBuyerBillHistoryForBranch,
   getBuyerById,
   getBuyersForBranch,
@@ -21,6 +22,11 @@ buyerRouter.post(
   generateBuyersBillandAddBuyer
 );
 buyerRouter.post("/getBuyersForBranch", verifyUser, getBuyersForBranch);
+buyerRouter.post(
+  "/getAllBuyersForBillFlow",
+  verifyUser,
+  getAllBuyersForBillFlow
+);
 buyerRouter.post("/getBuyerById", verifyUser, getBuyerById);
 buyerRouter.post(
   "/validateD_NoAndGetSuitData",
