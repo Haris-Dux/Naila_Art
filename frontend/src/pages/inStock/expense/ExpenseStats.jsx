@@ -156,6 +156,16 @@ const ExpenseStats = () => {
   const monthlyExpense = ExpenseStats?.monthly_expense || [];
   const categoryExpense = ExpenseStats?.category_expense || [];
   const monthlyCategoryExpense = ExpenseStats?.monthly_category_expense || [];
+  const categoryColorNames = [
+    ...new Set([
+      ...categoryExpense.map((item) => item.categoryName),
+      ...monthlyCategoryExpense.map((item) => item.categoryName),
+    ]),
+  ].filter(Boolean);
+  const getCategoryColor = (categoryName) => {
+    const index = categoryColorNames.indexOf(categoryName);
+    return categoryColors[index >= 0 ? index % categoryColors.length : 0];
+  };
   const yearlyExpense = Number(ExpenseStats?.yearly_expense) || 0;
   const activeMonths = monthlyExpense.filter(
     (item) => Number(item?.total_expense) > 0
@@ -183,7 +193,9 @@ const ExpenseStats = () => {
       {
         label: "Category Expense",
         data: categoryExpense.map((item) => item.total_expense),
-        backgroundColor: "#009970",
+        backgroundColor: categoryExpense.map((item) =>
+          getCategoryColor(item.categoryName)
+        ),
         borderRadius: 8,
         borderSkipped: false,
         maxBarThickness: 46,
@@ -200,7 +212,7 @@ const ExpenseStats = () => {
   ];
   const monthlyCategoryChartData = {
     labels: monthlyCategoryMonths.map((item) => item.month),
-    datasets: monthlyCategoryNames.map((categoryName, index) => ({
+    datasets: monthlyCategoryNames.map((categoryName) => ({
       label: categoryName,
       data: monthlyCategoryMonths.map((monthItem) => {
         const record = monthlyCategoryExpense.find(
@@ -210,7 +222,7 @@ const ExpenseStats = () => {
         );
         return record?.total_expense || 0;
       }),
-      backgroundColor: categoryColors[index % categoryColors.length],
+      backgroundColor: getCategoryColor(categoryName),
       borderRadius: 6,
       borderSkipped: false,
       maxBarThickness: 46,
