@@ -5,7 +5,6 @@ import {
   IoBagHandleOutline,
   IoBookOutline,
   IoBriefcaseOutline,
-  IoCalendarOutline,
   IoCashOutline,
   IoChevronDown,
   IoColorPaletteOutline,
@@ -15,7 +14,6 @@ import {
   IoLogOutOutline,
   IoPeopleOutline,
   IoReceiptOutline,
-  IoRestaurantOutline,
   IoCutOutline,
   IoSettingsOutline,
   IoStatsChartOutline,
@@ -23,6 +21,7 @@ import {
   IoWalletOutline,
   IoPeople,
 } from "react-icons/io5";
+import { GiClothes, GiDiamondHard, GiSewingMachine } from "react-icons/gi";
 import { logoutUserAsync } from "../../features/authSlice";
 import { RiNotification2Line } from "react-icons/ri";
 import {
@@ -370,7 +369,7 @@ const Dashboard = () => {
         {
           label: "Calendar",
           to: "/dashboard/calendar",
-          icon: IoCalendarOutline,
+          icon: GiClothes,
           allowedRoles: roleGroups.adminAndSuperAdmin,
           matches: [{ path: "calendar" }],
         },
@@ -384,14 +383,14 @@ const Dashboard = () => {
         {
           label: "Stones",
           to: "/dashboard/stones",
-          icon: IoRestaurantOutline,
+          icon: GiDiamondHard,
           allowedRoles: roleGroups.adminAndSuperAdmin,
           matches: [{ path: "stones" }],
         },
         {
           label: "Stitching",
           to: "/dashboard/stitching",
-          icon: IoLayersOutline,
+          icon: GiSewingMachine,
           allowedRoles: roleGroups.adminAndSuperAdmin,
           matches: [{ path: "stitching" }],
         },
