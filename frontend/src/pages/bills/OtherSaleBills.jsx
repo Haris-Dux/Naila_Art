@@ -1,26 +1,48 @@
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { getAllOtherSaleBillsAsync } from "../../features/OtherSale";
+import {
+  deleteOtherSaleBillAsync,
+  getAllOtherSaleBillsAsync,
+} from "../../features/OtherSale";
 import Pagination from "../../Component/Common/Pagination";
 import { formatReadableDate, getPageLimit } from "../../Utils/Common";
+import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
+import Icon from "../../Component/Common/Icons";
 
 const OtherSaleBills = () => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
+  const [deleteBillId, setDeleteBillId] = useState("");
+  const [confirmationModal, setConfirmationModal] = useState(false);
   const [searchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = getPageLimit(searchParams);
-  const { otherSaleBillsLoading, otherSaleBills } = useSelector(
+  const {
+    otherSaleBillsLoading,
+    otherSaleBills,
+    deleteOtherSaleBillLoading,
+  } = useSelector(
     (state) => state.OtherBills
   );
+
+  const refetchOtherSaleBills = () => {
+    dispatch(
+      getAllOtherSaleBillsAsync({
+        page,
+        limit,
+        search: search || undefined,
+      })
+    );
+  };
+
   useEffect(() => {
     const payload = {
       page,
       limit,
     };
     dispatch(getAllOtherSaleBillsAsync(payload));
-  }, [page, limit]);
+  }, [dispatch, page, limit]);
 
 
   const searchTimerRef = useRef();
@@ -38,6 +60,25 @@ const OtherSaleBills = () => {
     searchTimerRef.current = setTimeout(() => {
       dispatch(getAllOtherSaleBillsAsync(payload));
     }, 1000);
+  };
+
+  const openConfirmationModal = (id) => {
+    setDeleteBillId(id);
+    setConfirmationModal(true);
+  };
+
+  const closeConfirmationModal = () => {
+    setDeleteBillId("");
+    setConfirmationModal(false);
+  };
+
+  const handleDeleteOtherSaleBill = () => {
+    dispatch(deleteOtherSaleBillAsync({ id: deleteBillId })).then((res) => {
+      if (res.payload?.success) {
+        closeConfirmationModal();
+        refetchOtherSaleBills();
+      }
+    });
   };
 
   return (
@@ -131,6 +172,9 @@ const OtherSaleBills = () => {
                   <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Note
                   </th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                    Delete
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -173,11 +217,19 @@ const OtherSaleBills = () => {
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 max-w-[220px] text-xs md:text-sm whitespace-normal">
                         {data.note ?? "--"}
                       </td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
+                        <Icon
+                          name="delete"
+                          onClick={() => openConfirmationModal(data?.id)}
+                          size={20}
+                          className="cursor-pointer"
+                        />
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td className="text-xl text-center py-6" colSpan={11}>
+                    <td className="text-xl text-center py-6" colSpan={12}>
                       No Data Available
                     </td>
                   </tr>
@@ -194,6 +246,16 @@ const OtherSaleBills = () => {
         totalRecords={otherSaleBills?.totalRecords}
         pageSize={limit}
       />
+
+      {confirmationModal && (
+        <ConfirmationModal
+          onClose={closeConfirmationModal}
+          onConfirm={handleDeleteOtherSaleBill}
+          message="Are you sure want to delete this other sale bill ?"
+          title="Delete Other Sale Bill"
+          updateStitchingLoading={deleteOtherSaleBillLoading}
+        />
+      )}
     </>
   );
 };

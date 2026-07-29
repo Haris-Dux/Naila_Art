@@ -55,6 +55,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
       if (isFutureDate) {
         throw new Error("Date cannot be in the future");
       }
+      const newEntryId = new mongoose.Types.ObjectId();
 
       //UPDATE DAILY SALE
       if (isPastDate) {
@@ -138,6 +139,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
           transactionType: "Deposit",
           date,
           note: `Other Sale Bill Generated For : ${name}`,
+          sourceId: newEntryId,
         };
         await virtualAccountsService.makeTransactionInVirtualAccounts(data);
       }
@@ -151,6 +153,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
         transactionFrom: "Other Sale",
         partyName: name,
         payment_Method,
+        sourceId: newEntryId,
         ...(isPastDate && { pastDate: date }),
         session,
       };
@@ -166,6 +169,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
       await OtherSaleBillModel.create(
         [
           {
+            _id: newEntryId,
             name,
             amount,
             serialNumber: lastOtherSale[0]?.serialNumber + 1 || 1,
@@ -184,6 +188,107 @@ export const generateOtherSaleBill = async (req, res, next) => {
       return res.status(201).json({
         success: true,
         message: "Other Sale Bill Created Successfully",
+      });
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
+
+export const deleteOtherSaleBill = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id } = req.body;
+      if (!id) throw new CustomError("Other Sale Bill Id is required", 400);
+
+      const billData = await OtherSaleBillModel.findById(id).session(session);
+      if (!billData) throw new CustomError("Other Sale Bill not found", 404);
+
+      const headOffice = await BranchModel.findOne({
+        branchName: "Head Office",
+      }).session(session);
+      if (!headOffice)
+        throw new CustomError("Cannot find head office data", 404);
+
+      const amount = Number(billData.amount || 0);
+      const { payment_Method, date, name } = billData;
+      const targetDate = moment.tz(date, "Asia/Karachi").startOf("day");
+      const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
+
+      //UPDATE DAILY SALE
+      const dateList = [];
+
+      const current = moment(targetDate);
+      while (current.isSameOrBefore(today)) {
+        dateList.push(current.format("YYYY-MM-DD"));
+        current.add(1, "day");
+      }
+
+      const dailySales = await DailySaleModel.find({
+        branchId: headOffice._id,
+        date: { $in: dateList },
+      }).session(session);
+
+      if (dailySales.length !== dateList.length) {
+        const foundDates = dailySales.map((d) => d.date);
+        const missing = dateList.filter((d) => !foundDates.includes(d));
+        throw new Error(
+          `Missing Daily sale records for: ${missing.join(", ")}`
+        );
+      }
+
+      // Prepare bulk operations
+      const bulkOps = dailySales.map((saleDoc) => {
+        const isOriginalDate =
+          saleDoc.date === targetDate.format("YYYY-MM-DD");
+        const update = {
+          $inc: {
+            ...(isOriginalDate && {
+              "saleData.totalSale": -amount,
+              [`saleData.${payment_Method}`]: -amount,
+            }),
+            ...(payment_Method === "cashSale" && {
+              "saleData.totalCash": -amount,
+            }),
+          },
+        };
+
+        return {
+          updateOne: {
+            filter: { _id: saleDoc._id },
+            update,
+          },
+        };
+      });
+
+      await DailySaleModel.bulkWrite(bulkOps, { session });
+
+      if (payment_Method !== "cashSale") {
+        await virtualAccountsService.makeTransactionInVirtualAccounts({
+          session,
+          payment_Method,
+          amount,
+          transactionType: "WithDraw",
+          date,
+          note: `Other Sale Bill Deleted For : ${name}`,
+          sourceId: billData._id,
+          isDelete: true,
+        });
+      }
+
+      await cashBookService.deleteEntry({
+        id: billData._id,
+        session,
+      });
+
+      await OtherSaleBillModel.findByIdAndDelete(billData._id).session(session);
+
+      return res.status(200).json({
+        success: true,
+        message: "Other sale bill deleted successfully",
       });
     });
   } catch (error) {

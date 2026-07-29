@@ -6,6 +6,7 @@ import { buildQueryParams } from "../Utils/Common";
 //API URL
 const generateOtherBillUrl = `/api/otherSale/generateOtherSaleBill`;
 const getAllOtherSaleBillsUrl = `/api/otherSale/getAllOtherSaleBills`;
+const deleteOtherSaleBillUrl = `/api/otherSale/deleteOtherSaleBill`;
 
 export const getAllOtherSaleBillsAsync = createAsyncThunk(
   "OtherBills/getAllOtherSaleBills",
@@ -40,11 +41,26 @@ export const generateOtherSaleAsync = createAsyncThunk(
   }
 );
 
+export const deleteOtherSaleBillAsync = createAsyncThunk(
+  "OtherBills/deleteOtherSaleBill",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteOtherSaleBillUrl, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response?.data);
+      throw error;
+    }
+  }
+);
+
 // INITIAL STATE
 const initialState = {
   otherSaleBills: [],
   generateOtherSaleLoading: false,
   otherSaleBillsLoading: false,
+  deleteOtherSaleBillLoading: false,
 };
 
 const OtherBillSlice = createSlice({
@@ -68,6 +84,17 @@ const OtherBillSlice = createSlice({
       .addCase(getAllOtherSaleBillsAsync.fulfilled, (state,action) => {
         state.otherSaleBillsLoading = false;
         state.otherSaleBills = action.payload;
+      })
+
+      // DELETE OTHER SALE
+      .addCase(deleteOtherSaleBillAsync.pending, (state) => {
+        state.deleteOtherSaleBillLoading = true;
+      })
+      .addCase(deleteOtherSaleBillAsync.fulfilled, (state) => {
+        state.deleteOtherSaleBillLoading = false;
+      })
+      .addCase(deleteOtherSaleBillAsync.rejected, (state) => {
+        state.deleteOtherSaleBillLoading = false;
       });
   },
 });
