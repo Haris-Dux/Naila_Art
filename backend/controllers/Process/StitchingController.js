@@ -482,7 +482,7 @@ export const addInStockFromPackaging = async (req,res,next) => {
        if(packing_Id){
         const stitching = await StitchingModel.findById(packing_Id).session(session);
         if(stitching.packed){
-          throw new Error("This Stitching Is Already Packed");
+          throw new Error("This stitching is slready packed");
         };
         stitching.packed = true;
         await stitching.save({session});
@@ -490,7 +490,7 @@ export const addInStockFromPackaging = async (req,res,next) => {
     });
     return res
     .status(200)
-    .json({ success: true, message: "Stock Added Successfully" });
+    .json({ success: true, message: "Stock added successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   } finally {

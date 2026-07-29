@@ -362,7 +362,6 @@ const StitchingDetails = () => {
           )}
           {SingleStitching?.project_status === "Completed" &&
             !SingleStitching?.packed &&
-            !SingleEmbroidery?.next_steps?.packing &&
               <Link
                 className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
                 to={`/dashboard/packing-details/${SingleStitching?.id}`}
