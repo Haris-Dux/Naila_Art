@@ -823,6 +823,70 @@ export const claimProcessAccount = async (req, res, next) => {
   }
 };
 
+export const deleteClaimProcessAccount = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const { id, category, transactionId } = req.body;
+      await verifyrequiredparams(req.body, ["id", "category", "transactionId"]);
+
+      let accountData = {};
+
+      if (category === "Process") {
+        accountData = await processBillsModel.findById(id).session(session);
+      } else if (category === "Pictures") {
+        accountData = await PicruresAccountModel.findById(id).session(session);
+      } else {
+        throw new Error("Invalid Category");
+      }
+
+      if (!accountData) throw new CustomError("Account not found", 404);
+
+      const claimEntry = accountData.credit_debit_history.find(
+        (item) => item._id?.toString() === transactionId);
+      if (!claimEntry) throw new CustomError("Claim entry not found", 404);
+
+      const creditAmount = Number(claimEntry.credit || 0);
+      const debitAmount = Number(claimEntry.debit || 0);
+      const balanceData =
+        creditAmount > 0
+          ? calculateAccountBalance({
+              amount: creditAmount,
+              oldAccountData: accountData,
+              credit: true,
+              add: false
+            })
+          : calculateAccountBalance({
+              amount: -debitAmount,
+              oldAccountData: accountData,
+              credit: false,
+            });
+
+      accountData.virtual_account = {
+        total_debit: balanceData.new_total_debit,
+        total_credit: balanceData.new_total_credit,
+        total_balance: balanceData.new_total_balance,
+        status: balanceData.new_status,
+      };
+      accountData.credit_debit_history =
+        accountData.credit_debit_history.filter(
+          (item) => item._id?.toString() !== transactionId
+        );
+
+      await accountData.save({ session });
+
+      res.status(200).json({
+        success: true,
+        message: "Claim entry deleted successfully",
+      });
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    session.endSession();
+  }
+};
+
 export const temporaryAcoountUpdate = async (req, res, next) => {
   try {
     const { accountId, totalDebit, totalCredit, totalBalance, category } =
