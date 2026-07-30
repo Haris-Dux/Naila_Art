@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   applyClaimAccountAsync,
+  deleteClaimAccountAsync,
   deletePicturesBillOrderAsync,
   deleteProcessBillAndOrderAsync,
   GetPicturesBillByIdAsync,
@@ -10,15 +11,13 @@ import {
   temporaryAccountUpdateAsync,
 } from "../../features/ProcessBillSlice";
 import { FaEye } from "react-icons/fa";
-import {
-  MdOutlineDelete,
-} from "react-icons/md";
 import DeleteModal from "../../Component/Modal/DeleteModal";
 
 import PicturesOrder from "./Modals/PicturesOrder";
 import { CiLogin } from "react-icons/ci";
 import { CiLogout } from "react-icons/ci";
 import Icon from "../../Component/Common/Icons";
+import Chip from "../../Component/Common/Chip";
 import AccountFilters, {
   emptyAccountFilters,
   FilteredAccountTotals,
@@ -83,6 +82,7 @@ const ProcessDetails = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [processClaimModal, setprocessClaimModal] = useState(false);
   const [selectedId, setSelectedId] = useState("");
+  const [selectedDeleteType, setSelectedDeleteType] = useState("order");
   const [picturesOrderModal, setpicturesOrderModal] = useState(false);
   const { loading, ProcessBillsDetails, deleteLoadings, discountLoading, accountUpdateLoading } =
     useSelector((state) => state.ProcessBill);
@@ -121,16 +121,40 @@ const ProcessDetails = () => {
     }
   }, [dispatch, id]);
 
-  const openDeleteModal = (id) => {
+  const openDeleteModal = (id, type = "order") => {
     setDeleteModal(true);
     setSelectedId(id);
+    setSelectedDeleteType(type);
   };
 
   const closedeleteModal = () => {
     setDeleteModal(false);
+    setSelectedId("");
+    setSelectedDeleteType("order");
   };
 
   const handleDelete = () => {
+    if (selectedDeleteType === "claim") {
+      const modelCategory = category === "Pictures" ? "Pictures" : "Process";
+      dispatch(
+        deleteClaimAccountAsync({
+          id,
+          category: modelCategory,
+          transactionId: selectedId,
+        })
+      ).then((res) => {
+        if (res.payload?.success === true) {
+          if (category === "Pictures") {
+            dispatch(GetPicturesBillByIdAsync({ id }));
+          } else {
+            dispatch(GetProcessBillByIdAsync({ id }));
+          }
+          closedeleteModal();
+        }
+      });
+      return;
+    }
+
     if (category === "Pictures") {
       dispatch(deletePicturesBillOrderAsync({ id: selectedId })).then((res) => {
         if (res.payload.success === true) {
@@ -429,7 +453,7 @@ const ProcessDetails = () => {
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
               <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
-                  <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
+                  <th className="w-[280px] px-2 py-2 md:w-[300px] md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
                     Date
                   </th>
                   <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium" scope="col">
@@ -454,17 +478,25 @@ const ProcessDetails = () => {
                   filteredTransactions
                     ?.slice()
                     .reverse()
-                    .map((data, index) => (
-                      <tr
-                        key={index}
-                        className={`border-b ${data.orderId === "claim_entry" ? "bg-red-500 text-white": "bg-white text-black"} text-md font-semibold dark:bg-gray-800 dark:border-gray-700 dark:text-white`}
-                      >
-                        <th
-                          className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium whitespace-nowrap dark:text-white text-xs md:text-sm"
-                          scope="row"
+                    .map((data, index) => {
+                      const isClaimEntry = data.orderId === "claim_entry";
+
+                      return (
+                        <tr
+                          key={index}
+                          className="border-b bg-white text-md font-semibold text-black dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                         >
-                          <p>{formatReadableDate(data.date)}</p>
-                        </th>
+                          <th
+                            className="w-[280px] px-2 py-2 md:w-[300px] md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium whitespace-nowrap dark:text-white text-xs md:text-sm"
+                            scope="row"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{formatReadableDate(data.date)}</span>
+                              {isClaimEntry && (
+                                <Chip variant="danger">Claim Entry</Chip>
+                              )}
+                            </div>
+                          </th>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
                           {data.particular}
                         </td>
@@ -485,36 +517,54 @@ const ProcessDetails = () => {
                         </td>
                         {data.orderId && data.orderId !== "" ? (
                           <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex items-center  gap-3">
-                            {category === "Pictures" ? (
+                            {isClaimEntry ? (
                               <button
                                 onClick={() =>
-                                  viewPicturesOrderData(data?.orderId)
+                                  openDeleteModal(data?.id || data?._id, "claim")
                                 }
                               >
-                                <FaEye size={20} className="cursor-pointer" />
+                                <Icon
+                                  name="delete"
+                                  size={20}
+                                  className="cursor-pointer"
+                                />
                               </button>
                             ) : (
-                              <Link
-                                to={`/dashboard/${category_path}/${data.orderId}`}
-                              >
-                                <FaEye size={20} className="cursor-pointer" />
-                              </Link>
-                            )}
+                              <>
+                                {category === "Pictures" ? (
+                                  <button
+                                    onClick={() =>
+                                      viewPicturesOrderData(data?.orderId)
+                                    }
+                                  >
+                                    <FaEye size={20} className="cursor-pointer" />
+                                  </button>
+                                ) : (
+                                  <Link
+                                    to={`/dashboard/${category_path}/${data.orderId}`}
+                                  >
+                                    <FaEye size={20} className="cursor-pointer" />
+                                  </Link>
+                                )}
 
-                            <button
-                              onClick={() => openDeleteModal(data.orderId)}
-                            >
-                              <MdOutlineDelete
-                                size={20}
-                                className="cursor-pointer text-red-500"
-                              />
-                            </button>
+                                <button
+                                  onClick={() => openDeleteModal(data.orderId)}
+                                >
+                                  <Icon
+                                    name="delete"
+                                    size={20}
+                                    className="cursor-pointer"
+                                  />
+                                </button>
+                              </>
+                            )}
                           </td>
                         ) : (
                           <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">--</td>
                         )}
                       </tr>
-                    ))
+                      );
+                    })
                 ) : (
                   <tr className="w-full flex justify-center items-center">
                     <td className="text-xl mt-3">No Data Available</td>
@@ -528,8 +578,16 @@ const ProcessDetails = () => {
 
       {deleteModal && (
         <DeleteModal
-          title={"Delete Bill And Order"}
-          message={"Are you sure want to delete this Bill and Order ?"}
+          title={
+            selectedDeleteType === "claim"
+              ? "Delete Claim Entry"
+              : "Delete Bill And Order"
+          }
+          message={
+            selectedDeleteType === "claim"
+              ? "Are you sure want to delete this Claim Entry ?"
+              : "Are you sure want to delete this Bill and Order ?"
+          }
           onClose={closedeleteModal}
           Loading={deleteLoadings}
           onConfirm={handleDelete}

@@ -132,7 +132,7 @@ const ProcessBills = () => {
         {/* -------------- HEADER -------------- */}
         <div className="header flex flex-wrap justify-between items-center gap-3 pt-4 md:pt-6 mx-2">
           <h1 className="text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-medium">
-            Process Bills
+            Process 
           </h1>
 
           <BillFilters
