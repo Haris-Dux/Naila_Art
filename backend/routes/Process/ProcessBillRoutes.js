@@ -3,6 +3,7 @@ import { superAdminAndAdminOnly } from "../../middleware/Auth.js";
 import {
   applyDiscountOnProcessAccount,
   claimProcessAccount,
+  deleteClaimProcessAccount,
   deleteBillAndProcessOrder,
   generateGatePassPdfFunction,
   generateProcessBill,
@@ -53,6 +54,11 @@ processBillRouter.post(
     "/claimProcessAccount",
     superAdminAndAdminOnly,
     claimProcessAccount
+  );
+  processBillRouter.post(
+    "/deleteClaimProcessAccount",
+    superAdminAndAdminOnly,
+    deleteClaimProcessAccount
   );
     processBillRouter.put(
     "/temporaryAcoountUpdate",

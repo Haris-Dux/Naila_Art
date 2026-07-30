@@ -15,6 +15,7 @@ const deleteBillAndProcessOrderURL =
 const markAsPaidURL = "/api/processBillRouter/markAsPaid";
 const applyDiscountOnProcessAccountURL = "/api/processBillRouter/applyDiscountOnProcessAccount";
 const applyClaimOnProcessAccountURL = "/api/processBillRouter/claimProcessAccount";
+const deleteClaimProcessAccountURL = "/api/processBillRouter/deleteClaimProcessAccount";
 const temporaryAcoountUpdateUrl = "/api/processBillRouter/temporaryAcoountUpdate"
 
 // GENERATE PROCESS BILL ASYNC
@@ -175,6 +176,20 @@ export const applyClaimAccountAsync = createAsyncThunk(
   }
 );
 
+//Delete Claim On Account
+export const deleteClaimAccountAsync = createAsyncThunk(
+  "Process/deleteClaim",
+  async (data) => {
+    try {
+      const response = await axios.post(deleteClaimProcessAccountURL, data);
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data);
+    }
+  }
+);
+
 export const temporaryAccountUpdateAsync = createAsyncThunk(
   "ProcessBills/accountUpdate",
   async (data) => {
@@ -247,6 +262,14 @@ const ProcessBillSlice = createSlice({
       })
       .addCase(applyClaimAccountAsync.fulfilled, (state, action) => {
         state.discountLoading = false;
+      })
+
+      //DELETE CLAIM ON ACCOUNT
+      .addCase(deleteClaimAccountAsync.pending, (state) => {
+        state.deleteLoadings = true;
+      })
+      .addCase(deleteClaimAccountAsync.fulfilled, (state) => {
+        state.deleteLoadings = false;
       })
 
       // GENERATE PROCESS BILL
