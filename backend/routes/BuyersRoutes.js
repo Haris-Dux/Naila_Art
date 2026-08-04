@@ -6,10 +6,10 @@ import {
   generateBillForOldbuyer,
   generateBuyersBillandAddBuyer,
   generatePdfFunction,
-  getAllBuyersForBillFlow,
   getBuyerBillHistoryForBranch,
   getBuyerById,
   getBuyersForBranch,
+  searchBuyersForBill,
   validateAndGetOldBuyerData,
   validateD_NoAndGetSuitData,
 } from "../controllers/BuyersController.js";
@@ -22,11 +22,7 @@ buyerRouter.post(
   generateBuyersBillandAddBuyer
 );
 buyerRouter.post("/getBuyersForBranch", verifyUser, getBuyersForBranch);
-buyerRouter.post(
-  "/getAllBuyersForBillFlow",
-  verifyUser,
-  getAllBuyersForBillFlow
-);
+buyerRouter.get("/searchBuyersForBill", verifyUser, searchBuyersForBill);
 buyerRouter.post("/getBuyerById", verifyUser, getBuyerById);
 buyerRouter.post(
   "/validateD_NoAndGetSuitData",

@@ -1,22 +1,32 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { IoAdd } from "react-icons/io5";
 import { IoTrashOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 import { GetAllBags } from "../../features/InStockSlice";
 import toast from "react-hot-toast";
-import {
-  generateBuyerBillAsync,
-  generatePdfAsync,
-} from "../../features/GenerateBillSlice";
+import { generateBuyerBillAsync } from "../../features/GenerateBillSlice";
 import PreviewBill from "./PreviewBill";
 import moment from "moment-timezone";
 import Select from "react-select";
-import { getSuitsStockToGenerateBillAsync } from "../../features/BuyerSlice";
+import {
+  clearBuyerSearchResults,
+  getSuitsStockToGenerateBillAsync,
+  searchBuyersForBillAsync,
+} from "../../features/BuyerSlice";
+import Chip from "../../Component/Common/Chip";
+import { getStatusVariant } from "../../Utils/Common";
 
 const GenerateBill = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
-  const { StockToGenerateBill } = useSelector((state) => state?.Buyer);
+  const {
+    buyerBillSearchLoading,
+    buyerBillSearchResults,
+    StockToGenerateBill,
+  } = useSelector((state) => state?.Buyer);
   const { user } = useSelector((state) => state.auth);
   const { Branches } = useSelector((state) => state.InStock);
   const PackagingData = useSelector((state) => state.InStock?.Bags);
@@ -61,6 +71,8 @@ const GenerateBill = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [pastBill, setPastBill] = useState(false);
   const [branchStockData, setBranchStockData] = useState([]);
+  const [buyerSearch, setBuyerSearch] = useState("");
+  const [submittedBuyerSearch, setSubmittedBuyerSearch] = useState("");
 
   const handlePreviewClick = () => {
     setShowPreview(true);
@@ -78,7 +90,40 @@ const GenerateBill = () => {
       }
     });
     dispatch(GetAllBags());
-  }, [user]);
+    dispatch(clearBuyerSearchResults());
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    const name = buyerSearch.trim();
+    let searchRequest;
+
+    if (!name) {
+      setSubmittedBuyerSearch("");
+      dispatch(clearBuyerSearchResults());
+      return undefined;
+    }
+
+    dispatch(clearBuyerSearchResults());
+    setSubmittedBuyerSearch("");
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmittedBuyerSearch(name);
+      searchRequest = dispatch(searchBuyersForBillAsync(name));
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      searchRequest?.abort();
+    };
+  }, [buyerSearch, dispatch]);
+
+  const handleBuyerSearchChange = (event) => {
+    setBuyerSearch(event.target.value);
+  };
+
+  const openExistingBuyerBill = (buyerId) => {
+    navigate(`/dashboard/old-buyer-generate-bill/${buyerId}`);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -419,6 +464,108 @@ const GenerateBill = () => {
             </div>
           </div>
 
+          <section className="mt-6 border-b border-gray-200 pb-6 dark:border-gray-700">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                Find buyer account
+              </h3>
+            </div>
+
+            <div className="relative max-w-2xl">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="search"
+                aria-label="Search buyer by name"
+                placeholder="Search buyer by name"
+                className="h-11 w-full rounded-md border border-gray-300 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+                value={buyerSearch}
+                onChange={handleBuyerSearchChange}
+              />
+            </div>
+
+            {submittedBuyerSearch && (
+              <div className="mt-3 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+                {buyerBillSearchLoading ? (
+                  <div className="flex h-24 items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-300">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-800 dark:border-gray-600 dark:border-t-gray-100" />
+                    Searching buyers
+                  </div>
+                ) : buyerBillSearchResults.length ? (
+                  <div className="max-h-[300px] divide-y divide-gray-200 overflow-y-auto dark:divide-gray-700">
+                    <div className="sticky top-0 z-10 hidden grid-cols-[1.3fr_1fr_1fr_0.9fr_0.9fr_24px] gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase text-gray-500 md:grid dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                      <span>Name</span>
+                      <span>City</span>
+                      <span>Phone</span>
+                      <span>Status</span>
+                      <span className="text-right">Balance</span>
+                      <span />
+                    </div>
+                    {buyerBillSearchResults.map((buyer) => (
+                      <button
+                        key={buyer.id}
+                        type="button"
+                        onClick={() => openExistingBuyerBill(buyer.id)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 focus:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-400 md:grid md:grid-cols-[1.3fr_1fr_1fr_0.9fr_0.9fr_24px] dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+                      >
+                        <div className="min-w-0 flex-1 md:hidden">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {buyer.name}
+                            </span>
+                            <Chip
+                              variant={getStatusVariant(
+                                buyer.virtual_account?.status,
+                              )}
+                            >
+                              {buyer.virtual_account?.status || "No status"}
+                            </Chip>
+                          </div>
+                          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-300">
+                            <span className="truncate">{buyer.city || "--"}</span>
+                            <span className="truncate">{buyer.phone || "--"}</span>
+                            <span className="col-span-2 font-semibold text-gray-900 dark:text-white">
+                              Rs {Number(buyer.virtual_account?.total_balance) || 0}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="hidden min-w-0 truncate font-medium text-gray-900 md:block dark:text-white">
+                          {buyer.name}
+                        </span>
+                        <span className="hidden text-sm text-gray-600 md:block dark:text-gray-300">
+                          {buyer.city || "--"}
+                        </span>
+                        <span className="hidden text-sm text-gray-600 md:block dark:text-gray-300">
+                          {buyer.phone || "--"}
+                        </span>
+                        <span className="hidden md:block">
+                          <Chip
+                            variant={getStatusVariant(
+                              buyer.virtual_account?.status,
+                            )}
+                          >
+                            {buyer.virtual_account?.status || "No status"}
+                          </Chip>
+                        </span>
+                        <span className="hidden text-sm font-semibold text-gray-900 md:block md:text-right dark:text-white">
+                          Rs {Number(buyer.virtual_account?.total_balance) || 0}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex h-24 items-center justify-center px-4 text-center text-sm text-gray-500 dark:text-gray-300">
+                    No buyers found.
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
           <form onSubmit={handleSubmit}>
             {/* INPUT FIELDS DETAILS */}
             <div className="fields">
@@ -678,17 +825,6 @@ const GenerateBill = () => {
                       required={otherBillData.show}
                     />
                   </div>
-                  {/* <div className="flex items-center my-auto justify-between  px-5 border border-red-600 p-2 rounded-md">
-                    <label
-                      htmlFor="otherBillData"
-                      className="text-md font-bold"
-                    >
-                      Total Bill
-                    </label>
-                    <span className={`text-sm font-medium text-black`}>
-                      {otherBillData.o_b_amount + Number(billData.paid) || 0}
-                    </span>
-                  </div> */}
                 </div>
               )}
 

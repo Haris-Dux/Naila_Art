@@ -870,31 +870,37 @@ export const getBuyersForBranch = async (req, res, next) => {
   }
 };
 
-export const getAllBuyersForBillFlow = async (req, res, next) => {
+export const searchBuyersForBill = async (req, res, next) => {
   try {
+    const name = req.query.name?.trim() || "";
     const role = req.user_role;
     const userBranchId = req.branch_id;
-    const branchQuery = req.query.branchId || "";
-    const query = {};
 
-    if (role === "superadmin") {
-      if (!branchQuery) throw new Error("Branch Id Required");
-      query.branchId = branchQuery;
-    } else {
+    if (!name) {
+      return res.status(200).json({ buyers: [], totalRecords: 0 });
+    }
+
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const query = {
+      name: { $regex: escapedName, $options: "i" },
+    };
+
+    if (role !== "superadmin") {
+      if (!userBranchId) throw new Error("Branch Id Required");
       query.branchId = userBranchId;
     }
 
-    const buyers = await BuyersModel.find(query).sort({
-      "virtual_account.status": -1,
-      createdAt: -1,
-    });
+    const buyers = await BuyersModel.find(query)
+      .select(
+        "name city phone virtual_account.status virtual_account.total_balance createdAt",
+      )
+      .sort({
+        "virtual_account.status": -1,
+        createdAt: -1,
+      });
 
     setMongoose();
-    return res.status(200).json({
-      buyers,
-      totalBuyers: buyers.length,
-      totalRecords: buyers.length,
-    });
+    return res.status(200).json({ buyers, totalRecords: buyers.length });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
