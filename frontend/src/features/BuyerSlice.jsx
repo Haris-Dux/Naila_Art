@@ -5,7 +5,7 @@ import { buildQueryParams } from "../Utils/Common";
 
 //API URL
 const getBuyerForBranch = "/api/buyers/getBuyersForBranch";
-const getAllBuyersForBillFlowUrl = "/api/buyers/getAllBuyersForBillFlow";
+const searchBuyersForBillUrl = "/api/buyers/searchBuyersForBill";
 const getBuyerById = "/api/buyers/getBuyerById";
 const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
 const applyDiscountOnBuyersAccountUrl = "/api/buyers/applyDiscountOnBuyersAccount";
@@ -46,22 +46,23 @@ export const getBuyerForBranchAsync = createAsyncThunk(
   }
 );
 
-// GET ALL BUYERS FOR BILL GENERATION FLOW
-export const getAllBuyersForBillFlowAsync = createAsyncThunk(
-  "buyers/getAllForBillFlow",
-  async (data) => {
-    const query = buildQueryParams({
-      branchId: data.branchId,
-    });
+export const searchBuyersForBillAsync = createAsyncThunk(
+  "buyers/searchForBill",
+  async (name, { signal, rejectWithValue }) => {
+    const query = buildQueryParams({ name });
+
     try {
-      const response = await axios.post(
-        `${getAllBuyersForBillFlowUrl}?${query}`
-      );
+      const response = await axios.get(`${searchBuyersForBillUrl}?${query}`, {
+        signal,
+      });
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.error);
+      if (signal.aborted || axios.isCancel(error)) throw error;
+      const message = error.response?.error;
+      toast.error(message);
+      return rejectWithValue(message);
     }
-  }
+  },
 );
 
 // GET BUYER BY ID THUNK
@@ -259,17 +260,19 @@ const initialState = {
   StockToGenerateBill: [],
   stockLoading:false,
   deleteBillLoading: false,
-  billFlowBuyers: [],
-  billFlowBuyersLoading: false,
+  buyerBillSearchResults: [],
+  buyerBillSearchLoading: false,
+  buyerBillSearchRequestId: null,
 };
 
 const BuyerSlice = createSlice({
   name: "BuyerSlice",
   initialState,
   reducers: {
-    clearBillFlowBuyers: (state) => {
-      state.billFlowBuyers = [];
-      state.billFlowBuyersLoading = false;
+    clearBuyerSearchResults: (state) => {
+      state.buyerBillSearchResults = [];
+      state.buyerBillSearchLoading = false;
+      state.buyerBillSearchRequestId = null;
     },
   },
   extraReducers: (builder) => {
@@ -377,17 +380,24 @@ const BuyerSlice = createSlice({
         state.Buyers = action.payload;
       })
 
-      // GET ALL BUYERS FOR BILL GENERATION FLOW
-      .addCase(getAllBuyersForBillFlowAsync.pending, (state) => {
-        state.billFlowBuyersLoading = true;
+      // SEARCH BUYERS FOR BILL
+      .addCase(searchBuyersForBillAsync.pending, (state, action) => {
+        state.buyerBillSearchLoading = true;
+        state.buyerBillSearchRequestId = action.meta.requestId;
       })
-      .addCase(getAllBuyersForBillFlowAsync.fulfilled, (state, action) => {
-        state.billFlowBuyersLoading = false;
-        state.billFlowBuyers = action.payload;
+      .addCase(searchBuyersForBillAsync.fulfilled, (state, action) => {
+        if (state.buyerBillSearchRequestId !== action.meta.requestId) return;
+
+        state.buyerBillSearchLoading = false;
+        state.buyerBillSearchResults = action.payload?.buyers || [];
+        state.buyerBillSearchRequestId = null;
       })
-      .addCase(getAllBuyersForBillFlowAsync.rejected, (state) => {
-        state.billFlowBuyersLoading = false;
-        state.billFlowBuyers = [];
+      .addCase(searchBuyersForBillAsync.rejected, (state, action) => {
+        if (state.buyerBillSearchRequestId !== action.meta.requestId) return;
+
+        state.buyerBillSearchLoading = false;
+        state.buyerBillSearchResults = [];
+        state.buyerBillSearchRequestId = null;
       })
 
       // GET BUYER FOR BRANCH
@@ -424,6 +434,6 @@ const BuyerSlice = createSlice({
   },
 });
 
-export const { clearBillFlowBuyers } = BuyerSlice.actions;
+export const { clearBuyerSearchResults } = BuyerSlice.actions;
 
 export default BuyerSlice.reducer;

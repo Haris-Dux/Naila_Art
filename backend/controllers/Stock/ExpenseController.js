@@ -11,7 +11,7 @@ import { virtualAccountsService } from "../../services/VirtualAccountsService.js
 import { cashBookService } from "../../services/CashbookService.js";
 import CustomError from "../../config/errors/CustomError.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
-import { getPaginationParams, getTodayDate, verifyPastDate } from "../../utils/Common.js";
+import { getBusinessDateObject, getPaginationParams, getTodayDate, verifyPastDate } from "../../utils/Common.js";
 import { updateTotalCashForDateRange } from "../../services/DailySaleService.js";
 import { CashbookTransactionSource, TransactionType } from "../../enums/cashbookk.enum.js";
 
@@ -36,6 +36,7 @@ export const addExpense = async (req, res, next) => {
       if (isFutureDate) {
         throw new Error("Date cannot be in the future");
       }
+      const expenseCreatedAt = getBusinessDateObject(Date);
       const newEntryId = new mongoose.Types.ObjectId();
 
       if (payment_Method) {
@@ -174,6 +175,7 @@ export const addExpense = async (req, res, next) => {
             categoryId,
             reason,
             Date,
+            createdAt: expenseCreatedAt,
             rate,
             serial_no: lastExpenseS_N[0]?.serial_no + 1 || 1,
             ...(payment_Method && { payment_Method }),

@@ -14,7 +14,7 @@ import { PicruresAccountModel } from "../../models/Process/PicturesModel.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
 import { BuyersModel } from "../../models/BuyersModel.js";
 import { SellersModel } from "../../models/sellers/SellersModel.js";
-import { buildDateRangeQuery, getPaginationParams } from "../../utils/Common.js";
+import { buildDateRangeQuery, getBusinessDateObject, getPaginationParams } from "../../utils/Common.js";
 
 const today = moment.tz("Asia/Karachi").format("YYYY-MM-DD");
 
@@ -159,6 +159,7 @@ export const generateProcessBill = async (req, res, next) => {
       };
 
       const billDate = date?.split('T')[0] || today;
+      const billCreatedAt = getBusinessDateObject(billDate);
 
       // IF ACCOUNT DOES NOT EXIST, CREATE A NEW ONE
       if (!oldAccountData) {
@@ -203,6 +204,7 @@ export const generateProcessBill = async (req, res, next) => {
               process_Category,
               design_no,
               date: billDate,
+              createdAt: billCreatedAt,
               Manual_No,
               serial_No,
               partyName,

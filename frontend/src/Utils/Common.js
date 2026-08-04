@@ -74,3 +74,18 @@ export const setAccountStatusColor = (status) => {
         return "text-black";
     }
 };
+
+export const getStatusVariant = (status) => {
+  switch (status) {
+    case "Paid":
+      return "success";
+    case "Partially Paid":
+      return "warning";
+    case "Unpaid":
+      return "danger";
+    case "Advance Paid":
+      return "primary";
+    default:
+      return "muted";
+  }
+};

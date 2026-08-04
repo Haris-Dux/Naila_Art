@@ -59,6 +59,18 @@ const filterTransactionsByDate = (transactions = [], filters) => {
   });
 };
 
+const sortTransactionsByDate = (transactions = []) =>
+  transactions.slice().sort((a, b) => {
+    const firstDate = getDateOnlyTime(a.date);
+    const secondDate = getDateOnlyTime(b.date);
+
+    if (firstDate === null && secondDate === null) return 0;
+    if (firstDate === null) return 1;
+    if (secondDate === null) return -1;
+
+    return secondDate - firstDate;
+  });
+
 const calculateTransactionTotals = (transactions = []) =>
   transactions.reduce(
     (totals, transaction) => ({
@@ -162,9 +174,8 @@ const SellersDetails = () => {
     };
 
     const transactions = SellerById?.credit_debit_history || [];
-    const filteredTransactions = filterTransactionsByDate(
-      transactions,
-      appliedFilters,
+    const filteredTransactions = sortTransactionsByDate(
+      filterTransactionsByDate(transactions, appliedFilters),
     );
     const filteredTotals = calculateTransactionTotals(filteredTransactions);
     const isFilterApplied = hasDateFilters(appliedFilters);
@@ -357,7 +368,7 @@ const SellersDetails = () => {
                             </thead>
                             <tbody>
                                 {filteredTransactions?.length > 0 ? (
-                                    filteredTransactions?.slice().reverse().map((data, index) => (
+                                    filteredTransactions?.map((data, index) => (
                                         <tr key={index} className={` border-b text-md font-semibold "bg-white text-black"`}>
                                             <th className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm"
                                                 scope="row"
