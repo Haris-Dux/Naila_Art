@@ -16,7 +16,7 @@ import { branchStockModel } from "../models/BranchStock/BranchSuitsStockModel.js
 import CustomError from "../config/errors/CustomError.js";
 import { calculateBuyerAccountBalance } from "../utils/buyers.js";
 import { CashbookTransactionAccounts, CashbookTransactionSource } from "../enums/cashbookk.enum.js";
-import { buildDateRangeQuery, canDeleteRecord, getPaginationParams } from "../utils/Common.js";
+import { buildDateRangeQuery, canDeleteRecord, getBusinessDateObject, getPaginationParams } from "../utils/Common.js";
 import { verifyrequiredparams } from "../middleware/Common.js";
 
 //TODAY
@@ -88,6 +88,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
+      const billCreatedAt = getBusinessDateObject(date);
       const branch = await BranchModel.findOne({ _id: branchId }).session(
         session
       );
@@ -391,6 +392,7 @@ export const generateBuyersBillandAddBuyer = async (req, res, next) => {
             serialNumber,
             autoSN: lastAutoSN + 1,
             date,
+            createdAt: billCreatedAt,
             name,
             phone,
             total,
@@ -489,6 +491,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
+      const billCreatedAt = getBusinessDateObject(date);
       const branch = await BranchModel.findOne({ _id: branchId }).session(
         session
       );
@@ -779,6 +782,7 @@ export const generateBillForOldbuyer = async (req, res, nex) => {
             serialNumber,
             autoSN: buyerData.autoSN,
             date,
+            createdAt: billCreatedAt,
             name,
             phone,
             total,

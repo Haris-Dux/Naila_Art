@@ -6,6 +6,18 @@ export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };
 
+export const getBusinessDateObject = (date, timezone = "Asia/Karachi") => {
+  const businessDate = moment.tz(date, timezone);
+  const currentTime = moment.tz(timezone);
+
+  return businessDate
+    .hour(currentTime.hour())
+    .minute(currentTime.minute())
+    .second(currentTime.second())
+    .millisecond(currentTime.millisecond())
+    .toDate();
+};
+
 export const buildDateRangeQuery = (dateFrom, dateTo) => {
   if (!dateFrom && !dateTo) return null;
 

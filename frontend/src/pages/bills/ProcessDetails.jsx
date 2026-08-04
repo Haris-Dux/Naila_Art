@@ -67,6 +67,18 @@ const filterTransactionsByDate = (transactions = [], filters) => {
   });
 };
 
+const sortTransactionsByDate = (transactions = []) =>
+  transactions.slice().sort((a, b) => {
+    const firstDate = getDateOnlyTime(a.date);
+    const secondDate = getDateOnlyTime(b.date);
+
+    if (firstDate === null && secondDate === null) return 0;
+    if (firstDate === null) return 1;
+    if (secondDate === null) return -1;
+
+    return secondDate - firstDate;
+  });
+
 const calculateTransactionTotals = (transactions = []) =>
   transactions.reduce(
     (totals, transaction) => ({
@@ -284,9 +296,8 @@ const ProcessDetails = () => {
   }
 
   const transactions = ProcessBillsDetails?.credit_debit_history || [];
-  const filteredTransactions = filterTransactionsByDate(
-    transactions,
-    appliedFilters,
+  const filteredTransactions = sortTransactionsByDate(
+    filterTransactionsByDate(transactions, appliedFilters),
   );
   const filteredTotals = calculateTransactionTotals(filteredTransactions);
   const isFilterApplied = hasDateFilters(appliedFilters);
@@ -475,10 +486,7 @@ const ProcessDetails = () => {
               </thead>
               <tbody>
                 {filteredTransactions?.length > 0 ? (
-                  filteredTransactions
-                    ?.slice()
-                    .reverse()
-                    .map((data, index) => {
+                  filteredTransactions?.map((data, index) => {
                       const isClaimEntry = data.orderId === "claim_entry";
 
                       return (

@@ -17,7 +17,7 @@ import { purchasing_History_model } from "../../models/sellers/PurchasingHistory
 import moment from "moment-timezone";
 import { BaseModel } from "../../models/Stock/Base.Model.js";
 import { calculateAccountBalance } from "../../utils/accounting.js";
-import { buildDateRangeQuery, getPaginationParams, getTodayDate } from "../../utils/Common.js";
+import { buildDateRangeQuery, getBusinessDateObject, getPaginationParams, getTodayDate } from "../../utils/Common.js";
 import { verifyrequiredparams } from "../../middleware/Common.js";
 import {
   addSuitsPurchaseInStock,
@@ -110,6 +110,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
+      const billCreatedAt = getBusinessDateObject(date);
 
       //VALIDATING EXISTING SELLER
       const existingSeller = await SellersModel.findOne({
@@ -235,6 +236,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 seller_stock_category,
                 bill_no,
                 date,
+                createdAt: billCreatedAt,
                 name,
                 category,
                 quantity,
@@ -335,6 +337,7 @@ export const addInStockAndGeneraeSellerData_NEW = async (req, res, next) => {
                 seller_stock_category,
                 bill_no,
                 date,
+                createdAt: billCreatedAt,
                 name,
                 category,
                 quantity,
@@ -487,6 +490,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
       });
       if (missingFields.length > 0)
         throw new Error(`Missing Fields ${missingFields}`);
+      const billCreatedAt = getBusinessDateObject(date);
 
       //GETTING OLD SELLER DATA
       const oldSellerData = await SellersModel.findById({ _id: sellerId });
@@ -603,6 +607,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 seller_stock_category,
                 bill_no,
                 date,
+                createdAt: billCreatedAt,
                 name,
                 category,
                 quantity,
@@ -707,6 +712,7 @@ export const addInStockAndGeneraeSellerData_OLD = async (req, res, next) => {
                 seller_stock_category,
                 bill_no,
                 date,
+                createdAt: billCreatedAt,
                 name,
                 category,
                 quantity,

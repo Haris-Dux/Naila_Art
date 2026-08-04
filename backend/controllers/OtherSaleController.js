@@ -8,7 +8,7 @@ import { setMongoose } from "../utils/Mongoose.js";
 import { virtualAccountsService } from "../services/VirtualAccountsService.js";
 import { cashBookService } from "../services/CashbookService.js";
 import moment from "moment-timezone";
-import { getPaginationParams } from "../utils/Common.js";
+import { getBusinessDateObject, getPaginationParams } from "../utils/Common.js";
 
 export const generateOtherSaleBill = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -39,6 +39,8 @@ export const generateOtherSaleBill = async (req, res, next) => {
         "quantity",
         "note",
       ]);
+
+      const billCreatedAt = getBusinessDateObject(date);
 
       //GET HEAD OFFICE BRANCH
       const headOffice = await BranchModel.findOne({
@@ -181,6 +183,7 @@ export const generateOtherSaleBill = async (req, res, next) => {
             payment_Method,
             quantity,
             note,
+            createdAt: billCreatedAt,
           },
         ],
         { session }
