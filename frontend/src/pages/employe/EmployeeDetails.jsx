@@ -16,7 +16,7 @@ import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
 import { MdOutlineDelete } from "react-icons/md";
 
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
-import { formatReadableDate, getTodayDate } from "../../Utils/Common";
+import { formatReadableDate, getDateOnlyTime, getTodayDate } from "../../Utils/Common";
 
 
 const EmployeeDetails = () => {
@@ -226,6 +226,22 @@ const EmployeeDetails = () => {
 
   };
 
+  const acountHistory = Employee?.financeData ?? []
+
+    const sortTransactionsByDate = (transactions) =>
+     transactions.slice().sort((a, b) => {
+    const firstDate = getDateOnlyTime(a.date);
+    const secondDate = getDateOnlyTime(b.date);
+
+    if (firstDate === null && secondDate === null) return 0;
+    if (firstDate === null) return 1;
+    if (secondDate === null) return -1;
+
+    return secondDate - firstDate;
+  });
+
+  const sortedTransactions = sortTransactionsByDate(acountHistory)
+
   
   return (
     <>
@@ -358,10 +374,8 @@ const EmployeeDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {Employee && Employee?.financeData?.length > 0 ? (
-                  Employee?.financeData
-                    ?.slice()
-                    .reverse()
+                {sortedTransactions?.length > 0 ? (
+                  sortedTransactions
                     .map((data, index) => (
                       <tr
                         key={index}
