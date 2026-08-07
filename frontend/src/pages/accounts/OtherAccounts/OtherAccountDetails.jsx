@@ -14,17 +14,9 @@ import AccountFilters, {
   emptyAccountFilters,
   FilteredAccountTotals,
 } from "../../../Component/AccountFilters/Accountfilters";
-import { formatReadableDate } from "../../../Utils/Common";
+import { formatReadableDate, getDateOnlyTime } from "../../../Utils/Common";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
-
-const getDateOnlyTime = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  date.setHours(0, 0, 0, 0);
-  return date.getTime();
-};
 
 const getDateRange = ({ dateFrom, dateTo }) => {
   const from = getDateOnlyTime(dateFrom);

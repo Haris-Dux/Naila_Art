@@ -834,7 +834,7 @@ export const getTransactionsHistory = async (req, res, next) => {
     const result = await VA_HistoryModal.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ date: -1 });
     const response = {
       data: result,
       page,

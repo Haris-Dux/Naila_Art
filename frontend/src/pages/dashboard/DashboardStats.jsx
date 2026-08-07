@@ -28,7 +28,7 @@ import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { GrPowerReset } from "react-icons/gr";
 import SuitSalesGraph from "./SuitSalesGraph";
 import Pagination from "../../Component/Common/Pagination";
-import { DEFAULT_PAGE_LIMIT } from "../../Utils/Common";
+import { DEFAULT_PAGE_LIMIT, formatReadableDate } from "../../Utils/Common";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -876,7 +876,7 @@ const DashboardStats = () => {
           aria-hidden="true"
           className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
         >
-          <div className="relative py-4 px-3 w-[95%] max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
+          <div className="relative py-4 px-3 max-w-7xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
             {/* ------------- HEADER ------------- */}
             <div className="flex items-center justify-between p-2 md:p-2 border-b rounded-t dark:border-gray-600">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -988,32 +988,7 @@ const DashboardStats = () => {
                   Reset
                 </button>
               </div>
-              {/* TABLE */}
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                  <tr>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Date
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Transaction Type
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Amount
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Payment Method
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      New Balance
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Note
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="h-[60vh] scrollable-content overflow-y-auto">
+              <div className="h-[40vh] scrollable-content overflow-y-auto">
                 {transactionLoading ? (
                   <div className="min-h-screen flex justify-center items-center">
                     <div
@@ -1025,7 +1000,29 @@ const DashboardStats = () => {
                     </div>
                   </div>
                 ) : (
-                  <table className="w-full  text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                  <table className="w-full table-fixed text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead className="sticky top-0 z-10 text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                      <tr>
+                        <th className="w-[15%] px-4 py-3 text-center" scope="col">
+                          Date
+                        </th>
+                        <th className="w-[15%] px-4 py-3 text-center" scope="col">
+                          Transaction Type
+                        </th>
+                        <th className="w-[11%] px-4 py-3 text-center" scope="col">
+                          Amount
+                        </th>
+                        <th className="w-[18%] px-4 py-3 text-center" scope="col">
+                          Payment Method
+                        </th>
+                        <th className="w-[14%] px-4 py-3 text-center" scope="col">
+                          New Balance
+                        </th>
+                        <th className="w-[27%] px-4 py-3 text-center" scope="col">
+                          Note
+                        </th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {TransactionsHistory &&
                       TransactionsHistory?.data?.length > 0 ? (
@@ -1034,11 +1031,11 @@ const DashboardStats = () => {
                             key={index}
                             className="bg-white border-b text-sm font-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                           >
-                            <td className=" px-6 py-3 text-center" scope="row">
-                              {data?.date}
+                            <td className="px-4 py-3 text-center" scope="row">
+                              {formatReadableDate(data.date)}
                             </td>
                             <td
-                              className={`px-6 py-3 text-center ${
+                              className={`px-4 py-3 text-center ${
                                 data?.transactionType === "Deposit"
                                   ? "text-green-500"
                                   : "text-red-500"
@@ -1046,16 +1043,16 @@ const DashboardStats = () => {
                             >
                               {data?.transactionType}
                             </td>
-                            <td className=" px-6 py-3 text-center">
+                            <td className="px-4 py-3 text-center">
                               {data?.amount}
                             </td>
-                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
+                            <td className="px-4 py-3 text-center text-xs md:text-sm break-words">
                               {data?.payment_Method}
                             </td>
-                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
+                            <td className="px-4 py-3 text-center text-xs md:text-sm">
                               {data?.new_balance}
                             </td>
-                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-xs text-center">
+                            <td className="px-4 py-3 text-xs text-center whitespace-normal break-words">
                               {data?.note}
                             </td>
                           </tr>
@@ -1071,6 +1068,16 @@ const DashboardStats = () => {
               </div>
             </div>
             <Pagination
+             className="
+               !mt-4 !w-full !min-w-0 !max-w-none
+               !flex-nowrap !gap-2
+               [&>div:first-child]:!min-w-fit
+               [&>div:first-child]:!whitespace-nowrap
+               [&>div:nth-child(2)]:!flex-none
+               [&>div:nth-child(2)]:!flex-nowrap
+               [&>div:nth-child(3)]:!min-w-fit
+               [&>div:nth-child(3)]:!flex-nowrap
+             "
               currentPage={page}
               totalPages={TransactionsHistory?.totalPages}
               totalRecords={TransactionsHistory?.totalRecords}

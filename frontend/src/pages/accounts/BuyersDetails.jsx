@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   applyBuyerDiscountAsync,
   getBuyerByIdAsync,
@@ -16,17 +16,9 @@ import AccountFilters, {
   FilteredAccountTotals,
 } from "../../Component/AccountFilters/Accountfilters";
 import AccountDiscountModal from "./AccountDiscountModal";
-import { formatReadableDate } from "../../Utils/Common";
+import { formatReadableDate, getDateOnlyTime } from "../../Utils/Common";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
-
-const getDateOnlyTime = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  date.setHours(0, 0, 0, 0);
-  return date.getTime();
-};
 
 const getDateRange = ({ dateFrom, dateTo }) => {
   const from = getDateOnlyTime(dateFrom);
@@ -85,7 +77,6 @@ const calculateTransactionTotals = (transactions = []) =>
 const BuyersDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { loading, BuyerById, markAsPaidLoading, discountLoading } = useSelector(
     (state) => state.Buyer
   );
@@ -112,10 +103,7 @@ const BuyersDetails = () => {
     }
   }, [dispatch, id]);
 
-  const openConfirmationModaL = () => {
-    setCModal(true);
-  };
-
+ 
   const closeConfirmationModal = () => {
     setCModal(false);
   };
