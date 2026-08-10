@@ -228,17 +228,24 @@ const EmployeeDetails = () => {
 
   const acountHistory = Employee?.financeData ?? []
 
-    const sortTransactionsByDate = (transactions) =>
-     transactions.slice().sort((a, b) => {
-    const firstDate = getDateOnlyTime(a.date);
-    const secondDate = getDateOnlyTime(b.date);
+const sortTransactionsByDate = (transactions = []) =>
+  transactions
+    .map((transaction, index) => ({ transaction, index }))
+    .sort((a, b) => {
+      const firstDate = getDateOnlyTime(a.transaction.date);
+      const secondDate = getDateOnlyTime(b.transaction.date);
 
-    if (firstDate === null && secondDate === null) return 0;
-    if (firstDate === null) return 1;
-    if (secondDate === null) return -1;
+      if (firstDate === null && secondDate === null) return b.index - a.index;
+      if (firstDate === null) return 1;
+      if (secondDate === null) return -1;
 
-    return secondDate - firstDate;
-  });
+      const dateDiff = secondDate - firstDate;
+
+      if (dateDiff !== 0) return dateDiff;
+
+      return b.index - a.index;
+    })
+    .map(({ transaction }) => transaction);
 
   const sortedTransactions = sortTransactionsByDate(acountHistory)
 
