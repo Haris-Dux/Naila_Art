@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const FieldLabel = ({ label, children }) => (
   <label className="block w-full">
@@ -221,21 +222,6 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
     });
   };
 
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   return (
     <>
       {isOpen && (
@@ -294,9 +280,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                   <div className="box text-center">
                     <h3 className="pb-1 font-normal ">Status</h3>
                     <h3>
-                      {setAccountStatusColor(
-                        sellerDetails?.virtual_account?.status
-                      ) || "No Status"}
+                      <StatusChip status={sellerDetails?.virtual_account?.status} />
                     </h3>
                   </div>
                 </div>

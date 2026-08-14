@@ -25,6 +25,7 @@ import Icon from "../../../Component/Common/Icons";
 import { formatReadableDate, getPageLimit, getTodayDate } from "../../../Utils/Common";
 import Pagination from "../../../Component/Common/Pagination";
 import ColorList from "../../../Component/Common/ColorList";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -233,17 +234,6 @@ const Embroidery = () => {
 
   const filteredData = embroidery?.data;
 
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   const togleNameField = (e) => {
     const value = e.target.value;
     setPartyValue(value);
@@ -277,21 +267,6 @@ const Embroidery = () => {
       setAccountData(Data?.virtual_account);
     } else {
       setAccountData(false);
-    }
-  };
-
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
     }
   };
 
@@ -492,7 +467,7 @@ const Embroidery = () => {
                             </td>
                             <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                               <div className="flex items-center gap-3">
-                                {setStatusColor(data.project_status)}
+                                <StatusChip status={data.project_status} fallback="" />
                                 {data?.is_verified && (
                                   <span>
                                     <Icon name="tick" />
@@ -612,8 +587,7 @@ const Embroidery = () => {
                         <div className="box text-center">
                           <h3 className="pb-1 font-normal ">Status</h3>
                           <h3>
-                            {setAccountStatusColor(accountData?.status) ||
-                              "No Status"}
+                            <StatusChip status={accountData?.status} />
                           </h3>
                         </div>
                       </div>

@@ -21,9 +21,10 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { RxCross2 } from "react-icons/rx";
-import { formatReadableDate, setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate } from "../../../Utils/Common";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 import Loading from "../../../Component/Loader/Loading";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const StonesDetails = () => {
   const { id } = useParams();
@@ -537,17 +538,6 @@ const StonesDetails = () => {
     });
   };
 
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
@@ -747,10 +737,7 @@ const StonesDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="">
-                {" "}
-                {setStatusColor(SingleStone?.project_status)}
-              </span>
+              <span> <StatusChip status={SingleStone?.project_status} fallback="" /></span>
             </div>
 
             {SingleStone?.category_quantity?.map((item, index) => (
@@ -968,11 +955,7 @@ const StonesDetails = () => {
                     <div className="box text-center">
                       <h3 className="pb-1 font-normal ">Status</h3>
                       <h3>
-                        <span
-                          className={setAccountStatusColor(accountData?.status)}
-                        >
-                          {accountData?.status}
-                        </span>
+                        <StatusChip status={accountData?.status} />
                       </h3>
                     </div>
                   </div>
