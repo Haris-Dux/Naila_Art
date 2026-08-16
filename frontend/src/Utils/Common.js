@@ -89,3 +89,5 @@ export const getDateOnlyTime = (value) => {
   date.setHours(0, 0, 0, 0);
   return date.getTime();
 };
+
+export const formatAmount = (value) => `${Number(value || 0).toLocaleString()} Rs`;

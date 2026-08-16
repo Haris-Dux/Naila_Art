@@ -199,12 +199,6 @@ const NailaArtsBuyer = () => {
                   onSearch={handleFiltersSearch}
                   onReset={handleResetFilters}
                 />
-                             <Link
-                  className=" bg-[#374151] hover:bg-gray-500 text-white px-3 py-2 rounded-md"
-                  to={"/dashboard/naila-arts-return-bills"}
-                >
-                  Return Bills
-                </Link>
               </div>
             </div>
 

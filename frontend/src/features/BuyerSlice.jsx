@@ -11,6 +11,7 @@ const markAsPaidForBuyersUrl = "/api/buyers/markAsPaidForBuyers";
 const applyDiscountOnBuyersAccountUrl = "/api/buyers/applyDiscountOnBuyersAccount";
 const getBuyerBillHistoryForBranchUrl =
   "/api/buyers/getBuyerBillHistoryForBranch";
+const getBuyerBillDetailsUrl = "/api/buyers/getBuyerBillDetails";
 const addBuyerCheckUrl = "/api/buyers/checks/addBuyerCheck";
 const updateBuyerCheckWithNewUrl = "/api/buyers/checks/updateBuyerCheckWithNew";
 const markCheckAsPaidUrl = "/api/buyers/checks/markCheckAsPaid";
@@ -99,6 +100,19 @@ export const getBuyerBillsHistoryForBranchAsync = createAsyncThunk(
       return response.data;
     } catch (error) {
       throw new Error(error);
+    }
+  }
+);
+
+export const getBuyerBillDetailsAsync = createAsyncThunk(
+  "buyers/getBuyerBillDetails",
+  async (data) => {
+    try {
+      const response = await axios.post(getBuyerBillDetailsUrl, data);
+      return response.data;
+    } catch (error) {
+      toast.error(error.response?.data?.error);
+      throw new Error(error.response?.data?.error || error.message);
     }
   }
 );
@@ -248,6 +262,8 @@ const initialState = {
   BuyerById: [],
   loading: false,
   BuyerBillHistory: [],
+  BuyerBillDetails: null,
+  buyerBillDetailsLoading: false,
   billHistoryLoading: true,
   markAsPaidLoading: false,
   discountLoading: false,
@@ -420,6 +436,19 @@ const BuyerSlice = createSlice({
           state.BuyerBillHistory = action.payload;
         }
       )
+
+      // GET BUYER BILL DETAILS
+      .addCase(getBuyerBillDetailsAsync.pending, (state) => {
+        state.buyerBillDetailsLoading = true;
+        state.BuyerBillDetails = null;
+      })
+      .addCase(getBuyerBillDetailsAsync.fulfilled, (state, action) => {
+        state.buyerBillDetailsLoading = false;
+        state.BuyerBillDetails = action.payload;
+      })
+      .addCase(getBuyerBillDetailsAsync.rejected, (state) => {
+        state.buyerBillDetailsLoading = false;
+      })
 
       //DELETE BUYER BILL
       .addCase(deleteBuyerBillAsync.pending, (state) => {

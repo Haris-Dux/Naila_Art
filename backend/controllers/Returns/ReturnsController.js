@@ -175,6 +175,7 @@ export const createReturn = async (req, res, next) => {
           particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_From_Balance,
           balance: total_balance,
+          bill_id: bill_Id
         };
 
         //UPDATING Buyer DATA IN DB
@@ -199,6 +200,7 @@ export const createReturn = async (req, res, next) => {
           particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_Payable,
           balance: total_balance,
+          bill_id: bill_Id
         };
 
         //UPDATING USER DATA IN DB
@@ -273,8 +275,6 @@ export const createReturn = async (req, res, next) => {
         }
 
         if (Amount_From_Balance > 0) {
-          console.log('running this')
-
           const result = calculateBuyerAccountBalance({paid:Amount_Payable + Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account});
 
             const accountDataAterCreditEntry = {
@@ -288,6 +288,7 @@ export const createReturn = async (req, res, next) => {
               particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
               credit: Amount_From_Balance + Amount_Payable,
               balance: accountDataAterCreditEntry.total_balance,
+              bill_id: bill_Id
             };
 
           const { total_debit, total_credit, total_balance, status } =
@@ -303,6 +304,7 @@ export const createReturn = async (req, res, next) => {
             particular: `Cash payment for return bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
             debit: Amount_Payable,
             balance: total_balance,
+            bill_id: bill_Id
           };
 
           const virtualAccountData = {
@@ -359,7 +361,7 @@ export const createReturn = async (req, res, next) => {
 
       return res
         .status(200)
-        .json({ success: true, message: "Return bill successfull" });
+        .json({ success: true, message: "Return bill generated successfull" });
     });
   } catch (error) {
     return res.status(400).json({ error: error.message });
