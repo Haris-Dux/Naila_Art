@@ -6,6 +6,7 @@ import {
   BuyersBillsModel,
   BuyersModel
 } from "../models/BuyersModel.js";
+import { ReturnSuitModel } from "../models/Returns/ReturnModel.js";
 import { UserModel } from "../models/User.Model.js";
 import { setMongoose } from "../utils/Mongoose.js";
 import generatePDF from "../utils/GeneratePdf.js";
@@ -914,6 +915,27 @@ export const getBuyerById = async (req, res, next) => {
     if (!buyer) throw new Error("Buyer Not Found");
     setMongoose();
     return res.status(200).json(buyer);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getBuyerBillDetails = async (req, res) => {
+  try {
+    const { billId } = req.body;
+    let bill = null;
+    if (billId && mongoose.Types.ObjectId.isValid(billId)) {
+      bill = await BuyersBillsModel.findById(billId);
+    }
+
+    if (!bill) throw new Error("Bill details not found");
+
+    const returnBills = await ReturnSuitModel.find({ bill_Id: bill._id }).sort({
+      createdAt: -1,
+    });
+
+    setMongoose();
+    return res.status(200).json({ bill, returnBills });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

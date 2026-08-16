@@ -9,6 +9,7 @@ import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 import Pagination from "../../../Component/Common/Pagination";
 import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import ColorList from "../../../Component/Common/ColorList";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const Stones = () => {
   const dispatch = useDispatch();
@@ -27,17 +28,6 @@ const Stones = () => {
   }, [dispatch, filters, page, limit]);
 
   const filteredData = Stone?.data;
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
 
   const openDeleteModal = (id) => {
     setDeleteModal(true);
@@ -168,7 +158,7 @@ const Stones = () => {
                           {data.r_quantity ? `${data.r_quantity} suit` : "--"}
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm ">
-                          {setStatusColor(data.project_status)}
+                          <StatusChip status={data.project_status} fallback="" />
                         </td>
                         <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex gap-3">
                           <Link to={`/dashboard/stones-details/${data.id}`}>

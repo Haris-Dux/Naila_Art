@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import {
   applyBuyerDiscountAsync,
+  getBuyerBillDetailsAsync,
   getBuyerByIdAsync,
   markAsPaidAsync,
 } from "../../features/BuyerSlice";
@@ -17,6 +18,8 @@ import AccountFilters, {
 } from "../../Component/AccountFilters/Accountfilters";
 import AccountDiscountModal from "./AccountDiscountModal";
 import { formatReadableDate, getDateOnlyTime } from "../../Utils/Common";
+import { FaEye } from "react-icons/fa";
+import { BuyerBillDetailsModal } from "../../Component/Modal/BuyerBillDetailsModal";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -81,14 +84,39 @@ const calculateTransactionTotals = (transactions = []) =>
     { debit: 0, credit: 0 },
   );
 
+
+
+const getTransactionBillDetailsPayload = (transaction) => {
+  const particular = transaction?.particular || "";
+  const isBillTransaction = /^Bill No\s+/i.test(particular);
+  const isReturnBillTransaction = /return.*bill/i.test(particular);
+
+  if (!isBillTransaction && !isReturnBillTransaction) return null;
+
+  return {
+    billId : transaction?.bill_id ?  transaction.bill_id  : {},
+  };
+};
+
+
+
+
+
+
 const BuyersDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { loading, BuyerById, markAsPaidLoading, discountLoading } = useSelector(
-    (state) => state.Buyer
-  );
+  const {
+    loading,
+    BuyerById,
+    BuyerBillDetails,
+    buyerBillDetailsLoading,
+    markAsPaidLoading,
+    discountLoading,
+  } = useSelector((state) => state.Buyer);
   const [openCModal, setCModal] = useState(false);
   const [discountModal, setDiscountModal] = useState(false);
+  const [billDetailsModal, setBillDetailsModal] = useState(false);
   const [discountFormData, setDiscountFormData] = useState({
     amount: "",
     reason: "",
@@ -203,6 +231,18 @@ const BuyersDetails = () => {
     setAppliedFilters(emptyAccountFilters);
   };
 
+  const openBillDetailsModal = (transaction) => {
+    const payload = getTransactionBillDetailsPayload(transaction, id);
+    if (!payload) return;
+
+    setBillDetailsModal(true);
+    dispatch(getBuyerBillDetailsAsync(payload));
+  };
+
+  const closeBillDetailsModal = () => {
+    setBillDetailsModal(false);
+  };
+
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
@@ -306,12 +346,6 @@ const BuyersDetails = () => {
             )}
           </div>
 
-          {/* <button
-        className="bg-red-500 mt-2 ml-2 text-white dark:text-gray-100 px-5 py-2 text-sm rounded-md"
-        onClick={() => navigate(`/dashboard/buyers-checks/${id}`)}
-      >
-        Checks
-      </button> */}
         </div>
 
         <div className="flex items-center justify-between">
@@ -390,11 +424,20 @@ const BuyersDetails = () => {
                     >
                       Balance
                     </th>
+                    <th
+                      className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm font-medium"
+                      scope="col"
+                    >
+                      Details
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions?.length > 0 ? (
-                    filteredTransactions?.map((data, index) => (
+                    filteredTransactions?.map((data, index) => {
+                      const detailsPayload = getTransactionBillDetailsPayload(data, id);
+
+                      return (
                         <tr
                           key={index}
                           className={` ${
@@ -427,8 +470,23 @@ const BuyersDetails = () => {
                               ? "-"
                             : data.balance}
                           </td>
+                          <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
+                            {detailsPayload ? (
+                              <button
+                                type="button"
+                                onClick={() => openBillDetailsModal(data)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-md"
+                                title="View bill details"
+                              >
+                                <FaEye size={18} className="cursor-pointer" />
+                              </button>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
                         </tr>
-                      ))
+                      );
+                    })
                   ) : (
                     <tr className="w-full flex justify-center items-center">
                       <td className="text-xl mt-3">No Data Available</td>
@@ -455,6 +513,12 @@ const BuyersDetails = () => {
           formData={discountFormData}
           onChange={handleDiscountFormChange}
           loading={discountLoading}
+        />
+        <BuyerBillDetailsModal
+          isOpen={billDetailsModal}
+          onClose={closeBillDetailsModal}
+          loading={buyerBillDetailsLoading}
+          details={BuyerBillDetails}
         />
       </section>
     </>

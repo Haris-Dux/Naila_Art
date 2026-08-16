@@ -8,6 +8,7 @@ import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
 import Pagination from "../../Component/Common/Pagination";
+import StatusChip from "../../Component/Common/StatusChip";
 import {
   buildPaginationQuery,
   buyerStatusOptions,
@@ -117,21 +118,6 @@ const Buyers = () => {
     });
     dispatch(getBuyerForBranchAsync(payload));
     navigate(`/dashboard/buyers${buildPaginationQuery(searchParams, { page: 1, limit })}`);
-  };
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
   };
 
   return (
@@ -254,7 +240,7 @@ const Buyers = () => {
                         {data.virtual_account.total_balance} Rs
                       </td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">
-                        {setStatusColor(data.virtual_account.status)}
+                        <StatusChip status={data.virtual_account.status} fallback="" />
                       </td>
                       <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
                         <Link

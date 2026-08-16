@@ -62,26 +62,18 @@ export const buyerStatusOptions = [
   accountStatusOptions[3],
 ];
 
-export const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Paid":
-        return "text-[#2ECC40]";
-      case "Unpaid":
-        return "text-red-700";
-      case "Advance Paid":
-        return "text-blue-700";
-      default:
-        return "text-black";
-    }
-};
-
 export const getStatusVariant = (status) => {
   switch (status) {
     case "Paid":
+    case "Completed":
+    case "Sold":
       return "success";
     case "Partially Paid":
+    case "Pending":
+    case "Partially Sold":
       return "warning";
     case "Unpaid":
+    case "UnSold":
       return "danger";
     case "Advance Paid":
       return "primary";
@@ -97,3 +89,5 @@ export const getDateOnlyTime = (value) => {
   date.setHours(0, 0, 0, 0);
   return date.getTime();
 };
+
+export const formatAmount = (value) => `${Number(value || 0).toLocaleString()} Rs`;

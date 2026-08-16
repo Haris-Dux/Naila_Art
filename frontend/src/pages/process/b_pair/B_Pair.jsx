@@ -12,6 +12,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import Pagination from "../../../Component/Common/Pagination";
 import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../../Utils/Common";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const B_Pair = () => {
   const dispatch = useDispatch();
@@ -72,19 +73,6 @@ const B_Pair = () => {
     setSearch(value);
   };
 
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Sold":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "UnSold":
-        return <span className="text-red-700">{status}</span>;
-      case "Partially Sold":
-        return <span className="text-[#FFC107]">{status}</span>;
-      default:
-        return "No Status";
-    }
-  };
 
   const openModal = (id) => {
     setIsOpen(true);
@@ -250,7 +238,7 @@ const B_Pair = () => {
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.sold_quantity}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.rate}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                        {setStatusColor(data?.status)}
+                        <StatusChip status={data?.status} />
                       </td>
                       <td className="pl-8 py-4 flex gap-3">
                         {data?.status !== "Sold" && (

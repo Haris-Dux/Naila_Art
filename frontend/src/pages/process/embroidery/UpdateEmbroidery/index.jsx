@@ -11,6 +11,7 @@ import { GetAllBaseforEmroidery } from "../../../../features/InStockSlice";
 import Loading from "../../../../Component/Loader/Loading";
 import BaseCategorySection from "./components/BaseCategorySection";
 import {Badge} from "flowbite-react"
+import StatusChip from "../../../../Component/Common/StatusChip";
 
 const UpdateEmbroidery = () => {
   const { id } = useParams();
@@ -38,21 +39,6 @@ const UpdateEmbroidery = () => {
       }
     });
   }, [id, dispatch]);
-
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
 
   const getDesignNumberSectionData = (data) => {
     setDesignNumberSectionData(data);
@@ -99,8 +85,7 @@ const UpdateEmbroidery = () => {
                   <div className="box text-center">
                     <h3 className="pb-1 font-normal ">Status</h3>
                     <h3>
-                      {setAccountStatusColor(accountData?.status) ||
-                        "No Status"}
+                      <StatusChip status={accountData?.status} />
                     </h3>
                   </div>
                 </div>

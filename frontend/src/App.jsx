@@ -27,7 +27,6 @@ import ProcessBills from "./pages/bills/ProcessBills";
 import ProcessDetails from "./pages/bills/ProcessDetails";
 import NailaArtsBuyer from "./pages/bills/NailaArtsBuyer";
 import OtherSaleBills from "./pages/bills/OtherSaleBills";
-import ReturnBills from "./pages/bills/ReturnBills";
 import GenerateBill from "./pages/generateBills/GenerateBill";
 import OldBuyerGenerateBill from "./pages/generateBills/OldBuyerGenerateBill";
 import AccountsDashboard from "./pages/accounts/AccountsDashboard";
@@ -131,7 +130,6 @@ function App() {
           <Route path="process-details/:id/:category" element={<ProcessDetails />} />
           <Route path="naila-arts-buyer" element={<NailaArtsBuyer />} />
           <Route path="other-sale" element={<OtherSaleBills />} />
-          <Route path="naila-arts-return-bills" element={<ReturnBills />} />
           <Route path="accounts-dashboard" element={<AccountsDashboard />} />
           <Route path="buyers" element={<Buyers />} />
           <Route path="buyers-checks/:id" element={<BuyersChecks />} />

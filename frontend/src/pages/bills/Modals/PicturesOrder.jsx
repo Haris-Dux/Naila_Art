@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getPictureOrderByIdAsync,
   updatePictureOrderByIdIdAsync,
 } from "../../../features/EmbroiderySlice";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const PicturesOrder = ({ closeModal, id }) => {
   const dispatch = useDispatch();
@@ -14,17 +15,6 @@ const PicturesOrder = ({ closeModal, id }) => {
   useEffect(() => {
     dispatch(getPictureOrderByIdAsync({ id }));
   }, []);
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
 
   const handleMarkAsCompleted = () => {
     dispatch(
@@ -139,9 +129,7 @@ const PicturesOrder = ({ closeModal, id }) => {
 
                 <div>
                   <span className="font-medium ">Order Status : </span>{" "}
-                  <span className="">
-                    {setStatusColor(singlePictureOrder?.status)}
-                  </span>
+                  <StatusChip status={singlePictureOrder?.status} fallback="" />
                 </div>
               </div>
 

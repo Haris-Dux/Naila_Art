@@ -13,6 +13,7 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import { formatReadableDate } from "../../../Utils/Common";
 import toast from "react-hot-toast";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const StitchingDetails = () => {
   const { id } = useParams();
@@ -23,7 +24,6 @@ const StitchingDetails = () => {
     StitchingBillLoading,
     StitchingpdfLoading,
   } = useSelector((state) => state.stitching);
-  const { SingleEmbroidery } = useSelector((state) => state.Embroidery);
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
@@ -230,15 +230,7 @@ const StitchingDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium ">Project Status:</span>
-              <span
-                className={`${
-                  SingleStitching.project_status === "Pending"
-                    ? "text-yellow-300"
-                    : "text-green-600"
-                }`}
-              >
-                {SingleStitching?.project_status}
-              </span>
+              <span> <StatusChip status={SingleStitching?.project_status} fallback="" /></span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
