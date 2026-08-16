@@ -62,7 +62,15 @@ const SuitDetailsTable = ({ rows = [], showPrice = true }) => (
   </div>
 );
 
-export const BuyerBillDetailsModal = ({ isOpen, onClose, loading, details }) => {
+export const BuyerBillDetailsModal = ({
+  isOpen,
+  onClose,
+  loading,
+  details,
+  title = "Bill And Returns Details",
+  showBillDetails = true,
+  showSuitDetails = true,
+}) => {
   const [expandedReturnIds, setExpandedReturnIds] = useState({});
 
   useEffect(() => {
@@ -91,7 +99,7 @@ export const BuyerBillDetailsModal = ({ isOpen, onClose, loading, details }) => 
       <div className="relative flex max-h-[90vh] w-[95%] max-w-5xl flex-col overflow-hidden rounded-md bg-white shadow dark:bg-gray-700">
         <div className="flex items-center justify-between border-b p-4 md:p-5 dark:border-gray-600">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-            Bill And Returns Details
+            {title}
           </h3>
           <button
             onClick={onClose}
@@ -110,19 +118,21 @@ export const BuyerBillDetailsModal = ({ isOpen, onClose, loading, details }) => 
             </div>
           ) : bill ? (
             <div className="space-y-5">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 rounded-md border border-gray-300 bg-[#F7F7F7] p-4 text-sm md:grid-cols-2 md:p-5 lg:grid-cols-5 dark:border-gray-500 dark:bg-gray-800">
-                <DetailItem label="S.N / A.S.N" value={`${bill.serialNumber} / ${bill.autoSN}`} />
-                <DetailItem label="Party Name" value={bill.name} />
-                <DetailItem label="City" value={bill.city} />
-                <DetailItem label="Phone" value={bill.phone} />
-                <DetailItem label="Date" value={formatReadableDate(bill.date)} />
-                <DetailItem label="Payment Method" value={bill.payment_Method} />
-                <DetailItem label="Total" value={formatAmount(bill.total)} />
-                <DetailItem label="Paid" value={formatAmount(bill.paid)} />
-                <DetailItem label="Remaining" value={formatAmount(bill.remaining)} />
-              </div>
+              {showBillDetails && (
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 rounded-md border border-gray-300 bg-[#F7F7F7] p-4 text-sm md:grid-cols-2 md:p-5 lg:grid-cols-5 dark:border-gray-500 dark:bg-gray-800">
+                  <DetailItem label="S.N / A.S.N" value={`${bill.serialNumber} / ${bill.autoSN}`} />
+                  <DetailItem label="Party Name" value={bill.name} />
+                  <DetailItem label="City" value={bill.city} />
+                  <DetailItem label="Phone" value={bill.phone} />
+                  <DetailItem label="Date" value={formatReadableDate(bill.date)} />
+                  <DetailItem label="Payment Method" value={bill.payment_Method} />
+                  <DetailItem label="Total" value={formatAmount(bill.total)} />
+                  <DetailItem label="Paid" value={formatAmount(bill.paid)} />
+                  <DetailItem label="Remaining" value={formatAmount(bill.remaining)} />
+                </div>
+              )}
 
-              {bill?.packaging?.quantity > 0 && (
+              {showBillDetails && bill?.packaging?.quantity > 0 && (
                 <div className="border-t pt-4 dark:border-gray-600">
                   <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                     Packaging
@@ -137,7 +147,7 @@ export const BuyerBillDetailsModal = ({ isOpen, onClose, loading, details }) => 
                 </div>
               )}
 
-              {bill?.other_Bill_Data && (
+              {showBillDetails && bill?.other_Bill_Data && (
                 <div className="border-t pt-4 dark:border-gray-600">
                   <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                     Other Bill
@@ -156,12 +166,14 @@ export const BuyerBillDetailsModal = ({ isOpen, onClose, loading, details }) => 
                 </div>
               )}
 
-              <div className="border-t pt-4 dark:border-gray-600">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                  Suit Details
-                </h4>
-                <SuitDetailsTable rows={bill.profitDataForHistory || []} />
-              </div>
+              {showSuitDetails && (
+                <div className="border-t pt-4 dark:border-gray-600">
+                  <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                    Suit Details
+                  </h4>
+                  <SuitDetailsTable rows={bill.profitDataForHistory || []} />
+                </div>
+              )}
 
               <div className="border-t pt-4 dark:border-gray-600">
                 <div className="mb-3 flex items-center justify-between gap-3">

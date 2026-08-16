@@ -369,35 +369,3 @@ export const createReturn = async (req, res, next) => {
     session.endSession();
   }
 };
-
-export const getAllReturnsForBranch = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required Found");
-    const name = req.query.search || "";
-    const { page, limit } = getPaginationParams(req.query);
-    let query = {
-      branchId: id,
-    };
-    if (name) {
-      query = { ...query, partyName: { $regex: name, $options: "i" } };
-    }
-
-    const totalDocuments = await ReturnSuitModel.countDocuments(query);
-    const data = await ReturnSuitModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const response = {
-      data,
-      page,
-      limit,
-      totalRecords: totalDocuments,
-      totalPages: Math.ceil(totalDocuments / limit),
-    };
-    setMongoose();
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};

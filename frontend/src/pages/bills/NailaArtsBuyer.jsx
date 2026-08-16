@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaEdit, FaEye } from "react-icons/fa";
 import {
   deleteBuyerBillAsync,
+  getBuyerBillDetailsAsync,
   getBuyerBillsHistoryForBranchAsync,
   getBuyerByIdAsync,
 } from "../../features/BuyerSlice";
@@ -16,19 +17,19 @@ import BillFilters, {
 } from "../../Component/BillFilters/BillFilters";
 import Pagination from "../../Component/Common/Pagination";
 import { buildPaginationQuery, formatReadableDate, getPageLimit } from "../../Utils/Common";
+import { BuyerBillDetailsModal } from "../../Component/Modal/BuyerBillDetailsModal";
 
 const NailaArtsBuyer = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [otherBillModal, setOthebillNodal] = useState(false);
+  const [returnBillsDetailsModal, setReturnBillsDetailsModal] = useState(false);
   const [returnModal, setreturnModal] = useState(false);
   const [selected, setselected] = useState(false);
   const [toDelete, setToDelete] = useState(null);
 
   const [filters, setFilters] = useState(emptyBillFilters);
-  const [suitSaleData, setSuitSaleData] = useState("");
   const [otherBillData, setOtherBillData] = useState("");
 
   const [searchParams] = useSearchParams();
@@ -39,7 +40,14 @@ const NailaArtsBuyer = () => {
   const { loading: branchesLoading, Branches } = useSelector(
     (state) => state.InStock
   );
-  const { BuyerBillHistory, billHistoryLoading, BuyerById, deleteBillLoading } = useSelector(
+  const {
+    BuyerBillHistory,
+    BuyerBillDetails,
+    billHistoryLoading,
+    buyerBillDetailsLoading,
+    BuyerById,
+    deleteBillLoading,
+  } = useSelector(
     (state) => state.Buyer
   );
   const [selectedBranchId, setSelectedBranchId] = useState();
@@ -77,23 +85,23 @@ const NailaArtsBuyer = () => {
     }
   }, [user, dispatch, Branches, page, limit]);
 
-
-
-  const openModal = (data) => {
-    setSuitSaleData(data);
-    setIsOpen(true);
-  };
-
   const openOtheBillMOdal = (data) => {
     setOtherBillData(data);
     setOthebillNodal(true);
   };
 
+  const openReturnBillsDetailsModal = (data) => {
+    setReturnBillsDetailsModal(true);
+    dispatch(getBuyerBillDetailsAsync({ billId: data.id || data._id }));
+  };
+
   const closeModal = () => {
-    setSuitSaleData("");
     setOtherBillData("");
-    setIsOpen(false);
     setOthebillNodal(false);
+  };
+
+  const closeReturnBillsDetailsModal = () => {
+    setReturnBillsDetailsModal(false);
   };
 
   const openReturnModal = (data) => {
@@ -296,11 +304,10 @@ const NailaArtsBuyer = () => {
                           {data.TotalProfit} Rs
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 font-medium text-xs md:text-sm">{formatReadableDate(data.date)}</td>
-                        <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex gap-2">
+                        <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4 flex flex-wrap items-center gap-2">
                           <button
-                            onClick={() =>
-                              openModal(data?.profitDataForHistory)
-                            }
+                            onClick={() => openReturnBillsDetailsModal(data)}
+                            title="View suit details"
                           >
                             <FaEye size={20} className="cursor-pointer mt-2" />
                           </button>
@@ -346,94 +353,6 @@ const NailaArtsBuyer = () => {
           />
         </>
      
-      {/* Suit Histoty Modal */}
-      {isOpen && (
-        <div
-          aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
-        >
-          <div className="relative py-4 px-3 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
-            {/* ------------- HEADER ------------- */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Suit History
-              </h3>
-              <button
-                onClick={closeModal}
-                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-
-            {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                  <tr>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      D # No
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Category
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Color
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Quantity
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Sale Price
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-              <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                  <tbody>
-                    {suitSaleData?.map((data, index) => (
-                      <tr
-                        key={index}
-                        className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                      >
-                        <td className=" px-6 py-3 text-center">{data?.d_no}</td>
-                        <td className=" px-6 py-3 text-center">
-                          {data?.category}
-                        </td>
-                        <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">{data?.color}</td>
-                        <td className=" px-6 py-3 text-center">
-                          {data?.quantity}
-                        </td>
-                        <td className=" px-6 py-3 text-center">
-                          {data?.suitSalePrice}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* OTHE BILL DETAILS MODAL */}
       {otherBillModal && (
         <div
@@ -517,6 +436,16 @@ const NailaArtsBuyer = () => {
           selected={selected}
         />
       )}
+
+      <BuyerBillDetailsModal
+        isOpen={returnBillsDetailsModal}
+        onClose={closeReturnBillsDetailsModal}
+        loading={buyerBillDetailsLoading}
+        details={BuyerBillDetails}
+        title="Suit And Returns Details"
+        showBillDetails={false}
+        showSuitDetails={true}
+      />
 
       {/* Delete Confiramtion Modal */}
       {deleteModal && <DeleteModal
