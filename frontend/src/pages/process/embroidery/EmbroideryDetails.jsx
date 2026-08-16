@@ -17,9 +17,10 @@ import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import PictureOrderModal from "../../../Component/Embodiary/PictureOrderModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import toast from "react-hot-toast";
-import { formatReadableDate, getTodayDate, setAccountStatusColor } from "../../../Utils/Common";
+import { formatReadableDate, getTodayDate } from "../../../Utils/Common";
 import { Button } from "../../../Component/Common/button/Button";
 import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -340,17 +341,6 @@ const EmbroideryDetails = () => {
     setProcessBillData(data);
   };
 
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   const openMoodalForPicturesOrder = () => {
     setPicturesMOdal(true);
   };
@@ -507,7 +497,7 @@ const EmbroideryDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className=""> {setStatusColor(project_status)}</span>
+              <span> <StatusChip status={project_status} fallback="" /></span>
             </div>
             {/* SECOND ROW */}
             <div className="box">
@@ -903,13 +893,7 @@ const EmbroideryDetails = () => {
                         <div className="box text-center">
                           <h3 className="pb-1 font-normal ">Status</h3>
                           <h3>
-                            <span
-                              className={setAccountStatusColor(
-                                accountData?.status,
-                              )}
-                            >
-                              {accountData?.status}
-                            </span>
+                            <StatusChip status={accountData?.status} />
                           </h3>
                         </div>
                       </div>

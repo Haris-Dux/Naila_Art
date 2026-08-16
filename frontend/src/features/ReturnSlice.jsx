@@ -1,33 +1,10 @@
 import axios from "axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
-import { buildQueryParams } from "../Utils/Common";
 
 //API URL
-const getAllReturnsForBranchUrl = `/api/returns/getAllReturnsForBranch`;
 const createReturn = "/api/returns/createReturn";
 
-// GET BUYER FOR BRANCH THUNK
-
-export const getAllReturnsForBranch = createAsyncThunk(
-  "ReturnBIlls/ReturnsForBranch",
-  async (data) => {
-    const query = buildQueryParams({
-      page: data.page,
-      limit: data.limit,
-      search: data.search,
-    });
-    try {
-      const response = await axios.post(
-        `${getAllReturnsForBranchUrl}?${query}`,
-        { id: data.id }
-      );
-      return response.data;
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
-);
 
 // GET BUYER FOR BRANCH THUNK
 export const CreateReturnforBranch = createAsyncThunk(
@@ -45,7 +22,6 @@ export const CreateReturnforBranch = createAsyncThunk(
 
 // INITIAL STATE
 const initialState = {
-  ReturnsBillHistory: {},
   Returnloading: false,
 };
 
@@ -55,20 +31,12 @@ const ReturnSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // GET BUYER FOR BRANCH
-      .addCase(getAllReturnsForBranch.pending, (state) => {
-        state.Returnloading = true;
-      })
-      .addCase(getAllReturnsForBranch.fulfilled, (state, action) => {
-        state.Returnloading = false;
-        state.ReturnsBillHistory = action.payload;
-      })
 
       // GET BUYER FOR BRANCH
       .addCase(CreateReturnforBranch.pending, (state) => {
         state.Returnloading = true;
       })
-      .addCase(CreateReturnforBranch.fulfilled, (state, action) => {
+      .addCase(CreateReturnforBranch.fulfilled, (state) => {
         state.Returnloading = false;
       });
   },

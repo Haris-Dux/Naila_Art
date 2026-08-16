@@ -11,6 +11,7 @@ import {
 import moment from "moment-timezone";
 import toast from "react-hot-toast";
 import { accountTypeData } from "../../Utils/AccountsData";
+import StatusChip from "../../Component/Common/StatusChip";
 
 const CashInOut = () => {
   const dispatch = useDispatch();
@@ -232,21 +233,6 @@ const CashInOut = () => {
     setTransactionType(value);
   };
 
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   const handlePastTransaction = (e) => {
     const value = e.target.checked;
     setFormData((prev) => ({
@@ -392,9 +378,7 @@ const CashInOut = () => {
                     <div className="box text-center">
                       <h3 className="pb-1 font-normal ">Status</h3>
                       <h3>
-                        {setAccountStatusColor(
-                          selectedParty?.virtual_account?.status,
-                        ) || "No Status"}
+                        <StatusChip status={selectedParty?.virtual_account?.status} />
                       </h3>
                     </div>
                   </div>
@@ -661,9 +645,7 @@ const CashInOut = () => {
                                   <p className="w-1/3 truncate">{data?.name}</p>
                                   <p className="w-1/3 truncate">{data?.city}</p>
                                   <p className="w-1/3 truncate">
-                                    {setAccountStatusColor(
-                                      data?.virtual_account?.status,
-                                    )}
+                                    <StatusChip status={data?.virtual_account?.status} fallback="" />
                                   </p>
                                 </button>
                               </li>
@@ -709,9 +691,7 @@ const CashInOut = () => {
                                   </p>
                                   <p className="w-1/3 truncate">{data?.city}</p>
                                   <p className="w-1/3 truncate">
-                                    {setAccountStatusColor(
-                                      data?.virtual_account?.status,
-                                    )}
+                                    <StatusChip status={data?.virtual_account?.status} fallback="" />
                                   </p>
                                 </button>
                               </li>

@@ -13,6 +13,7 @@ import ProcessFilters from "../../../Component/ProcessFilters/ProcessFilters";
 import Pagination from "../../../Component/Common/Pagination";
 import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import ColorList from "../../../Component/Common/ColorList";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const Stitching = () => {
   const dispatch = useDispatch();
@@ -32,17 +33,6 @@ const Stitching = () => {
   }, [dispatch, filters, page, limit]);
 
   const filteredData = Stitching?.data;
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
 
   const openDeleteModal = (id) => {
     setDeleteModal(true);
@@ -177,7 +167,7 @@ const Stitching = () => {
                           {data.r_quantity ? `${data.r_quantity} suit` : "--"}
                         </td>
                         <td className=" px-6 py-4">
-                          {setStatusColor(data.project_status)}
+                          <StatusChip status={data.project_status} fallback="" />
                         </td>
                         <td className="pl-8 py-4 flex gap-3">
                           <Link to={`/dashboard/stitching-details/${data.id}`}>

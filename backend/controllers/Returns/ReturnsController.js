@@ -175,6 +175,7 @@ export const createReturn = async (req, res, next) => {
           particular: `Return Payment for Bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_From_Balance,
           balance: total_balance,
+          bill_id: bill_Id
         };
 
         //UPDATING Buyer DATA IN DB
@@ -199,6 +200,7 @@ export const createReturn = async (req, res, next) => {
           particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
           credit: Amount_Payable,
           balance: total_balance,
+          bill_id: bill_Id
         };
 
         //UPDATING USER DATA IN DB
@@ -273,8 +275,6 @@ export const createReturn = async (req, res, next) => {
         }
 
         if (Amount_From_Balance > 0) {
-          console.log('running this')
-
           const result = calculateBuyerAccountBalance({paid:Amount_Payable + Amount_From_Balance, total:0, oldAccountData:buyer.virtual_account});
 
             const accountDataAterCreditEntry = {
@@ -288,6 +288,7 @@ export const createReturn = async (req, res, next) => {
               particular: `Return payment for bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
               credit: Amount_From_Balance + Amount_Payable,
               balance: accountDataAterCreditEntry.total_balance,
+              bill_id: bill_Id
             };
 
           const { total_debit, total_credit, total_balance, status } =
@@ -303,6 +304,7 @@ export const createReturn = async (req, res, next) => {
             particular: `Cash payment for return bill: A.S.N-${buyerBill.autoSN}/S.N-${buyerBill.serialNumber}`,
             debit: Amount_Payable,
             balance: total_balance,
+            bill_id: bill_Id
           };
 
           const virtualAccountData = {
@@ -359,43 +361,11 @@ export const createReturn = async (req, res, next) => {
 
       return res
         .status(200)
-        .json({ success: true, message: "Return bill successfull" });
+        .json({ success: true, message: "Return bill generated successfull" });
     });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   } finally {
     session.endSession();
-  }
-};
-
-export const getAllReturnsForBranch = async (req, res, next) => {
-  try {
-    const { id } = req.body;
-    if (!id) throw new Error("Branch Id Required Found");
-    const name = req.query.search || "";
-    const { page, limit } = getPaginationParams(req.query);
-    let query = {
-      branchId: id,
-    };
-    if (name) {
-      query = { ...query, partyName: { $regex: name, $options: "i" } };
-    }
-
-    const totalDocuments = await ReturnSuitModel.countDocuments(query);
-    const data = await ReturnSuitModel.find(query)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const response = {
-      data,
-      page,
-      limit,
-      totalRecords: totalDocuments,
-      totalPages: Math.ceil(totalDocuments / limit),
-    };
-    setMongoose();
-    return res.status(200).json(response);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
   }
 };

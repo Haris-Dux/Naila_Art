@@ -21,6 +21,7 @@ import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabili
 import { RxCross2 } from "react-icons/rx";
 import { FiPlus } from "react-icons/fi";
 import { formatReadableDate } from "../../../Utils/Common";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const CalendarDetails = () => {
   const { id } = useParams();
@@ -448,32 +449,6 @@ const CalendarDetails = () => {
     setConvertedAmount(convertedAmount);
   };
 
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Completed":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
-  const setAccountStatusColor = (status) => {
-    switch (status) {
-      case "Partially Paid":
-        return <span className="text-[#FFC107]">{status}</span>;
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return "";
-    }
-  };
-
   const handleSelectedRecord = (value) => {
     const Data = previousDataByPartyName?.accountData.find(
       (item) => item.partyName === value
@@ -584,10 +559,7 @@ const CalendarDetails = () => {
             </div>
             <div className="box">
               <span className="font-medium">Project Status:</span>
-              <span className="">
-                {" "}
-                {setStatusColor(SingleCalender?.project_status)}
-              </span>
+              <span> <StatusChip status={SingleCalender?.project_status} fallback="" /></span>
             </div>
             <div className="box">
               <span className="font-medium">Date:</span>
@@ -753,12 +725,11 @@ const CalendarDetails = () => {
                         <h3>{accountData?.total_balance || 0}</h3>
                       </div>
                       <div className="box text-center">
-                        <h3 className="pb-1 font-normal ">Status</h3>
-                        <h3>
-                          {setAccountStatusColor(accountData?.status) ||
-                            "No Status"}
-                        </h3>
-                      </div>
+                          <h3 className="pb-1 font-normal ">Status</h3>
+                          <h3>
+                          <StatusChip status={accountData?.status} />
+                          </h3>
+                        </div>
                     </div>
                   )}
                 </>

@@ -9,6 +9,7 @@ import {
   AddSellerDetailsFromAsync,
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
+import StatusChip from "../../../Component/Common/StatusChip";
 
 const emptyDesign = {
   design_no: "",
@@ -24,21 +25,6 @@ const numberValue = (value) =>
 const titleCase = (value) => {
   const text = String(value || "").trim();
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
-};
-
-const setAccountStatusColor = (status) => {
-  switch (status) {
-    case "Partially Paid":
-      return <span className="text-[#FFC107]">{status}</span>;
-    case "Paid":
-      return <span className="text-[#2ECC40]">{status}</span>;
-    case "Unpaid":
-      return <span className="text-red-700">{status}</span>;
-    case "Advance Paid":
-      return <span className="text-blue-700">{status}</span>;
-    default:
-      return "";
-  }
 };
 
 const SuitsModal = ({ isOpen, closeModal, sellerDetails }) => {
@@ -300,7 +286,9 @@ const SuitsModal = ({ isOpen, closeModal, sellerDetails }) => {
             </div>
             <div className="box text-center">
               <h3 className="pb-1 font-normal">Status</h3>
-              <h3>{setAccountStatusColor(sellerDetails.virtual_account.status) || "No Status"}</h3>
+              <h3>
+                <StatusChip status={sellerDetails.virtual_account.status} />
+              </h3>
             </div>
           </div>
         )}

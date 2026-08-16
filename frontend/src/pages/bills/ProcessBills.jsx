@@ -10,6 +10,7 @@ import BillFilters, {
   emptyBillFilters,
 } from "../../Component/BillFilters/BillFilters";
 import Pagination from "../../Component/Common/Pagination";
+import StatusChip from "../../Component/Common/StatusChip";
 import {
   accountStatusOptions,
   buildPaginationQuery,
@@ -111,21 +112,6 @@ const ProcessBills = () => {
     navigate(`/dashboard/processbills${buildPaginationQuery(searchParams, { page: 1, limit })}`);
   };
 
-
-
-  const setStatusColor = (status) => {
-    switch (status) {
-      case "Paid":
-        return <span className="text-[#2ECC40]">{status}</span>;
-      case "Unpaid":
-        return <span className="text-red-700">{status}</span>;
-      case "Advance Paid":
-        return <span className="text-blue-700">{status}</span>;
-      default:
-        return <span>{status}</span>;
-    }
-  };
-
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-[70vh] rounded-lg">
@@ -213,7 +199,7 @@ const ProcessBills = () => {
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{data?.design_no}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{formatReadableDate(data?.date)}</td>
                       <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                        {setStatusColor(data?.virtual_account?.status)}
+                        <StatusChip status={data?.virtual_account?.status} fallback="" />
                       </td>
                       <td className="pl-4 md:pl-6 lg:pl-10 py-2 md:py-3 lg:py-4">
                         <Link

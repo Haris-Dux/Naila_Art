@@ -37,6 +37,10 @@ const returnSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       required: [true, "Buyer Id required"],
     },
+    bill_Id: {
+      type: mongoose.Types.ObjectId,
+      required: [true, "Bill id is required"]
+    },
     partyName: {
       type: String,
       required: [true, "Party Name is Required"],
