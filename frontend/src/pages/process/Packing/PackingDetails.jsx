@@ -11,6 +11,7 @@ import PicturesOrder from "../../bills/Modals/PicturesOrder";
 import { CgShoppingBag } from "react-icons/cg";
 import { AiOutlinePicture } from "react-icons/ai";
 import { getRecordForId } from "../../../Utils/Common";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 const PackingDetails = () => {
   const { id } = useParams();
@@ -158,15 +159,7 @@ const PackingDetails = () => {
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
+        <PageLoader />
       </section>
     );
   }

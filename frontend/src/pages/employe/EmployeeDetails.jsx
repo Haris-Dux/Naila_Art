@@ -17,6 +17,7 @@ import { MdOutlineDelete } from "react-icons/md";
 
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import { formatReadableDate, getDateOnlyTime, getTodayDate } from "../../Utils/Common";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 
 const EmployeeDetails = () => {
@@ -343,15 +344,7 @@ const sortTransactionsByDate = (transactions = []) =>
         )}
 
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
+          <PageLoader />
         ) : (
           <div className="relative overflow-x-auto mt-5">
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">

@@ -22,6 +22,7 @@ import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabili
 import { formatReadableDate, getRecordForId, getTodayDate } from "../../../Utils/Common";
 import { RxCross2 } from "react-icons/rx";
 import StatusChip from "../../../Component/Common/StatusChip";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 const CuttingDetails = () => {
   const { id } = useParams();
@@ -510,15 +511,7 @@ const CuttingDetails = () => {
    if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
+        <PageLoader />
       </section>
     );
   }

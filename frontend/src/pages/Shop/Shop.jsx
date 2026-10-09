@@ -13,6 +13,7 @@ import {
   UpdateUser,
 } from "../../features/authSlice";
 import { Link, useNavigate } from "react-router-dom";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 const Shop = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -202,15 +203,7 @@ const Shop = () => {
         <p className="w-full bg-gray-300 h-px mt-5"></p>
 
         {loading || selectedShopId === null || pendingloading ? (
-          <div className="flex justify-center pt-16 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
+          <PageLoader />
         ) : (
           <>
             <div className="tabs flex justify-between items-start my-5">

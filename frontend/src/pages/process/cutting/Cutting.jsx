@@ -13,6 +13,7 @@ import Pagination from "../../../Component/Common/Pagination";
 import { formatReadableDate, getPageLimit } from "../../../Utils/Common";
 import ColorList from "../../../Component/Common/ColorList";
 import StatusChip from "../../../Component/Common/StatusChip";
+import PageLoader from "../../../Component/Loader/PageLoader";
 const Cutting = () => {
   const dispatch = useDispatch();
   const [deleteModal, setDeleteModal] = useState(false);
@@ -70,15 +71,7 @@ const Cutting = () => {
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
+          <PageLoader />
         ) : (
           <>
             <div className="relative overflow-x-auto mt-5">

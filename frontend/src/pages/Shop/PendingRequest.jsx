@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getPendingRequests, UpdateUser } from "../../features/authSlice";
 import { GetAllShop } from "../../features/ShopSlice";
 import toast from "react-hot-toast";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 const PendingRequest = () => {
   const dispatch = useDispatch();
@@ -84,15 +85,7 @@ const PendingRequest = () => {
       <p className="w-full bg-gray-300 h-px mt-5"></p>
 
       {pendingRequestsLoading ? (
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
+        <PageLoader />
       ) : pendingRequest && pendingRequest.length > 0 ? (
         <div className="relative overflow-x-auto mt-5">
           <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
