@@ -450,12 +450,15 @@ const EmbroiderySlice = createSlice({
       .addCase(GETEmbroiderySIngle.pending, (state, action) => {
         state.loading = true;
         state.SingleEmbroidery = null;
+        state.singleEmbroideryRequestId = action.meta.requestId;
       })
       .addCase(GETEmbroiderySIngle.fulfilled, (state, action) => {
+        if (state.singleEmbroideryRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleEmbroidery = action.payload;
       })
        .addCase(GETEmbroiderySIngle.rejected, (state, action) => {
+        if (state.singleEmbroideryRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleEmbroidery = null;
       })

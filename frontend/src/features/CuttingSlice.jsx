@@ -258,8 +258,11 @@ const CuttingSlice = createSlice({
 
       .addCase(GetSingleCutting.pending, (state, action) => {
         state.loading = true;
+        state.SingleCutting = {};
+        state.singleCuttingRequestId = action.meta.requestId;
       })
       .addCase(GetSingleCutting.fulfilled, (state, action) => {
+        if (state.singleCuttingRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleCutting = action.payload;
       });

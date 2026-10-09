@@ -1,17 +1,13 @@
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import Loading from "../Loader/Loading";
+import PageLoader from "../Loader/PageLoader";
 
 const UserProtected = ({ children }) => {
   const { routingLoading, user, isAuthenticated } = useSelector(
     (state) => state.auth
   );
   if ((routingLoading || user === null) && isAuthenticated) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loading />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (isAuthenticated && user) {
@@ -28,11 +24,7 @@ const LoginProtected = ({ children }) => {
 
 
   if (routingLoading && user === null) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loading />
-      </div>
-    );
+    return <PageLoader />;
   }
   if (isAuthenticated && user) {
     return <Navigate to={"/dashboard"} replace={true} />;

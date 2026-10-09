@@ -16,6 +16,7 @@ import {
   IoCalendarOutline,
   IoCashOutline,
 } from "react-icons/io5";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 ChartJS.register(
   ArcElement,
@@ -310,15 +311,7 @@ const ExpenseStats = () => {
           </div>
 
           {ExpenseStatsLoading ? (
-            <div className="pt-16 flex justify-center mt-12 items-center">
-              <div
-                className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-                role="status"
-                aria-label="ExpenseLoading"
-              >
-                <span className="sr-only">Loading...</span>
-              </div>
-            </div>
+            <PageLoader />
           ) : (
             <div className="space-y-5">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -233,10 +233,13 @@ const StoneSlice = createSlice({
         state.Stone = action.payload;
       })
 
-      .addCase(GetSingleStone.pending, (state) => {
+      .addCase(GetSingleStone.pending, (state, action) => {
         state.loading = true;
+        state.SingleStone = {};
+        state.singleStoneRequestId = action.meta.requestId;
       })
       .addCase(GetSingleStone.fulfilled, (state, action) => {
+        if (state.singleStoneRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleStone = action.payload
       })

@@ -33,6 +33,11 @@ export const buildPaginationQuery = (searchParams, updates = {}) => {
   return `?${params.toString()}`;
 };
 
+const EMPTY_RECORD = {};
+
+export const getRecordForId = (record, id) =>
+  record?.id === id ? record : EMPTY_RECORD;
+
 export const getTodayDate = () => {
   return moment().tz("Asia/Karachi").format("YYYY-MM-DD");
 };

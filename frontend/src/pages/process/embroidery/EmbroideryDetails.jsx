@@ -21,6 +21,7 @@ import { formatReadableDate, getTodayDate } from "../../../Utils/Common";
 import { Button } from "../../../Component/Common/button/Button";
 import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
 import StatusChip from "../../../Component/Common/StatusChip";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -75,13 +76,11 @@ const EmbroideryDetails = () => {
   }, [SingleEmbroidery, partyValue]);
 
   const initialShirtRow = { category: "", color: "", received: 0 };
-  const initialDupattaRow = { category: "", color: "", received: 0 };
-  const initialTrouserRow = { category: "", color: "", received: 0 };
 
   const [formData, setFormData] = useState({
     shirt: [initialShirtRow],
-    duppata: [initialDupattaRow],
-    trouser: [initialTrouserRow],
+    duppata: [],
+    trouser: [],
     id: id,
   });
 
@@ -99,12 +98,8 @@ const EmbroideryDetails = () => {
         shirt: autofillReceived(SingleEmbroidery.shirt) || [
           { category: "", color: "", received: 0 },
         ],
-        duppata: autofillReceived(SingleEmbroidery.duppata) || [
-          { category: "", color: "", received: 0 },
-        ],
-        trouser: autofillReceived(SingleEmbroidery.trouser) || [
-          { category: "", color: "", received: 0 },
-        ],
+        duppata: autofillReceived(SingleEmbroidery.duppata) || [],
+        trouser: autofillReceived(SingleEmbroidery.trouser) || [],
         id: id,
       });
     }
@@ -142,15 +137,7 @@ const EmbroideryDetails = () => {
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading.....</span>
-          </div>
-        </div>
+        <PageLoader />
       </section>
     );
   }

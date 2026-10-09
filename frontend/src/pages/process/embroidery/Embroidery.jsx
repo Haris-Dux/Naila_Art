@@ -26,6 +26,7 @@ import { formatReadableDate, getPageLimit, getTodayDate } from "../../../Utils/C
 import Pagination from "../../../Component/Common/Pagination";
 import ColorList from "../../../Component/Common/ColorList";
 import StatusChip from "../../../Component/Common/StatusChip";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -333,9 +334,7 @@ const Embroidery = () => {
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
-            <Loading />
-          </div>
+          <PageLoader />
         ) : (
           <>
             <div className="relative overflow-x-auto mt-5 ">

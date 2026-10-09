@@ -20,6 +20,7 @@ import AccountDiscountModal from "./AccountDiscountModal";
 import { formatReadableDate, getDateOnlyTime } from "../../Utils/Common";
 import { FaEye } from "react-icons/fa";
 import { BuyerBillDetailsModal } from "../../Component/Modal/BuyerBillDetailsModal";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -379,15 +380,7 @@ const BuyersDetails = () => {
 
         {/* -------------- TABLE -------------- */}
         {loading ? (
-          <div className="pt-16 flex justify-center mt-12 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
+          <PageLoader />
         ) : (
           <>
             <div className="relative overflow-x-auto mt-5 ">

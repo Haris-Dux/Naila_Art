@@ -15,6 +15,7 @@ import {
 import { logoutUserAsync } from "../../features/authSlice";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../Component/Common/Icons";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 const StatusBadge = ({ active }) => (
   <span
@@ -158,15 +159,7 @@ const PaymentMethods = () => {
         <p className="w-full bg-gray-300 h-px my-5"></p>
 
         {loading ? (
-          <div className="flex justify-center pt-16 items-center">
-            <div
-              className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-              role="status"
-              aria-label="loading"
-            >
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
+          <PageLoader />
         ) : (
           <div className="space-y-5 px-2">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

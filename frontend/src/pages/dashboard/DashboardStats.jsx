@@ -29,6 +29,7 @@ import { GrPowerReset } from "react-icons/gr";
 import SuitSalesGraph from "./SuitSalesGraph";
 import Pagination from "../../Component/Common/Pagination";
 import { DEFAULT_PAGE_LIMIT, formatReadableDate } from "../../Utils/Common";
+import PageLoader from "../../Component/Loader/PageLoader";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -274,15 +275,7 @@ const DashboardStats = () => {
   return (
     <>
       {dataLoading || loading ? (
-        <div className="min-h-[90vh] flex justify-center items-center">
-          <div
-            className="animate-spin inline-block w-9 h-9 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full "
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
+        <PageLoader />
       ) : (
         <section className="bg-white dark:bg-gray-900 mt-7 mb-0 mx-6 px-2 pt-6 pb-16 min-h-screen rounded-lg">
           {/* ------------ FIRST STATS BAR ------------*/}

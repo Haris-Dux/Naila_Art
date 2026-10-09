@@ -8,10 +8,10 @@ import {
   getHeadDataByDesignNoAsync,
 } from "../../../../features/EmbroiderySlice";
 import { GetAllBaseforEmroidery } from "../../../../features/InStockSlice";
-import Loading from "../../../../Component/Loader/Loading";
 import BaseCategorySection from "./components/BaseCategorySection";
 import {Badge} from "flowbite-react"
 import StatusChip from "../../../../Component/Common/StatusChip";
+import PageLoader from "../../../../Component/Loader/PageLoader";
 
 const UpdateEmbroidery = () => {
   const { id } = useParams();
@@ -49,9 +49,7 @@ const UpdateEmbroidery = () => {
   return (
     <>
       {isLoading ? (
-        <div className="min-h-screen flex justify-center items-center">
-          <Loading />
-        </div>
+        <PageLoader />
       ) : (
         <div className="relative py-4 px-3 w-full  bg-white rounded-md shadow dark:bg-gray-700 ">
           {/* ------------- HEADER ------------- */}

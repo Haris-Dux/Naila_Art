@@ -11,19 +11,21 @@ import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
-import { formatReadableDate } from "../../../Utils/Common";
+import { formatReadableDate, getRecordForId } from "../../../Utils/Common";
 import toast from "react-hot-toast";
 import StatusChip from "../../../Component/Common/StatusChip";
+import PageLoader from "../../../Component/Loader/PageLoader";
 
 const StitchingDetails = () => {
   const { id } = useParams();
   const {
-    SingleStitching,
+    SingleStitching: storedStitching,
     loading,
     updateStitchingLoading,
     StitchingBillLoading,
     StitchingpdfLoading,
   } = useSelector((state) => state.stitching);
+  const SingleStitching = getRecordForId(storedStitching, id);
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);
@@ -175,15 +177,7 @@ const StitchingDetails = () => {
   if (loading) {
     return (
       <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 mt-7 mb-0 mx-2 px-2 md:mx-4 md:px-4 lg:mx-6 lg:px-5 py-6 min-h-screen rounded-lg">
-        <div className="pt-16 flex justify-center mt-12 items-center">
-          <div
-            className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-gray-700 dark:text-gray-100 rounded-full"
-            role="status"
-            aria-label="loading"
-          >
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
+        <PageLoader />
       </section>
     );
   }
