@@ -76,13 +76,11 @@ const EmbroideryDetails = () => {
   }, [SingleEmbroidery, partyValue]);
 
   const initialShirtRow = { category: "", color: "", received: 0 };
-  const initialDupattaRow = { category: "", color: "", received: 0 };
-  const initialTrouserRow = { category: "", color: "", received: 0 };
 
   const [formData, setFormData] = useState({
     shirt: [initialShirtRow],
-    duppata: [initialDupattaRow],
-    trouser: [initialTrouserRow],
+    duppata: [],
+    trouser: [],
     id: id,
   });
 
@@ -100,12 +98,8 @@ const EmbroideryDetails = () => {
         shirt: autofillReceived(SingleEmbroidery.shirt) || [
           { category: "", color: "", received: 0 },
         ],
-        duppata: autofillReceived(SingleEmbroidery.duppata) || [
-          { category: "", color: "", received: 0 },
-        ],
-        trouser: autofillReceived(SingleEmbroidery.trouser) || [
-          { category: "", color: "", received: 0 },
-        ],
+        duppata: autofillReceived(SingleEmbroidery.duppata) || [],
+        trouser: autofillReceived(SingleEmbroidery.trouser) || [],
         id: id,
       });
     }
