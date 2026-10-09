@@ -11,19 +11,20 @@ import { GETEmbroiderySIngle } from "../../../features/EmbroiderySlice";
 
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
-import { formatReadableDate } from "../../../Utils/Common";
+import { formatReadableDate, getRecordForId } from "../../../Utils/Common";
 import toast from "react-hot-toast";
 import StatusChip from "../../../Component/Common/StatusChip";
 
 const StitchingDetails = () => {
   const { id } = useParams();
   const {
-    SingleStitching,
+    SingleStitching: storedStitching,
     loading,
     updateStitchingLoading,
     StitchingBillLoading,
     StitchingpdfLoading,
   } = useSelector((state) => state.stitching);
+  const SingleStitching = getRecordForId(storedStitching, id);
   const dispatch = useDispatch();
   const [isUpdateReceivedConfirmOpen, setIsUpdateReceivedConfirmOpen] =
     useState(false);

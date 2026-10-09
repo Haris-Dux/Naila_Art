@@ -21,7 +21,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import moment from "moment-timezone";
 import ReactSearchBox from "react-search-box";
 import { RxCross2 } from "react-icons/rx";
-import { formatReadableDate } from "../../../Utils/Common";
+import { formatReadableDate, getRecordForId } from "../../../Utils/Common";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 import Loading from "../../../Component/Loader/Loading";
 import StatusChip from "../../../Component/Common/StatusChip";
@@ -29,8 +29,13 @@ import StatusChip from "../../../Component/Common/StatusChip";
 const StonesDetails = () => {
   const { id } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-  const { loading, SingleStone, StnoneBillLoading, StonerpdfLoading } =
-    useSelector((state) => state.stone);
+  const {
+    loading,
+    SingleStone: storedStone,
+    StnoneBillLoading,
+    StonerpdfLoading,
+  } = useSelector((state) => state.stone);
+  const SingleStone = getRecordForId(storedStone, id);
   const { LaceForEmroidery } = useSelector((state) => state.InStock);
 
   const { SingleEmbroidery, loading: embroideryLoading } = useSelector((state) => state.Embroidery);

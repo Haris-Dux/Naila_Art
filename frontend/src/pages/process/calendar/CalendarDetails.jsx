@@ -20,17 +20,18 @@ import toast from "react-hot-toast";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
 import { RxCross2 } from "react-icons/rx";
 import { FiPlus } from "react-icons/fi";
-import { formatReadableDate } from "../../../Utils/Common";
+import { formatReadableDate, getRecordForId } from "../../../Utils/Common";
 import StatusChip from "../../../Component/Common/StatusChip";
 
 const CalendarDetails = () => {
   const { id } = useParams();
   const {
     loading,
-    SingleCalender,
+    SingleCalender: storedCalender,
     generateCAlenderBillLoading,
     CalenderpdfLoading,
   } = useSelector((state) => state.Calender);
+  const SingleCalender = getRecordForId(storedCalender, id);
   const { loading: IsLoading, previousDataByPartyName } = useSelector(
     (state) => state.Cutting
   );

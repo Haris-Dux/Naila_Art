@@ -10,12 +10,16 @@ import { FaEye } from "react-icons/fa";
 import PicturesOrder from "../../bills/Modals/PicturesOrder";
 import { CgShoppingBag } from "react-icons/cg";
 import { AiOutlinePicture } from "react-icons/ai";
+import { getRecordForId } from "../../../Utils/Common";
 
 const PackingDetails = () => {
   const { id } = useParams();
-  const { SingleStitching, loading, addInStockLoading } = useSelector(
-    (state) => state.stitching
-  );
+  const {
+    SingleStitching: storedStitching,
+    loading,
+    addInStockLoading,
+  } = useSelector((state) => state.stitching);
+  const SingleStitching = getRecordForId(storedStitching, id);
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [picturesOrderModal, setpicturesOrderModal] = useState(false);
 

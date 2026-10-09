@@ -277,8 +277,11 @@ const StitchingSlice = createSlice({
 
       .addCase(GetSingleStitching.pending, (state, action) => {
         state.loading = true;
+        state.SingleStitching = {};
+        state.singleStitchingRequestId = action.meta.requestId;
       })
       .addCase(GetSingleStitching.fulfilled, (state, action) => {
+        if (state.singleStitchingRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleStitching = action.payload;
       })

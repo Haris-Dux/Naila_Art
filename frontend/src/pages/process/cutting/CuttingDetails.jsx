@@ -19,7 +19,7 @@ import ProcessBillModal from "../../../Component/Modal/ProcessBillModal";
 import ReactSearchBox from "react-search-box";
 import toast from "react-hot-toast";
 import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabilityCard";
-import { formatReadableDate, getTodayDate } from "../../../Utils/Common";
+import { formatReadableDate, getRecordForId, getTodayDate } from "../../../Utils/Common";
 import { RxCross2 } from "react-icons/rx";
 import StatusChip from "../../../Component/Common/StatusChip";
 
@@ -28,10 +28,11 @@ const CuttingDetails = () => {
   const [isOpen, setIsOpen] = useState(false);
   const {
     loading,
-    SingleCutting,
+    SingleCutting: storedCutting,
     generateCuttingBillLoading,
     CuttingpdfLoading,
   } = useSelector((state) => state.Cutting);
+  const SingleCutting = getRecordForId(storedCutting, id);
   const {
     loading: IsLoading,
     previousDataByPartyName,

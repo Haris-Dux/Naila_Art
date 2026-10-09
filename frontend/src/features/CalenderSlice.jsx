@@ -234,8 +234,11 @@ const CalenderSlice = createSlice({
 
       .addCase(GetSingleCalender.pending, (state, action) => {
         state.loading = true;
+        state.SingleCalender = {};
+        state.singleCalenderRequestId = action.meta.requestId;
       })
       .addCase(GetSingleCalender.fulfilled, (state, action) => {
+        if (state.singleCalenderRequestId !== action.meta.requestId) return;
         state.loading = false;
         state.SingleCalender = action.payload;
       });
