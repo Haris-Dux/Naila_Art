@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -67,6 +67,9 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+  const isLoggingOutRef = useRef(false);
 
   useEffect(() => {
     axios.defaults.timeout = 5 * 60 * 1000;
@@ -75,10 +78,12 @@ function App() {
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === 401 && !isLoggingOutRef.current) {
+          isLoggingOutRef.current = true;
           dispatch(logoutUserAsync()).then((res) => {
+            isLoggingOutRef.current = false;
             if (res.payload?.success) {
-              navigate("/");
+              navigateRef.current("/");
             }
           });
         }
@@ -89,7 +94,7 @@ function App() {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, [dispatch, navigate]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (isAuthenticated && !user) {
