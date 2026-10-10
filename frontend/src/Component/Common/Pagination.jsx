@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -8,6 +7,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DEFAULT_PAGE_LIMIT, PAGE_LIMIT_OPTIONS } from "../../Utils/Common";
+import ThemedSelect from "./select/ThemedSelect";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -180,26 +180,21 @@ const Pagination = ({
       </div>
 
       <div className="flex min-w-[280px] flex-wrap items-center justify-end gap-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
           Rows
-          <span className="relative">
-            <select
-              value={normalizedPageSize}
-              onChange={handlePageSizeChange}
-              className={`${controlClass} appearance-none py-0 pl-3 pr-9`}
-            >
-              {PAGE_LIMIT_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={16}
-              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300"
-            />
-          </span>
-        </label>
+          <ThemedSelect
+            variant="sm"
+            className="w-20"
+            value={normalizedPageSize}
+            onChange={handlePageSizeChange}
+          >
+            {PAGE_LIMIT_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </ThemedSelect>
+        </div>
 
         <form onSubmit={handleJump} className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">

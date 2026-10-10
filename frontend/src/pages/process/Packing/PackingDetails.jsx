@@ -290,7 +290,7 @@ const PackingDetails = () => {
                 <input
                   type="checkbox"
                   id="useBags"
-                  className="w-5 h-5 text-blue-600 bg-gray-200 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="w-5 h-5 text-gray-700 bg-gray-200 border-gray-300 rounded focus:ring-0 cursor-pointer"
                   onChange={handleChecked}
                 />
               </span>

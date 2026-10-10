@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   IoBagHandleOutline,
@@ -23,12 +24,15 @@ import {
 } from "react-icons/io5";
 import { GiClothes, GiDiamondHard, GiSewingMachine } from "react-icons/gi";
 import { logoutUserAsync } from "../../features/authSlice";
-import { RiNotification2Line } from "react-icons/ri";
-import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { generateOtherSaleAsync } from "../../features/OtherSale";
-import { FaBookOpen } from "react-icons/fa";
+import { FaBookOpen, FaFileInvoice, FaTags } from "react-icons/fa";
 import { Roles } from "../../constants/Roles";
 import { getTodayDate } from "../../Utils/Common";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
+import { getStorage, setStorage } from "../../../hooks/use-local-storage";
+
+const SIDEBAR_COLLAPSED_KEY = "sidebarCollapsed";
+const DESKTOP_QUERY = "(min-width: 780px)";
 
 const baseNavItemClass =
   "flex w-full items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors";
@@ -38,6 +42,9 @@ const activeNavItemClass =
   "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900";
 const inactiveNavItemClass =
   "text-gray-700 hover:bg-gray-100 hover:text-gray-950 dark:text-gray-200 dark:hover:bg-gray-700";
+const railItemClass =
+  "mx-auto flex h-10 w-10 items-center justify-center rounded-md transition-colors";
+const flyoutLinkClass = `${baseNavItemClass} h-9`;
 const roleGroups = {
   all: [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.BRANCH_USER],
   adminAndSuperAdmin: [Roles.SUPER_ADMIN, Roles.ADMIN],
@@ -50,8 +57,19 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const today = getTodayDate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    () => getStorage(SIDEBAR_COLLAPSED_KEY) === true,
+  );
+  const [isDesktop, setIsDesktop] = useState(
+    () => window.matchMedia(DESKTOP_QUERY).matches,
+  );
+  const [flyout, setFlyout] = useState(null);
+  const asideRef = useRef(null);
+  const flyoutRef = useRef(null);
+  const flyoutCloseTimer = useRef(null);
+  const isPointerInFlyout = useRef(false);
+  const isRail = isDesktop && isSidebarCollapsed;
   const [searchQuery, setSearchQuery] = useState("");
-  const [checkNotifications, setChecksNotifications] = useState(false);
   const { PaymentData } = useSelector((state) => state.PaymentMethods);
   const [openSection, setOpenSection] = useState("");
   const [othersaleModal, setOtherSaleModal] = useState(false);
@@ -83,17 +101,107 @@ const Dashboard = () => {
 
   const { user, logoutLoading } = useSelector((state) => state.auth);
   const { generateOtherSaleLoading } = useSelector((state) => state.OtherBills);
-  const { CheckNotifications } = useSelector((state) => state.Buyer);
 
   useEffect(() => {
-    if (user && user?.user?.role !== Roles.BRANCH_USER) {
-      dispatch(showNotificationsForChecksAsync());
+    const media = window.matchMedia(DESKTOP_QUERY);
+    const handleChange = (event) => setIsDesktop(event.matches);
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  useEffect(() => {
+    setStorage(SIDEBAR_COLLAPSED_KEY, isSidebarCollapsed);
+  }, [isSidebarCollapsed]);
+
+  useEffect(() => {
+    setFlyout(null);
+  }, [location.pathname, isRail]);
+
+  useEffect(() => {
+    if (!flyout && !isSidebarOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFlyout(null);
+        setIsSidebarOpen(false);
+      }
+    };
+    const handleMouseDown = (event) => {
+      if (!asideRef.current?.contains(event.target)) {
+        setFlyout(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [flyout, isSidebarOpen]);
+
+  useEffect(() => {
+    if (!flyout) isPointerInFlyout.current = false;
+  }, [flyout]);
+
+  useEffect(() => () => clearTimeout(flyoutCloseTimer.current), []);
+
+  useLayoutEffect(() => {
+    const panel = flyoutRef.current;
+    if (!flyout?.isMenu || !panel) return;
+
+    const maxTop = window.innerHeight - panel.offsetHeight - 8;
+    panel.style.top = `${Math.max(64, Math.min(flyout.top, maxTop))}px`;
+    if (flyout.focusFirst) {
+      panel.querySelector("a")?.focus();
     }
-  }, [dispatch, user]);
+  }, [flyout]);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    if (isDesktop) {
+      setIsSidebarCollapsed((prev) => !prev);
+    } else {
+      setIsSidebarOpen((prev) => !prev);
+    }
   };
+
+  const cancelFlyoutClose = () => clearTimeout(flyoutCloseTimer.current);
+
+  const scheduleFlyoutClose = () => {
+    cancelFlyoutClose();
+    flyoutCloseTimer.current = setTimeout(
+      () =>
+        setFlyout((prev) =>
+          prev?.pinned || isPointerInFlyout.current ? prev : null,
+        ),
+      200,
+    );
+  };
+
+  const openFlyout = (event, key, { isMenu = false, pin = false } = {}) => {
+    cancelFlyoutClose();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const next = {
+      key,
+      isMenu,
+      pinned: pin,
+      focusFirst: pin && event.detail === 0,
+      top: isMenu ? rect.top : rect.top + rect.height / 2,
+    };
+
+    setFlyout((prev) => {
+      if (prev?.key !== key) return next;
+      if (pin) return prev.pinned ? null : next;
+      return prev;
+    });
+  };
+
+  const flyoutHandlers = (key, options) => ({
+    onMouseEnter: (event) => openFlyout(event, key, options),
+    onMouseLeave: scheduleFlyoutClose,
+    onFocus: (event) => openFlyout(event, key, options),
+    onBlur: scheduleFlyoutClose,
+  });
 
   const handleLogout = () => {
     dispatch(logoutUserAsync()).then((res) => {
@@ -110,13 +218,6 @@ const Dashboard = () => {
     });
   };
 
-  const viewChecksData = () => {
-    document.body.style.overflow = "hidden";
-    setChecksNotifications(true);
-    if (user && user?.user?.role !== Roles.BRANCH_USER) {
-      dispatch(showNotificationsForChecksAsync());
-    }
-  };
 
   const closeModal = () => {
     document.body.style.overflow = "auto";
@@ -144,8 +245,6 @@ const Dashboard = () => {
     setOtherSaleModal(true);
     document.body.style.overflow = "hidden";
   };
-
-  const notificationValue = CheckNotifications?.data?.length || 0;
 
   const handleGenerateOtherSale = (e) => {
     e.preventDefault();
@@ -180,8 +279,9 @@ const Dashboard = () => {
         : location.pathname.includes(match.path),
     );
 
-  const closeSidebarOnMobile = () => {
+  const closeSidebarAfterNavigation = () => {
     setIsSidebarOpen(false);
+    if (isDesktop) setIsSidebarCollapsed(true);
     handleMoveTop();
   };
 
@@ -457,7 +557,7 @@ const Dashboard = () => {
       <Link
         key={item.to}
         to={item.to}
-        onClick={closeSidebarOnMobile}
+        onClick={closeSidebarAfterNavigation}
         className={`${isChild ? childNavItemClass : parentNavItemClass} ${
           isActive ? activeNavItemClass : inactiveNavItemClass
         }`}
@@ -468,47 +568,174 @@ const Dashboard = () => {
     );
   };
 
+  const renderRailItem = (section) => {
+    const Icon = section.icon;
+    const isActive = isRouteActive(section.matches);
+    const itemClass = `${railItemClass} ${
+      isActive ? activeNavItemClass : inactiveNavItemClass
+    }`;
+
+    if (section.type === "link") {
+      return (
+        <Link
+          key={section.to}
+          to={section.to}
+          aria-label={section.label}
+          onClick={closeSidebarAfterNavigation}
+          className={itemClass}
+          {...flyoutHandlers(section.to)}
+        >
+          <Icon size={18} className="shrink-0" />
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        key={section.key}
+        type="button"
+        aria-label={section.label}
+        aria-haspopup="menu"
+        aria-expanded={flyout?.key === section.key}
+        onClick={(event) =>
+          openFlyout(event, section.key, { isMenu: true, pin: true })
+        }
+        className={itemClass}
+        {...flyoutHandlers(section.key, { isMenu: true })}
+      >
+        <Icon size={18} className="shrink-0" />
+      </button>
+    );
+  };
+
+  const sidebarToggleLabel = isDesktop
+    ? isSidebarCollapsed
+      ? "Expand sidebar"
+      : "Collapse sidebar"
+    : isSidebarOpen
+      ? "Close menu"
+      : "Open menu";
+
+  const renderFlyout = () => {
+    if (!isRail || !flyout) return null;
+
+    const section = sidebarSections.find(
+      (item) => (item.items ? item.key : item.to) === flyout.key,
+    );
+    let content;
+
+    if (section?.items) {
+      content = (
+        <div
+          role="menu"
+          aria-label={section.label}
+          className="w-52 rounded-md border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+        >
+          <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {section.label}
+          </p>
+          <div className="space-y-1">
+            {section.items.map((item) => {
+              const ItemIcon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  role="menuitem"
+                  onClick={() => {
+                    setFlyout(null);
+                    closeSidebarAfterNavigation();
+                  }}
+                  className={`${flyoutLinkClass} ${
+                    isRouteActive(item.matches)
+                      ? activeNavItemClass
+                      : inactiveNavItemClass
+                  }`}
+                >
+                  <ItemIcon size={16} className="shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      );
+    } else {
+      const label =
+        flyout.key === "user" ? (
+          <>
+            <span className="block">{user?.user?.name}</span>
+            <span className="block font-normal capitalize opacity-75">
+              {userRole}
+            </span>
+          </>
+        ) : flyout.key === "signout" ? (
+          "Sign out"
+        ) : (
+          section?.label
+        );
+      if (!label) return null;
+
+      content = (
+        <div className="whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg dark:bg-gray-100 dark:text-gray-900">
+          {label}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        ref={flyoutRef}
+        style={{ top: flyout.top }}
+        className={`absolute left-full z-50 ${
+          flyout.isMenu
+            ? "-ml-3 pl-5"
+            : "pointer-events-none pl-2 -translate-y-1/2"
+        }`}
+        onMouseEnter={() => {
+          isPointerInFlyout.current = true;
+          cancelFlyoutClose();
+        }}
+        onMouseLeave={() => {
+          isPointerInFlyout.current = false;
+          scheduleFlyoutClose();
+        }}
+        onFocus={cancelFlyoutClose}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setFlyout(null);
+          }
+        }}
+      >
+        {content}
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="antialiased bg-gray-50 dark:bg-gray-900">
         {/* ---------------- NAVBAR ---------------- */}
         <nav className="bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 z-50">
-          <div className="flex flex-wrap justify-between items-center mx-5">
+          <div className="flex flex-wrap justify-between items-center">
             {/* ---------------- NAVBAR - LEFT ---------------- */}
             <div className="flex justify-start items-center">
               <button
-                aria-controls="drawer-navigation"
-                className="p-2 mr-2 text-gray-600                           {section.items.map((item) =>
-rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                type="button"
+                aria-controls="sidebar-navigation"
+                aria-expanded={isDesktop ? !isSidebarCollapsed : isSidebarOpen}
+                aria-label={sidebarToggleLabel}
+                title={sidebarToggleLabel}
+                className="mr-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
                 onClick={toggleSidebar}
               >
-                <svg
-                  aria-hidden="true"
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    clipRule="evenodd"
-                    d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                    fillRule="evenodd"
-                  />
-                </svg>
-                <svg
-                  aria-hidden="true"
-                  className="hidden w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    clipRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    fillRule="evenodd"
-                  />
-                </svg>
-                <span className="sr-only">Toggle sidebar</span>
+                {!isDesktop ? (
+                  <Menu size={22} />
+                ) : isSidebarCollapsed ? (
+                  <PanelLeftOpen size={22} />
+                ) : (
+                  <PanelLeftClose size={22} />
+                )}
               </button>
 
               <Link
@@ -528,62 +755,71 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
             <div className="flex items-center gap-2 lg:order-2">
               <Link
                 to="/dashboard/cash-book"
-                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Cash Book
-                <FaBookOpen size={24} />
+                <FaBookOpen size={18} />
               </Link>
 
               <Link
                 to="/dashboard/generate-bill"
-                className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
-                Generate Buyer Bill
+                Buyer Bill
+                <FaFileInvoice size={18} />
               </Link>
               {user && user?.user?.role === Roles.SUPER_ADMIN && (
                 <>
                   <button
                     onClick={openOtherSaleModal}
-                    className="inline-block rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
                   >
-                    Generate Other Sale
+                    Other Sale
+                    <FaTags size={18} />
                   </button>
 
                   <Link
                     to="/dashboard/employee-attendance"
-                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-4 py-2.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
                   >
                     Attendance
-                    <IoPeople size={24} />
+                    <IoPeople size={18} />
                   </Link>
                 </>
-              )}
-              {user && user?.user?.role !== Roles.BRANCH_USER && (
-                <button className="relative mr-2">
-                  <RiNotification2Line
-                    onClick={viewChecksData}
-                    size={32}
-                    className="text-2xl text-gray-700 hover:text-gray-900 cursor-pointer"
-                  />
-                  <div className="absolute -top-2 -right-2 flex items-center justify-center h-6 w-6 rounded-full bg-red-600 text-white text-xs font-medium shadow-md border-2 border-white">
-                    {notificationValue}
-                  </div>
-                </button>
               )}
             </div>
           </div>
         </nav>
 
         {/* ---------------- SIDEBAR ---------------- */}
+        {isSidebarOpen && (
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 z-30 bg-gray-900/40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
         <aside
+          id="sidebar-navigation"
+          ref={asideRef}
           aria-label="Sidenav"
-          className={`fixed top-0 left-0 z-40 h-screen w-60 pt-14 transition-transform ${
+          className={`fixed top-0 left-0 z-40 h-screen w-60 pt-14 transition-[width,transform] duration-200 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } ${
+            isSidebarCollapsed ? "md:w-16" : "md:w-60"
           } border-r border-gray-200 bg-white md:translate-x-0 dark:border-gray-700 dark:bg-gray-800`}
         >
-          <div className="flex h-full flex-col bg-white dark:bg-gray-800">
-            <nav className="scrollable-content flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-gray-800">
+            <nav
+              className={`scrollable-content flex-1 space-y-1 overflow-y-auto overflow-x-hidden py-4 ${
+                isRail ? "px-2" : "px-3"
+              }`}
+            >
               {sidebarSections.map((section) => {
+                if (isRail) {
+                  return renderRailItem(section);
+                }
+
                 if (section.type === "link") {
                   return renderSidebarLink(section);
                 }
@@ -637,155 +873,64 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
               })}
             </nav>
 
-            <div className="border-t border-gray-200 p-3 dark:border-gray-700">
-              <div className="mb-3 flex items-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold uppercase text-white dark:bg-gray-100 dark:text-gray-900">
+            {isRail ? (
+              <div className="flex flex-col items-center gap-2 border-t border-gray-200 py-3 dark:border-gray-700">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold uppercase text-white dark:bg-gray-100 dark:text-gray-900"
+                  {...flyoutHandlers("user")}
+                >
                   {user?.user?.name?.[0]}
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                    {user?.user?.name}
-                  </p>
-                  <p className="truncate text-xs capitalize text-gray-500 dark:text-gray-300">
-                    {userRole}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  aria-label="Sign out"
+                  disabled={logoutLoading}
+                  onClick={handleLogout}
+                  className="flex h-10 w-10 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200"
+                  {...flyoutHandlers("signout")}
+                >
+                  <IoLogOutOutline size={18} />
+                </button>
               </div>
+            ) : (
+              <div className="border-t border-gray-200 p-3 dark:border-gray-700">
+                <div className="mb-3 flex items-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold uppercase text-white dark:bg-gray-100 dark:text-gray-900">
+                    {user?.user?.name?.[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                      {user?.user?.name}
+                    </p>
+                    <p className="truncate text-xs capitalize text-gray-500 dark:text-gray-300">
+                      {userRole}
+                    </p>
+                  </div>
+                </div>
 
-              <button
-                disabled={logoutLoading}
-                onClick={handleLogout}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200"
-              >
-                <IoLogOutOutline size={18} />
-                {logoutLoading ? "Signing out" : "Sign out"}
-              </button>
-            </div>
+                <button
+                  disabled={logoutLoading}
+                  onClick={handleLogout}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200"
+                >
+                  <IoLogOutOutline size={18} />
+                  {logoutLoading ? "Signing out" : "Sign out"}
+                </button>
+              </div>
+            )}
           </div>
+          {renderFlyout()}
         </aside>
         {/* ---------------- DASHBOARD ---------------- */}
-        <main className="ml-0 h-auto bg-white pt-16 pb-10 md:ml-60 dark:bg-gray-900">
+        <main
+          className={`ml-0 h-auto bg-white pt-16 pb-10 transition-[margin] duration-200 ${
+            isSidebarCollapsed ? "md:ml-16" : "md:ml-60"
+          } dark:bg-gray-900`}
+        >
           <Outlet />
         </main>
       </div>
 
-      {/* CHECKS MODAL */}
-      {checkNotifications && (
-        <div
-          aria-hidden="true"
-          className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full min-h-screen bg-gray-800 bg-opacity-50"
-        >
-          <div className="relative py-4 px-3 w-[95%] max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-md shadow dark:bg-gray-700">
-            {/* ------------- HEADER ------------- */}
-            <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-              <input
-                type="text"
-                placeholder="Search by Name"
-                className="w-1/4 px-4 py-2 text-sm border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-
-              <button
-                onClick={closeModal}
-                className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </svg>
-                <span className="sr-only">Close modal</span>
-              </button>
-            </div>
-
-            {/* ------------- BODY ------------- */}
-            <div className="p-4 md:p-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs md:text-sm text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                  <tr>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Name
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Phone
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Due Date
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      Note
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      C.Number
-                    </th>
-                    <th className=" px-6 py-3 text-center" scope="col">
-                      C.Amount
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-
-              <div className="scrollable-content h-[50vh] overflow-y-auto">
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                  <tbody>
-                    {CheckNotifications &&
-                    CheckNotifications?.data?.length > 0 ? (
-                      CheckNotifications?.data
-                        .filter((data) =>
-                          data?.buyerName
-                            ?.toLowerCase()
-                            .includes(searchQuery?.toLowerCase()),
-                        )
-                        .slice()
-                        .reverse()
-                        .map((data, index) => (
-                          <tr
-                            key={index}
-                            className="bg-white border-b text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                          >
-                            <td className=" px-6 py-3 text-center">
-                              {data?.buyerName}
-                            </td>
-                            <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-3 text-center text-xs md:text-sm">
-                              {data?.buyerPhone}
-                            </td>
-                            <td className=" px-6 py-3 text-center" scope="row">
-                              {data?.date}
-                            </td>
-                            <td className=" px-6 py-3 text-center" scope="row">
-                              {data?.note}
-                            </td>
-                            <td className=" px-6 py-3 text-center" scope="row">
-                              {data?.checkNumber}
-                            </td>
-                            <td className=" px-6 py-3 text-center">
-                              {data?.checkAmount}
-                            </td>
-                          </tr>
-                        ))
-                    ) : (
-                      <tr className="w-full flex justify-center items-center">
-                        <td className="text-xl mt-3">No Data Available</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* OTHER SALE MODAL */}
       {othersaleModal && (
@@ -945,10 +1090,9 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
 
                   {/* Payment Method */}
                   <div>
-                    <select
+                    <ThemedSelect className="w-full"
                       id="payment-method"
                       name="payment_Method"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       value={formData.payment_Method}
                       required
                       onChange={(e) =>
@@ -966,7 +1110,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                           {item.label}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
 
                   {/* Note */}

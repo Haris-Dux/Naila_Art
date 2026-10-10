@@ -5,6 +5,7 @@ import { GetAllExpense } from "../../../features/InStockSlice";
 import moment from "moment-timezone";
 import { useSearchParams } from "react-router-dom";
 import { getPageLimit } from "../../../Utils/Common";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory, branchId}) => {
   const dispatch = useDispatch();
@@ -106,11 +107,10 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory,
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4">
                   {/* NAME */}
                   <div>
-                    <select
+                    <ThemedSelect className="w-full"
                       name="categoryId"
                       value={formData.categoryId}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     >
                       <option disabled value="">
                         Select a category
@@ -118,7 +118,7 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory,
                       {ExpenseCategories.map((category) => (
                         <option value={category.id}>{category.name}</option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
 
                   {/* RATE */}
@@ -176,10 +176,9 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory,
 
                   {user?.user?.role === "superadmin" ? (
                     <div>
-                      <select
+                      <ThemedSelect className="w-full"
                         id="payment-method"
                         name="payment_Method"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={formData.payment_Method}
                         required
                         onChange={(e) =>
@@ -197,7 +196,7 @@ const ExpenseModal = ({ isOpen, closeModal, ExpenseCategories, selectedCategory,
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
                   ) : null}
                

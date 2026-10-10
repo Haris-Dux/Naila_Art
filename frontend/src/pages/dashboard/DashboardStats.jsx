@@ -24,12 +24,12 @@ import { FaHistory } from "react-icons/fa";
 import SendOTP from "./SendOTP";
 import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
-import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { GrPowerReset } from "react-icons/gr";
 import SuitSalesGraph from "./SuitSalesGraph";
 import Pagination from "../../Component/Common/Pagination";
 import { DEFAULT_PAGE_LIMIT, formatReadableDate } from "../../Utils/Common";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const DashboardStats = () => {
   const dispatch = useDispatch();
@@ -47,11 +47,6 @@ const DashboardStats = () => {
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [historyModal, setHistoryModal] = useState(false);
 
-  useEffect(() => {
-    if (user && user?.user?.role !== "user") {
-      dispatch(showNotificationsForChecksAsync());
-    }
-  }, [user, dispatch]);
 
   const [formData, setFormData] = useState({
     date: today,
@@ -720,12 +715,10 @@ const DashboardStats = () => {
 
                   {/* payment_Method */}
                   <div className="col-span-2">
-                    <select
+                    <ThemedSelect className="w-full"
                       name="payment_Method"
-                      type="text"
                       value={formData.payment_Method}
                       onChange={handleChange}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       required
                     >
                       <option value="" disabled>
@@ -736,7 +729,7 @@ const DashboardStats = () => {
                           {item.label}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
 
                   {/* NOtE */}
@@ -759,7 +752,7 @@ const DashboardStats = () => {
                     <button
                       disabled
                       type="button"
-                      class="text-white cursor-not-allowed border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                      class="text-white cursor-not-allowed border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-3 text-center mr-2  inline-flex items-center"
                     >
                       <svg
                         aria-hidden="true"
@@ -933,10 +926,9 @@ const DashboardStats = () => {
                 </div>
 
                 {/* ACCOUNT */}
-                <select
+                <ThemedSelect className="min-w-[11rem]"
                   id="account"
                   name="account"
-                  className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   value={filters.account}
                   onChange={handleChangeFilters}
                 >
@@ -948,12 +940,11 @@ const DashboardStats = () => {
                       {item.label}
                     </option>
                   ))}
-                </select>
+                </ThemedSelect>
                 {/* TRANSACTION TYPE */}
-                <select
+                <ThemedSelect className="min-w-[11rem]"
                   id="transactionType"
                   name="transactionType"
-                  className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                   value={filters.transactionType}
                   onChange={handleChangeFilters}
                 >
@@ -962,7 +953,7 @@ const DashboardStats = () => {
                   </option>
                   <option value="Deposit">Deposit</option>
                   <option value="WithDraw">WithDraw</option>
-                </select>
+                </ThemedSelect>
                 {/* SEARCH BUTTON */}
                 <button
                   onClick={handleFiltersSearch}

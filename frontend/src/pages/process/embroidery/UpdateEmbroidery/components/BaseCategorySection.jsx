@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Select from "react-select";
+import AppSelect from "../../../../../Component/Common/select/AppSelect";
 import { FiPlus } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -456,7 +456,7 @@ const BaseCategorySection = ({
             key={index}
           >
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleshirtCategory(newValue, index)}
                 value={categoryOptions.find(
@@ -466,7 +466,7 @@ const BaseCategorySection = ({
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 key={`${shirt.category}-${index}`}
                 options={colorOptions}
                 onChange={(newValue) => handleshirtColor(newValue, index)}
@@ -535,7 +535,7 @@ const BaseCategorySection = ({
         {formData?.duppata?.map((duppata, index) => (
           <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleduppataCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -545,7 +545,7 @@ const BaseCategorySection = ({
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 key={`${duppata.category}-${index}`}
                 options={colorOptions2}
                 onChange={(newValue) => handleduppataColor(newValue, index)}
@@ -617,7 +617,7 @@ const BaseCategorySection = ({
         {formData?.trouser?.map((trouser, index) => (
           <div className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleTrouserCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -627,7 +627,7 @@ const BaseCategorySection = ({
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 key={`${trouser.category}-${index}`}
                 options={colorOptions3}
                 onChange={(newValue) => handleTrouserColor(newValue, index)}
@@ -704,7 +704,7 @@ const BaseCategorySection = ({
             className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
           >
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handletissueCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -714,7 +714,7 @@ const BaseCategorySection = ({
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 key={`${tissue.category}-${index}`}
                 options={colorOptions4}
                 onChange={(newValue) => handletissueColor(newValue, index)}

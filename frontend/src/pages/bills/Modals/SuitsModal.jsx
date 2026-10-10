@@ -10,6 +10,7 @@ import {
   getAllPurchasingHistoryAsync,
 } from "../../../features/SellerSlice";
 import StatusChip from "../../../Component/Common/StatusChip";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const emptyDesign = {
   design_no: "",
@@ -543,15 +544,14 @@ const SuitsModal = ({ isOpen, closeModal, sellerDetails }) => {
                   onChange={handleChange}
                   className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                 />
-                <select
+                <ThemedSelect variant="suffix" className="w-20 shrink-0"
                   name="discountType"
-                  className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                   value={formData.discountType}
                   onChange={handleChange}
                 >
                   <option value="RS">RS</option>
                   <option value="%">%</option>
-                </select>
+                </ThemedSelect>
               </div>
             </label>
 

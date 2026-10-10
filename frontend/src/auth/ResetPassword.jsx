@@ -97,7 +97,7 @@ const ResetPassword = () => {
                   Password:
                 </label>
                 <input
-                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5"
+                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-0 focus:border-gray-300 block w-full p-2.5"
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"
@@ -144,7 +144,7 @@ const ResetPassword = () => {
                   Confirm Password:
                 </label>
                 <input
-                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 block w-full p-2.5"
+                  className="bg-gray-50 border text-gray-900 sm:text-sm rounded-lg focus:ring-0 focus:border-gray-300 block w-full p-2.5"
                   type={showPassword ? "text" : "password"}
                   name="confirmPassword"
                   placeholder="••••••••"

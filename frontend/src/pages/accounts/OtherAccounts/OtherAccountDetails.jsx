@@ -16,6 +16,7 @@ import AccountFilters, {
 } from "../../../Component/AccountFilters/Accountfilters";
 import { formatReadableDate, getDateOnlyTime } from "../../../Utils/Common";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const hasDateFilters = (filters) => Boolean(filters.dateFrom || filters.dateTo);
 
@@ -388,10 +389,9 @@ const OtherAccountsDetails = () => {
                       required
                     />
                   </div>
-                  <select
+                  <ThemedSelect className="w-full"
                     id="payment-method"
                     name="payment_Method"
-                    className="bg-gray-50 border w-full text-gray-900 text-sm rounded-md focus:ring-0 border-gray-300 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.payment_Method}
                     onChange={(e) =>
                       setFormData({
@@ -408,11 +408,10 @@ const OtherAccountsDetails = () => {
                         {item.label}
                       </option>
                     ))}
-                  </select>
-                  <select
+                  </ThemedSelect>
+                  <ThemedSelect className="w-full"
                     id="branches"
                     name="branchId"
-                    className="bg-gray-50 border border-gray-300 w-full text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.branchId || ""}
                     onChange={handleChange}
                   >
@@ -424,14 +423,14 @@ const OtherAccountsDetails = () => {
                         {branch?.branchName}
                       </option>
                     ))}
-                  </select>
+                  </ThemedSelect>
                   <div className="flex justify-center pt-2">
                     <button
                       disabled={loading.creditDebit}
                       type="submit"
                       className={`inline-block rounded ${
                         loading.creditDebit && "cursor-not-allowed"
-                      } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500`}
+                      } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring`}
                     >
                       Submit
                     </button>
