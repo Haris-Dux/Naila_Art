@@ -10,6 +10,7 @@ import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
 import StatusChip from "../../../Component/Common/StatusChip";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const FieldLabel = ({ label, children }) => (
   <label className="block w-full">
@@ -467,15 +468,14 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                           className="bg-gray-50 border rounded-tl-md rounded-bl-md border-gray-300 text-gray-900 text-sm  focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           required
                         />
-                        <select
+                        <ThemedSelect variant="suffix" className="w-20 shrink-0"
                           name="discountType"
-                          className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                           value={formData.discountType}
                           onChange={handleChange}
                         >
                           <option value="RS">RS</option>
                           <option value="%">%</option>
-                        </select>
+                        </ThemedSelect>
                       </div>
                     </div>
                   </FieldLabel>
@@ -498,7 +498,7 @@ const LaceModal = ({ isOpen, closeModal, sellerDetails }) => {
                     <button
                       disabled
                       type="button"
-                      class="text-white cursor-not-allowed border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                      class="text-white cursor-not-allowed border-gray-600 bg-gray-300 focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-3 text-center mr-2  inline-flex items-center"
                     >
                       <svg
                         aria-hidden="true"

@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { accountTypeData } from "../../Utils/AccountsData";
 import StatusChip from "../../Component/Common/StatusChip";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const CashInOut = () => {
   const dispatch = useDispatch();
@@ -405,10 +406,9 @@ const CashInOut = () => {
                 {/* CHOOSE BRANCH NAME */}
                 {user?.user?.role === "superadmin" ? (
                   <div>
-                    <select
+                    <ThemedSelect className="w-full"
                       id="branches"
                       name="branchId"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       value={formData?.branchId || ""}
                       onChange={handleBranchChange}
                     >
@@ -420,7 +420,7 @@ const CashInOut = () => {
                           {branch?.branchName}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
                 ) : null}
 
@@ -428,10 +428,9 @@ const CashInOut = () => {
 
                 {user?.user?.role !== "user" && (
                   <div>
-                    <select
+                    <ThemedSelect className="w-full"
                       id="accountCategory"
                       name="accountCategory"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       value={formData?.accountCategory}
                       onChange={(e) =>
                         setFormData({
@@ -448,7 +447,7 @@ const CashInOut = () => {
                           {item.label}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
                 )}
 
@@ -472,10 +471,9 @@ const CashInOut = () => {
 
                 {/* SELECTED PAYMENT METHOD */}
                 <div>
-                  <select
+                  <ThemedSelect className="w-full"
                     id="payment-method"
                     name="payment_Method"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.payment_Method}
                     onChange={(e) =>
                       setFormData({
@@ -492,7 +490,7 @@ const CashInOut = () => {
                         {item.label}
                       </option>
                     ))}
-                  </select>
+                  </ThemedSelect>
                 </div>
 
                 {/* DATE */}
@@ -516,7 +514,7 @@ const CashInOut = () => {
                       <input
                         type="checkbox"
                         id="BillType"
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-gray-700 border-gray-300 rounded focus:ring-0"
                         onChange={handlePastTransaction}
                       />
                     </div>

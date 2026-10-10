@@ -26,6 +26,7 @@ import ProcessAvailabilityCard from "../../../Component/Common/ProcessAvailabili
 import Loading from "../../../Component/Loader/Loading";
 import StatusChip from "../../../Component/Common/StatusChip";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const StonesDetails = () => {
   const { id } = useParams();
@@ -90,8 +91,6 @@ const StonesDetails = () => {
   }, [id, SingleStone]);
 
   const initialRow = { category: "", color: "", quantity_in_no: 0 };
-  const stitchingFieldClass =
-    "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-1 focus:ring-[#252525] focus:border-[#252525] block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-300 dark:focus:border-gray-300";
   const stitchingInputClass =
     "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-1 focus:ring-[#252525] focus:border-[#252525] block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white";
   const stitchingOptionClass =
@@ -827,7 +826,7 @@ const StonesDetails = () => {
         <div className="flex justify-center items-center">
           {SingleStone?.project_status !== "Completed" && (
             <button
-              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-3 py-2 text-sm rounded bg-[#252525] text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -1112,9 +1111,8 @@ const StonesDetails = () => {
                     {/* LACE CATEGORY */}
 
                     <div>
-                      <select
+                      <ThemedSelect className="w-full"
                         name="lace_category"
-                        className={stitchingFieldClass}
                         value={formData?.lace_category}
                         onChange={handleChange}
                       >
@@ -1131,7 +1129,7 @@ const StonesDetails = () => {
                             {item.category}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
                   </div>
 
@@ -1157,8 +1155,7 @@ const StonesDetails = () => {
                       >
                         {/* SELECT CATEGORY */}
                         <div>
-                          <select
-                            className={stitchingFieldClass}
+                          <ThemedSelect className="w-full"
                             value={row.category}
                             onChange={(e) =>
                               handleCategoryChange(e, index, "suits_category")
@@ -1179,13 +1176,12 @@ const StonesDetails = () => {
                                 </option>
                               ),
                             )}
-                          </select>
+                          </ThemedSelect>
                         </div>
 
                         {/* SELECTED COLORS */}
                         <div>
-                          <select
-                            className={stitchingFieldClass}
+                          <ThemedSelect className="w-full"
                             value={row.color}
                             onChange={(e) =>
                               handleColorChange(e, index, "suits_category")
@@ -1210,7 +1206,7 @@ const StonesDetails = () => {
                                   {item?.color}
                                 </option>
                               ))}
-                          </select>
+                          </ThemedSelect>
                         </div>
 
                         {/* ENTER QUANITY */}

@@ -124,7 +124,7 @@ const ProcessBillModal = ({
                 <button
                   disabled
                   type="button"
-                  class="text-white cursor-not-allowed border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                  class="text-white cursor-not-allowed border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-2.5 text-center mr-2  inline-flex items-center"
                 >
                   <svg
                     aria-hidden="true"

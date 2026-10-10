@@ -20,6 +20,9 @@ export default {
       "2xl": "1536px",
     },
     extend: {
+      ringColor: {
+        DEFAULT: "rgb(156 163 175 / 0.5)",
+      },
       colors: {
         primary: {
           50: "#eff6ff",

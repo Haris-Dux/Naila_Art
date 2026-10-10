@@ -302,7 +302,7 @@ const StitchingDetails = () => {
         <div className="flex justify-center items-center">
           {SingleStitching?.project_status !== "Completed" && (
             <button
-              className="px-3 py-2 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-3 py-2 text-sm rounded bg-[#252525] text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived

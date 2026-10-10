@@ -23,6 +23,7 @@ import { FiPlus } from "react-icons/fi";
 import { formatReadableDate, getRecordForId } from "../../../Utils/Common";
 import StatusChip from "../../../Component/Common/StatusChip";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const CalendarDetails = () => {
   const { id } = useParams();
@@ -597,7 +598,7 @@ const CalendarDetails = () => {
         <div className="flex justify-center items-center">
           {SingleCalender?.project_status !== "Completed" && (
             <button
-              className="px-2 py-2.5 text-sm rounded bg-blue-800 text-white border-none"
+              className="px-2 py-2.5 text-sm rounded bg-[#252525] text-white border-none"
               onClick={handleUpdateReceivedClick}
             >
               Update Recived
@@ -647,16 +648,15 @@ const CalendarDetails = () => {
               >
                 Next Step
               </button>
-              <select
+              <ThemedSelect variant="button" className="min-w-[9rem]"
                 onChange={handleSkipStep}
-                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               >
                 <option value="" disabled selected hidden>
                   Skip To
                 </option>
                 <option value="Stones">Stones</option>
                 <option value="Stitching">Stitching</option>
-              </select>
+              </ThemedSelect>
             </>
           )}
         </div>
@@ -881,8 +881,7 @@ const CalendarDetails = () => {
                             disabled
                             required
                           />
-                          <select
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                          <ThemedSelect className="w-full"
                             value={row.color}
                             onChange={(e) => handleCuttingColorChange(e, index)}
                             required
@@ -895,7 +894,7 @@ const CalendarDetails = () => {
                                 {item.color}
                               </option>
                             ))}
-                          </select>
+                          </ThemedSelect>
                           <input
                             type="number"
                             min="0"
@@ -923,14 +922,14 @@ const CalendarDetails = () => {
                       <button
                         disabled
                         type="submit"
-                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                        className="inline-block cursor-not-allowed rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring"
                       >
                         Submiting...
                       </button>
                     ) : (
                       <button
                         type="submit"
-                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                        className="inline-block rounded border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring"
                       >
                         Submit
                       </button>
@@ -1040,9 +1039,7 @@ const CalendarDetails = () => {
                         readOnly
                       />
 
-                      <select
-                        type="text"
-                        className="bg-gray-50 col-span-2 border  border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                      <ThemedSelect className="col-span-2 w-full"
                         required
                         onChange={handleUnitChange}
                       >
@@ -1050,7 +1047,7 @@ const CalendarDetails = () => {
                           m
                         </option>
                         <option value={"y"}>y</option>
-                      </select>
+                      </ThemedSelect>
                     </div>
                     <div className=" items-center grid grid-cols-4 gap-1 justify-center">
                       <h3 className="col-span-2">Bill Amount :</h3>
@@ -1069,7 +1066,7 @@ const CalendarDetails = () => {
                       <button
                         disabled
                         type="button"
-                        class="text-white cursor-not-allowed border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                        class="text-white cursor-not-allowed border-gray-600 bg-gray-600  focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-2.5 text-center mr-2  inline-flex items-center"
                       >
                         <svg
                           aria-hidden="true"

@@ -12,9 +12,10 @@ import {
 import PreviewBill from "./PreviewBill";
 import { getBuyerByIdAsync } from "../../features/BuyerSlice";
 import moment from "moment-timezone";
-import Select from "react-select";
+import AppSelect from "../../Component/Common/select/AppSelect";
 import { getSuitsStockToGenerateBillAsync } from "../../features/BuyerSlice";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const OldBuyerGenerateBill = () => {
   const dispatch = useDispatch();
@@ -601,7 +602,7 @@ const OldBuyerGenerateBill = () => {
                           <input
                             type="checkbox"
                             id="BillType"
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-gray-700 border-gray-300 rounded focus:ring-0"
                             onChange={handleBillType}
                           />
                         </div>
@@ -630,10 +631,9 @@ const OldBuyerGenerateBill = () => {
                       />
                     </div>
                     <div>
-                      <select
+                      <ThemedSelect className="w-full"
                         id="payment-method"
                         name="payment_Method"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={billData.payment_Method}
                         onChange={(e) =>
                           setBillData({
@@ -651,17 +651,16 @@ const OldBuyerGenerateBill = () => {
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
                   </div>
 
                   {/* THIRD ROW */}
                   <div className="mb-4 grid items-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
                     <div>
-                      <select
+                      <ThemedSelect className="w-full"
                         id="packaging"
                         name="packagingType"
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                         value={billData.packaging.id}
                         onChange={handlePackagingChange}
                       >
@@ -673,7 +672,7 @@ const OldBuyerGenerateBill = () => {
                             {bag.name}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
                     <div>
                       <input
@@ -687,10 +686,9 @@ const OldBuyerGenerateBill = () => {
                     </div>
                     {user?.user?.role === "superadmin" ? (
                       <div>
-                        <select
+                        <ThemedSelect className="w-full"
                           id="branches"
                           name="branchId"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                           value={billData.branchId}
                           onChange={handleBranchChange}
                         >
@@ -702,7 +700,7 @@ const OldBuyerGenerateBill = () => {
                               {branch.branchName}
                             </option>
                           ))}
-                        </select>
+                        </ThemedSelect>
                       </div>
                     ) : null}
                     <div className="flex items-centerB my-auto justify-center space-x-2">
@@ -715,7 +713,7 @@ const OldBuyerGenerateBill = () => {
                       <input
                         type="checkbox"
                         id="otherBillData"
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-gray-700 border-gray-300 rounded focus:ring-0"
                         onChange={(e) =>
                           handleOtherBillCheckbox(e.target.checked)
                         }
@@ -811,15 +809,14 @@ const OldBuyerGenerateBill = () => {
                             onChange={handleInputChange}
                             required
                           />
-                          <select
+                          <ThemedSelect variant="suffix" className="w-20 shrink-0"
                             name="discountType"
-                            className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                             value={billData.discountType}
                             onChange={handleInputChange}
                           >
                             <option value="RS">RS</option>
                             <option value="%">%</option>
-                          </select>
+                          </ThemedSelect>
                         </div>
                       </div>
                     </div>
@@ -877,7 +874,7 @@ const OldBuyerGenerateBill = () => {
                       >
                         <div className="grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full">
                           <div>
-                            <Select
+                            <AppSelect className="w-full"
                               options={Array.from(
                                 new Set(
                                   branchStockData?.map(
@@ -894,49 +891,14 @@ const OldBuyerGenerateBill = () => {
                               onChange={(newValue) =>
                                 handleSuitChange(newValue, index)
                               }
-                              styles={{
-                                control: (base) => ({
-                                  ...base,
-                                  backgroundColor: "rgb(249 250 251)",
-                                  borderColor: "rgb(209 213 219)",
-                                  color: "rgb(17 24 39)",
-                                  borderWidth: "1px",
-                                  borderRadius: "0.375rem",
-                                  padding: "0.135rem",
-                                  boxShadow: "none",
-                                  "&:hover": {
-                                    borderColor: "rgb(209 213 219)",
-                                  },
-                                }),
-                                menu: (base) => ({
-                                  ...base,
-                                  zIndex: 9999,
-                                  backgroundColor: "rgb(249 250 251)",
-                                }),
-                                menuPortal: (base) => ({
-                                  ...base,
-                                  zIndex: 9999,
-                                }),
-                                placeholder: (base) => ({
-                                  ...base,
-                                  color: "rgb(17 24 39)",
-                                }),
-                                singleValue: (base) => ({
-                                  ...base,
-                                  color: "rgb(17 24 39)",
-                                }),
-                              }}
-                              className="block w-full custom-reactSelect "
                               placeholder="Enter Design Number"
-                              menuPortalTarget={document.body}
                               onMenuOpen={validateBranch}
                             />
                           </div>
                           <div>
-                            <select
+                            <ThemedSelect className="w-full"
                               id="color"
                               name="color"
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                               value={suit.color}
                               onChange={(e) => handleColorChange(index, e)}
                             >
@@ -953,7 +915,7 @@ const OldBuyerGenerateBill = () => {
                                   </option>
                                 );
                               })}
-                            </select>
+                            </ThemedSelect>
                           </div>
                           <div>
                             <input

@@ -330,7 +330,7 @@ const Return = ({ Buyerdata, closeModal, selected }) => {
                 <button
                   type="button"
                   onClick={openConfirmationModal}
-                  className="inline-block rounded border border-gray-600 bg-gray-900 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indigo-500"
+                  className="inline-block rounded border border-gray-600 bg-gray-900 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
                 >
                   Submit
                 </button>

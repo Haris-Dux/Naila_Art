@@ -14,6 +14,7 @@ import { IoAdd } from "react-icons/io5";
 import moment from "moment-timezone";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const BuyersChecks = () => {
   const dispatch = useDispatch();
@@ -253,7 +254,7 @@ const BuyersChecks = () => {
                                         category: "UpdateCheck",
                                       })
                                     }
-                                    className="cursor-pointer bg-blue-700 p-2 text-white rounded-md"
+                                    className="cursor-pointer bg-[#252525] p-2 text-white rounded-md"
                                   >
                                     Update
                                   </button>
@@ -401,7 +402,7 @@ const BuyersChecks = () => {
                       <label className="flex items-center space-x-2">
                         <input
                           type="checkbox"
-                          className="form-checkbox h-4 w-4 text-blue-600"
+                          className="form-checkbox h-4 w-4 text-gray-700"
                           checked={isPartialPayment}
                           onChange={(e) =>
                             setIsPartialPayment(e.target.checked)
@@ -431,10 +432,9 @@ const BuyersChecks = () => {
                       <div className="grid grid-cols-1 gap-4 mt-4">
                         {/* PAYMENT METHOD */}
                         <div>
-                          <select
+                          <ThemedSelect className="w-full"
                             id="payment-method"
                             name="payment_Method"
-                            className="bg-gray-50 border w-full border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                             value={checkDetails?.payment_Method}
                             onChange={(e) =>
                               setCheckDetails({
@@ -452,7 +452,7 @@ const BuyersChecks = () => {
                                 {item.label}
                               </option>
                             ))}
-                          </select>
+                          </ThemedSelect>
                         </div>
                       </div>
                     )}
@@ -526,10 +526,9 @@ const BuyersChecks = () => {
                     />
                   </div>
                   {/* PAYMENT METHOD */}
-                  <select
+                  <ThemedSelect className="w-full"
                     id="payment-method"
                     name="payment_Method"
-                    className="bg-gray-50 border w-full border-red-500 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-red-500 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                     value={checkDetails?.payment_Method}
                     onChange={(e) =>
                       setCheckDetails({
@@ -547,7 +546,7 @@ const BuyersChecks = () => {
                         {item.label}
                       </option>
                     ))}
-                  </select>
+                  </ThemedSelect>
 
                   <div className="flex items-center justify-center mt-2">
                     <button

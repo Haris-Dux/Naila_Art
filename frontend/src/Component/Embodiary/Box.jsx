@@ -1,5 +1,5 @@
 import  { useState, useEffect } from "react";
-import Select from "react-select";
+import AppSelect from "../Common/select/AppSelect";
 import {
   CreateEmbroidery,
   GETEmbroidery,
@@ -429,7 +429,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             key={index}
           >
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleshirtCategory(newValue, index)}
                 value={categoryOptions.find(
@@ -439,7 +439,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={colorOptions}
                 onChange={(newValue) => handleshirtColor(newValue, index)}
                 value={colorOptions.find((item) => item.value === shirt.color)}
@@ -484,7 +484,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         {formData?.duppata?.map((duppata, index) => (
           <div key={index} className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleduppataCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -494,7 +494,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={colorOptions2}
                 onChange={(newValue) => handleduppataColor(newValue, index)}
                 value={colorOptions2.find(
@@ -542,7 +542,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
         {formData?.trouser?.map((trouser, index) => (
           <div key={index} className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handleTrouserCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -552,7 +552,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={colorOptions3}
                 onChange={(newValue) => handleTrouserColor(newValue, index)}
                 value={colorOptions3.find(
@@ -605,7 +605,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
             className="mt-3 grid items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
           >
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={categoryOptions}
                 onChange={(newValue) => handletissueCategorey(newValue, index)}
                 value={categoryOptions.find(
@@ -615,7 +615,7 @@ const Box = ({ formData1, setFormData1, closeModal, total, DNO_ategory,partyValu
               />
             </div>
             <div>
-              <Select
+              <AppSelect className="w-full"
                 options={colorOptions4}
                 onChange={(newValue) => handletissueColor(newValue, index)}
                 value={colorOptions4.find(

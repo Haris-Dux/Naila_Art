@@ -633,7 +633,7 @@ const Employee = () => {
               <div className="flex justify-center pt-5 gap-3">
                 <button
                   onClick={() => handleDelete(selectedEmployee.id)}
-                  className="inline-block rounded  bg-red-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-red-600 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                  className="inline-block rounded  bg-red-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-red-600 hover:text-gray-100 focus:outline-none focus:ring"
                 >
                   Yes
                 </button>

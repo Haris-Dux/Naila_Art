@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AssginStocktoBranch } from "../../../features/InStockSlice";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const AssignStock = () => {
   const navigate = useNavigate();
@@ -157,11 +158,10 @@ const AssignStock = () => {
           >
             View Bundles
           </button>
-          <select
+          <ThemedSelect className="w-48"
             id="branches"
             value={formData.branchId}
             onChange={handleBranchChange}
-            className="bg-gray-50 w-48 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           >
             <option value="" disabled>
               Choose Branch
@@ -171,7 +171,7 @@ const AssignStock = () => {
                 {data?.branchName}
               </option>
             ))}
-          </select>
+          </ThemedSelect>
         </div>
 
         <div className="relative overflow-x-auto mt-5">
@@ -284,14 +284,14 @@ const AssignStock = () => {
             {stockLoading ? (
               <button
                 disabled
-                className="inline-block cursor-progress rounded border border-gray-600 bg-gray-300 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring active:text-indigo-500"
+                className="inline-block cursor-progress rounded border border-gray-600 bg-gray-300 px-10 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring"
               >
                 Send Stock
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
-                className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500"
+                className="inline-block rounded border border-gray-600 bg-gray-600 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring"
               >
                 Send Stock
               </button>

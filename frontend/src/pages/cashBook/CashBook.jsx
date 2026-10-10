@@ -7,6 +7,7 @@ import Icon from "../../Component/Common/Icons";
 import { formatReadableDate, getTodayDate } from "../../Utils/Common";
 import { Roles } from "../../constants/Roles";
 import DeleteModal from "../../Component/Modal/DeleteModal";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const CashBook = () => {
   const dispatch = useDispatch();
@@ -121,10 +122,9 @@ const CashBook = () => {
             </div>
 
             {/* ACCOUNT */}
-            <select
+            <ThemedSelect className="min-w-[11rem]"
               id="account"
               name="account"
-              className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
               value={filters.account}
               onChange={handleChangeFilters}
             >
@@ -136,18 +136,17 @@ const CashBook = () => {
                   {item.label}
                 </option>
               ))}
-            </select>
+            </ThemedSelect>
 
 
 
             {role === Roles.SUPER_ADMIN ? (
                    
-                      <select
+                      <ThemedSelect className="w-full"
                         id="branchId"
                         name='branchId'
                         value={filters.branchId}
                         onChange={handleChangeFilters}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       >
                         <option value="">Select Branch</option>
                         {Branches?.map((data) => (
@@ -155,16 +154,15 @@ const CashBook = () => {
                             {data.branchName}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
 
                   ) : null}
 
 
             {/* TRANSACTION TYPE */}
-            <select
+            <ThemedSelect className="min-w-[11rem]"
               id="transactionType"
               name="transactionType"
-              className="bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
               value={filters.transactionType}
               onChange={handleChangeFilters}
             >
@@ -173,7 +171,7 @@ const CashBook = () => {
               </option>
               <option value="Deposit">Deposit</option>
               <option value="WithDraw">WithDraw</option>
-            </select>
+            </ThemedSelect>
             {/* SEARCH BUTTON */}
             <button
               onClick={handleFiltersSearch}

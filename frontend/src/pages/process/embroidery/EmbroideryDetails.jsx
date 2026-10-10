@@ -22,6 +22,7 @@ import { Button } from "../../../Component/Common/button/Button";
 import PicturesOrderWarningModal from "./PicturesOrderWarningModal";
 import StatusChip from "../../../Component/Common/StatusChip";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const EmbroideryDetails = () => {
   const { id } = useParams();
@@ -796,9 +797,8 @@ const EmbroideryDetails = () => {
               >
                 Next Step
               </button>
-              <select
+              <ThemedSelect variant="button" className="min-w-[9rem]"
                 onChange={handleSkipStep}
-                className="px-4 py-2.5 text-sm rounded bg-[#252525] dark:bg-gray-200 text-white dark:text-gray-800"
               >
                 <option value="" disabled selected hidden>
                   Skip To
@@ -807,7 +807,7 @@ const EmbroideryDetails = () => {
                 <option value="Stones">Stone</option>
                 <option value="Stitching">Stitching</option>
                 <option value="Packing">Packing</option>
-              </select>{" "}
+              </ThemedSelect>{" "}
             </>
           )}
           {pictures_Order === false && (

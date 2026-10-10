@@ -13,7 +13,7 @@ import {
 } from "../../../features/EmbroiderySlice";
 import { useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import Select from "react-select";
+import AppSelect from "../../../Component/Common/select/AppSelect";
 import ReactSearchBox from "react-search-box";
 import DeleteModal from "../../../Component/Modal/DeleteModal";
 import { LuPackageCheck } from "react-icons/lu";
@@ -27,6 +27,7 @@ import Pagination from "../../../Component/Common/Pagination";
 import ColorList from "../../../Component/Common/ColorList";
 import StatusChip from "../../../Component/Common/StatusChip";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const Embroidery = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -698,22 +699,9 @@ const Embroidery = () => {
                           onChange={handleInputChange}
                         />
                         <div className="custom-reactSelect">
-                          <Select
+                          <AppSelect className="w-full"
                             options={designOptions}
-                            styles={{
-                              control: (baseStyles, state) => ({
-                                ...baseStyles,
-                                borderRadius: 4,
-                                borderColor: "#D1D5DB",
-                                boxShadow: state.isFocused ? "none" : "none",
-                                "&:hover": {
-                                  borderColor: "#D1D5DB",
-                                },
-                                padding: "2px",
-                              }),
-                            }}
                             placeholder=""
-                            className="bg-gray-50   text-gray-900 rounded-md"
                             onChange={handleSelected}
                             value={
                               formData.design_no
@@ -909,15 +897,14 @@ const Embroidery = () => {
                               onChange={handleInputChange}
                               required
                             />
-                            <select
+                            <ThemedSelect variant="suffix" className="w-20 shrink-0"
                               name="discountType"
-                              className="bg-gray-50 border rounded-tr-md rounded-br-md border-gray-300 text-gray-900 text-sm focus:ring-0 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                               value={formData.discountType}
                               onChange={handleInputChange}
                             >
                               <option value="RS">RS</option>
                               <option value="%">%</option>
-                            </select>
+                            </ThemedSelect>
                           </div>
                         </div>
                       </div>

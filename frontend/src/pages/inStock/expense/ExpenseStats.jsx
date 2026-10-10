@@ -17,6 +17,7 @@ import {
   IoCashOutline,
 } from "react-icons/io5";
 import PageLoader from "../../../Component/Loader/PageLoader";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 ChartJS.register(
   ArcElement,
@@ -256,19 +257,17 @@ const ExpenseStats = () => {
 
           <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
             <IoCalendarOutline className="text-gray-500 dark:text-gray-300" />
-            <select
+            <ThemedSelect variant="ghost" className="w-20"
               name="year"
-              type="text"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-transparent text-sm font-medium text-gray-900 focus:border-0 focus:outline-none focus:ring-0 dark:text-white"
             >
               {years?.map((item) => (
                 <option value={item} key={item}>
                   {item}
                 </option>
               ))}
-            </select>
+            </ThemedSelect>
           </div>
         </div>
 

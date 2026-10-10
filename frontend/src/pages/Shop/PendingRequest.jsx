@@ -4,6 +4,7 @@ import { getPendingRequests, UpdateUser } from "../../features/authSlice";
 import { GetAllShop } from "../../features/ShopSlice";
 import toast from "react-hot-toast";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const PendingRequest = () => {
   const dispatch = useDispatch();
@@ -122,21 +123,19 @@ const PendingRequest = () => {
                   </th>
                   <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">{pendingRequest[index]?.email}</td>
                   <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
-                    <select
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                    <ThemedSelect className="w-full"
                       value={data.authenticated ? "Authorized" : "Unauthorized"}
                       onChange={(e) => handleAuthenticatedChange(e, index)}
                     >
                       <option value="Authorized">Authorized</option>
                       <option value="Unauthorized">Unauthorized</option>
-                    </select>
+                    </ThemedSelect>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                    <select
+                    <ThemedSelect variant="ghost" className="min-w-[9rem]"
                       name="branchId"
                       value={data.branchId || "" }
                       onChange={(e) => handleBranchChange(e, index)}
-                      className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
                     >
                         <option value="">No branch selected</option>
                       {Shop?.map((shop) => (
@@ -144,12 +143,12 @@ const PendingRequest = () => {
                           {shop?.branchName}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </td>
                   <td className="px-2 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 text-xs md:text-sm">
                     <button
                       onClick={() => handleUpdateUser(index)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      className="bg-[#252525] hover:bg-gray-800 text-white font-bold py-2 px-4 rounded"
                     >
                       Update
                     </button>

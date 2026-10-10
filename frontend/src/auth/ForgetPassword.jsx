@@ -93,7 +93,7 @@ const ForgetPassword = () => {
                 ) : (
                   <button
                     type="submit"
-                    className="w-full text-white bg-gray-900 hover:bg-gray-700  focus:outline-none focus:ring-primary-300 font-medium rounded-md text-sm px-5 h-10 text-center"
+                    className="w-full text-white bg-gray-900 hover:bg-gray-700  focus:outline-none font-medium rounded-md text-sm px-5 h-10 text-center"
                   >
                     Submit
                   </button>

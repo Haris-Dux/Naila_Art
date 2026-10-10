@@ -14,6 +14,7 @@ import {
 } from "../../features/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const Shop = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -296,19 +297,18 @@ const Shop = () => {
                             {data?.email}
                           </td>
                           <td className="px-12 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                            <select
+                            <ThemedSelect variant="ghost" className="min-w-[9rem]"
                               name="role"
                               value={editedUsers[index]?.role || data?.role}
                               onChange={(e) => handleRoleChange(e, index)}
-                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
                             >
                               <option value="user">User</option>
                               <option value="admin">Admin</option>
                               <option value="superadmin">Superadmin</option>
-                            </select>
+                            </ThemedSelect>
                           </td>
                           <td className="px-4 py-4 text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                            <select
+                            <ThemedSelect variant="ghost" className="min-w-[9rem]"
                               name="authenticated"
                               value={
                                 editedUsers[index]?.authenticated?.toString() ||
@@ -317,27 +317,25 @@ const Shop = () => {
                               onChange={(e) =>
                                 handleAuthenticatedChange(e, index)
                               }
-                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
                             >
                               <option value="true">True</option>
                               <option value="false">False</option>
-                            </select>
+                            </ThemedSelect>
                           </td>
                           <td className="px-4 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                            <select
+                            <ThemedSelect variant="ghost" className="min-w-[9rem]"
                               name="branchId"
                               value={
                                 editedUsers[index]?.branchId || data?.branchId
                               }
                               onChange={(e) => handleBranchChange(e, index)}
-                              className="px-3 py-2 border-none rounded-md dark:bg-gray-700"
                             >
                               {Shop?.map((shop) => (
                                 <option key={shop?.id} value={shop?.id}>
                                   {shop?.branchName}
                                 </option>
                               ))}
-                            </select>
+                            </ThemedSelect>
                           </td>
                         </tr>
                       ))
@@ -404,7 +402,7 @@ const Shop = () => {
               </button>
               <button
                 onClick={applyChanges}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                className="px-4 py-2 bg-[#252525] text-white rounded-md"
               >
                 Confirm
               </button>

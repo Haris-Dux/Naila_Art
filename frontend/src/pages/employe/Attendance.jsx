@@ -513,7 +513,7 @@ const Attendance = () => {
                             ? "bg-cyan-50 hover:bg-cyan-100"
                             : isPublicHoliday
                               ? "bg-violet-50  hover:bg-violet-100 "
-                              : "hover:bg-blue-50"
+                              : "hover:bg-gray-100"
                         }`}
                         onClick={() => handleCellClick(employee, day, record)}
                       >

@@ -15,7 +15,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../../Component/Modal/ConfirmationModal";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { IoStatsChart } from "react-icons/io5";
-import Select from "react-select";
+import AppSelect from "../../../Component/Common/select/AppSelect";
 import Pagination from "../../../Component/Common/Pagination";
 import { buildPaginationQuery, getPageLimit } from "../../../Utils/Common";
 import PageLoader from "../../../Component/Loader/PageLoader";
@@ -602,23 +602,10 @@ const Expense = () => {
               placeholder="Enter category name"
             />
             <div className="mt-3 custom-reactSelect">
-              <Select
+              <AppSelect className="w-full"
                 isMulti
                 options={branchOptions}
-                styles={{
-                  control: (baseStyles, state) => ({
-                    ...baseStyles,
-                    borderRadius: 6,
-                    borderColor: "#D1D5DB",
-                    boxShadow: state.isFocused ? "none" : "none",
-                    "&:hover": {
-                      borderColor: "#D1D5DB",
-                    },
-                    padding: "2px",
-                  }),
-                }}
                 placeholder="Select branch for category"
-                className="bg-gray-50 text-gray-900 rounded-md"
                 onChange={(selectedOptions) => {
                   setExpenseCategoryData((prev) => ({
                     ...prev,

@@ -4,6 +4,7 @@ import {
   getbPairDataAsync,
   salebPairAsync,
 } from "../../../features/B_pairSlice";
+import ThemedSelect from "../../../Component/Common/select/ThemedSelect";
 
 const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
   const dispatch = useDispatch();
@@ -155,11 +156,10 @@ const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
                 </div>
 
                 <div>
-                  <select
+                  <ThemedSelect className="w-full"
                     name="payment_Method"
                     value={formData.payment_Method}
                     onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     required
                   >
                     <option value={""} disabled>
@@ -168,7 +168,7 @@ const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
                     {PaymentData.map((item) => (
                        <option value={item.value} key={item.value}>{item.label}</option>
                     ))}
-                  </select>
+                  </ThemedSelect>
                 </div>
               </div>
 
@@ -177,7 +177,7 @@ const Sale_Modal = ({ closeModal, id, selectedCategory, page, search }) => {
                   <button
                     disabled
                     type="button"
-                    class="text-white cursor-not-allowed border-gray-600 bg-gray-600 focus:ring-0 focus:outline-none focus:ring-blue-300 font-medium rounded text-sm px-5 py-3 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700  inline-flex items-center"
+                    class="text-white cursor-not-allowed border-gray-600 bg-gray-600 focus:ring-0 focus:outline-none font-medium rounded text-sm px-5 py-3 text-center mr-2  inline-flex items-center"
                   >
                     <svg
                       aria-hidden="true"

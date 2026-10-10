@@ -18,6 +18,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import ConfirmationModal from "../../Component/Modal/ConfirmationModal";
 import { formatReadableDate, getDateOnlyTime, getTodayDate } from "../../Utils/Common";
 import PageLoader from "../../Component/Loader/PageLoader";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 
 const EmployeeDetails = () => {
@@ -496,10 +497,9 @@ const sortTransactionsByDate = (transactions = []) =>
                       required
                     />
                   </div>
-                  <select
+                  <ThemedSelect className="w-full"
                     id="payment-method"
                     name="payment_Method"
-                    className="bg-gray-50 border w-full text-gray-900 text-sm rounded-md focus:ring-0 border-gray-300 focus:border-gray-300 block  p-2.5 dark:bg-gray-600 dark:border-red-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.payment_Method}
                     onChange={(e) =>
                       setFormData({
@@ -516,11 +516,10 @@ const sortTransactionsByDate = (transactions = []) =>
                         {item.label}
                       </option>
                     ))}
-                  </select>
-                  <select
+                  </ThemedSelect>
+                  <ThemedSelect className="w-full"
                     id="branches"
                     name="branchId"
-                    className="bg-gray-50 border border-gray-300 w-full text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                     value={formData?.branchId || ""}
                     onChange={handleChange}
                   >
@@ -532,14 +531,14 @@ const sortTransactionsByDate = (transactions = []) =>
                         {branch?.branchName}
                       </option>
                     ))}
-                  </select>
+                  </ThemedSelect>
                   <div className="flex justify-center pt-2">
                     <button
                       disabled={employeEditLoading}
                       type="submit"
                       className={`inline-block rounded ${
                         employeEditLoading && "cursor-not-allowed"
-                      } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500`}
+                      } border border-gray-600 bg-gray-600 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-gray-700 hover:text-gray-100 focus:outline-none focus:ring`}
                     >
                       Submit
                     </button>
@@ -656,10 +655,9 @@ const sortTransactionsByDate = (transactions = []) =>
                       >
                         Branch
                       </label>
-                      <select
+                      <ThemedSelect className="w-full"
                         id="salary-branch"
                         name="branchId"
-                        className="block h-11 w-full rounded-md border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-900 shadow-sm transition focus:border-gray-500 focus:outline-none focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                         value={formData?.branchId || ""}
                         onChange={handleChange}
                       >
@@ -671,7 +669,7 @@ const sortTransactionsByDate = (transactions = []) =>
                             {branch?.branchName}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
                     <div className="space-y-1.5">
                       <label
@@ -680,10 +678,9 @@ const sortTransactionsByDate = (transactions = []) =>
                       >
                         Payment Method
                       </label>
-                      <select
+                      <ThemedSelect className="w-full"
                         id="salary-payment-method"
                         name="payment_Method"
-                        className="block h-11 w-full rounded-md border border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-900 shadow-sm transition focus:border-gray-500 focus:outline-none focus:ring-0 dark:border-gray-500 dark:bg-gray-600 dark:text-white"
                         value={formData?.payment_Method}
                         onChange={(e) =>
                           setFormData({
@@ -700,7 +697,7 @@ const sortTransactionsByDate = (transactions = []) =>
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </ThemedSelect>
                     </div>
 
                     <div className="space-y-1.5">
@@ -730,7 +727,7 @@ const sortTransactionsByDate = (transactions = []) =>
                     onClick={handleCreditSalary}
                     className={`inline-block rounded ${
                       employeEditLoading && "cursor-not-allowed"
-                    }  bg-green-500 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-green-400 hover:text-gray-100 focus:outline-none focus:ring active:text-indigo-500`}
+                    }  bg-green-500 dark:bg-gray-500 px-10 py-2.5 text-sm font-medium text-white hover:bg-green-400 hover:text-gray-100 focus:outline-none focus:ring`}
                   >
                     Yes
                   </button>

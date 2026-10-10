@@ -29,6 +29,7 @@ import { generateOtherSaleAsync } from "../../features/OtherSale";
 import { FaBookOpen } from "react-icons/fa";
 import { Roles } from "../../constants/Roles";
 import { getTodayDate } from "../../Utils/Common";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const baseNavItemClass =
   "flex w-full items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors";
@@ -945,10 +946,9 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
 
                   {/* Payment Method */}
                   <div>
-                    <select
+                    <ThemedSelect className="w-full"
                       id="payment-method"
                       name="payment_Method"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       value={formData.payment_Method}
                       required
                       onChange={(e) =>
@@ -966,7 +966,7 @@ rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:
                           {item.label}
                         </option>
                       ))}
-                    </select>
+                    </ThemedSelect>
                   </div>
 
                   {/* Note */}

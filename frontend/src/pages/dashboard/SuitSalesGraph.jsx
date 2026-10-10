@@ -5,6 +5,7 @@ import { Bar } from "react-chartjs-2";
 import { useDispatch, useSelector } from "react-redux";
 import { getSuitSalesHistoryAsync } from "../../features/DashboardSlice";
 import toast from "react-hot-toast";
+import ThemedSelect from "../../Component/Common/select/ThemedSelect";
 
 const SuitSalesGraph = () => {
   const dispatch = useDispatch();
@@ -157,13 +158,11 @@ const SuitSalesGraph = () => {
           />
 
           {/* YEAR FILTER */}
-          <select
+          <ThemedSelect className="w-full"
             name="year"
-            type="text"
             value={saleFilters.year}
             onChange={handleChangeFilters}
             disabled={saleFilters.date !== ""}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           >
             <option value="" disabled>
               Select Year
@@ -173,15 +172,14 @@ const SuitSalesGraph = () => {
                 {item}
               </option>
             ))}
-          </select>
+          </ThemedSelect>
 
           {/* MONTH FILTER */}
-          <select
+          <ThemedSelect className="w-full"
             name="month"
             value={saleFilters.month}
             onChange={handleChangeFilters}
             disabled={saleFilters.date !== ""}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-0 focus:border-gray-300 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
           >
             <option value="" disabled>
               Select Month
@@ -191,7 +189,7 @@ const SuitSalesGraph = () => {
                 {item.label}
               </option>
             ))}
-          </select>
+          </ThemedSelect>
 
           <div className="flex items-center gap-4 ">
             {/* SEARCH BUTTON */}
