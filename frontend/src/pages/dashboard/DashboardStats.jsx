@@ -24,7 +24,6 @@ import { FaHistory } from "react-icons/fa";
 import SendOTP from "./SendOTP";
 import { CiSearch } from "react-icons/ci";
 import moment from "moment-timezone";
-import { showNotificationsForChecksAsync } from "../../features/BuyerSlice";
 import { GrPowerReset } from "react-icons/gr";
 import SuitSalesGraph from "./SuitSalesGraph";
 import Pagination from "../../Component/Common/Pagination";
@@ -48,11 +47,6 @@ const DashboardStats = () => {
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [historyModal, setHistoryModal] = useState(false);
 
-  useEffect(() => {
-    if (user && user?.user?.role !== "user") {
-      dispatch(showNotificationsForChecksAsync());
-    }
-  }, [user, dispatch]);
 
   const [formData, setFormData] = useState({
     date: today,
