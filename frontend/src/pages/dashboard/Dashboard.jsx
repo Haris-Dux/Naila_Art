@@ -755,7 +755,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-2 lg:order-2">
               <Link
                 to="/dashboard/cash-book"
-                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                className=" flex items-center gap-2 rounded-md border border-gray-500 bg-white px-4 py-2 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Cash Book
                 <FaBookOpen size={18} />
@@ -763,7 +763,7 @@ const Dashboard = () => {
 
               <Link
                 to="/dashboard/generate-bill"
-                className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                className=" flex items-center gap-2 rounded-md border border-gray-500 bg-white px-4 py-2 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
               >
                 Buyer Bill
                 <FaFileInvoice size={18} />
@@ -772,7 +772,7 @@ const Dashboard = () => {
                 <>
                   <button
                     onClick={openOtherSaleModal}
-                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                    className=" flex items-center gap-2 rounded-md border border-gray-500 bg-white px-4 py-2 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
                   >
                     Other Sale
                     <FaTags size={18} />
@@ -780,7 +780,7 @@ const Dashboard = () => {
 
                   <Link
                     to="/dashboard/employee-attendance"
-                    className=" flex items-center gap-2 rounded border border-gray-800 bg-white px-3 py-1.5 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
+                    className=" flex items-center gap-2 rounded-md border border-gray-500 bg-white px-4 py-2 mx-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-600 focus:outline-none active:text-gray-500"
                   >
                     Attendance
                     <IoPeople size={18} />
